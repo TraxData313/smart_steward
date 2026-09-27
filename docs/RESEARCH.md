@@ -431,7 +431,8 @@ Other executors: ransom §5, donate §5, wanderer and mercenary hire §7.
   `village` → "open on next tick"; open from `OnApplicationTick` when `ScreenManager.TopScreen` is
   the MapScreen, `Campaign.Current.CurrentMenuContext` is still that menu and no encyclopedia /
   conversation / inquiry is up. Clear the flags on `OnSettlementLeftEvent`. (Pattern reasoned from
-  the code, **not yet proven in game** — verify in PLAN step 8.)
+  the code, **not yet proven in game** — verify in PLAN step 8.) **Step 8 built it** with a stricter "quiet map"
+  test and a few frames' patience (§15); still to be seen in game (PLAYTEST "Step 8").
 - **Leave warning popup:** `InformationManager.ShowInquiry(new InquiryData(title, text, true, true,
   "Review", "Leave anyway", onReview, onLeave), pauseGameActiveState: true)` (TaleWorlds.Library).
 
@@ -746,6 +747,66 @@ own formula (§13), so the tab and the planner agree.
 
 ---
 
+## 15. Triggers — verified in step 8 (2026.09.27)
+
+Read in `game-decompiled-1.4.8` and War Sails' `NavalDLC.dll` (decompiled with ilspycmd for this step) while writing
+`src\SmartSteward.Module\StewardTriggers.cs`. Every method of the built DLL JIT-compiled against the real game DLLs
+(561, none failed); nothing here was run in game yet.
+
+**Arrival order** (`CS\...Encounters\PlayerEncounter.cs` `Init`): for the main party walking into a town or village
+(not under raid or siege) `EnterSettlement()` (→ `EnterSettlementAction.ApplyForParty` → `SettlementEntered`) runs
+BEFORE `GameMenu.ActivateGameMenu(encounterMenu)` — also when the menu is `town_outside` (crime, war: the party is
+"in" but the town menu comes later). `MobileParty.CurrentSettlement`'s setter also sets `LastVisitedSettlement` — so
+while inside, LastVisitedSettlement IS the current settlement. `LeaveSettlementAction` fires `OnSettlementLeft`.
+War Sails' `NavalEncounterMenuModel` returns the base model's menu (`town`) for a normal arrival (its storyline aside).
+
+**`GameMenu.RunOnInit`** runs `OnInit(args)` FIRST — which may switch menus (the village menu's init switches a looted
+village to `village_looted`) — and THEN fires `GameMenuOpened` with the ORIGINAL menu's args. So a `village` event can
+arrive while `village_looted` shows: check the live menu (`MapState.MenuContext.GameMenu.StringId`) before acting.
+
+**A menu click** (`GameMenu.RunMenuOptionConsequence`, reached through `MenuContext.InvokeConsequence` →
+`GameMenuManager.RunConsequenceOfVirtualMenuOption` → `RunConsequencesOfMenuOption(context, index)`):
+`option.RunConsequence(context)` = `OnConsequence(args)` then `menuContext.OnConsequence(option)` (attribute handlers),
+and THEN `CampaignEventDispatcher.OnGameMenuOptionSelected(menu, option)` — **fired even when the wrapped consequence did
+not leave.** Its listeners: `IncidentsCampaignBehaviour` (`town/town_leave`, `village/leave`, `castle/leave` → a
+leaving incident with `DefaultIncidentModel.GetIncidentTriggerGlobalProbability()` = 0.5, cooldowns apply),
+`ExtortionByDesertersIssueBehavior` (any `IsLeave` option → `TickDesertersPartyLogic`, which does nothing while the
+party is still in the quest settlement), the tutorial system. `RunConsequencesOfMenuOption(context, index)` is public:
+re-running an option by its index in `GameMenu.MenuOptions` is exactly the click (minus the repeat-object mapping).
+`MenuCallbackArgs(MenuContext, TextObject)` is a public constructor.
+
+**Incidents** (`IncidentsCampaignBehaviour`): `InvokeIncident` only sets `MapState.NextIncident`; `Campaign.RealTick`
+starts it on the next campaign tick whatever the menu (`MapState.StartIncident` → MapScreen adds `MapIncidentView`, whose
+`CreateLayout` synchronously pauses the engine, adds layer "MapIncidents" at order **203** and calls
+`SetIsMapIncidentActive(true)`). Entering incidents roll on the first `town`/`village`/`castle` GameMenuOpened after a
+`SettlementEntered` with no menu up — the same moment as our arrival. A leaving trigger is vetoed when
+`LastVisitedSettlement.IsSettlementBusy(this)`: **`CampaignEvents.IsSettlementBusyEvent`** (`ReferenceIMBEvent<Settlement,
+object, int>`, handler `(Settlement, object asker, ref int priority)`; > 0 = busy; vanilla quests use it for hideouts)
+lets us answer "busy" for the click that only showed our warning (asker type `IncidentsCampaignBehaviour`).
+
+**The leave options** (`PlayerTownVisitCampaignBehavior.AddGameMenus`, `OnSessionLaunched`): `town/town_leave` and
+`village/leave` (condition: not at sea; in an army only for its leader), `village/leave_set_sail` (not at sea, the
+village has a port; `SetSailAtPosition(PortPosition)` + `PlayerEncounter.Finish`), `village/leave_at_sea` (at sea), all
+`isLeave`. Leaving = `game_menu_settlement_leave_on_consequence` (gate position, `PlayerEncounter.LeaveSettlement`,
+`Finish`, `SetMoveModeHold`, `SignalAutoSave`). `village_looted` has its own `leave` / `leave_set_sail` (not guarded —
+a looted village gets nothing). **War Sails** (`NavalDLC.CampaignBehaviors.NavalTransitionCampaignBehavior`) registers
+in **`OnAfterSessionLaunched`** — after EVERY behavior's `OnSessionLaunched`, whatever the module order: `town/port`
+("Go to the port", inserted at index 1) and `port_menu` with `leave_option` / `leave_option_isleave` ("Go to the town
+center" — back to `town`, NOT a leave), `call_fleet`, `inspect_fleet`, `manage_fleet`, `repair_ships`, `trade`,
+`enter_port`, `port_wait` and **`sail_option`** ("Set sail", isLeave → `SetSailAtPosition(PortPosition)` +
+`PlayerEncounter.Finish(true)`). So the guard wraps lazily, at each menu's first `GameMenuOpened` — a load-before in
+SubModule.xml could never make an eager wrap see the port menu.
+
+**Is the map quiet?** (all public, SandBox.View `MapScreen` unless noted): `IsReady`, `IsInMenu` (the menu's view is
+up), `IsEscapeMenuOpened`, `IsInBattleSimulation`, `IsInTownManagement`, `IsInHideoutTroopManage`, `IsInArmyManagement`,
+`IsInRecruitment`, `IsInCampaignOptions`, `IsMarriageOfferPopupActive`, `IsMapCheatsActive`, `IsMapIncidentActive`,
+`IsHeirSelectionPopupActive`, `EncyclopediaScreenManager.IsEncyclopediaOpen` (vanilla's `MapNavigationHelper` checks the
+same set); `InformationManager.IsAnyInquiryActive()` (TaleWorlds.Library); `ConversationManager.IsConversationFlowActive`
+/ `IsConversationInProgress`; `MapState.AtMenu`, `MapState.MenuContext`, `MapState.NextIncident`. Menu layers: the menu
+"MapMenuView" **100**, its overlay "MapMenuOverlay" **202**, incidents **203**, our window 305.
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -803,6 +864,13 @@ own formula (§13), so the tab and the planner agree.
 47. **`IntegerInputTextWidget` cannot be empty** — use `EditableTextWidget` where "empty" means something.
 48. **A PowerShell AssemblyResolve script block can recurse into a StackOverflow** while game code runs — preload the
     game DLLs instead when driving game code from a script.
+49. **`GameMenuOpened` fires AFTER the menu's own init** — which may have switched to another menu; check the live menu.
+50. **`GameMenuOptionSelected` fires even when a wrapped consequence did not leave** — veto the leaving incidents through
+    `IsSettlementBusyEvent`, and re-run the real leave through `RunConsequencesOfMenuOption`.
+51. **War Sails adds its menus in `OnAfterSessionLaunched`** — wrap its options lazily (at `GameMenuOpened`), never at
+    session launch.
+52. **An incident rolled on a menu event starts on the next campaign tick, inside the menu** — wait for
+    `MapState.NextIncident == null` and `!MapScreen.IsMapIncidentActive` before opening anything.
 
 ---
 

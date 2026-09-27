@@ -80,7 +80,8 @@ nothing lost. Therefore:
   way in. (TrainingBattles learned the hard way that a subclassed MCM settings type makes MCM a
   hard dependency.)
 - **The player is always in control.** The steward proposes; nothing is bought, sold or
-  ransomed without the player's click — unless the player explicitly turns on auto-execute.
+  ransomed without the player's click — unless the player explicitly turns on the Full-autonomous steward
+  (DESIGN §6: its own purse floor, never a tavern hire, a message-log report).
   Items the player LOCKED in the inventory screen are never sold.
 - **Save-safe.** The mod stores nothing in the save game (settings are global, per-visit flags
   live in memory), so it can be added or removed mid-campaign.
@@ -104,18 +105,21 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               PriceBook rules, MarketState + TradeLane/LaneCursor = the price walk
   Planning/                   StewardPlanner.Plan(snapshot, settings, oracle) → StewardPlan
                               (sections → rows with their lanes, totals, facts); one planner per job;
-                              PlanWalk = the picking rules the planner and the editor share. The plan is
+                              PlanWalk = the picking rules the planner and the editor share; MoneyFloors + PlanMode =
+                              the floors (window, or autonomous: raised to AutonomousMinGold, no tavern). The plan is
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor;
                               PlanReport = the plan as text (full log / compact popup)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit, hire rules),
-                              TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines)
+                              TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
+                              AutonomousReport (the autonomous steward's message-log lines, words from outside)
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
                               SettingEdit + PrisonerTicks (Instructions tab). Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
-                              SmartStewardBehavior (SyncData stores nothing), ModLog, SettingsHost (the one
+                              SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
+                              StewardTriggers), ModLog, SettingsHost (the one
                               SettingsService over settings.json — read Current afresh, a reload replaces it),
                               McmBridge (Mod Options via MCM's fluent builder; MCM types only in method
                               bodies/signatures — read its class comment before touching it)
@@ -128,7 +132,9 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
                               command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids)
   StewardMenu.cs              "Party Steward" in the town and village menus → opens the window
-  DebugDoor.cs                TEMPORARY "Party Steward (debug)" menu entry + popup — step 8 removes it
+  StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map, the leave warning (LeaveGuard wraps
+                              the leave options lazily at their menu's first opening), the IsSettlementBusy veto
+  AutonomousRun.cs            (step 8) the Full-autonomous steward: autonomous plan → executor → message-log report
 tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and
                               StewardSettings + SettingsRegistry ↔ DESIGN §7 checks (keys, order, groups,
                               defaults, ranges); Settings/ = registry, file and service tests;
@@ -137,7 +143,8 @@ tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xm
 module/SubModule.xml          the manifest (ModuleData joins it in step 9)
 module/GUI/Prefabs/           SmartStewardWindow.xml — the window's one movie (three tabs)
 tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smart Steward (dev)")
-tools/check-soft-deps.ps1     the game loader's GetTypes() test without MCM (Windows PowerShell = .NET Framework)
+tools/check-soft-deps.ps1     the game loader's GetTypes() test without MCM (Windows PowerShell = .NET Framework;
+                              resolves the game bin + SandBox's, like the game at our load)
 tools/check-gui.ps1           the prefab gate: every tag, attribute, value, brush, sprite category and VM binding
                               against the game and the built DLL — run it after touching a prefab or a view model
 tools/McmProbe/               drives MCM's real fluent builder with the built bridge, outside the game

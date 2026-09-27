@@ -3,7 +3,7 @@
 Short lists for Anton, one section per build step that needs the game. The log is
 `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log` — send it with any report.
 
-## Step 6 — the debug door (temporary, step 8 removes it)
+## Step 6 — the debug door (removed in step 8 — run these checks through the window's Do it)
 
 Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load a save. For a lively test, turn on
 `SellLoot` in Mod Options (or settings.json) first.
@@ -28,8 +28,8 @@ Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load
 
 ## Step 7 — the window
 
-Deploy (game closed), load a save, enter a town. The town menu has **Party Steward** right after Trade (the debug
-entries follow it until step 8). If anything looks broken, press Escape — and send the log.
+Deploy (game closed), load a save, enter a town. The town menu has **Party Steward** right after Trade. If anything
+looks broken, press Escape — and send the log.
 
 1. **It opens and closes.** Click Party Steward: a dark window "Party Steward — <town>" with three tabs. Escape
    closes it; so does **Not now**. Open it again — same plan. Nothing in the game moved.
@@ -59,3 +59,36 @@ entries follow it until step 8). If anything looks broken, press Escape — and 
    ransom" — back on Suggestion his row stays at 0. Mod Options (if you have MCM) and settings.json show the same values.
 11. **Village.** Repeat 2–3 and 8 in a village (no tavern, no prisoners there).
 12. **Look.** Anything clipped, overlapping, unreadable, or in a wrong colour? A screenshot helps most.
+
+## Step 8 — triggers & autonomy
+
+Deploy (game closed), load a save made OUTSIDE a town — a save loaded inside a town is no arrival (no popup there, by
+design). Defaults: the window pops up in towns and villages, only when there is something to suggest; the leave
+question is on; the autonomous steward is off. Mod Options (or settings.json) change them.
+
+1. **Arrival popup.** Ride into a town where the steward has work (low food, footmen without horses, prisoners). Once
+   the town menu is up, the Party Steward window opens by itself. Close it, visit the Trade screen and the tavern
+   district and come back: it does NOT open again this visit. The log says `arrival popup at …`.
+2. **Timing.** Over several arrivals: did it ever open on top of an incident ("As you enter…"), a quest conversation, a
+   tutorial or a message box? It should wait until they are gone. Report any bad moment.
+3. **Nothing to do → nothing opens.** Arrive where the plan is empty: no window. Untick "Only open with suggestions":
+   the next arrival opens it anyway.
+4. **Village and the switches.** Same in a village. Untick "Open on entering a village": no popup there, towns still
+   pop. A looted village: nothing at all.
+5. **Leave question.** Untick "Open on entering a town", enter a town with suggestions and click Leave: *"Your steward
+   has suggestions you haven't looked at."* **Review** opens the window (Leave then leaves without asking); **Leave
+   anyway** leaves at once (Escape does the same). No incident should pop while the question is up.
+6. **No question when looked at, or nothing to say.** Open Party Steward from the menu (even just Not now), then
+   Leave: no question. A town where the steward has nothing to suggest: no question.
+7. **Ships (War Sails).** In a port town go to the port and **Set sail** with unreviewed suggestions: the same
+   question (Review opens the window right there). At a coastal village, **Set Sail** asks too.
+8. **Full-autonomous steward.** Tick General → **Full-autonomous steward**. Its floor, Money → **Keep while
+   autonomous**, is 100,000: below it the steward only sells and ransoms (tick Sell loot to see it); set it to e.g.
+   1,000 to watch it buy. Enter a town: no window, no question on leaving — just a line in the message log (bottom
+   left) like `Steward at Sargot: food +24 (2 kinds) –310 · mounts +3 –540 · armour & weapons 41 sold +2,130 ·
+   prisoners 12 ransomed +980 · gold 312,400 » 314,660`. Check gold and inventory match. Never a tavern hire.
+   Nothing to do → no line. The Party Steward entry still opens the window.
+9. **Old settings file.** A settings.json that still said `"AutoExecute"` now says `"AutonomousSteward"` with the
+   same value (the log: `"AutoExecute" is now AutonomousSteward`).
+10. **Master switch.** Untick General → Steward on: no menu entry, no popup, no question, no autonomy. Tick it back.
+11. **The debug entries are gone** from the town and village menus.

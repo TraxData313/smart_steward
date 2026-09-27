@@ -417,6 +417,7 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
    - `MinGoldAfterDeal` (default **1000**): no purchase takes the purse below this.
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
      purse below this. Food only answers to `MinGoldAfterDeal` — food outranks horses.
+   - While the Full-autonomous steward acts alone, both rise to `AutonomousMinGold` (default **100000**, §6).
 4. The market's own gold limits what the steward can sell there (villages especially) — the
    planner never proposes a sale the market cannot pay for.
    **[research 2026.09.27]** Vanilla would let the sale go through and simply pay no more than
@@ -537,11 +538,29 @@ expected unit prices.
     `Steward at Sargot: food +24 (5 kinds) −310 · mounts +3 −540 · armour & weapons 41 sold +2,130
     · prisoners 12 ransomed +980 · gold 312,400 → 314,660`. Skipped/cut-short items get one line
     ("2 skipped — see log"). Nothing happened → no message. The full detail goes to the log file.
-- `ModEnabled` (default on) master switch.
-- **TEMPORARY (step 6 → removed in step 8)**: "Party Steward (debug)" in the town and village menus — snapshot,
-  plan, the full plan in the log, a vanilla popup with the changing rows and totals, Execute / Cancel. A second town
-  entry "(debug, + tavern hires)" adds one wanderer and the whole mercenary band, to try the hire executors before
-  the window exists. Playtest checklist: `docs/PLAYTEST.md`.
+- `ModEnabled` (default on) master switch: off = no menu entry, no popup, no warning (the wrapped leave options let
+  every leave straight through), no autonomy.
+- **How the triggers behave** **[decided: Claude, 2026.09.27 — step 8]** (`Module\StewardTriggers`, `AutonomousRun`;
+  Core `Planning\MoneyFloors`, `Execution\AutonomousReport`):
+  - **Arrival** = the party walked in (`SettlementEntered`) and the town/village menu showed. A campaign LOADED inside a
+    town is no arrival: no popup, no autonomous run (the leave warning still works there). The popup or the autonomous
+    run waits until the map is quiet — the menu up, no inquiry, conversation, map incident, encyclopedia, escape menu or
+    management screen — so it never fights the game's own arrival popups (an "entering town" incident waits first).
+  - **"Changes"** (PopupOnlyWithChanges, the leave warning) = at least one row that moves something; the tavern's rows at
+    0 do not count. The leave warning plans afresh at the click, so trading by hand in vanilla's screens counts.
+  - The warning's buttons: **Review** opens the window (also from War Sails' port); **Leave anyway** carries out the
+    leave the player clicked, the vanilla way (the game's leaving incidents roll then, not on the click that asked).
+    Escape on the question = Leave anyway — the player had clicked Leave. Opening the window at all (even Not now)
+    counts as reviewed for the visit.
+  - **The window ignores AutonomousMinGold**: with the autonomous steward on, the menu entry still opens the normal
+    window with the normal floors — the player's own hand. Only the steward's own runs answer to the autonomous floor.
+  - **The autonomous plan never even lists the tavern** (not only "never hires"): nothing to hire, nothing to report.
+  - `AutonomousMinGold` sits in the **Money** group with the other floors; its range tops out at 10,000,000.
+  - **The report** is one message line — jobs joined by ` · `, as the example above, in the fonts' glyphs (en-dash minus,
+    `»`) — plus the trouble line `Steward: 1 cut short, 2 skipped — see smart_steward.log` (or `nothing was done` when the
+    run could not start). The counts are the executor's real ones, not the plan's. The jobs: food (with the kinds
+    bought), mounts (the whole horses section: pack, riding, upgrade), armour & weapons, prisoners (ransomed / donated,
+    influence).
 - **[research 2026.09.27]** (RESEARCH §10)
   - Menu entries go into the `town` and `village` menus (right after Trade); arrival =
     `SettlementEntered`, then the next `town`/`village` menu opening (it re-fires on every return
@@ -549,6 +568,8 @@ expected unit prices.
     gets nothing.
   - The leave warning wraps the leave options' own actions — `town_leave`, the village `leave`,
     `leave_set_sail`, `leave_at_sea` and War Sails' port `sail_option` — no Harmony needed.
+    **[step 8]** Wrapped lazily, the first time each menu opens (War Sails builds its port menu after every other
+    mod's session launch — RESEARCH §15).
     Clicking the map cannot take the party out of a settlement menu, so no other door needs
     guarding (Return to Army, a siege, prison break are left alone).
 
