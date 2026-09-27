@@ -28,6 +28,10 @@ namespace SmartSteward.Core.Execution
         /// <summary>The live price fails the row's own limit (max buy / min sell) — the plan never trades past it.</summary>
         PriceLimit,
 
+        /// <summary>The Full-autonomous steward's purchase would take the purse below its floor (AutonomousMinGold,
+        /// DESIGN §6) — a live price above the plan's must never drain the chest the player left to it.</summary>
+        BelowFloor,
+
         /// <summary>The game no longer allows it here (trade access, the ransom broker, donating, the tavern).</summary>
         NotAllowedHere,
 
@@ -51,7 +55,8 @@ namespace SmartSteward.Core.Execution
     /// the editor walk by (DESIGN §3): a sale needs the market to still be able to pay for it (gross sales, not net
     /// — the planner's own rule, stricter than vanilla's payout cap), a purchase needs the purse to pay for it, and
     /// every unit honours its row's price limit. The floors (MinGoldAfterDeal…) are the plan's business, not the
-    /// executor's: the player saw them and clicked.
+    /// executor's, when the player saw them and clicked; the Full-autonomous steward's floors (nobody looked) are held
+    /// again at every purchase (<see cref="FloorOf"/>) [decided: Claude, 2026.09.27 — step 9].
     /// </summary>
     public sealed class ExecutionBudget
     {
@@ -71,8 +76,9 @@ namespace SmartSteward.Core.Execution
         public int Purchases { get; private set; }
 
         /// <summary>May the next unit move at <paramref name="price"/>? <paramref name="limit"/> is the row lane's
-        /// price limit for this stack (buy: max, sell: min; null = none).</summary>
-        public SkipReason Check(TradeDirection direction, int price, int? limit)
+        /// price limit for this stack (buy: max, sell: min; null = none); a purchase must also leave at least
+        /// <paramref name="floor"/> in the purse (<see cref="FloorOf"/>: 0 unless the steward acts alone).</summary>
+        public SkipReason Check(TradeDirection direction, int price, int? limit, int floor = 0)
         {
             if (direction == TradeDirection.Sell)
             {
@@ -82,7 +88,25 @@ namespace SmartSteward.Core.Execution
             }
             if (limit != null && price > limit.Value) return SkipReason.PriceLimit;
             if (price > Purse) return SkipReason.NotEnoughGold;
+            if (floor > 0 && Purse - price < floor) return SkipReason.BelowFloor;
             return SkipReason.None;
+        }
+
+        /// <summary>
+        /// The purse floor a purchase of this transaction must respect at the click: none for the window's plan (the
+        /// player saw the red flags and clicked); for the Full-autonomous steward's plan the floors it was planned
+        /// with — max(MinGoldAfterDeal, AutonomousMinGold) for food, and the higher animal floor for the horses
+        /// section (DESIGN §3, §6).
+        /// </summary>
+        public static int FloorOf(StewardPlan plan, PlanTransaction transaction)
+        {
+            if (plan == null || transaction == null || plan.Mode != PlanMode.Autonomous)
+                return 0;
+            var floors = plan.Floors;
+            var row = plan.FindRow(transaction.RowId);
+            return row != null && row.Section == PlanSectionKind.Mounts
+                ? System.Math.Max(floors.All, floors.Animals)
+                : floors.All;
         }
 
         /// <summary>Books one unit moved at <paramref name="price"/>.</summary>

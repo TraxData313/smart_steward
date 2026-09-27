@@ -41,6 +41,40 @@ public class ExecutionTests
     }
 
     [Fact]
+    public void A_purchase_keeps_the_floor_it_is_given()
+    {
+        var budget = new ExecutionBudget(purse: 1_000, marketGold: 0);
+        Assert.Equal(SkipReason.None, budget.Check(TradeDirection.Buy, 100, limit: null, floor: 900));
+        Assert.Equal(SkipReason.BelowFloor, budget.Check(TradeDirection.Buy, 101, limit: null, floor: 900));
+        // the purse and the price limit are named first; no floor = the old rule
+        Assert.Equal(SkipReason.NotEnoughGold, budget.Check(TradeDirection.Buy, 1_001, limit: null, floor: 900));
+        Assert.Equal(SkipReason.PriceLimit, budget.Check(TradeDirection.Buy, 200, limit: 150, floor: 900));
+        Assert.Equal(SkipReason.None, budget.Check(TradeDirection.Buy, 1_000, limit: null));
+        // a sale never answers to a floor
+        Assert.Equal(SkipReason.None, new ExecutionBudget(0, 500).Check(TradeDirection.Sell, 100, limit: null, floor: 900));
+    }
+
+    [Fact]
+    public void Only_the_autonomous_steward_holds_its_floors_again_at_the_click()
+    {
+        // The window: the player saw the flags and clicked — no floor at the click.
+        var window = Scenario.BusyTown().Plan();
+        foreach (var tx in window.Transactions)
+            Assert.Equal(0, ExecutionBudget.FloorOf(window, tx));
+
+        // Autonomous: food answers to max(MinGoldAfterDeal, AutonomousMinGold), animals to the higher animal floor.
+        var s = Scenario.BusyTown();
+        s.Gold(400_000);
+        s.Settings.AutonomousMinGold = 150_000;
+        s.Settings.MinGoldForHorses = 200_000;
+        var plan = StewardPlanner.Plan(s.Snap, s.Settings, s.Oracle, PlanMode.Autonomous);
+        var food = plan.Transactions.First(t => t.Kind == TransactionKind.Buy && t.RowId.StartsWith("food:", StringComparison.Ordinal));
+        var horse = plan.Transactions.First(t => t.Kind == TransactionKind.Buy && t.RowId.StartsWith("mounts:", StringComparison.Ordinal));
+        Assert.Equal(150_000, ExecutionBudget.FloorOf(plan, food));
+        Assert.Equal(200_000, ExecutionBudget.FloorOf(plan, horse));
+    }
+
+    [Fact]
     public void Price_limits_come_from_the_rows_lanes()
     {
         var plan = Scenario.BusyTown().Plan();
@@ -186,6 +220,27 @@ public class ExecutionTests
         var untouched = new TransactionOutcome(tx);
         untouched.RollBack("batch reset");
         Assert.Equal(SkipReason.RolledBack, untouched.Reason);
+    }
+
+    [Fact]
+    public void Units_moved_before_an_error_are_never_counted_as_done()
+    {
+        // DoneLogic threw after the goods moved: the outcome keeps its units but stops on Error — the window's line
+        // and the autonomous report send the player to the log instead of calling it a success.
+        var plan = Scenario.BusyTown().Plan();
+        var tx = plan.Transactions.First(t => t.Kind == TransactionKind.Sell);
+        var report = new ExecutionReport(1_000);
+        var o = report.Add(tx);
+        for (int i = 0; i < tx.Count; i++)
+            o.AddUnit(tx.UnitPrices[i]);
+        Assert.Equal(1, report.FullyDone);
+        o.Stop(SkipReason.Error, "the game's trade logic failed after the goods moved");
+        Assert.Equal(0, report.FullyDone);
+        Assert.Equal(1, report.CutShort);
+        Assert.Equal(0, report.NotDone);
+        Assert.Contains("stopped: Error", ExecutionReport.Describe(o));
+        var lines = AutonomousReport.From(plan, report).Lines("Steward at X:", "Steward:");
+        Assert.Contains(lines, l => l.StartsWith("Steward: 1 cut short", StringComparison.Ordinal));
     }
 
     [Fact]

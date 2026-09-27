@@ -497,7 +497,12 @@ expected unit prices.
   pass its row's limit (max buy / min sell), a sale must fit the market's remaining gold (gross sales, the planner's
   rule), a purchase the purse. What no longer fits — sold out, no longer held, locked since, no access any more, no
   room in the dungeon or the party, no companion slot — is skipped and logged; the rest goes through. The money
-  floors are not checked again: the player saw them and clicked.
+  floors are not checked again: the player saw them and clicked. **[decided: Claude, 2026.09.27 — step 9]** Except
+  for the Full-autonomous steward, whom nobody watched: each of its purchases must still leave the purse at its floor
+  (max(MinGoldAfterDeal, AutonomousMinGold) for food, the animal floor for the horses) at the LIVE price, so a price
+  that moved since the plan can never take the chest below AutonomousMinGold.
+- If the game's own trade logic fails after the goods moved (DoneLogic throws — nothing safe to undo), the moved trades
+  are reported as cut short, never as done: the player's line and the autonomous report point to the log.
 - All item trades run in ONE headless trade; if any of them fails with an error the whole trade is reset (vanilla's
   Cancel) — the party never keeps goods it did not pay for. Each prisoner row and each hire is its own transaction.
 - Ransom: one vanilla call per prisoner row. Donation: vanilla's donate screen without the screen, one influence

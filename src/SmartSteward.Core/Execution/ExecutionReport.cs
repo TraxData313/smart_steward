@@ -129,8 +129,14 @@ namespace SmartSteward.Core.Execution
         }
 
         public int Planned => Outcomes.Count;
-        public int FullyDone => Outcomes.Count(o => o.Done >= o.Transaction.Count);
-        public int CutShort => Outcomes.Count(o => o.Done > 0 && o.Done < o.Transaction.Count);
+
+        /// <summary>Done in full and nothing went wrong.</summary>
+        public int FullyDone => Outcomes.Count(o => o.Done >= o.Transaction.Count && o.Reason != SkipReason.Error);
+
+        /// <summary>Done in part — or done, but an error followed (the trade's DoneLogic threw: the log says what
+        /// really happened), so the player is sent to the log either way.</summary>
+        public int CutShort => Outcomes.Count(o => o.Done > 0 && (o.Done < o.Transaction.Count || o.Reason == SkipReason.Error));
+
         public int NotDone => Outcomes.Count(o => o.Done == 0 && o.Transaction.Count > 0);
 
         /// <summary>One log line per transaction, then the gold line.</summary>

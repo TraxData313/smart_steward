@@ -276,10 +276,14 @@ namespace SmartSteward.Adapter
             }
             catch (Exception ex)
             {
-                // The goods moved; the gold may have moved in part. Nothing safe to undo — say exactly what happened.
+                // The goods moved; the gold may have moved in part. Nothing safe to undo — say exactly what happened,
+                // and mark every moved trade so neither the window's line nor the autonomous report calls it a success.
                 ModLog.Error("execute", "DoneLogic threw - the trade may be half-applied (gold " + goldBefore.ToString(Inv)
                     + " -> " + hero.Gold.ToString(Inv) + ", market gold " + merchantBefore.ToString(Inv) + " -> "
                     + component.Gold.ToString(Inv) + ")", ex);
+                foreach (var o in outcomes)
+                    if (o.Done > 0)
+                        o.Stop(SkipReason.Error, "the game's trade logic failed after the goods moved - check gold and goods");
                 return;
             }
             if (!done)
@@ -314,6 +318,7 @@ namespace SmartSteward.Adapter
                 return 0;
             }
             int? limit = ExecutionBudget.PriceLimitOf(plan, tx);
+            int floor = selling ? 0 : ExecutionBudget.FloorOf(plan, tx); // the autonomous steward's purse floor
             int moved = 0;
             for (int i = 0; i < tx.Count; i++)
             {
@@ -324,10 +329,11 @@ namespace SmartSteward.Adapter
                     break;
                 }
                 int price = logic.GetItemPrice(element, isBuying: !selling);
-                var why = budget.Check(direction, price, limit);
+                var why = budget.Check(direction, price, limit, floor);
                 if (why != SkipReason.None)
                 {
-                    o.Stop(why, "next unit at " + price.ToString(Inv) + (limit == null ? "" : ", limit " + limit.Value.ToString(Inv)));
+                    o.Stop(why, "next unit at " + price.ToString(Inv) + (limit == null ? "" : ", limit " + limit.Value.ToString(Inv))
+                                + (why == SkipReason.BelowFloor ? ", floor " + floor.ToString(Inv) + ", purse " + budget.Purse.ToString(Inv) : ""));
                     break;
                 }
                 logic.AddTransferCommand(TransferCommand.Transfer(1, from, to, new ItemRosterElement(element, 1),
