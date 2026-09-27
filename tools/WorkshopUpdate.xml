@@ -1,0 +1,27 @@
+<Tasks>
+    <GetItem>
+        <!-- Every update AFTER the item exists (tools\WORKSHOP-UPLOAD.md, "The update loop"). Before the first use:
+             replace FILL_IN_AFTER_CREATE with the number from "Item created. Item ID is ..." (also the ?id= of the
+             item page) - until then the uploader finds no item and uploads nothing. Each release: run package.ps1,
+             set ChangeNotes below, bump the game-version Tag if the supported game moved, then run
+             TaleWorlds.MountAndBlade.SteamWorkshop.exe with this file's full path (Steam open).
+             Same quirks as WorkshopCreate.xml: <Tasks> must be the file's first node, comments only inside
+             GetItem/UpdateItem, the title comes from SubModule.xml <Name>, and the tool ends on a harmless
+             press-any-key crash - trust "Uploading done!" in the output. This file carries no description and no
+             visibility on purpose: the page's own edits (Owner Controls) are never stomped. -->
+        <ItemId Value="FILL_IN_AFTER_CREATE"/>
+    </GetItem>
+    <UpdateItem>
+        <ModuleFolder Value="C:\Users\Trax\Documents\BannerlordMods\smart_steward\dist\SmartSteward"/>
+        <ChangeNotes Value="vX.Y.Z - what changed, in the players' words (the Change Notes tab shows it)." />
+        <!-- previous release notes, kept for reference (newest first):
+        -->
+        <Tags>
+            <Tag Value="Utility" />
+            <Tag Value="UI" />
+            <Tag Value="Native" />
+            <Tag Value="Singleplayer" />
+            <Tag Value="v1.4.8" />
+        </Tags>
+    </UpdateItem>
+</Tasks>
