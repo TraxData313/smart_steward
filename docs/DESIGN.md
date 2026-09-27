@@ -41,8 +41,8 @@ can add by hand).
 3. **Mounts** — ROLE rows, not one row per horse type (§1.1.1)
 4. **Armour & weapons** — the loot group rows (§2.6)
 5. **Prisoners** (§2.5) **[decided: Claude, 2026.09.27 — Anton's list did not place them; they
-   sit with the other selling, before Others]**
-6. **Others** — the items the player ticked for auto-sell in the Prices tab (§1.3), one row each
+   sit last, with the other selling]**
+6. *(LATER — not V1)* **Others** — the trade goods the player ticked in the Prices tab (§1.3.1)
 
 #### 1.1.1 Mount rows are grouped by role **[Anton 2026.09.27 — "don't show each type of mount"]**
 
@@ -113,8 +113,10 @@ Anton: *"as I get richer I will stop caring for the price — I don't want to ra
 for each item, give me a multiplier."* So every item has its own base prices, and two global
 multipliers scale them all.
 
-Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts),
-**Others** (every other trade good: metal, wood, jewelry, livestock, …). **Armour and weapons are
+Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts).
+V1 has only these two **[Anton 2026.09.27]** — every other trade good (wood, jewelry, metal,
+livestock, …) is left alone by the steward in V1; the *Others* group is designed below (§1.3.1)
+for a later update. **Armour and weapons are
 NEVER in the price book** **[Anton 2026.09.27]**: they are only ever SOLD, in bulk, as the loot
 groups of §2.6 — never bought, no per-item prices, no averages computed for them at all.
 
@@ -135,18 +137,24 @@ One row per item:
 - A `⟲` per row clears the typed value back to the placeholder.
 - **Auto-fill** — showing the average price of EVERY item would be a trader's cheat sheet, so
   auto-fill is per group: `AutoFillFoodPrices` (on), `AutoFillPackAndMountPrices` (on),
-  `AutoFillWarMountPrices` (**off**), `AutoFillOtherPrices` (**off**). With auto-fill off, the
+  `AutoFillWarMountPrices` (**off**) — and later `AutoFillOtherPrices` (**off**). With auto-fill off, the
   base stays empty until the player types one.
 - **Defaults of the ticks**: food — Buy ☑ Sell ☑; pack animals and mounts — Buy ☑ Sell ☑;
-  war mounts — Buy ☑ Sell ☑; others — Buy ☐ Sell ☐ (opt-in: ticking either makes the item appear
-  in the Suggestion tab's *Others* section).
+  war mounts — Buy ☑ Sell ☑.
+- Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
+
+#### 1.3.1 LATER (not V1) — the Others group **[Anton 2026.09.27: "leave wood, jewelry etc for later"]**
+
+Kept here so the later update starts from a spec:
+- A third price-book group, **Others**: every trade good that is not food, not an animal, not
+  armour or weapons. Ticks default Buy ☐ Sell ☐ (opt-in: ticking either makes the item appear in
+  the Suggestion tab's *Others* section). Placeholder only with `AutoFillOtherPrices` (default off).
 - **Others can be traded** **[Anton 2026.09.27 — "if someone wants to be a trader"]**: an Others
   row has one extra number, **Hold up to** (default 0). Buy-ticked → the steward buys it while
   the marginal price ≤ its final max buy, up to *Hold up to* units held. Sell-ticked → it sells
   every unit while the marginal price ≥ its final min sell. Never both for one item in one visit:
   if the sell test passes the steward sells, otherwise it may buy. Others'
   purchases come LAST in the money chain (§3).
-- Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
 
 ---
 
@@ -248,7 +256,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
 
 - `SellLoot` default **off** (opt-in). When on, the groups allowed by `SellLootEquipment`
   (weapons, armour, shields, ammo — default on) are proposed for sale.
-- **[Anton 2026.09.27]** Non-food trade goods are no longer a loot group: they are the *Others*
+- **[Anton 2026.09.27]** Non-food trade goods are no longer a loot group. In V1 the steward
+  leaves them alone; LATER they become the *Others*
   of the price book (§1.3) — sold item by item, only the ones Sell-ticked there, each at ≥ its
   final min sell price. `SellLootTradeGoods` is gone. Within Others, when the market's gold runs
   short, `SellLootOrder` decides which go first.
@@ -319,10 +328,10 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 
 ## 3. Money — the order and the floors
 
-1. **Sell first** (surplus food, surplus animals, prisoners, loot groups, ticked Others) — the
+1. **Sell first** (surplus food, surplus animals, prisoners, loot groups; later ticked Others) — the
    proceeds fund the buys.
-2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts → Others (price-book
-   trading, §1.3; answers to `MinGoldAfterDeal`).
+2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts (LATER → Others, the
+   price-book trading of §1.3.1, answering to `MinGoldAfterDeal`).
 3. **Floors**:
    - `MinGoldAfterDeal` (default **1000**): no purchase takes the purse below this.
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
@@ -437,8 +446,7 @@ the click.
 | Prices | AutoFillFoodPrices | true | placeholder = average price for food |
 | Prices | AutoFillPackAndMountPrices | true | … for pack animals and riding mounts |
 | Prices | AutoFillWarMountPrices | false | … for war mounts (off: trader's cheat sheet) |
-| Prices | AutoFillOtherPrices | false | … for all other goods (off: trader's cheat sheet) |
-| Prices | PriceBook | {} | per item id: buy tick, buy base, sell tick, sell base, hold-up-to (Others) — only the player's changes (file + Prices tab, not MCM) |
+| Prices | PriceBook | {} | per item id: buy tick, buy base, sell tick, sell base (LATER: hold-up-to for Others) — only the player's changes (file + Prices tab, not MCM) |
 | Pack | PackAnimalsEnabled | true | manage pack animals |
 | Pack | PackAnimalsTarget | 10 | pack animals to keep |
 | Pack | PackAnimalMaxPrice | 300 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
@@ -499,7 +507,7 @@ Keys are final names for the settings file and code; UI labels can be friendlier
 - No per-save settings; no Harmony unless RESEARCH proves a hook is impossible without it.
   **[research 2026.09.27]** None is: every hook the design needs exists without Harmony.
 - No trade-route planning (where to sell what) — that is a different mod. **[Anton 2026.09.27]**
-  The price book's Others DO allow simple buy-below / sell-above trading at whatever town the
+  LATER, the price book's Others (§1.3.1) will allow simple buy-below / sell-above trading at whatever town the
   party is in (§1.3); weapons and armour never.
 - Castles have no market: nothing happens there.
 - All player-facing text goes through TextObject string ids (English only at release; other

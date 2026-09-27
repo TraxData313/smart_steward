@@ -16,6 +16,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 BUGS:
 
 NEXT UPDATE:
+- [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
 
 NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [ ] Food 2 per man = ~40 days of food — heavy on the cart; keep, or think in days?
@@ -29,7 +30,7 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [ ] Lame/spirited (modified) horses — count them as mounts, never buy them? proposed: yes
 - [ ] Sell multiplier default 0.8 (sell only at ≥ average sell price − 20%) — right number? (DESIGN §1.3)
 - [ ] Role caps (mount 500 / pack 300 / war 2000) stay fixed — or scale with the buy multiplier too?
-- [ ] Prisoners' place in the Suggestion tab: after armour & weapons, before Others?
+- [ ] Prisoners' place in the Suggestion tab: last, after armour & weapons?
 
 NOTICED (things spotted during a step, left for later):
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
