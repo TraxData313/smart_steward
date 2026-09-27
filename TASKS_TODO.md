@@ -11,7 +11,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Playtest the window: tabs, clicks, tooltips, Encyclopedia round trip, Do it — checklist in docs/PLAYTEST.md "Step 7 — the window"
 - [x] 8. Triggers — menu entries, popup on arrival, leave warning, FULL-AUTONOMOUS steward (AutoExecute → AutonomousSteward + AutonomousMinGold 100k, message-log report — DESIGN §6; update §7 with the code), remove the debug door
   - [ ] Playtest the triggers: arrival popup, leave question, ships, autonomy — checklist in docs/PLAYTEST.md "Step 8 — triggers & autonomy"
-- [ ] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
+- [x] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
+  - [ ] Playtest the review fixes: big clicks, ▸ breakdown, autonomous floor, log — checklist in docs/PLAYTEST.md "Step 9"
 - [ ] 10. Packaging — package.ps1, Steam description + workshop files, README
 - [ ] 11. Anton's first playtest
 
@@ -50,3 +51,6 @@ NOTICED (things spotted during a step, left for later):
 - [x] Step 9: the window's texts carry ids ss_ui_* (+ MCM's ss_set_/ss_hint_/ss_opt_/ss_grp_, step 8's ss_auto_*/ss_leave_*) — gathered: module/ModuleData/Languages/std_SmartSteward.xml, held to the code by StringsFileTests
 - [ ] Playtest: the window's look was never seen — column widths, font sizes, the Encyclopedia focus round trip (PLAYTEST Step 7)
 - [x] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — dropped (step 9)
+- [ ] Step 9 (left on purpose): a click on a huge plan still costs ~20 ms — one trial walk per live button; incremental walks could cut it, measure in game first (PlanPerformanceTests)
+- [ ] Step 9 (left on purpose): surplus riding horses are kept while an upgrade horse is on offer, even when the floors will not let the steward buy it — "never sell and buy mounts in one visit" taken strictly
+- [ ] Step 10: README — translations welcome: copy module/ModuleData/Languages/std_SmartSteward.xml into Languages\XX (how-to in the file's header)
