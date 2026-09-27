@@ -517,10 +517,9 @@ expected unit prices.
 - `WarnIfNotReviewed` (default **on**): leaving a town/village where the steward had a
   non-empty plan the player never opened asks: "Your steward has suggestions you haven't looked
   at. Review / Leave anyway".
-- `AutoExecute` (default **off**) **[decided: Claude, 2026.09.27 — optional hands-off mode]**:
-  carry the plan out on arrival without the window, then post a one-line summary message.
-  **SUPERSEDED by the Full-autonomous steward below — step 8 renames the key and updates §7 in
-  the same commit as the code (the §7 drift test reads the table, so they must move together).**
+- ~~`AutoExecute`~~ (the old optional hands-off mode, [decided: Claude, 2026.09.27]) — **SUPERSEDED by the
+  Full-autonomous steward below; renamed in step 8.** A settings file that still has `AutoExecute` carries its value
+  over to `AutonomousSteward` once (the rewritten file has the new name; the log says so).
 - **Full-autonomous steward** **[Anton 2026.09.27]** — *"when the player becomes really, really
   rich and doesn't need to micromanage at all… never even having to see that window."*
   - `AutonomousSteward` (default **off**; label "Full-autonomous steward") replaces `AutoExecute`.
@@ -564,9 +563,10 @@ expected unit prices.
 | General | AutoPopupOnVillageEnter | true | — | open the window when entering a village |
 | General | PopupOnlyWithChanges | true | — | auto-open only when there is something to do |
 | General | WarnIfNotReviewed | true | — | ask before leaving with unreviewed suggestions |
-| General | AutoExecute | false | — | do it without asking, then report |
+| General | AutonomousSteward | false | — | "Full-autonomous steward": plan and carry out on arrival, report in the message log (§6) — replaces `AutoExecute` **[Anton 2026.09.27]** |
 | Money | MinGoldAfterDeal | 1000 | 0–1,000,000 | purse floor for all purchases |
 | Money | MinGoldForHorses | 5000 | 0–1,000,000 | purse floor for animal purchases |
+| Money | AutonomousMinGold | 100000 | 0–10,000,000 | purse floor while autonomous: both floors above rise to it (§6) **[Anton 2026.09.27]** |
 | Food | FoodEnabled | true | — | manage food |
 | Food | FoodPerMan | 2.0 | 0.1–10 | food units kept per eater |
 | Food | FoodCountPrisoners | true | — | prisoners count as eaters (half each, like the game) |

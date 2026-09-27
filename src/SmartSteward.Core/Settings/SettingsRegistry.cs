@@ -29,6 +29,9 @@ namespace SmartSteward.Core.Settings
         /// <summary>A gold amount the player may type: 0 … one million denars.</summary>
         public const int MaxGold = 1_000_000;
 
+        /// <summary>The autonomous purse floor: 0 … ten million denars — the rich player's chest (DESIGN §6).</summary>
+        public const int MaxAutonomousGold = 10_000_000;
+
         /// <summary>A role price cap (per animal): 0 … 100,000 denars.</summary>
         public const int MaxAnimalPrice = 100_000;
 
@@ -98,7 +101,8 @@ namespace SmartSteward.Core.Settings
         {
             // ── General ──────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.ModEnabled), General, "Steward on",
-                "Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings.",
+                "Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, "
+                + "nothing done on its own.",
                 s => s.ModEnabled, (s, v) => s.ModEnabled = v),
             new BoolSetting(nameof(StewardSettings.AutoPopupOnTownEnter), General, "Open on entering a town",
                 "Open the Party Steward window when your party enters a town.",
@@ -112,10 +116,12 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.WarnIfNotReviewed), General, "Warn before leaving",
                 "Ask before you leave a town or village whose suggestions you never looked at.",
                 s => s.WarnIfNotReviewed, (s, v) => s.WarnIfNotReviewed = v),
-            new BoolSetting(nameof(StewardSettings.AutoExecute), General, "Do it without asking",
-                "Carry out the steward's plan on arrival without opening the window, then post a one-line report. "
-                + "When off, the steward only proposes and you click.",
-                s => s.AutoExecute, (s, v) => s.AutoExecute = v),
+            new BoolSetting(nameof(StewardSettings.AutonomousSteward), General, "Full-autonomous steward",
+                "For when you are rich and done with micromanaging: on arriving at a town or village the steward "
+                + "carries out its plan at once - no window, no questions, no warning - and sums it up in the message "
+                + "log. It never hires in the tavern and never takes your purse below Keep while autonomous. "
+                + "The Party Steward menu entry stays, to look or adjust. When off, the steward only proposes and you click.",
+                s => s.AutonomousSteward, (s, v) => s.AutonomousSteward = v),
 
             // ── Money ────────────────────────────────────────────────────────────────────────────
             new IntSetting(nameof(StewardSettings.MinGoldAfterDeal), Money, "Always keep (gold)",
@@ -125,6 +131,10 @@ namespace SmartSteward.Core.Settings
                 "No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - "
                 + "food comes first.",
                 0, MaxGold, s => s.MinGoldForHorses, (s, v) => s.MinGoldForHorses = v),
+            new IntSetting(nameof(StewardSettings.AutonomousMinGold), Money, "Keep while autonomous (gold)",
+                "While the full-autonomous steward is on, it never takes your purse below this - both floors above "
+                + "rise to it when they are lower. Raise the price limits to let it spend more freely, never this.",
+                0, MaxAutonomousGold, s => s.AutonomousMinGold, (s, v) => s.AutonomousMinGold = v),
 
             // ── Food ─────────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.FoodEnabled), Food, "Manage food",

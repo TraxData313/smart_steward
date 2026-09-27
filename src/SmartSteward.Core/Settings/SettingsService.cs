@@ -79,6 +79,7 @@ namespace SmartSteward.Core.Settings
                 if (parsed.Unreadable)
                     _log("settings file unreadable (" + parsed.Error + ") - kept as the .bak, every setting back to its default");
                 foreach (var problem in parsed.Problems) _log("settings file, " + problem);
+                foreach (var note in parsed.Renamed) _log("settings file, " + note);
                 if (!parsed.Unreadable && parsed.MissingKeys.Count > 0)
                     _log("settings file had no " + string.Join(", ", parsed.MissingKeys) + " - default used");
                 backup = parsed.LosesSomething;

@@ -405,6 +405,63 @@ public class SettingsFileTests
         Assert.Contains("PrisonersExcluded: expected a list", Assert.Single(parsed.Problems));
     }
 
+    // ── Renamed keys (step 8: AutoExecute became the Full-autonomous steward) ─────────────────
+
+    /// <summary>The defaults' file with the AutonomousSteward line written under the OLD name.</summary>
+    private static string WithOldAutoExecute(string valueJson) =>
+        Defaults.Replace("  \"AutonomousSteward\": false,", "  \"AutoExecute\": " + valueJson + ",");
+
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void The_old_AutoExecute_key_carries_its_value_over_to_AutonomousSteward(string json, bool expected)
+    {
+        var text = WithOldAutoExecute(json);
+        Assert.DoesNotContain("AutonomousSteward", text.Split(SettingsFile.NewLine).Where(l => !l.TrimStart().StartsWith("//")));
+
+        var parsed = SettingsFile.Parse(text);
+
+        Assert.Equal(expected, parsed.Settings.AutonomousSteward);
+        Assert.Empty(parsed.Problems);                 // nothing lost: no backup
+        Assert.False(parsed.LosesSomething);
+        Assert.DoesNotContain("AutonomousSteward", parsed.MissingKeys);
+        var note = Assert.Single(parsed.Renamed);
+        Assert.Contains("\"AutoExecute\" is now AutonomousSteward - its value " + json + " carried over", note);
+        Assert.StartsWith("line ", note);
+        // The rewrite has only the new name.
+        var rewritten = SettingsFile.Generate(parsed.Settings);
+        Assert.DoesNotContain("\"AutoExecute\"", rewritten);
+        Assert.Empty(SettingsFile.Parse(rewritten).Renamed);
+    }
+
+    [Fact]
+    public void The_old_key_name_is_case_insensitive_like_every_key()
+    {
+        var parsed = SettingsFile.Parse(Defaults.Replace("  \"AutonomousSteward\": false,", "  \"autoexecute\": true,"));
+        Assert.True(parsed.Settings.AutonomousSteward);
+        Assert.Single(parsed.Renamed);
+    }
+
+    [Fact]
+    public void When_both_names_are_written_the_new_one_wins()
+    {
+        // The new key says false, the old one (written after it) says true: the new name counts.
+        var text = Defaults.Replace("  \"AutonomousSteward\": false,", "  \"AutonomousSteward\": false," + SettingsFile.NewLine + "  \"AutoExecute\": true,");
+        var parsed = SettingsFile.Parse(text);
+        Assert.False(parsed.Settings.AutonomousSteward);
+        Assert.Empty(parsed.Renamed);
+        Assert.Contains("(the old name of AutonomousSteward) ignored - AutonomousSteward is set", Assert.Single(parsed.Problems));
+    }
+
+    [Fact]
+    public void An_old_key_with_a_wrong_value_falls_back_like_the_new_one_would()
+    {
+        var parsed = SettingsFile.Parse(WithOldAutoExecute("\"yes\""));
+        Assert.False(parsed.Settings.AutonomousSteward);
+        Assert.Empty(parsed.Renamed);
+        Assert.Contains("AutonomousSteward: expected true or false", Assert.Single(parsed.Problems));
+    }
+
     [Fact]
     public void Wrap_breaks_between_words_only()
     {

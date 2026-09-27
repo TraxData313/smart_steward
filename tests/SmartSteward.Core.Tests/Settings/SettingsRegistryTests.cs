@@ -108,7 +108,7 @@ public class SettingsRegistryTests
         var food = (FloatSetting)SettingsRegistry.Find("FoodPerMan")!;
         Assert.EndsWith(" Default: 2.0. Range: 0.1 to 10.0.", food.Hint);
 
-        var popup = SettingsRegistry.Find("AutoExecute")!;
+        var popup = SettingsRegistry.Find("AutonomousSteward")!;
         Assert.EndsWith(" Default: off.", popup.Hint);
 
         var strategy = SettingsRegistry.Find("FoodStrategy")!;

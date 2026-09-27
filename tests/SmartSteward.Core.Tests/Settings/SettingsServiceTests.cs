@@ -181,16 +181,38 @@ public class SettingsServiceTests
     [Fact]
     public void Deleting_the_file_resets_everything()
     {
-        _storage.EditOutside(SettingsFile.Generate(new StewardSettings { AutoExecute = true }));
+        _storage.EditOutside(SettingsFile.Generate(new StewardSettings { AutonomousSteward = true }));
         _service.Load();
         _changes = 0;
         _storage.EditOutside(null);
 
         Assert.True(_service.ReloadIfChanged());
 
-        Assert.False(_service.Current.AutoExecute);
+        Assert.False(_service.Current.AutonomousSteward);
         Assert.Equal(Defaults, _storage.Text);
         Assert.Equal(1, _changes);
+    }
+
+    [Fact]
+    public void An_old_AutoExecute_file_is_carried_over_once_without_a_backup()
+    {
+        var old = Defaults.Replace("  \"AutonomousSteward\": false,", "  \"AutoExecute\": true,");
+        _storage.EditOutside(old);
+
+        _service.Load();
+
+        Assert.True(_service.Current.AutonomousSteward);
+        Assert.Equal(SettingsFile.Generate(new StewardSettings { AutonomousSteward = true }), _storage.Text);
+        Assert.Null(_storage.Backup);                 // nothing was lost
+        Assert.Contains(_log, l => l.Contains("\"AutoExecute\" is now AutonomousSteward"));
+
+        // Once: the file now has the new name, so the next load finds nothing to carry over or rewrite.
+        _log.Clear();
+        int writes = _storage.Writes;
+        _service.Load();
+        Assert.True(_service.Current.AutonomousSteward);
+        Assert.Equal(writes, _storage.Writes);
+        Assert.Empty(_log);
     }
 
     // ── Changing values ─────────────────────────────────────────────────────────────────────
@@ -296,7 +318,7 @@ public class SettingsServiceTests
         _service.Changed += () => throw new InvalidOperationException("window gone");
         _service.Changed += () => reached = true;
 
-        _service.Set(Def("AutoExecute"), true);
+        _service.Set(Def("AutonomousSteward"), true);
 
         Assert.True(reached);
         Assert.Equal(1, _changes);

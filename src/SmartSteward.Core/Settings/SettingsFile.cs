@@ -33,6 +33,10 @@ namespace SmartSteward.Core.Settings
         /// <summary>Registered keys the file does not mention (they got their defaults).</summary>
         public List<string> MissingKeys { get; } = new List<string>();
 
+        /// <summary>One line per old key whose value was carried over to its new name (AutoExecute →
+        /// AutonomousSteward). Nothing is lost, so no backup — the rewritten file simply has the new name.</summary>
+        public List<string> Renamed { get; } = new List<string>();
+
         /// <summary>The file said something the settings could not keep — worth a backup before rewriting it.</summary>
         public bool LosesSomething => Unreadable || Problems.Count > 0;
     }
@@ -53,6 +57,15 @@ namespace SmartSteward.Core.Settings
         public const string NewLine = "\r\n";
 
         private const int CommentWidth = 100;
+
+        /// <summary>Keys that were renamed (old → new, old names case-insensitive): a file that still has the old name
+        /// keeps its value under the new one, once — the rewrite drops the old name.
+        /// AutoExecute became the Full-autonomous steward in PLAN step 8 (DESIGN §6).</summary>
+        public static readonly IReadOnlyDictionary<string, string> RenamedKeys =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["AutoExecute"] = nameof(StewardSettings.AutonomousSteward),
+            };
 
         /// <summary>The explanation at the top of the file.</summary>
         public static readonly string[] Header =
@@ -221,17 +234,37 @@ namespace SmartSteward.Core.Settings
             }
 
             var seen = new HashSet<string>(StringComparer.Ordinal);
+            var renamed = new List<(JProperty Old, SettingDefinition New)>();
             foreach (var property in root.Properties())
             {
                 var def = SettingsRegistry.Find(property.Name);
                 if (def == null)
                 {
-                    result.Problems.Add(At(property) + "unknown key \"" + property.Name + "\" ignored");
+                    if (RenamedKeys.TryGetValue(property.Name.Trim(), out var newKey) && SettingsRegistry.Find(newKey) is { } renamedTo)
+                        renamed.Add((property, renamedTo));
+                    else
+                        result.Problems.Add(At(property) + "unknown key \"" + property.Name + "\" ignored");
                     continue;
                 }
                 if (!seen.Add(def.Key))
                     result.Problems.Add(At(property) + def.Key + " is written twice - the later one counts");
                 Read(def, property.Value, result);
+            }
+            // An old key carries its value over to its new name — unless the new name is written too (it wins).
+            foreach (var (old, def) in renamed)
+            {
+                if (seen.Contains(def.Key))
+                {
+                    result.Problems.Add(At(old) + "\"" + old.Name + "\" (the old name of " + def.Key + ") ignored - "
+                        + def.Key + " is set");
+                    continue;
+                }
+                seen.Add(def.Key);
+                int problems = result.Problems.Count;
+                Read(def, old.Value, result);
+                if (result.Problems.Count == problems)
+                    result.Renamed.Add(At(old) + "\"" + old.Name + "\" is now " + def.Key + " - its value "
+                        + ValueText(def, result.Settings) + " carried over");
             }
             foreach (var def in SettingsRegistry.All)
                 if (!seen.Contains(def.Key))

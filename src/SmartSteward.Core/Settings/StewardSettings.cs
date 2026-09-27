@@ -66,13 +66,19 @@ namespace SmartSteward.Core.Settings
         /// <summary>Auto-open only when the plan has a change (<c>StewardPlan.HasChanges</c>).</summary>
         public bool PopupOnlyWithChanges { get; set; } = true;
         public bool WarnIfNotReviewed { get; set; } = true;
-        public bool AutoExecute { get; set; } = false;
+        /// <summary>The Full-autonomous steward (DESIGN §6): plan and carry out on arrival, no window, no popup, no
+        /// warning, a message-log report — under <see cref="AutonomousMinGold"/>. Replaces the old AutoExecute key (a
+        /// settings file that still has it carries its value over once).</summary>
+        public bool AutonomousSteward { get; set; } = false;
 
         // ── Money (DESIGN §3) ────────────────────────────────────────────────────────────────────
         /// <summary>No purchase takes the purse below this.</summary>
         public int MinGoldAfterDeal { get; set; } = 1000;
         /// <summary>No ANIMAL purchase takes the purse below this (food answers only to MinGoldAfterDeal).</summary>
         public int MinGoldForHorses { get; set; } = 5000;
+        /// <summary>The purse floor while the steward acts alone: both floors above rise to it
+        /// (<c>Planning.MoneyFloors</c>).</summary>
+        public int AutonomousMinGold { get; set; } = 100000;
 
         // ── Food (DESIGN §2.1) ───────────────────────────────────────────────────────────────────
         public bool FoodEnabled { get; set; } = true;
