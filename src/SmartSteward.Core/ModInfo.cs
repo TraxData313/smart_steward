@@ -25,5 +25,8 @@ namespace SmartSteward.Core
         public const string ConfigFolderName = "SmartSteward";
 
         public const string LogFileName = "smart_steward.log";
+
+        /// <summary>The commented settings file beside the log (DESIGN §8).</summary>
+        public const string SettingsFileName = "settings.json";
     }
 }

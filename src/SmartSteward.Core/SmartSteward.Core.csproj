@@ -1,12 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Pure logic: no game references, no packages. Everything here is unit-tested in
+  <!-- Pure logic: no game references. Everything here is unit-tested in
        tests\SmartSteward.Core.Tests; the Module feeds it snapshots of the game. -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>SmartSteward.Core</RootNamespace>
     <AssemblyName>SmartSteward.Core</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The settings file reader (Settings/SettingsFile.cs). The game ships Newtonsoft.Json 13.0.1
+         (assembly 13.0.0.0) in its own bin, and that copy is what runs in game: compile against the
+         same version and let nothing flow on — PrivateAssets keeps it out of the Module's output, so
+         no second copy is ever shipped (RESEARCH §12). The tests reference it themselves. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- The tests reach the plan's internals (e.g. PlanTotals.Compute for the floor flags). -->

@@ -496,55 +496,61 @@ expected unit prices.
 
 ## 7. Settings (every number is a parameter)
 
-| Group | Key | Default | Meaning |
-|---|---|---|---|
-| General | ModEnabled | true | master switch |
-| General | AutoPopupOnTownEnter | true | open the window when entering a town |
-| General | AutoPopupOnVillageEnter | true | open the window when entering a village |
-| General | PopupOnlyWithChanges | true | auto-open only when there is something to do |
-| General | WarnIfNotReviewed | true | ask before leaving with unreviewed suggestions |
-| General | AutoExecute | false | do it without asking, then report |
-| Money | MinGoldAfterDeal | 1000 | purse floor for all purchases |
-| Money | MinGoldForHorses | 5000 | purse floor for animal purchases |
-| Food | FoodEnabled | true | manage food |
-| Food | FoodPerMan | 2.0 | food units kept per eater |
-| Food | FoodCountPrisoners | true | prisoners count as eaters (half each, like the game) |
-| Food | FoodStrategy | Balanced | Balanced (variety first) or Cheapest |
-| Food | SellFoodSurplus | true | sell food above target + tolerance |
-| Food | FoodSurplusTolerancePercent | 25 | how far above target before selling |
-| Prices | BuyPriceMultiplier | 1.2 | final max buy = base × this (range 0.1–10) **[Anton]** |
-| Prices | SellPriceMultiplier | 0.8 | final min sell = base × this (range 0–10) **[Anton]** |
-| Prices | AutoFillFoodPrices | true | placeholder = average price for food |
-| Prices | AutoFillPackAndMountPrices | true | … for pack animals and riding mounts |
-| Prices | AutoFillWarMountPrices | false | … for war mounts (off: trader's cheat sheet) |
-| Prices | PriceBook | {} | per item id: buy tick, buy base, sell tick, sell base (LATER: hold-up-to for Others) — only the player's changes (file + Prices tab, not MCM) |
-| Pack | PackAnimalsEnabled | true | manage pack animals |
-| Pack | PackAnimalsTarget | 10 | pack animals to keep |
-| Pack | PackAnimalMaxPrice | 300 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
-| Pack | SellPackAnimalSurplus | true | sell above target, most expensive first |
-| Mounts | MountsEnabled | true | manage riding mounts for footmen |
-| Mounts | MountsPer100Footmen | 110 | mounts kept per 100 footmen |
-| Mounts | MountMaxPrice | 500 | role cap: never pay more for a footman's mount (0 = none; not scaled) |
-| Mounts | WarMountsCountAsMounts | true | war mounts held count toward the footmen's mounts |
-| Mounts | SellMountSurplus | true | sell above target, most expensive first |
-| War mounts | WarMountsEnabled | true | manage war mounts for upgrades |
-| War mounts | WarMountsManualTarget | -1 | -1 = count upgrade-ready troops; ≥0 = keep exactly this |
-| War mounts | WarMountsExtra | 0 | buffer on top of the automatic count |
-| War mounts | WarMountMaxPrice | 2000 | role cap: never pay more per upgrade horse (0 = none; not scaled) |
-| War mounts | SellWarMountSurplus | true | sell above need, most expensive first |
-| Prisoners | RansomPrisoners | true | ransom prisoners in towns |
-| Prisoners | RansomHeroPrisoners | false | include lords |
-| Prisoners | DonatePrisonersWhenPossible | false | donate to own garrison (influence) instead |
-| Prisoners | PrisonersExcluded | [] | troop ids unticked in *Prisoners to ransom* |
-| Loot | SellLoot | false | sell other items |
-| Loot | SellLootEquipment | true | weapons, armour, shields, ammo |
-| Loot | SellLootMaxItemValue | 0 | never auto-sell items worth more per unit (0 = no cap) |
-| Loot | SellLootOrder | Cheapest | order within a loot group: Cheapest / LowestPricePerKg / MostExpensive — replaces `SellLootMassFirst` **[Anton 2026.09.27]** |
-| Tavern | ShowTavern | true | show the tavern section in towns |
-| Tavern | ShowWanderers | true | list wanderers for hire |
-| Tavern | ShowMercenaries | true | list the tavern's mercenaries |
+| Group | Key | Default | Range | Meaning |
+|---|---|---|---|---|
+| General | ModEnabled | true | — | master switch |
+| General | AutoPopupOnTownEnter | true | — | open the window when entering a town |
+| General | AutoPopupOnVillageEnter | true | — | open the window when entering a village |
+| General | PopupOnlyWithChanges | true | — | auto-open only when there is something to do |
+| General | WarnIfNotReviewed | true | — | ask before leaving with unreviewed suggestions |
+| General | AutoExecute | false | — | do it without asking, then report |
+| Money | MinGoldAfterDeal | 1000 | 0–1,000,000 | purse floor for all purchases |
+| Money | MinGoldForHorses | 5000 | 0–1,000,000 | purse floor for animal purchases |
+| Food | FoodEnabled | true | — | manage food |
+| Food | FoodPerMan | 2.0 | 0.1–10 | food units kept per eater |
+| Food | FoodCountPrisoners | true | — | prisoners count as eaters (half each, like the game) |
+| Food | FoodStrategy | Balanced | Balanced / Cheapest | Balanced (variety first) or Cheapest |
+| Food | SellFoodSurplus | true | — | sell food above target + tolerance |
+| Food | FoodSurplusTolerancePercent | 25 | 0–500 | how far above target before selling |
+| Prices | BuyPriceMultiplier | 1.2 | 0.1–10 | final max buy = base × this **[Anton]** |
+| Prices | SellPriceMultiplier | 0.8 | 0–10 | final min sell = base × this **[Anton]** |
+| Prices | AutoFillFoodPrices | true | — | placeholder = average price for food |
+| Prices | AutoFillPackAndMountPrices | true | — | … for pack animals and riding mounts |
+| Prices | AutoFillWarMountPrices | false | — | … for war mounts (off: trader's cheat sheet) |
+| Prices | PriceBook | {} | bases 0–1,000,000 | per item id: buy tick, buy base, sell tick, sell base (LATER: hold-up-to for Others) — only the player's changes (file + Prices tab, not MCM) |
+| Pack | PackAnimalsEnabled | true | — | manage pack animals |
+| Pack | PackAnimalsTarget | 10 | 0–500 | pack animals to keep |
+| Pack | PackAnimalMaxPrice | 300 | 0–100,000 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
+| Pack | SellPackAnimalSurplus | true | — | sell above target, most expensive first |
+| Mounts | MountsEnabled | true | — | manage riding mounts for footmen |
+| Mounts | MountsPer100Footmen | 110 | 0–300 | mounts kept per 100 footmen |
+| Mounts | MountMaxPrice | 500 | 0–100,000 | role cap: never pay more for a footman's mount (0 = none; not scaled) |
+| Mounts | WarMountsCountAsMounts | true | — | war mounts held count toward the footmen's mounts |
+| Mounts | SellMountSurplus | true | — | sell above target, most expensive first |
+| War mounts | WarMountsEnabled | true | — | manage war mounts for upgrades |
+| War mounts | WarMountsManualTarget | -1 | -1–500 | -1 = count upgrade-ready troops; ≥0 = keep exactly this |
+| War mounts | WarMountsExtra | 0 | 0–100 | buffer on top of the automatic count |
+| War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per upgrade horse (0 = none; not scaled) |
+| War mounts | SellWarMountSurplus | true | — | sell above need, most expensive first |
+| Prisoners | RansomPrisoners | true | — | ransom prisoners in towns |
+| Prisoners | RansomHeroPrisoners | false | — | include lords |
+| Prisoners | DonatePrisonersWhenPossible | false | — | donate to own garrison (influence) instead |
+| Prisoners | PrisonersExcluded | [] | — | troop ids unticked in *Prisoners to ransom* |
+| Loot | SellLoot | false | — | sell other items |
+| Loot | SellLootEquipment | true | — | weapons, armour, shields, ammo |
+| Loot | SellLootMaxItemValue | 0 | 0–1,000,000 | never auto-sell items worth more per unit (0 = no cap) |
+| Loot | SellLootOrder | Cheapest | Cheapest / LowestPricePerKg / MostExpensive | order within a loot group: Cheapest / LowestPricePerKg / MostExpensive — replaces `SellLootMassFirst` **[Anton 2026.09.27]** |
+| Tavern | ShowTavern | true | — | show the tavern section in towns |
+| Tavern | ShowWanderers | true | — | list wanderers for hire |
+| Tavern | ShowMercenaries | true | — | list the tavern's mercenaries |
 
 Keys are final names for the settings file and code; UI labels can be friendlier.
+
+**Ranges** **[decided: Claude, 2026.09.27 — step 5]** (only the two multipliers were Anton's): wide enough for any
+play style, narrow enough that a typo cannot break a plan — gold up to one million, a role price cap up to
+100,000, `FoodPerMan` at least 0.1 (0 would sell every ration as surplus). Decimal settings keep 2 places (MCM's
+float slider and the file agree on the same number). A value outside its range is clamped wherever it comes from
+(file, MCM, Instructions tab).
 
 ---
 
