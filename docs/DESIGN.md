@@ -500,6 +500,25 @@ expected unit prices.
   at. Review / Leave anyway".
 - `AutoExecute` (default **off**) **[decided: Claude, 2026.09.27 — optional hands-off mode]**:
   carry the plan out on arrival without the window, then post a one-line summary message.
+  **SUPERSEDED by the Full-autonomous steward below — step 8 renames the key and updates §7 in
+  the same commit as the code (the §7 drift test reads the table, so they must move together).**
+- **Full-autonomous steward** **[Anton 2026.09.27]** — *"when the player becomes really, really
+  rich and doesn't need to micromanage at all… never even having to see that window."*
+  - `AutonomousSteward` (default **off**; label "Full-autonomous steward") replaces `AutoExecute`.
+    On: on arrival at a town or village the steward plans and carries the plan out at once —
+    no window, no arrival popup, no leave warning. Once per visit. The "Party Steward" menu entry
+    stays, so the player can still open the window to look or adjust.
+  - `AutonomousMinGold` (default **100000**, range 0–10,000,000): the purse floor while autonomous.
+    The effective floors become max(`MinGoldAfterDeal`, this) for everything and
+    max(`MinGoldForHorses`, this) for animals — the rich player's autonomy can never drain the
+    chest below it. All other limits (price book, multipliers, role caps, targets) apply as usual,
+    so "set the limits very high" is how the player loosens it.
+  - The tavern is NEVER hired autonomously (its rows start at 0 by design, §2.7).
+  - **Report**: after the deal, a short summary in the game's message log (bottom-left, the
+    "battle log"), one line per job that did something, e.g.
+    `Steward at Sargot: food +24 (5 kinds) −310 · mounts +3 −540 · armour & weapons 41 sold +2,130
+    · prisoners 12 ransomed +980 · gold 312,400 → 314,660`. Skipped/cut-short items get one line
+    ("2 skipped — see log"). Nothing happened → no message. The full detail goes to the log file.
 - `ModEnabled` (default on) master switch.
 - **TEMPORARY (step 6 → removed in step 8)**: "Party Steward (debug)" in the town and village menus — snapshot,
   plan, the full plan in the log, a vanilla popup with the changing rows and totals, Execute / Cancel. A second town
