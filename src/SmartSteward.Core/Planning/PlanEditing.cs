@@ -330,7 +330,7 @@ namespace SmartSteward.Core.Planning
                         break;
                 }
             }
-            Totals = PlanTotals.Compute(Rows, _inputs!.Snapshot, _inputs.Settings);
+            Totals = PlanTotals.Compute(Rows, _inputs!.Snapshot, _inputs.Floors);
             Totals.HireUnaffordable = outcome.HireUnaffordable;
             _transactions = PlanTransaction.Build(outcome);
             _blocks.Clear();

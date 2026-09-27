@@ -13,17 +13,23 @@ namespace SmartSteward.Core.Planning
         private readonly Dictionary<string, PriceBookPrices> _books =
             new Dictionary<string, PriceBookPrices>(StringComparer.Ordinal);
 
-        public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle)
+        public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, PlanMode mode)
         {
             Snapshot = snapshot;
             Settings = settings;
             Oracle = oracle;
+            Mode = mode;
+            Floors = MoneyFloors.For(settings, mode);
             Walk = new WalkState(new MarketState(oracle, snapshot.MarketGold), snapshot.PlayerGold);
         }
 
         public StewardSnapshot Snapshot { get; }
         public StewardSettings Settings { get; }
         public IPriceOracle Oracle { get; }
+        public PlanMode Mode { get; }
+
+        /// <summary>The purse floors in effect (raised while autonomous - DESIGN §6).</summary>
+        public MoneyFloors Floors { get; }
 
         /// <summary>The market and the purse as the plan moves them.</summary>
         public WalkState Walk { get; }
@@ -39,10 +45,10 @@ namespace SmartSteward.Core.Planning
         public bool IsTown => Snapshot.SettlementKind == SettlementKind.Town;
 
         /// <summary>No purchase takes the purse below this.</summary>
-        public int FoodFloor => Settings.MinGoldAfterDeal;
+        public int FoodFloor => Floors.All;
 
         /// <summary>No animal purchase takes the purse below this — animals answer to both floors.</summary>
-        public int AnimalFloor => Math.Max(Settings.MinGoldAfterDeal, Settings.MinGoldForHorses);
+        public int AnimalFloor => Math.Max(Floors.All, Floors.Animals);
 
         public IEnumerable<ItemStack> Inventory(ItemKind kind) =>
             ByKey((Snapshot.Inventory ?? new List<ItemStack>()).Where(s => s != null && s.Kind == kind && s.Count > 0));

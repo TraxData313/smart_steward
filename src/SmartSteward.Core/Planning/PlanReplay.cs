@@ -11,11 +11,13 @@ namespace SmartSteward.Core.Planning
     /// made, so an edit prices with the rules the suggestion was made with.</summary>
     internal sealed class PlanInputs
     {
-        public PlanInputs(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, bool foodBalanced,
-            Comparison<ItemStack> lootOrder, bool ransom, bool donate, int dungeonRoom)
+        public PlanInputs(StewardSnapshot snapshot, StewardSettings settings, PlanMode mode, MoneyFloors floors,
+            IPriceOracle oracle, bool foodBalanced, Comparison<ItemStack> lootOrder, bool ransom, bool donate, int dungeonRoom)
         {
             Snapshot = snapshot;
             Settings = settings;
+            Mode = mode;
+            Floors = floors;
             Oracle = new CachingPriceOracle(oracle);
             FoodBalanced = foodBalanced;
             LootOrder = lootOrder;
@@ -28,6 +30,8 @@ namespace SmartSteward.Core.Planning
 
         public StewardSnapshot Snapshot { get; }
         public StewardSettings Settings { get; }
+        public PlanMode Mode { get; }
+        public MoneyFloors Floors { get; }
         public IPriceOracle Oracle { get; }
         public bool FoodBalanced { get; }
         public Comparison<ItemStack> LootOrder { get; }

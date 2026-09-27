@@ -80,7 +80,7 @@ public class StewardPlanTests
             .Food("grain", market: 100, buy: 10)
             .Pack("mule", market: 20, buy: 150);
         var plan = s.Plan();
-        var stricter = new StewardSettings { MinGoldAfterDeal = 25_000, MinGoldForHorses = 30_000 };
+        var stricter = MoneyFloors.For(new StewardSettings { MinGoldAfterDeal = 25_000, MinGoldForHorses = 30_000 }, PlanMode.Window);
         var totals = PlanTotals.Compute(plan.Rows, s.Snap, stricter);
         Assert.True(totals.BelowMinGoldAfterDeal);
         Assert.True(totals.BelowMinGoldForHorses);

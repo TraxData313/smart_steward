@@ -91,9 +91,9 @@ namespace SmartSteward.UI
                 weight += "  ·  " + UiText.S1("ss_ui_footer_influence", "Influence {INF}", "INF", UiFormat.SignedInfluence(t.InfluenceGained));
             FooterWeightText = weight;
 
-            var settings = SettingsHost.Current;
+            var floors = plan.Floors; // the floors the flags were computed against
             var warnings = PlanFooter.Warnings(t);
-            WarningText = string.Join("   ", warnings.Select(w => UiLabels.Warning(w, settings.MinGoldAfterDeal, settings.MinGoldForHorses)));
+            WarningText = string.Join("   ", warnings.Select(w => UiLabels.Warning(w, floors.All, floors.Animals)));
             HasWarnings = warnings.Count > 0;
             IsEmpty = plan.Sections.Count == 0;
             CanResetAll = plan.IsEdited;

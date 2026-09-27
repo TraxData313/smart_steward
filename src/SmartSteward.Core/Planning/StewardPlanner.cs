@@ -21,19 +21,21 @@ namespace SmartSteward.Core.Planning
     ///   interleaved by SellLootOrder) — each unit only if the market can still pay for it.</item>
     /// <item>BUY in priority order: food (under MinGoldAfterDeal), pack animals, riding mounts, upgrade horses
     ///   (under both floors). No kind is both sold and bought in one visit.</item>
-    /// <item>Tavern — rows at 0, outside the chain.</item>
+    /// <item>Tavern — rows at 0, outside the chain; never in an autonomous plan (DESIGN §6).</item>
     /// </list>
+    /// <see cref="PlanMode.Autonomous"/> raises the floors to AutonomousMinGold (<see cref="MoneyFloors"/>).
     /// </remarks>
     public static class StewardPlanner
     {
-        public static StewardPlan Plan(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle)
+        public static StewardPlan Plan(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle,
+            PlanMode mode = PlanMode.Window)
         {
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             if (settings == null) throw new ArgumentNullException(nameof(settings));
             if (oracle == null) throw new ArgumentNullException(nameof(oracle));
             if (snapshot.Party == null) snapshot.Party = new PartyInfo();
 
-            var ctx = new PlanContext(snapshot, settings, oracle);
+            var ctx = new PlanContext(snapshot, settings, oracle, mode);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
                 return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0);
@@ -57,8 +59,9 @@ namespace SmartSteward.Core.Planning
             pack.PlanBuys();
             mounts.PlanBuys();
 
-            // 4. The tavern: offered, never proposed.
-            var tavernRows = TavernPlanner.Plan(ctx);
+            // 4. The tavern: offered, never proposed - and not even offered to the autonomous steward, which never
+            //    hires (DESIGN §6).
+            var tavernRows = mode == PlanMode.Autonomous ? new List<PlanRow>() : TavernPlanner.Plan(ctx);
 
             food.Finish();
             pack.Finish();
@@ -95,8 +98,8 @@ namespace SmartSteward.Core.Planning
                 if (inSection.Count > 0)
                     sections.Add(new PlanSection(kind, inSection));
             }
-            var totals = PlanTotals.Compute(rows, ctx.Snapshot, ctx.Settings);
-            var inputs = new PlanInputs(ctx.Snapshot, ctx.Settings, ctx.Oracle,
+            var totals = PlanTotals.Compute(rows, ctx.Snapshot, ctx.Floors);
+            var inputs = new PlanInputs(ctx.Snapshot, ctx.Settings, ctx.Mode, ctx.Floors, ctx.Oracle,
                 ctx.Settings.FoodStrategy == FoodStrategy.Balanced, lootOrder,
                 PrisonerPlanner.CanRansom(ctx), PrisonerPlanner.CanDonate(ctx), PrisonerPlanner.DungeonRoom(ctx));
             return new StewardPlan(sections, totals, facts, inputs);

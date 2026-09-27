@@ -77,10 +77,12 @@ namespace SmartSteward.Core.Planning
         public int MembersAfter { get; internal set; }
         public int PrisonersAfter { get; internal set; }
 
-        /// <summary>Something is bought or hired and the purse ends below MinGoldAfterDeal (shown red).</summary>
+        /// <summary>Something is bought or hired and the purse ends below MinGoldAfterDeal — the plan's
+        /// <see cref="MoneyFloors.All"/> (shown red).</summary>
         public bool BelowMinGoldAfterDeal { get; internal set; }
 
-        /// <summary>An animal is bought and the purse ends below MinGoldForHorses (shown red).</summary>
+        /// <summary>An animal is bought and the purse ends below MinGoldForHorses — the plan's
+        /// <see cref="MoneyFloors.Animals"/> (shown red).</summary>
         public bool BelowMinGoldForHorses { get; internal set; }
 
         /// <summary>The deal costs more than the party has — or leaves a wanderer's hire with no more gold than
@@ -89,8 +91,7 @@ namespace SmartSteward.Core.Planning
 
         internal bool HireUnaffordable { get; set; }
 
-        internal static PlanTotals Compute(IEnumerable<PlanRow> rows, StewardSnapshot snapshot,
-            StewardSettings settings)
+        internal static PlanTotals Compute(IEnumerable<PlanRow> rows, StewardSnapshot snapshot, MoneyFloors floors)
         {
             var totals = new PlanTotals
             {
@@ -152,8 +153,8 @@ namespace SmartSteward.Core.Planning
             totals.FoodUnitsAfter = foodNow + foodChange;
             totals.MembersAfter = snapshot.Party.Members + hired;
             totals.PrisonersAfter = prisonersNow - prisonersMoved;
-            totals.BelowMinGoldAfterDeal = bought && totals.GoldAfter < settings.MinGoldAfterDeal;
-            totals.BelowMinGoldForHorses = animalBought && totals.GoldAfter < settings.MinGoldForHorses;
+            totals.BelowMinGoldAfterDeal = bought && totals.GoldAfter < floors.All;
+            totals.BelowMinGoldForHorses = animalBought && totals.GoldAfter < floors.Animals;
 
             double daily = snapshot.Party.DailyFoodUse;
             if (daily > 0)
@@ -200,6 +201,12 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>What the steward derived when planning (targets, needs) — edits do not change them.</summary>
         public PlanFacts Facts { get; }
+
+        /// <summary>Who the plan was made for (the window, or the autonomous steward).</summary>
+        public PlanMode Mode => _inputs?.Mode ?? PlanMode.Window;
+
+        /// <summary>The purse floors the plan answers to — the red footer flags compare against these.</summary>
+        public MoneyFloors Floors => _inputs?.Floors ?? new MoneyFloors(0, 0);
 
         /// <summary>At least one row changes something — PopupOnlyWithChanges opens the window only then.</summary>
         public bool HasChanges
