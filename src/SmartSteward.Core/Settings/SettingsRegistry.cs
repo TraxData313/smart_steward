@@ -58,6 +58,35 @@ namespace SmartSteward.Core.Settings
                     yield return def;
         }
 
+        /// <summary>The values that differ from the defaults, for the log — a bug report then says which
+        /// settings were in effect: <c>FoodPerMan=3.0, SellLoot=true, PriceBook: 2 items</c>, or
+        /// <c>all defaults</c>.</summary>
+        public static string DescribeNonDefaults(StewardSettings settings)
+        {
+            var parts = new List<string>();
+            foreach (var def in All)
+            {
+                switch (def)
+                {
+                    case PriceBookSetting book:
+                        int items = 0;
+                        foreach (var entry in book.Get(settings).Values)
+                            if (entry != null && !entry.IsEmpty) items++;
+                        if (items > 0) parts.Add(def.Key + ": " + items + (items == 1 ? " item" : " items"));
+                        break;
+                    case IdListSetting list:
+                        var ids = SettingsFile.CleanIds(list.Get(settings));
+                        if (ids.Count > 0) parts.Add(def.Key + ": " + string.Join(" ", ids));
+                        break;
+                    default:
+                        var text = SettingsFile.ValueText(def, settings);
+                        if (text != def.DefaultFileText) parts.Add(def.Key + "=" + text.Trim('"'));
+                        break;
+                }
+            }
+            return parts.Count == 0 ? "all defaults" : string.Join(", ", parts);
+        }
+
         private static Dictionary<string, SettingDefinition> Index()
         {
             var index = new Dictionary<string, SettingDefinition>(StringComparer.OrdinalIgnoreCase);

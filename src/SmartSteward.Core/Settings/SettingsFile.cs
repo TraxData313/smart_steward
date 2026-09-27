@@ -120,7 +120,8 @@ namespace SmartSteward.Core.Settings
             sb.Append(NewLine);
         }
 
-        private static string ValueText(SettingDefinition def, StewardSettings settings)
+        /// <summary>A value as the file writes it (<c>true</c>, <c>2.0</c>, <c>"Balanced"</c>, the price book object…).</summary>
+        internal static string ValueText(SettingDefinition def, StewardSettings settings)
         {
             switch (def)
             {

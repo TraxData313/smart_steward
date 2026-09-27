@@ -11,8 +11,9 @@ using TaleWorlds.MountAndBlade;
 namespace SmartSteward
 {
     /// <summary>
-    /// The game's entry point (SubModule.xml → SubModuleClassType). Registers the steward's
-    /// campaign behavior on every campaign start and says hello once the campaign map is up.
+    /// The game's entry point (SubModule.xml → SubModuleClassType). Loads the settings, offers them to
+    /// MCM when it is installed, registers the steward's campaign behavior on every campaign start and
+    /// says hello once the campaign map is up.
     /// </summary>
     public class SubModule : MBSubModuleBase
     {
@@ -24,6 +25,23 @@ namespace SmartSteward
         {
             base.OnSubModuleLoad();
             ModLog.Info("load", ModInfo.Name + " loaded — " + DescribeBuild());
+            try
+            {
+                // Read settings.json now, so a broken file is repaired and logged before anything asks.
+                SettingsHost.EnsureLoaded();
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("settings", "loading at module load", ex);
+            }
+        }
+
+        protected override void OnBeforeInitialModuleScreenSetAsRoot()
+        {
+            base.OnBeforeInitialModuleScreenSetAsRoot();
+            // MCM builds its services in its own OnBeforeInitialModuleScreenSetAsRoot; as an optional
+            // dependency it loads (and runs this hook) before us. No MCM → a log line, nothing else.
+            McmBridge.TryRegister();
         }
 
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
@@ -36,6 +54,16 @@ namespace SmartSteward
                 starter.AddBehavior(new SmartStewardBehavior());
                 _announcePending = true;
                 ModLog.Info("campaign", "campaign starting — behavior registered");
+                try
+                {
+                    SettingsHost.ReloadIfChanged(); // edited at the main menu? pick it up
+                    SettingsHost.LogInEffect("settings in effect");
+                    McmBridge.TryRegister();        // in case MCM was not ready at the main menu
+                }
+                catch (Exception ex)
+                {
+                    ModLog.Error("settings", "campaign start", ex);
+                }
             }
         }
 

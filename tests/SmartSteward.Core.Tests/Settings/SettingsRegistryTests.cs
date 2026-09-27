@@ -87,6 +87,10 @@ public class SettingsRegistryTests
             }
             // Plain ASCII: the file opens right in any editor.
             Assert.True((def.Label + def.Help).All(c => c < 128), def.Key + " has a non-ASCII character");
+            // MCM shows labels, hints and dropdown labels through TextObject, where {X} is a variable.
+            if (def.IsScalar)
+                foreach (var text in new[] { def.Label, def.Hint }.Concat((def as EnumSetting)?.Labels ?? Array.Empty<string>()))
+                    Assert.True(text.IndexOfAny(new[] { '{', '}' }) < 0, def.Key + ": braces in " + text);
         }
         foreach (var group in SettingsRegistry.Groups)
         {
@@ -169,6 +173,19 @@ public class SettingsRegistryTests
 
         Assert.Equal(1, order.IndexOf(" lowestpriceperkg "));
         Assert.Equal(-1, order.IndexOf("Dearest"));
+    }
+
+    [Fact]
+    public void The_log_line_names_only_what_differs_from_the_defaults()
+    {
+        Assert.Equal("all defaults", SettingsRegistry.DescribeNonDefaults(new StewardSettings()));
+
+        var s = new StewardSettings { FoodPerMan = 3, SellLoot = true, SellLootOrder = SellLootOrder.MostExpensive };
+        s.PriceBook["grain"] = new PriceBookEntry { BuyBase = 9 };
+        s.PriceBook["fish"] = new PriceBookEntry(); // empty: not counted
+        s.PrisonersExcluded.Add("looter");
+        Assert.Equal("FoodPerMan=3.0, PriceBook: 1 item, PrisonersExcluded: looter, SellLoot=true, SellLootOrder=MostExpensive",
+            SettingsRegistry.DescribeNonDefaults(s));
     }
 
     [Fact]
