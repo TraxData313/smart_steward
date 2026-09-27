@@ -6,10 +6,11 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
 - [x] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [x] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
-  - [ ] Playtest the debug door: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6"
+  - [ ] Playtest the executor: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6" (the debug door is gone: use the window's Do it)
 - [x] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
   - [ ] Playtest the window: tabs, clicks, tooltips, Encyclopedia round trip, Do it — checklist in docs/PLAYTEST.md "Step 7 — the window"
-- [ ] 8. Triggers — menu entries, popup on arrival, leave warning, FULL-AUTONOMOUS steward (AutoExecute → AutonomousSteward + AutonomousMinGold 100k, message-log report — DESIGN §6; update §7 with the code), remove the debug door
+- [x] 8. Triggers — menu entries, popup on arrival, leave warning, FULL-AUTONOMOUS steward (AutoExecute → AutonomousSteward + AutonomousMinGold 100k, message-log report — DESIGN §6; update §7 with the code), remove the debug door
+  - [ ] Playtest the triggers: arrival popup, leave question, ships, autonomy — checklist in docs/PLAYTEST.md "Step 8 — triggers & autonomy"
 - [ ] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
 - [ ] 10. Packaging — package.ps1, Steam description + workshop files, README
 - [ ] 11. Anton's first playtest
@@ -41,10 +42,11 @@ NOTICED (things spotted during a step, left for later):
 - [ ] TrainingBattles' TrainingWindow.Close() never calls ReleaseMovie, and its prefabs carry MouseScrollAxis (gone in 1.4.8) — fix there; ours does both right (step 7)
 - [ ] Vanilla's donate screen sizes the dungeon room by prisoner stacks, not men — we use NumberOfPrisoners
 - [ ] TrainingBattles + ImmersiveAI list MCM only in DependedModuleMetadatas — the vanilla launcher ignores that; add an Optional DependedModule (RESEARCH §12)
-- [ ] Step 8: War Sails' port/sail menus must exist before the leave-wrap — make NavalDLC an optional load-before in SubModule.xml, or wrap lazily
-- [ ] Playtest: Mod Options page (10 groups, 43 settings) never seen in game yet — gold sliders run 0–1,000,000, are they usable?
-- [ ] Step 8: remove the TEMPORARY debug door (DebugDoor.cs + its OnSessionLaunched hook in SmartStewardBehavior)
+- [x] Step 8: War Sails' port/sail menus must exist before the leave-wrap — wrapped lazily (War Sails builds them in OnAfterSessionLaunched: no load order could help)
+- [ ] Playtest: Mod Options page (10 groups, 44 settings) never seen in game yet — gold sliders run 0–1,000,000 (Keep while autonomous 0–10,000,000), are they usable?
+- [x] Step 8: remove the TEMPORARY debug door (DebugDoor.cs + its OnSessionLaunched hook in SmartStewardBehavior) — gone
 - [ ] Step 7: a wanderer's hire price is re-read at Do it (the trades move the town's prices) — the row may show a slightly different number
-- [ ] Step 8: the "Party Steward" menu entry already exists (StewardMenu, step 7) — step 8 adds the popup, leave warning and autonomy
-- [ ] Step 9: the window's texts carry ids ss_ui_* (+ MCM's ss_set_/ss_hint_/ss_opt_/ss_grp_) — gather them into a strings file
+- [x] Step 8: the "Party Steward" menu entry already exists (StewardMenu, step 7) — step 8 added the popup, leave warning and autonomy
+- [ ] Step 9: the window's texts carry ids ss_ui_* (+ MCM's ss_set_/ss_hint_/ss_opt_/ss_grp_, step 8's ss_auto_*/ss_leave_*) — gather them into a strings file
 - [ ] Playtest: the window's look was never seen — column widths, font sizes, the Encyclopedia focus round trip (PLAYTEST Step 7)
+- [ ] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — keep or drop
