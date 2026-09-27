@@ -24,22 +24,29 @@ public class SettingsTests
         return dir?.FullName ?? throw new InvalidOperationException("SmartSteward.sln not found");
     }
 
-    /// <summary>(key, default) of every row of DESIGN §7's settings table.</summary>
-    private static List<(string Key, string Default)> DesignTable()
+    /// <summary>One row of DESIGN §7's settings table.</summary>
+    internal sealed record DesignRow(string Group, string Key, string Default, string Range);
+
+    /// <summary>Every row of DESIGN §7's settings table (Group | Key | Default | Range | Meaning).</summary>
+    internal static List<DesignRow> DesignRows()
     {
         var text = File.ReadAllText(Path.Combine(RepoRoot, "docs", "DESIGN.md"));
         int start = text.IndexOf("## 7. Settings", StringComparison.Ordinal);
         int end = text.IndexOf("## 8.", start, StringComparison.Ordinal);
-        var rows = new List<(string, string)>();
+        var rows = new List<DesignRow>();
         foreach (var line in text[start..end].Split('\n'))
         {
             var cells = line.Split('|').Select(c => c.Trim()).ToArray();
-            if (cells.Length < 5 || cells[2] == "Key" || cells[2].StartsWith("---", StringComparison.Ordinal))
+            if (cells.Length < 7 || cells[2] == "Key" || cells[2].StartsWith("---", StringComparison.Ordinal))
                 continue;
-            rows.Add((cells[2], cells[3]));
+            rows.Add(new DesignRow(cells[1], cells[2], cells[3], cells[4]));
         }
         return rows;
     }
+
+    /// <summary>(key, default) of every row of DESIGN §7's settings table.</summary>
+    private static List<(string Key, string Default)> DesignTable() =>
+        DesignRows().Select(r => (r.Key, r.Default)).ToList();
 
     private static PropertyInfo[] SettingProperties() =>
         typeof(StewardSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -92,6 +99,68 @@ public class SettingsTests
     {
         Assert.Equal(new[] { "Balanced", "Cheapest" }, Enum.GetNames(typeof(FoodStrategy)));
         Assert.Equal(new[] { "Cheapest", "LowestPricePerKg", "MostExpensive" }, Enum.GetNames(typeof(SellLootOrder)));
+    }
+
+    // ── The settings registry (step 5) against the same table: it drives the file, MCM and the
+    //    Instructions tab, so a key, default or range that drifts here drifts in all three. ──────
+
+    [Fact]
+    public void Registry_holds_exactly_the_DESIGN_7_keys_in_table_order_and_groups()
+    {
+        var rows = DesignRows();
+        Assert.True(rows.Count > 40, "the §7 table was not found or not parsed");
+        Assert.Equal(rows.Select(r => r.Key), SettingsRegistry.All.Select(d => d.Key));
+        Assert.Equal(rows.Select(r => r.Group), SettingsRegistry.All.Select(d => d.Group));
+        Assert.Equal(rows.Select(r => r.Group).Distinct(), SettingsRegistry.Groups);
+    }
+
+    [Fact]
+    public void Registry_defaults_are_the_DESIGN_7_defaults()
+    {
+        var fresh = new StewardSettings();
+        foreach (var row in DesignRows())
+        {
+            var def = SettingsRegistry.Find(row.Key)!;
+            Assert.True(row.Default == def.DefaultFileText.Trim('"'), $"{row.Key}: registry says {def.DefaultFileText}");
+            // The registry reads the same property the POCO test checks — not a neighbour's.
+            var property = typeof(StewardSettings).GetProperty(row.Key)!.GetValue(fresh);
+            Assert.Equal(property, def.GetValue(fresh));
+        }
+    }
+
+    [Fact]
+    public void Registry_ranges_are_the_DESIGN_7_ranges()
+    {
+        foreach (var row in DesignRows())
+        {
+            var def = SettingsRegistry.Find(row.Key)!;
+            switch (def)
+            {
+                case IntSetting n:
+                    Assert.True(ParseRange(row.Range) == (n.Min, n.Max), $"{row.Key}: {n.Min}–{n.Max} vs {row.Range}");
+                    break;
+                case FloatSetting f:
+                    Assert.True(ParseRange(row.Range) == (f.Min, f.Max), $"{row.Key}: {f.Min}–{f.Max} vs {row.Range}");
+                    break;
+                case EnumSetting e:
+                    Assert.Equal(row.Range.Split(" / "), e.Names);
+                    break;
+                case PriceBookSetting:
+                    Assert.Equal((0.0, (double)PriceBookSetting.MaxBase), ParseRange(row.Range.Replace("bases ", "")));
+                    break;
+                default:
+                    Assert.True(row.Range == "—", $"{row.Key} has no range, but §7 says {row.Range}");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>"0–1,000,000" / "-1–500" / "0.1–10" (an en dash between the bounds).</summary>
+    private static (double Min, double Max) ParseRange(string text)
+    {
+        var parts = text.Replace(",", "").Split('–');
+        Assert.True(parts.Length == 2, "not a range: " + text);
+        return (double.Parse(parts[0], CultureInfo.InvariantCulture), double.Parse(parts[1], CultureInfo.InvariantCulture));
     }
 
     [Theory]
