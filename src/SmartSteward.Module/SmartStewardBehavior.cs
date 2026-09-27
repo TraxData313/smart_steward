@@ -4,8 +4,9 @@ using TaleWorlds.CampaignSystem;
 namespace SmartSteward
 {
     /// <summary>
-    /// The steward's campaign behavior, registered on every campaign start. Step 6 hooks the session launch to add
-    /// the TEMPORARY debug door (<see cref="DebugDoor"/>); the triggers (step 8) hook the campaign events here.
+    /// The steward's campaign behavior, registered on every campaign start. The session launch adds the "Party
+    /// Steward" menu entries (<see cref="StewardMenu"/>, step 7) and the TEMPORARY debug door (<see cref="DebugDoor"/>,
+    /// step 6 — step 8 removes it); the triggers (step 8) hook the campaign events here.
     /// <para>
     /// SAVE-SAFE, and it must stay so: <see cref="SyncData"/> stores NOTHING. The game still files
     /// an empty vanilla record under this class name (CampaignBehaviorDataStore → BehaviorSaveData,
@@ -30,7 +31,15 @@ namespace SmartSteward
         {
             try
             {
-                DebugDoor.AddMenus(starter); // TEMPORARY — step 8 replaces it with the real menu entries
+                StewardMenu.AddMenus(starter); // "Party Steward" — opens the window (PLAN step 7)
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("campaign", "adding the Party Steward menu entries", ex);
+            }
+            try
+            {
+                DebugDoor.AddMenus(starter); // TEMPORARY — step 8 removes it
             }
             catch (Exception ex)
             {

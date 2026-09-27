@@ -70,6 +70,7 @@ namespace SmartSteward
         protected override void OnApplicationTick(float dt)
         {
             base.OnApplicationTick(dt);
+            UI.StewardWindow.Tick(dt); // cheap when the window is closed
             if (!_announcePending) return;
             try
             {
@@ -91,6 +92,7 @@ namespace SmartSteward
         public override void OnGameEnd(Game game)
         {
             _announcePending = false;
+            UI.StewardWindow.Close(); // a window must not outlive its campaign
             base.OnGameEnd(game);
         }
 

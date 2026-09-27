@@ -1,0 +1,84 @@
+<!--
+  Smart Steward: the Party Steward window (DESIGN §1, PLAN step 7). One movie, three tabs - Suggestion, Prices,
+  Instructions. Loaded by UI\StewardWindow via GauntletLayer.LoadMovie("SmartStewardWindow", StewardWindowVM) on
+  layer order 305 (below the Encyclopedia). Built ONLY from widget classes, brushes and sprites that exist in this
+  game version and live in always-loaded sprite categories - tools\check-gui.ps1 verifies every tag, attribute,
+  brush, sprite and binding against the game and the built DLL. Patterns copied from vanilla (the ClanScreen tab
+  bar, the SPOptions checkbox, the disabled-button hint) and from TrainingBattles' playtested windows.
+-->
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+      <Children>
+
+        <!-- Dim the world behind -->
+        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.45" />
+
+        <!-- The window -->
+        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1580" SuggestedHeight="960" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#14100BFF" AlphaFactor="0.97" />
+
+            <!-- Title -->
+            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" VerticalAlignment="Top" MarginTop="14" MarginLeft="30" MarginRight="30" Brush="Popup.Title.Text" Text="@TitleText" />
+
+            <!-- Tab bar (vanilla ClanScreen look: Header.Tab.* brushes, Clan.TabControl.Text) -->
+            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="62" StackLayout.LayoutMethod="HorizontalLeftToRight">
+              <Children>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="280" SuggestedHeight="56" Brush="Header.Tab.Left" Command.Click="ExecuteSelectSuggestion" IsSelected="@IsSuggestionSelected" UpdateChildrenStates="true">
+                  <Children>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" PositionXOffset="10" MarginTop="3" Brush="Clan.TabControl.Text" Brush.FontSize="24" Text="@SuggestionTabText" />
+                  </Children>
+                </ButtonWidget>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="255" SuggestedHeight="48" PositionYOffset="6" Brush="Header.Tab.Center" Command.Click="ExecuteSelectPrices" IsSelected="@IsPricesSelected" UpdateChildrenStates="true">
+                  <Children>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Clan.TabControl.Text" Brush.FontSize="24" Text="@PricesTabText" />
+                  </Children>
+                </ButtonWidget>
+                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="280" SuggestedHeight="56" Brush="Header.Tab.Right" Command.Click="ExecuteSelectInstructions" IsSelected="@IsInstructionsSelected" UpdateChildrenStates="true">
+                  <Children>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" PositionXOffset="-10" MarginTop="3" Brush="Clan.TabControl.Text" Brush.FontSize="24" Text="@InstructionsTabText" />
+                  </Children>
+                </ButtonWidget>
+              </Children>
+            </ListPanel>
+
+            <!-- ============================ Suggestion tab ============================ -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="132" MarginBottom="84" IsVisible="@IsSuggestionSelected">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Top" Brush="Popup.Description.Text" Text="@SuggestionTabText" />
+              </Children>
+            </Widget>
+
+            <!-- ============================ Prices tab ============================ -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="132" MarginBottom="84" IsVisible="@IsPricesSelected">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Top" Brush="Popup.Description.Text" Text="@PricesTabText" />
+              </Children>
+            </Widget>
+
+            <!-- ============================ Instructions tab ============================ -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="132" MarginBottom="84" IsVisible="@IsInstructionsSelected">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Top" Brush="Popup.Description.Text" Text="@InstructionsTabText" />
+              </Children>
+            </Widget>
+
+            <!-- Not now (Escape does the same) -->
+            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="52" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginRight="30" MarginBottom="18" Brush="Popup.Cancel.Button" Command.Click="ExecuteClose" UpdateChildrenStates="true">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="@CloseText" />
+              </Children>
+            </ButtonWidget>
+
+            <!-- Frame border -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="18" ExtendTop="18" ExtendRight="18" ExtendBottom="18" IsEnabled="false" />
+
+          </Children>
+        </Widget>
+
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

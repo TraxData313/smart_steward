@@ -24,12 +24,15 @@ namespace SmartSteward
         private const string TavernOptionId = "smart_steward_debug_tavern";
 
         /// <summary>Called from the behavior's OnSessionLaunched — vanilla has built its menus by then (RESEARCH §10);
-        /// the entries go right after Trade, or at the end when Trade is not found.</summary>
+        /// the entries go right after the real "Party Steward" entry (else after Trade, else at the end).</summary>
         public static void AddMenus(CampaignGameStarter starter)
         {
             foreach (var menuId in new[] { "town", "village" })
+            {
+                int index = IndexAfter(menuId, StewardMenu.OptionId);
                 starter.AddGameMenuOption(menuId, OptionId, "{=ss_dbg_menu}Party Steward (debug)",
-                    OnCondition, OnConsequence, false, IndexAfter(menuId, "trade"));
+                    OnCondition, OnConsequence, false, index >= 0 ? index : IndexAfter(menuId, "trade"));
+            }
             starter.AddGameMenuOption("town", TavernOptionId, "{=ss_dbg_menu_tavern}Party Steward (debug, + tavern hires)",
                 OnCondition, OnTavernConsequence, false, IndexAfter("town", OptionId));
             ModLog.Info("debug", "debug door added to the town and village menus");
