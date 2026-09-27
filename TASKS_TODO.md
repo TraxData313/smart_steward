@@ -4,7 +4,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 3. Scaffold — solution, Core/Module/tests, SubModule.xml, deploy.ps1; empty module loads in game
 - [x] 4. Core planners + unit tests — food, pack, mounts, war mounts, armour & weapons groups, prisoners, tavern, money floors
 - [x] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
-- [ ] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
+- [x] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [ ] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
 - [ ] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
 - [ ] 8. Triggers — menu entries, popup on arrival, leave warning, auto-execute
@@ -41,3 +41,4 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Vanilla's donate screen sizes the dungeon room by prisoner stacks, not men — we use NumberOfPrisoners
 - [ ] TrainingBattles + ImmersiveAI list MCM only in DependedModuleMetadatas — the vanilla launcher ignores that; add an Optional DependedModule (RESEARCH §12)
 - [ ] Step 8: War Sails' port/sail menus must exist before the leave-wrap — make NavalDLC an optional load-before in SubModule.xml, or wrap lazily
+- [ ] Playtest: Mod Options page (10 groups, 43 settings) never seen in game yet — gold sliders run 0–1,000,000, are they usable?
