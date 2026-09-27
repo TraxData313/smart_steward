@@ -154,6 +154,10 @@ One row per item:
   base stays empty until the player types one.
 - **Defaults of the ticks**: food — Buy ☑ Sell ☑; pack animals and mounts — Buy ☑ Sell ☑;
   war mounts — Buy ☑ Sell ☑.
+- **Which horses sit under "War mounts"** **[decided: Claude, 2026.09.27 — step 4]**: the Mounts
+  sub-header holds the `horse` category (plain riding horses and camels); `war_horse`, `noble_horse`
+  and any category a mod adds sit under War mounts — no auto-filled price by default. A final price
+  is rounded to the nearest denar, halves up (`[11] × 1.2 → 13`).
 - Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
 
 #### 1.3.1 LATER (not V1) — the Others group **[Anton 2026.09.27: "leave wood, jewelry etc for later"]**
@@ -201,6 +205,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   (1 + `FoodSurplusTolerancePercent`/100) (default **25**) — sell back down to the target,
   most-held type first (keeps variety), only Sell-ticked types, only at ≥ their final min sell
   price (§1.3).
+- **[decided: Claude, 2026.09.27 — step 4]** The target counts only the prisoners who stay — those
+  this visit ransoms or donates are not fed. Two types held equally when selling → the dearer goes first.
 
 ### 2.2 Pack animals — keep X
 
@@ -245,6 +251,19 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **Buy** the cheapest ELIGIBLE of the needed category (price-book max if set — war mounts have
   no auto-filled placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**).
 - **Sell surplus** (`SellWarMountSurplus`, default on) above what is needed, most expensive first.
+- **How a held mount gets its role** **[decided: Claude, 2026.09.27 — step 4]**:
+  - Need per category counts a stack once, at its best horse-needing target (foot-or-horse recruits
+    count — the board's proposal). `WarMountsExtra` goes on every category the party's troops upgrade
+    into, even with nobody ready; `WarMountsManualTarget` applies to each such category.
+  - Reserved = the held horses the upgrades would take (unlocked first, cheapest base value first, as
+    vanilla consumes them); every other mount — war and noble horses too — is a riding mount.
+  - With `WarMountsCountAsMounts`, the reserved horses AND the upgrade horses about to be bought count
+    toward the footmen's target: the upgraded man takes his horse, so counting both would buy one horse
+    too many per upgrade. When the purse cannot pay for all the upgrade horses, riding mounts fill the
+    gap first (Mounts outrank War mounts).
+  - Riding surplus is not sold in a visit that buys an upgrade horse (never sell and buy mounts in one
+    visit — after the upgrade it is surplus for real). With war mounts managed and
+    `SellWarMountSurplus` off, no horse of an upgrade category is ever sold.
 
 ### 2.5 Prisoners — ransom or donate
 
@@ -264,6 +283,10 @@ pure Core logic fed a snapshot of the party and the market (§5).
     the rest). **A mercenary qualifies** (his faction is the kingdom he serves).
   - Influence per donated prisoner = `0.2 × ransomValue^0.4` (≈1 for a recruit), ×1.2 under
     Military Coronae. Castles also take donations but are a non-goal (§9).
+- **[decided: Claude, 2026.09.27 — step 4]** Donations fill the room most valuable first (influence
+  grows with the ransom value; the room is what runs out), the rest is ransomed. Heroes are not donated
+  either unless `RansomHeroPrisoners`. Excluded troops and heroes keep a row at 0 (the player may add them
+  by hand); locked prisoners get no row.
 
 ### 2.6 Loot — sold in groups, cheapest first
 
@@ -300,6 +323,11 @@ pure Core logic fed a snapshot of the party and the market (§5).
   *(Original rule, kept for the record: "Mass first — when the market cannot pay for everything,
   sell in order of LOWEST price per kg first … vanilla sells the most expensive first, freeing 1 kg
   of armour where 200 kg of rags were worth the same.")*
+- **[decided: Claude, 2026.09.27 — step 4]** The order is fixed once per visit at the untouched
+  market's sell price and runs ACROSS the groups, so a poor market's gold goes to the pieces the order
+  prefers whatever their group. A group stops at its first piece the market can no longer pay for, so
+  `−N` on a group row always means "the first N in order". Groups with nothing sellable get no row;
+  `SellLoot` off hides the section.
 - **[research 2026.09.27]** Selling equipment carries a heavy trade penalty (+1.5, more for high
   tiers): a piece fetches about a third of its value in a town (39% at tier 1) and **about a
   quarter in a village** (+1.0 more when selling there). Trade goods have only the base 0.06.
@@ -353,6 +381,9 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
    planner never proposes a sale the market cannot pay for.
    **[research 2026.09.27]** Vanilla would let the sale go through and simply pay no more than
    the market's gold — overselling loses the goods for nothing, so this rule matters.
+   **[decided: Claude, 2026.09.27 — step 4]** The limit applies to the item sales (food, animals,
+   loot); ransom gold comes from the game, not the market. The executor ransoms before it trades, so
+   the ransom funds the buys.
 5. **[research 2026.09.27]** Villages trade both ways (the "Buy products" screen also buys from
    you); their stock is their produce (horse ranches sell horses, mules and sumpters). Trading
    anywhere needs the game's trade access (not at war, crime, etc.) — no access, no market rows.

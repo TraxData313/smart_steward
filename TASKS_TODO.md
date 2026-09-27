@@ -2,7 +2,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 1. Bootstrap — concept → DESIGN.md, CLAUDE.md, this board, public GitHub repo
 - [x] 2. Research — verify every game API the design needs → docs/RESEARCH.md (no code)
 - [x] 3. Scaffold — solution, Core/Module/tests, SubModule.xml, deploy.ps1; empty module loads in game
-- [ ] 4. Core planners + unit tests — food, pack, mounts, war mounts, armour & weapons groups, prisoners, tavern, money floors
+- [x] 4. Core planners + unit tests — food, pack, mounts, war mounts, armour & weapons groups, prisoners, tavern, money floors
+- [ ] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
 - [ ] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [ ] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
 - [ ] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
@@ -30,6 +31,8 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [ ] Lame/spirited (modified) horses — count them as mounts, never buy them? proposed: yes
 - [ ] Sell multiplier default 0.8 (sell only at ≥ average sell price − 20%) — right number? (DESIGN §1.3)
 - [ ] Role caps (mount 500 / pack 300 / war 2000) stay fixed — or scale with the buy multiplier too?
+- [ ] Noble horses sit with the war horses in the Prices tab (no auto-filled price) — ok? (DESIGN §1.3)
+- [ ] Donating fills the dungeon with the most valuable prisoners first (most influence) — ok? (DESIGN §2.5)
 
 NOTICED (things spotted during a step, left for later):
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8

@@ -89,11 +89,18 @@ nothing lost. Therefore:
 ```
 SmartSteward.sln, Directory.Build.props   GameFolder / McmBinFolder; override them in a
                               git-ignored Directory.Build.props.user
-src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-tested
-                              (ModInfo now; the planners from step 4)
+src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-tested:
+  Settings/                   StewardSettings = the DESIGN §7 keys as a POCO (+ price-book entries)
+  Snapshot/                   StewardSnapshot — the game-free input the Module fills; LootGroups table
+  Pricing/                    IPriceOracle (the Module implements it with the game's price model),
+                              PriceBook rules, MarketState + TradeLane/LaneCursor = the price walk
+  Planning/                   StewardPlanner.Plan(snapshot, settings, oracle) → StewardPlan
+                              (sections → rows with their lanes, totals, facts); one planner per job
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing), ModLog
-tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo checks
+tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and
+                              StewardSettings ↔ DESIGN §7 checks; Planning/TestKit.cs = FakeOracle +
+                              Scenario builder for planner tests
 module/SubModule.xml          the manifest (GUI prefabs and ModuleData join it in later steps)
 tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smart Steward (dev)")
 tools/package.ps1             (step 10) clean release layout + zip for the Workshop upload
