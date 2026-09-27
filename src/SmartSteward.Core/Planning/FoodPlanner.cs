@@ -97,7 +97,7 @@ namespace SmartSteward.Core.Planning
                     Mine = held,
                     Locked = item.Held.Sum(s => s.LockedCount),
                     Market = item.Offered.Sum(s => s.Count),
-                    MaxBuy = buyLane.Capacity,
+                    MaxBuy = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
                     MaxSell = sellLane.Capacity,
                     PriceBook = book,
                     BuyLane = buyLane,

@@ -120,12 +120,13 @@ namespace SmartSteward.Core.Planning
             };
 
             int foodNow = 0;
-            foreach (var stack in snapshot.Inventory)
-                if (stack.Kind == ItemKind.Food)
+            foreach (var stack in snapshot.Inventory ?? new List<ItemStack>())
+                if (stack != null && stack.Kind == ItemKind.Food)
                     foodNow += stack.Count;
             int prisonersNow = 0;
-            foreach (var p in snapshot.Prisoners)
-                prisonersNow += p.Count;
+            foreach (var p in snapshot.Prisoners ?? new List<PrisonerStack>())
+                if (p != null && p.Count > 0)
+                    prisonersNow += p.Count;
 
             int foodChange = 0, prisonersMoved = 0, hired = 0;
             bool bought = false, animalBought = false;

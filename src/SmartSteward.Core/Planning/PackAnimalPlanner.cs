@@ -49,11 +49,11 @@ namespace SmartSteward.Core.Planning
                 Locked = _held.Sum(s => s.LockedCount),
                 Target = Target,
                 Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
-                MaxBuy = buyLane.Capacity,
                 MaxSell = sellLane.Capacity,
                 BuyLane = buyLane,
                 SellLane = sellLane,
             };
+            Row.MaxBuy = Row.Market ?? 0;
             _buy = new LaneCursor(buyLane);
             _sell = new LaneCursor(sellLane);
         }

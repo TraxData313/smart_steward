@@ -8,4 +8,9 @@
     <AssemblyName>SmartSteward.Core</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- The tests reach the plan's internals (e.g. PlanTotals.Compute for the floor flags). -->
+    <InternalsVisibleTo Include="SmartSteward.Core.Tests" />
+  </ItemGroup>
+
 </Project>

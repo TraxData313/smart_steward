@@ -81,7 +81,8 @@ namespace SmartSteward.Core.Pricing
             AveragePrices? averages)
         {
             if (settings == null) throw new ArgumentNullException(nameof(settings));
-            settings.PriceBook.TryGetValue(itemId, out var entry);
+            PriceBookEntry? entry = null;
+            settings.PriceBook?.TryGetValue(itemId, out entry);
             bool autoFill = AutoFills(group, settings);
 
             var prices = new PriceBookPrices(itemId, group)

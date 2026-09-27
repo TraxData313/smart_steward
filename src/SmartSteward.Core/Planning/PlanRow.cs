@@ -182,7 +182,9 @@ namespace SmartSteward.Core.Planning
         public int Change { get; internal set; }
         public int Result => Mine + Change;
 
-        /// <summary>Clamps: Change stays within [−MaxSell, +MaxBuy].</summary>
+        /// <summary>Clamps: Change stays within [−MaxSell, +MaxBuy]. For item rows MaxBuy = units on offer whose
+        /// first price passes their limit, MaxSell = units the sell lane holds; the walk may stop sooner as
+        /// town prices climb past a limit.</summary>
         public int MaxBuy { get; internal set; }
         public int MaxSell { get; internal set; }
 

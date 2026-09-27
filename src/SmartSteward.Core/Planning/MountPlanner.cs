@@ -70,7 +70,9 @@ namespace SmartSteward.Core.Planning
                     if (target == null || string.IsNullOrEmpty(target.RequiredCategoryId))
                         continue;
                     inPlay.Add(target.RequiredCategoryId!);
-                    if (target.ReadyCount > 0 && (best == null || target.ReadyCount > best.ReadyCount))
+                    if (target.ReadyCount > 0 && (best == null || target.ReadyCount > best.ReadyCount
+                            || (target.ReadyCount == best.ReadyCount
+                                && string.CompareOrdinal(target.RequiredCategoryId, best.RequiredCategoryId) < 0)))
                         best = target;
                 }
                 if (best != null)
@@ -135,16 +137,16 @@ namespace SmartSteward.Core.Planning
                     Locked = _held.Where(s => s.IsLocked).Sum(s => s.Count - ReservedOf(s)),
                     Target = RidingTarget,
                     Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
-                    MaxBuy = buyLane.Capacity,
                     MaxSell = sellLane.Capacity,
                     BuyLane = buyLane,
                     SellLane = sellLane,
                 };
+                RidingRow.MaxBuy = RidingRow.Market ?? 0;
                 _ridingBuy = new LaneCursor(buyLane);
                 _ridingSell = new LaneCursor(sellLane);
             }
 
-            foreach (var pair in need.Where(p => p.Value > 0))
+            foreach (var pair in need.Where(p => p.Value > 0).OrderBy(p => p.Key, StringComparer.Ordinal))
             {
                 string category = pair.Key;
                 var mine = _held.Where(s => s.CategoryId == category && ReservedOf(s) > 0).ToList();
@@ -160,11 +162,11 @@ namespace SmartSteward.Core.Planning
                     Locked = mine.Where(s => s.IsLocked).Sum(ReservedOf),
                     Need = pair.Value,
                     Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
-                    MaxBuy = buyLane.Capacity,
                     MaxSell = sellLane.Capacity,
                     BuyLane = buyLane,
                     SellLane = sellLane,
                 };
+                row.MaxBuy = row.Market ?? 0;
                 _upgrades.Add(new UpgradeLine(category, pair.Value, reserved[category], row, new LaneCursor(buyLane)));
             }
         }
