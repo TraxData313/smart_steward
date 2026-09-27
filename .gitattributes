@@ -1,0 +1,14 @@
+# LF in the repository and in the working copy, whatever core.autocrlf says - the tools here
+# write LF, so this silences the "LF will be replaced by CRLF" noise on every add.
+* text=auto eol=lf
+
+# Visual Studio writes solution files with CRLF; keep them that way.
+*.sln text eol=crlf
+
+# Binary game/art assets never get line-ending conversion.
+*.dll binary
+*.pdb binary
+*.png binary
+*.jpg binary
+*.dds binary
+*.zip binary

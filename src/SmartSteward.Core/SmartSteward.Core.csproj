@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pure logic: no game references, no packages. Everything here is unit-tested in
+       tests\SmartSteward.Core.Tests; the Module feeds it snapshots of the game. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>SmartSteward.Core</RootNamespace>
+    <AssemblyName>SmartSteward.Core</AssemblyName>
+  </PropertyGroup>
+
+</Project>

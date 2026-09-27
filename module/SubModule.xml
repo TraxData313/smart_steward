@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/SubModule.xsd">
+  <Id value="SmartSteward" />
+  <Name value="Smart Steward" />
+  <Version value="v0.1.0" />
+  <DefaultModule value="false" />
+  <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
+  <!-- Load order is declared twice, on purpose (verified in the v1.4.8 launcher, docs/RESEARCH.md §12):
+       the VANILLA launcher and game read only DependedModules - an entry with Optional="true" is
+       never required nor auto-enabled, yet still sorts before us when it is enabled. The BUTR
+       launcher / BLSE read DependedModuleMetadatas. Keep the two lists in step. -->
+  <DependedModules>
+    <DependedModule Id="Native" />
+    <DependedModule Id="SandBoxCore" />
+    <DependedModule Id="Sandbox" />
+    <!-- Story mode: not needed (we touch no StoryMode code), but when it is on, load after it so
+         every vanilla menu exists before ours hook in. Sandbox-only players may switch it off. -->
+    <DependedModule Id="StoryMode" Optional="true" />
+    <!-- Mod Configuration Menu (MCM v5): optional. Load it before us so its settings screen is
+         ready when we register; without it the mod runs on its settings file alone. -->
+    <DependedModule Id="Bannerlord.MBOptionScreen" Optional="true" />
+  </DependedModules>
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Native" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" optional="true" />
+    <DependedModuleMetadata id="Bannerlord.MBOptionScreen" order="LoadBeforeThis" optional="true" />
+  </DependedModuleMetadatas>
+  <SubModules>
+    <SubModule>
+      <Name value="Smart Steward" />
+      <DLLName value="SmartSteward.dll" />
+      <SubModuleClassType value="SmartSteward.SubModule" />
+      <Tags />
+    </SubModule>
+  </SubModules>
+</Module>
