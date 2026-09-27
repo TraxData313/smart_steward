@@ -1,0 +1,20 @@
+I want to automate some of those pesky steward tasks:
+- when entering a town/city give me popup with the actions the auto steward will do, and I can increase decrease there, shift clicking for +5 as the game does many places or ticking unticking stuff
+	- let me see next to each item maybe 20 +7 -> 27 at 11 denars/grain or a total of 77 denars (20 i have, 7 the steward is proposing to buy, they will become 27), next to the +7 add buttons [-] +7 [+] when clicking them - normal click +/-1, shift+click +/-5, cntrl+click +/- all, and a little [reset arrow] button to reset to the steward suggestion, let me see the amount in stock of the city there too somewhere
+	- sameish style for the hourses mount (real name) ...
+	- make it look like a table, where i dont have to read but easily see the values and buttons and let my brain get use to it, say: my stock - +suggested with buttons - result - city stock - item name - item type (food/pack/mount/war mount)
+	- actually in the "Party Steward" menu, yeah this is the name, have tabs "Suggestion" and "Instructions", and in the instructions there will be option "auto pop up on city enter", other options are "show warning if you didn't saw the steward suggestion in this town"
+- give me a menu in town/city that lets me turn on and manage my auto steward settings
+- keeping enough food with different variety for X days givem my army size, buying enough and selling the surplus
+	- default 2 barrels of foot per 1 men, give me option to tick which food items to keep, defaulting to all unlocked with reasonable prices (say check average + 20% as default)
+	- give me the option of the max amount im willing to pay
+- keeping X pack animals
+- keeping X mounts per foot soldier to make them mobile on the map - say I want to keep 110 mounts per 100 footsoldiers to have 10% buffer
+	- I want to buy the cheapest mounts that are under the default of 500
+	- I want to sell the surplus, starting from the most expensive
+- keeping enough war mounts for the upgrades
+	- here maybe let me set the number and the highest price per mount im willing to pay, defauting to 2000, again selling the surplus
+- give me option to auto ransom prisoners and to tick untick which ones in the popup and in the steward settings to chose whether to send them preferily to the garrison as prisoners if possible (like if im merc for influence)
+- give me option for the minimum money i must have remaining after the whole deal, food is with higher priority than hourses, give me monimum money I must have before buyng more hourses separate from food
+- give me option to tick to autosell other items
+- give me option to autosell maximizing the amount of mass I can unload at a village if say they have 1k like they normally do, after I buy all I need I want to sell such to maximize the mass I offload, where vanilla always try to sell the most expencive stuff, so it would sell one armor that frees 1kg instead of selling rags for the same money that will free 200kg

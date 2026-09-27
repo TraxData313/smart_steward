@@ -1,0 +1,113 @@
+# CLAUDE.md
+
+Guidance for Claude Code when working in this repository.
+
+## What this is
+
+**Smart Steward** — a mod for *Mount & Blade II: Bannerlord* (game v1.4.8, War Sails era) that
+takes the pesky logistics chores off the player: keeping food (with variety), pack animals,
+riding mounts for the footmen, war mounts for pending upgrades, ransoming prisoners and selling
+loot — all proposed in one glanceable **Party Steward** window when the party enters a town or
+village, adjustable row by row, executed with one click.
+
+The full specification lives in **`docs/DESIGN.md`** — that file is the contract. The original
+idea, in Anton's own words, is `concept.txt` (never edit it; it is the source the design came from).
+
+Release target: **Steam Workshop only** (no Nexus).
+
+## Who does what — and how we work
+
+Same team and spirit as the sibling mods (`..\TrainingBattlesMod`, `..\ImmersiveAI` — read their
+CLAUDE.md for the full working culture). Anton is the **product owner** (dreams, directs
+priorities, playtests); Claude is the **developer**. Anton is an AI engineer but new to modding,
+so explain Bannerlord-specific mechanics when they surface. Friends and co-creators — have real
+opinions, push back, propose things.
+
+### The manager mode (Anton's rule for this repo, 2026.09.27)
+
+The main session is the **manager**. It keeps its own context lean and hands each step of the
+plan to ONE sub-agent at a time — **never several in parallel**. The goal is a good final mod,
+not a fast build: if tokens run out at any moment, the repo alone must be enough to resume with
+nothing lost. Therefore:
+
+- The **PLAN** section of `TASKS_TODO.md` is the single source of truth for what is next. The
+  first unchecked step is the current one.
+- A step is done only when its work is **committed and pushed**, its TASKS_DONE entry is
+  written and its PLAN line is ticked. A step that cannot finish commits what it has (building,
+  tests green) and writes a `PARTIAL:` note under its PLAN line saying exactly where it stopped.
+- **Resuming** (new session, or after a crash): read this file → `TASKS_TODO.md` PLAN →
+  `git log --oneline -15` → the last TASKS_DONE entry. Then continue the first unchecked step.
+
+### Rules for a step agent
+
+1. Read this file, `docs/DESIGN.md`, `TASKS_TODO.md`, and (for any game-API work)
+   `docs/RESEARCH.md`. Do ONLY your step — note anything else you notice as a line under
+   `NOTICED` in TASKS_TODO.md instead of doing it.
+2. Build and test before committing: `dotnet build -c Release` and `dotnet test` must be green.
+   After touching the Module, deploy with `tools\deploy.ps1` (fails while the game runs — the
+   DLL is locked; say so instead of skipping silently).
+3. Commit in small, meaningful commits and **push** (`git push`). End every commit message with
+   the Co-Authored-By line from the session's attribution guidance.
+4. Write your TASKS_DONE.md entry, tick your PLAN line, push again.
+5. Return a SHORT report to the manager (≤ 200 words): what was built, what is verified, what
+   is open. The details belong in the repo, not in the report.
+
+## Workflow (the TASKS files)
+
+- **TASKS_TODO.md** — ANTON'S board: short idea lines only, readable at a fast glance. At most a
+  tiny "(see DESIGN §x)" tag on a line. Sections: PLAN (the build steps) / SHIPPING NEXT /
+  BUGS / NEXT UPDATE / NOT FULLY DECIDED / NOTICED.
+- **docs/DESIGN.md** — the spec: every feature, every parameter with its default, the algorithms.
+  Keep it in sync when a decision changes (write the date and who decided).
+- **docs/RESEARCH.md** — verified game-API facts (class, method, file in the decompiled source).
+  Never write game glue from memory — check here first, and add what you verify.
+- **TASKS_DONE.md** — finished work as one `- [x]` entry each: a dense narrative of what was
+  built and WHY (decisions, APIs verified, gotchas), ended with a `(YYYY.MM.DD HH.MM)` stamp.
+  It is the project's real changelog and the next session's memory — write it so future-you
+  starts warm.
+- **Release rhythm (same as TrainingBattles): fixes collect, versions do not.** The version in
+  `module/SubModule.xml` is bumped once, on release day. Landed-but-unreleased work goes as a
+  short line under SHIPPING NEXT.
+
+## Hard requirements (Anton's musts)
+
+- **Every number is a parameter.** Every threshold, default and price cap in DESIGN.md is a
+  setting — editable in MCM *and* in a plain, commented settings file whose comments explain
+  each key (meaning, default, range). No magic numbers in game logic.
+- **MCM is a soft dependency.** Built with MCM v5's *fluent builder* (no class deriving from an
+  MCM type), so the mod loads and works without MCM installed — the settings file is then the
+  way in. (TrainingBattles learned the hard way that a subclassed MCM settings type makes MCM a
+  hard dependency.)
+- **The player is always in control.** The steward proposes; nothing is bought, sold or
+  ransomed without the player's click — unless the player explicitly turns on auto-execute.
+  Items the player LOCKED in the inventory screen are never sold.
+- **Save-safe.** The mod stores nothing in the save game (settings are global, per-visit flags
+  live in memory), so it can be added or removed mid-campaign.
+
+## Repository layout (planned — becomes real in PLAN step 3)
+
+```
+src/SmartSteward.Core/        netstandard2.0 — pure logic, fully unit-tested (the planners,
+                              the budget, the pricing walk, the mass-maximizing sell)
+src/SmartSteward.Module/      net472 — the Bannerlord module (game adapter, behaviors, menus,
+                              the Party Steward Gauntlet window, settings file, MCM bridge)
+tests/SmartSteward.Core.Tests/  net8.0 xUnit tests for Core (keep green)
+module/                       SubModule.xml + GUI prefabs + ModuleData (strings)
+tools/deploy.ps1              build + install into the game's Modules folder as the dev module
+tools/package.ps1             clean release layout + zip for the Workshop upload
+docs/                         DESIGN.md, RESEARCH.md
+```
+
+Conventions carried over from the sibling mods: **Core = pure and unit-tested, Module = game
+glue**; raw game-API research goes through the decompiled game in
+`..\reference\game-decompiled\` (or `ilspycmd` on the real DLLs, with
+`$env:DOTNET_ROLL_FORWARD='LatestMajor'`, when something is missing); close the game (or sit at
+the main menu) before deploying.
+
+## Environment
+
+- Game: `C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord` (v1.4.8,
+  War Sails / NavalDLC installed — do not reference it; the steward works at settlements only).
+- MCM v5: Steam Workshop id 2859238197 (decompiled copy in `..\reference\MCMv5-5.12.3-decompiled`).
+- .NET SDK 8 on the machine; Core targets netstandard2.0, Module net472.
+- GitHub: `github.com/TraxData313/smart_steward` (public).
