@@ -84,25 +84,30 @@ nothing lost. Therefore:
 - **Save-safe.** The mod stores nothing in the save game (settings are global, per-visit flags
   live in memory), so it can be added or removed mid-campaign.
 
-## Repository layout (planned — becomes real in PLAN step 3)
+## Repository layout
 
 ```
-src/SmartSteward.Core/        netstandard2.0 — pure logic, fully unit-tested (the planners,
-                              the budget, the pricing walk, the mass-maximizing sell)
-src/SmartSteward.Module/      net472 — the Bannerlord module (game adapter, behaviors, menus,
-                              the Party Steward Gauntlet window, settings file, MCM bridge)
-tests/SmartSteward.Core.Tests/  net8.0 xUnit tests for Core (keep green)
-module/                       SubModule.xml + GUI prefabs + ModuleData (strings)
-tools/deploy.ps1              build + install into the game's Modules folder as the dev module
-tools/package.ps1             clean release layout + zip for the Workshop upload
+SmartSteward.sln, Directory.Build.props   GameFolder / McmBinFolder; override them in a
+                              git-ignored Directory.Build.props.user
+src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-tested
+                              (ModInfo now; the planners from step 4)
+src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
+                              SmartStewardBehavior (SyncData stores nothing), ModLog
+tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo checks
+module/SubModule.xml          the manifest (GUI prefabs and ModuleData join it in later steps)
+tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smart Steward (dev)")
+tools/package.ps1             (step 10) clean release layout + zip for the Workshop upload
 docs/                         DESIGN.md, RESEARCH.md
 ```
 
+Log: `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log` (the
+settings file will live beside it).
+
 Conventions carried over from the sibling mods: **Core = pure and unit-tested, Module = game
-glue**; raw game-API research goes through the decompiled game in
-`..\reference\game-decompiled\` (or `ilspycmd` on the real DLLs, with
-`$env:DOTNET_ROLL_FORWARD='LatestMajor'`, when something is missing); close the game (or sit at
-the main menu) before deploying.
+glue**; game DLLs and MCM are referenced with `Private=false` (never shipped); raw game-API
+research goes through `..\reference\game-decompiled-1.4.8\` (or `ilspycmd` on the real DLLs,
+with `$env:DOTNET_ROLL_FORWARD='LatestMajor'`, when something is missing). **Quit the game before
+deploying** — it holds module DLLs from startup, main menu included, and deploy.ps1 refuses.
 
 ## Environment
 

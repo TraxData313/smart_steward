@@ -528,6 +528,34 @@ Fine for ~30 rows.
   OPEN" issue is exactly this for a subclassed settings class; their `tools\AssemblyGuard` scans a
   built DLL's metadata for forbidden types in base types / interfaces / fields and is the right gate.
 
+**Manifest, loading and the save — verified in step 3 (2026.09.27):**
+- **The vanilla game and launcher never read `DependedModuleMetadatas`** (a BUTR/BLSE extension).
+  `TaleWorlds.ModuleManager\...\ModuleInfo.cs` `LoadWithFullPath` reads only
+  `DependedModules/DependedModule` (`Id`, `DependentVersion`, **`Optional`**),
+  `ModulesToLoadAfterThis` and `IncompatibleModules`. The launcher
+  (`TaleWorlds.MountAndBlade.Launcher.Library.dll`, decompiled for this check, `LauncherModsVM`)
+  builds the `_MODULES_` order by `MBMath.TopologySort` over `ModuleHelper.GetDependentModulesOf`
+  — the `DependedModules` that are installed, optional ones included. So an `Optional="true"`
+  dependency **sorts before us when present**, is **not required** (`AreAllDependenciesOfModulePresent`
+  skips it) and is **not auto-enabled** (`ChangeIsSelectedOf`). Our SubModule.xml therefore lists
+  MCM (and StoryMode) as optional in BOTH blocks; the metadata-only form TrainingBattles uses leaves
+  MCM's load order to the player under the vanilla launcher.
+- The launcher's start-up warning lists a "dependent version mismatch" for every `DependedModule`
+  without `DependentVersion` (`ApplicationVersion.Empty` ≠ installed version) — cosmetic, inside the
+  unofficial-DLL warning every DLL mod gets anyway; the sibling mods live with it too.
+- **Module DLLs are locked for the game's whole life:** `Module.cs` loads each SubModule's `DLLName`
+  from `<module>\bin\Win64_Shipping_Client\` through `AssemblyLoader.LoadFrom` → `Assembly.LoadFrom`
+  (from start-up, main menu included). Referenced DLLs (SmartSteward.Core.dll) resolve from the same
+  folder. `tools\deploy.ps1` refuses to run while it cannot open the installed DLL exclusively.
+- **Empty SyncData is save-safe:** `CampaignBehaviorDataStore.SaveBehaviorData` files every behavior
+  under its `StringId` (= class name) as a vanilla `BehaviorSaveData` (`Dictionary<string, object>`);
+  empty SyncData → an empty record, no type of ours in the save, and a save loads fine without the
+  mod. On load, a missing id falls back to the first saved key that *contains* the class name — keep
+  the behavior's name unique (`SmartStewardBehavior`).
+- Checked outside the game: `Assembly.LoadFrom` + `GetTypes()` on the built SmartSteward.dll under
+  .NET Framework, with the game's bin resolvable and MCM not, succeeds (the loader's own call);
+  the DLL references no MCMv5.
+
 ---
 
 ## Gotchas (one line each)
@@ -564,6 +592,9 @@ Fine for ~30 rows.
 27. **Newtonsoft writes `/* */` comments**; hand-write the `//` file.
 28. **Settlement gates:** trade needs `CanMainHeroDoSettlementAction(…, Trade, …)`, the tavern
     district `CanMainHeroAccessLocation(…, "tavern", …)`, donation the dungeon access.
+29. **The vanilla launcher ignores `DependedModuleMetadatas`** — optional load order needs
+    `<DependedModule Id="…" Optional="true" />` too.
+30. **Module DLLs stay locked while the game runs** (main menu too) — quit before deploying.
 
 ---
 

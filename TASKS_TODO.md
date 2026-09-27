@@ -35,3 +35,5 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
 - [ ] TrainingBattles' TrainingWindow.Close() never calls ReleaseMovie — add it in our window (step 7)
 - [ ] Vanilla's donate screen sizes the dungeon room by prisoner stacks, not men — we use NumberOfPrisoners
+- [ ] TrainingBattles + ImmersiveAI list MCM only in DependedModuleMetadatas — the vanilla launcher ignores that; add an Optional DependedModule (RESEARCH §12)
+- [ ] Step 8: War Sails' port/sail menus must exist before the leave-wrap — make NavalDLC an optional load-before in SubModule.xml, or wrap lazily
