@@ -48,6 +48,7 @@ namespace SmartSteward.UI
             Suggestion = new SuggestionTabVM(RefreshDoIt);
             Suggestion.SetPlan(plan, settlement);
             Prices = new PricesTabVM();
+            Instructions = new InstructionsTabVM();
             RefreshDoIt();
             SettingsHost.Service.Changed += OnSettingsChanged;
             _subscribed = true;
@@ -117,6 +118,8 @@ namespace SmartSteward.UI
                     ReplanIfStale();
                 else if (IsPricesSelected)
                     Prices.RefreshAll(includeTypedTexts: false);
+                else if (IsInstructionsSelected)
+                    Instructions.RefreshAll(includeTexts: false);
             });
         }
 
@@ -169,6 +172,11 @@ namespace SmartSteward.UI
             {
                 Prices.EnsureBuilt(_visit);
                 Prices.RefreshAll(includeTypedTexts: true);
+            }
+            else if (tab == 2)
+            {
+                Instructions.EnsureBuilt(_visit);
+                Instructions.RefreshAll(includeTexts: true);
             }
             IsSuggestionSelected = tab == 0;
             IsPricesSelected = tab == 1;
@@ -264,6 +272,8 @@ namespace SmartSteward.UI
         [DataSourceProperty] public SuggestionTabVM Suggestion { get; }
 
         [DataSourceProperty] public PricesTabVM Prices { get; }
+
+        [DataSourceProperty] public InstructionsTabVM Instructions { get; }
 
         [DataSourceProperty] public string SuggestionTabText { get; }
 
