@@ -26,18 +26,44 @@ categories per `RESEARCH.md`); **loot** = everything else in the party inventory
 ## 1. The Party Steward window
 
 One Gauntlet window, opened from the settlement menu (§6) or automatically on arrival. Title
-"Party Steward". Two tabs: **Suggestion** and **Instructions**.
+"Party Steward". Three tabs: **Suggestion**, **Prices** (§1.3) and **Instructions**.
 
 ### 1.1 Suggestion tab — the table
 
 Built for glancing, not reading: fixed columns, aligned numbers, colour for direction (buy =
 green-ish, sell = red-ish, untouched = grey). One row per item (or prisoner troop) the steward
 touches, plus rows for ticked item types the market has but the plan left at 0 (so the player
-can add by hand). Grouped by type in this order: Food, Pack animals, Mounts, War mounts,
-Prisoners, Loot, Tavern (§2.7).
+can add by hand).
+
+**Section order** **[Anton 2026.09.27]** — each section under its own header row:
+1. **Tavern** — wanderers, then mercenaries (§2.7)
+2. **Food** — one row per food item (variety matters, so food stays itemised)
+3. **Mounts** — ROLE rows, not one row per horse type (§1.1.1)
+4. **Armour & weapons** — the loot group rows (§2.6)
+5. **Prisoners** (§2.5) **[decided: Claude, 2026.09.27 — Anton's list did not place them; they
+   sit with the other selling, before Others]**
+6. **Others** — the items the player ticked for auto-sell in the Prices tab (§1.3), one row each
+
+#### 1.1.1 Mount rows are grouped by role **[Anton 2026.09.27 — "don't show each type of mount"]**
+
+One row per role, so a single `[+]` or `[-]` does the right thing without the player choosing
+horse types:
+
+| Role row | Holds | `[+]` buys | `[-]` sells |
+|---|---|---|---|
+| Pack animals | pack animals | the CHEAPEST eligible pack animal on the market | the MOST EXPENSIVE surplus one |
+| Riding mounts | mounts not reserved for upgrades | the cheapest eligible mount | the most expensive unreserved one |
+| Upgrade horses (`horse`) | `horse`-category mounts reserved for upgrades | the cheapest eligible `horse` | the most expensive surplus one |
+| War horses (`war_horse`) | `war_horse` mounts reserved for upgrades | the cheapest eligible `war_horse` | the most expensive surplus one |
+
+"Eligible" = buy-ticked in the Prices tab, priced within its own max (§1.3) AND within the role cap
+(`PackAnimalMaxPrice`, `MountMaxPrice`, `WarMountMaxPrice`). Each step re-walks the marginal
+prices (§4.1), so the next `[+]` picks the next cheapest. The row shows the total and the unit
+range (`3 × 180–240 = 630`); Market = eligible units on offer. A small `▸` expands the row into its
+per-type breakdown for the curious — collapsed by default. The shift/ctrl steps work as everywhere.
 
 **Loot is shown in GROUPS, not item by item** **[Anton 2026.09.27 — "group them to not spam
-me"]**: one row per loot group (Armour, Melee weapons, Ranged, Shields, Trade goods — §2.6). A group
+me"]**: one row per loot group (Armour, Melee weapons, Ranged, Shields — §2.6). A group
 row: **Mine** = sellable pieces in the group, with the locked ones shown apart (e.g. `41 (+3
 locked)`); **Change** = `−N` with `[-] [+]` (click ±1, shift ±5, ctrl all); **Price** = what those
 N pieces fetch; the **weight they free** is shown on the row; Market = `—`; Item = the group name.
@@ -74,11 +100,53 @@ the footer shows it in red, but **Do it** still works — the player's hand over
 ### 1.2 Instructions tab — the settings
 
 Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). Plus
-two tick-lists that do not fit MCM:
-- **Food to keep**: every food item in the game, ticked = the steward may buy/keep it.
+one tick-list that does not fit MCM:
 - **Prisoners to ransom**: every troop type, ticked = the steward may ransom it.
 
+(The old *Food to keep* list moved into the Prices tab as the food rows' Buy ticks.)
+
 Changes save to the settings file at once (and MCM shows them — same values, §8).
+
+### 1.3 Prices tab — the price book **[Anton 2026.09.27]**
+
+Anton: *"as I get richer I will stop caring for the price — I don't want to raise the max price
+for each item, give me a multiplier."* So every item has its own base prices, and two global
+multipliers scale them all.
+
+Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts),
+**Others** (every other trade good: metal, wood, jewelry, livestock, …). **Armour and weapons are
+NEVER in the price book** **[Anton 2026.09.27]**: they are only ever SOLD, in bulk, as the loot
+groups of §2.6 — never bought, no per-item prices, no averages computed for them at all.
+
+One row per item:
+
+| Buy | Max buy price | Sell | Min sell price | Item |
+|---|---|---|---|---|
+| ☑ | `[ 11 ] × 1.2 → 13` | ☑ | `[ 7 ] × 0.8 → 6` | Grain |
+
+- **Buy tick** — the steward may buy this item. **Sell tick** — the steward may sell it.
+- **Base prices** are editable. When empty they show a grey **placeholder**: the item's average
+  buy price (Max buy) or average sell price (Min sell) — §4.2 — IF auto-fill is on for its group.
+- **Final** = base × `BuyPriceMultiplier` (default **1.2** = average + 20%) or base ×
+  `SellPriceMultiplier` (default **0.8** = average − 20%). Getting richer = raise one multiplier.
+- The steward buys an item only at a marginal price ≤ its final max buy; it sells only at a
+  marginal price ≥ its final min sell. An EMPTY base (no typed value, auto-fill off) means: buy —
+  not bought unless a role cap covers it (animals, §2.2–2.4), sell — any price.
+- A `⟲` per row clears the typed value back to the placeholder.
+- **Auto-fill** — showing the average price of EVERY item would be a trader's cheat sheet, so
+  auto-fill is per group: `AutoFillFoodPrices` (on), `AutoFillPackAndMountPrices` (on),
+  `AutoFillWarMountPrices` (**off**), `AutoFillOtherPrices` (**off**). With auto-fill off, the
+  base stays empty until the player types one.
+- **Defaults of the ticks**: food — Buy ☑ Sell ☑; pack animals and mounts — Buy ☑ Sell ☑;
+  war mounts — Buy ☑ Sell ☑; others — Buy ☐ Sell ☐ (opt-in: ticking either makes the item appear
+  in the Suggestion tab's *Others* section).
+- **Others can be traded** **[Anton 2026.09.27 — "if someone wants to be a trader"]**: an Others
+  row has one extra number, **Hold up to** (default 0). Buy-ticked → the steward buys it while
+  the marginal price ≤ its final max buy, up to *Hold up to* units held. Sell-ticked → it sells
+  every unit while the marginal price ≥ its final min sell. Never both for one item in one visit:
+  if the sell test passes the steward sells, otherwise it may buy. Others'
+  purchases come LAST in the money chain (§3).
+- Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
 
 ---
 
@@ -102,20 +170,22 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **[research 2026.09.27]** The game eats one **random food type** per unit consumed, so every
   type drains at the same pace whatever its stack size; variety morale runs −2 (0–1 types) … 0
   (3 types) … +7 (9 types, the vanilla maximum).
-- **Allowed** food = ticked in *Food to keep* AND unit price ≤ `FoodMaxPricePercent` (default
-  **120**) of that item's average price AND ≤ `FoodMaxUnitPrice` (default **100** denars).
+- **Allowed** food = Buy-ticked in the Prices tab AND marginal price ≤ its final max buy price
+  (§1.3). **[Anton 2026.09.27]** replaces the old `FoodMaxPricePercent` (120) and
+  `FoodMaxUnitPrice` (100) — the 120% lives on as `BuyPriceMultiplier` = 1.2.
 - **Buy**: while held < target and budget allows — pick the allowed type the party holds the
   FEWEST of (variety first: every distinct food type lifts morale), ties → cheapest; buy one;
   repeat. `FoodStrategy = Balanced` (default) or `Cheapest` (always the cheapest type).
 - **Sell surplus** (`SellFoodSurplus`, default on): only when held > target ×
   (1 + `FoodSurplusTolerancePercent`/100) (default **25**) — sell back down to the target,
-  most-held type first (keeps variety). Unticked food types are never auto-sold (the player may
-  be carrying them on purpose) **[decided: Claude, 2026.09.27]**.
+  most-held type first (keeps variety), only Sell-ticked types, only at ≥ their final min sell
+  price (§1.3).
 
 ### 2.2 Pack animals — keep X
 
-- **Target** = `PackAnimalsTarget` (default **10**). Buy the cheapest under
-  `PackAnimalMaxPrice` (default **300**) until the target is met.
+- **Target** = `PackAnimalsTarget` (default **10**). Buy the cheapest ELIGIBLE (§1.1.1: Buy-ticked,
+  within its price-book max AND under `PackAnimalMaxPrice`, default **300**) until the target is met.
+  Surplus is sold only at ≥ each animal's final min sell price, only Sell-ticked ones.
 - **Sell surplus** (`SellPackAnimalSurplus`, default on) above the target, most expensive first.
 - **[research 2026.09.27]** Each pack animal adds ~100 carrying capacity (perks raise it); animals
   weigh nothing themselves. Selling any mount or pack animal carries a +0.8 trade penalty (it
@@ -133,7 +203,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **Target** = `ceil(footmen × MountsPer100Footmen / 100)` (default **110** → a 10% buffer).
 - War mounts held (§2.4) count toward this target when `WarMountsCountAsMounts` (default on —
   the game lets footmen ride any riding animal in the inventory).
-- **Buy** the cheapest mounts priced ≤ `MountMaxPrice` (default **500**).
+- **Buy** the cheapest ELIGIBLE mounts (§1.1.1 — price-book max AND ≤ `MountMaxPrice`, default
+  **500**). Surplus sells under the same price-book rules as pack animals.
 - **Sell surplus** (`SellMountSurplus`, default on) above target, **most expensive first**, but
   never a war mount reserved for upgrades.
 
@@ -150,7 +221,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   foot target and a horse-needing one (see NOT FULLY DECIDED). An upgrade consumes the **cheapest**
   animal of the category first and locked ones only last — so the reserved war mounts are the
   cheapest of their category.
-- **Buy** the cheapest of the needed category priced ≤ `WarMountMaxPrice` (default **2000**).
+- **Buy** the cheapest ELIGIBLE of the needed category (price-book max if set — war mounts have
+  no auto-filled placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**).
 - **Sell surplus** (`SellWarMountSurplus`, default on) above what is needed, most expensive first.
 
 ### 2.5 Prisoners — ransom or donate
@@ -174,9 +246,12 @@ pure Core logic fed a snapshot of the party and the market (§5).
 
 ### 2.6 Loot — sold in groups, cheapest first
 
-- `SellLoot` default **off** (opt-in). When on, the loot kinds allowed by `SellLootEquipment`
-  (weapons, armour, shields, ammo — default on) and `SellLootTradeGoods` (non-food trade goods —
-  default off) are proposed for sale.
+- `SellLoot` default **off** (opt-in). When on, the groups allowed by `SellLootEquipment`
+  (weapons, armour, shields, ammo — default on) are proposed for sale.
+- **[Anton 2026.09.27]** Non-food trade goods are no longer a loot group: they are the *Others*
+  of the price book (§1.3) — sold item by item, only the ones Sell-ticked there, each at ≥ its
+  final min sell price. `SellLootTradeGoods` is gone. Within Others, when the market's gold runs
+  short, `SellLootOrder` decides which go first.
 - **Groups** **[Anton 2026.09.27]** — loot is planned and shown per group, one row each (§1.1).
   The mapping from the game's item type (`ItemObject.ItemType`, verified in v1.4.8 —
   **[research 2026.09.27]**):
@@ -187,7 +262,6 @@ pure Core logic fed a snapshot of the party and the market (§5).
   | Melee weapons | OneHandedWeapon, TwoHandedWeapon, Polearm | `SellLootEquipment` |
   | Ranged (Anton's "firing") | Bow, Crossbow, Sling, Thrown, Arrows, Bolts, SlingStones (+ Pistol, Musket, Bullets — unused in vanilla) | `SellLootEquipment` |
   | Shields | Shield | `SellLootEquipment` |
-  | Trade goods | Goods that are not food | `SellLootTradeGoods` |
 
 - Never sold: items LOCKED in the inventory screen, food, animals (handled above), items above
   `SellLootMaxItemValue` per unit (default **0** = no cap).
@@ -245,8 +319,10 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 
 ## 3. Money — the order and the floors
 
-1. **Sell first** (surplus food, surplus animals, prisoners, loot) — the proceeds fund the buys.
-2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts.
+1. **Sell first** (surplus food, surplus animals, prisoners, loot groups, ticked Others) — the
+   proceeds fund the buys.
+2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts → Others (price-book
+   trading, §1.3; answers to `MinGoldAfterDeal`).
 3. **Floors**:
    - `MinGoldAfterDeal` (default **1000**): no purchase takes the purse below this.
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
@@ -277,13 +353,19 @@ buying and roughly halve when selling. The planner walks with the game's own pri
 (`TradeItemPriceFactorModel.GetPrice` with a hypothetical in-store value) through a price oracle.
 
 ### 4.2 "Average price"
-Per item, the reference for `FoodMaxPricePercent` is the item's average/base value as the game
-defines it (per RESEARCH — e.g. `ItemObject.Value` or the market's category average).
+Per item, the price book's placeholders (§1.3) are **[Anton 2026.09.27, refined by Claude]**:
+- **Average buy price** = what the party would pay for one unit in an *average* town — the game's
+  price model at the category's average price factor, buying side (so the ≥6% trade penalty is
+  in it: `× 1.2` then really means "20% dearer than a typical town").
+- **Average sell price** = the same, selling side. This matters: the game pays about **half** for
+  an animal and about **a third** for equipment, so a min sell price measured against the BUY
+  average would block every sale.
 
 **[research 2026.09.27]** Average price = `item.Value × the average price factor of its category
 over all other towns` — the game's own average, the one the inventory uses for its good/bad-deal
 colours (`InventoryLogic.InitializeCategoryAverages`). Every purchase carries at least a 6% trade
-penalty on top, so an exactly average item costs ~106% of it (the 120% default leaves ~14% room).
+penalty on top, so an exactly average item costs ~106% of it — which is why the placeholders
+above run that factor through the price model rather than using the bare average.
 
 ---
 
@@ -346,26 +428,30 @@ the click.
 | Money | MinGoldForHorses | 5000 | purse floor for animal purchases |
 | Food | FoodEnabled | true | manage food |
 | Food | FoodPerMan | 2.0 | food units kept per eater |
-| Food | FoodCountPrisoners | true | prisoners count as eaters |
-| Food | FoodMaxPricePercent | 120 | skip food above this % of its average price |
-| Food | FoodMaxUnitPrice | 100 | never pay more per food unit |
+| Food | FoodCountPrisoners | true | prisoners count as eaters (half each, like the game) |
 | Food | FoodStrategy | Balanced | Balanced (variety first) or Cheapest |
 | Food | SellFoodSurplus | true | sell food above target + tolerance |
 | Food | FoodSurplusTolerancePercent | 25 | how far above target before selling |
-| Food | FoodExcluded | [] | item ids unticked in *Food to keep* |
+| Prices | BuyPriceMultiplier | 1.2 | final max buy = base × this (range 0.1–10) **[Anton]** |
+| Prices | SellPriceMultiplier | 0.8 | final min sell = base × this (range 0–10) **[Anton]** |
+| Prices | AutoFillFoodPrices | true | placeholder = average price for food |
+| Prices | AutoFillPackAndMountPrices | true | … for pack animals and riding mounts |
+| Prices | AutoFillWarMountPrices | false | … for war mounts (off: trader's cheat sheet) |
+| Prices | AutoFillOtherPrices | false | … for all other goods (off: trader's cheat sheet) |
+| Prices | PriceBook | {} | per item id: buy tick, buy base, sell tick, sell base, hold-up-to (Others) — only the player's changes (file + Prices tab, not MCM) |
 | Pack | PackAnimalsEnabled | true | manage pack animals |
 | Pack | PackAnimalsTarget | 10 | pack animals to keep |
-| Pack | PackAnimalMaxPrice | 300 | never pay more per pack animal |
+| Pack | PackAnimalMaxPrice | 300 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
 | Pack | SellPackAnimalSurplus | true | sell above target, most expensive first |
 | Mounts | MountsEnabled | true | manage riding mounts for footmen |
 | Mounts | MountsPer100Footmen | 110 | mounts kept per 100 footmen |
-| Mounts | MountMaxPrice | 500 | never pay more per mount |
+| Mounts | MountMaxPrice | 500 | role cap: never pay more for a footman's mount (0 = none; not scaled) |
 | Mounts | WarMountsCountAsMounts | true | war mounts held count toward the footmen's mounts |
 | Mounts | SellMountSurplus | true | sell above target, most expensive first |
 | War mounts | WarMountsEnabled | true | manage war mounts for upgrades |
 | War mounts | WarMountsManualTarget | -1 | -1 = count upgrade-ready troops; ≥0 = keep exactly this |
 | War mounts | WarMountsExtra | 0 | buffer on top of the automatic count |
-| War mounts | WarMountMaxPrice | 2000 | never pay more per war mount |
+| War mounts | WarMountMaxPrice | 2000 | role cap: never pay more per upgrade horse (0 = none; not scaled) |
 | War mounts | SellWarMountSurplus | true | sell above need, most expensive first |
 | Prisoners | RansomPrisoners | true | ransom prisoners in towns |
 | Prisoners | RansomHeroPrisoners | false | include lords |
@@ -373,7 +459,6 @@ the click.
 | Prisoners | PrisonersExcluded | [] | troop ids unticked in *Prisoners to ransom* |
 | Loot | SellLoot | false | sell other items |
 | Loot | SellLootEquipment | true | weapons, armour, shields, ammo |
-| Loot | SellLootTradeGoods | false | non-food trade goods |
 | Loot | SellLootMaxItemValue | 0 | never auto-sell items worth more per unit (0 = no cap) |
 | Loot | SellLootOrder | Cheapest | order within a loot group: Cheapest / LowestPricePerKg / MostExpensive — replaces `SellLootMassFirst` **[Anton 2026.09.27]** |
 | Tavern | ShowTavern | true | show the tavern section in towns |
@@ -401,6 +486,9 @@ Keys are final names for the settings file and code; UI labels can be friendlier
   settings (`FoodStrategy`, `SellLootOrder`) become MCM dropdowns. The game refuses to load a
   module if any of its types cannot resolve — no field, base type or captured lambda may touch an
   MCM type (RESEARCH §12).
+- The **price book** (§1.3) lives in the same file as a `PriceBook` object keyed by item id,
+  holding only what the player changed (ticks flipped, bases typed). It is edited in the Prices
+  tab or by hand; MCM shows only the multipliers and the auto-fill switches.
 - A log at `Configs\SmartSteward\smart_steward.log` (what was planned, what was executed) for
   bug reports.
 
@@ -410,7 +498,9 @@ Keys are final names for the settings file and code; UI labels can be friendlier
 
 - No per-save settings; no Harmony unless RESEARCH proves a hook is impossible without it.
   **[research 2026.09.27]** None is: every hook the design needs exists without Harmony.
-- No trading for profit (buy low / sell high between towns) — that is a different mod.
+- No trade-route planning (where to sell what) — that is a different mod. **[Anton 2026.09.27]**
+  The price book's Others DO allow simple buy-below / sell-above trading at whatever town the
+  party is in (§1.3); weapons and armour never.
 - Castles have no market: nothing happens there.
 - All player-facing text goes through TextObject string ids (English only at release; other
   languages can be added by translators later).

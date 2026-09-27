@@ -27,6 +27,9 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [ ] Plain "horse" mounts double as upgrade horses — reserve them for upgrades first? proposed: yes
 - [ ] Prisoners locked in the party screen — never ransom them, like vanilla? proposed: yes
 - [ ] Lame/spirited (modified) horses — count them as mounts, never buy them? proposed: yes
+- [ ] Sell multiplier default 0.8 (sell only at ≥ average sell price − 20%) — right number? (DESIGN §1.3)
+- [ ] Role caps (mount 500 / pack 300 / war 2000) stay fixed — or scale with the buy multiplier too?
+- [ ] Prisoners' place in the Suggestion tab: after armour & weapons, before Others?
 
 NOTICED (things spotted during a step, left for later):
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
