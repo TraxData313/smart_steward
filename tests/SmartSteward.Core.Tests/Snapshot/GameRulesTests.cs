@@ -1,0 +1,146 @@
+using SmartSteward.Core.Snapshot;
+
+namespace SmartSteward.Core.Tests.Snapshot;
+
+/// <summary>The pure rules the Module applies while reading the game (PLAN step 6) — each mirrors v1.4.8 code.</summary>
+public class GameRulesTests
+{
+    [Fact]
+    public void Stack_key_is_item_and_modifier_with_a_separator()
+    {
+        Assert.Equal("grain|", GameRules.StackKey("grain", null));
+        Assert.Equal("hunter|lame", GameRules.StackKey("hunter", "lame"));
+        // "ab" + "c" and "a" + "bc" must not collide
+        Assert.NotEqual(GameRules.StackKey("ab", "c"), GameRules.StackKey("a", "bc"));
+    }
+
+    [Fact]
+    public void Lock_id_is_vanillas_item_plus_modifier_without_separator()
+    {
+        // CampaignUIHelper.GetItemLockStringID: item.StringId + modifier.StringId
+        Assert.Equal("hunterlame", GameRules.LockId("hunter", "lame"));
+        Assert.Equal("grain", GameRules.LockId("grain", null));
+    }
+
+    [Theory]
+    [InlineData(true, false, false, false, LootGroup.None, false, true, ItemKind.Food)]
+    [InlineData(false, true, true, false, LootGroup.None, false, true, ItemKind.PackAnimal)]
+    [InlineData(false, true, false, true, LootGroup.None, false, true, ItemKind.Mount)]
+    [InlineData(false, true, false, false, LootGroup.None, false, true, ItemKind.Other)] // livestock
+    [InlineData(false, false, false, false, LootGroup.Armour, false, true, ItemKind.Equipment)]
+    [InlineData(false, false, false, false, LootGroup.Ranged, false, true, ItemKind.Equipment)]
+    [InlineData(false, false, false, false, LootGroup.None, false, true, ItemKind.Other)] // trade goods, banners…
+    [InlineData(true, false, false, false, LootGroup.None, true, true, ItemKind.Other)] // quest item
+    [InlineData(false, false, false, false, LootGroup.MeleeWeapons, false, false, ItemKind.Other)] // not transferable
+    public void Classify_follows_the_design_terms(bool food, bool horse, bool pack, bool mount, LootGroup group,
+        bool quest, bool transferable, ItemKind expected)
+    {
+        Assert.Equal(expected, GameRules.Classify(food, horse, pack, mount, group, quest, transferable));
+    }
+
+    [Theory]
+    [InlineData(21, 16, 500, 300, 10, true, 1)]   // floor(500 / 300)
+    [InlineData(21, 16, 3000, 300, 4, true, 4)]   // clamped to the stack
+    [InlineData(21, 16, 299, 300, 10, true, 0)]   // not enough XP for one
+    [InlineData(11, 16, 3000, 300, 10, true, 0)]  // target below the troop's level
+    [InlineData(21, 16, 3000, 300, 10, false, 0)] // perk missing / bandit rule
+    [InlineData(21, 16, 50, 0, 7, true, 7)]       // a free upgrade: the whole stack
+    [InlineData(21, 16, 900, 300, 0, true, 0)]    // empty stack
+    public void Upgrade_ready_count_matches_the_party_screen(int targetLevel, int troopLevel, int xp, int cost,
+        int count, bool allowed, int expected)
+    {
+        Assert.Equal(expected, GameRules.UpgradeReadyCount(targetLevel, troopLevel, xp, cost, count, allowed));
+    }
+
+    [Fact]
+    public void Average_prices_run_the_factor_through_the_trade_penalty_like_the_model()
+    {
+        // buy = max(1, ceil(value × factor × (1 + penalty))), float like the game
+        Assert.Equal(11, GameRules.AverageBuyPrice(10, 1f, 0.06f));
+        Assert.Equal(159, GameRules.AverageBuyPrice(150, 1f, 0.06f));
+        Assert.Equal(175, GameRules.AverageBuyPrice(150, 1.1f, 0.06f)); // 150 × 1.1 × 1.06 = 174.9
+        // sell = max(1, floor(value × factor / (1 + penalty))): an animal pays 0.06 + 0.8
+        Assert.Equal(80, GameRules.AverageSellPrice(150, 1f, 0.86f));
+        Assert.Equal(9, GameRules.AverageSellPrice(10, 1f, 0.06f));
+        // never below 1
+        Assert.Equal(1, GameRules.AverageBuyPrice(0, 1f, 0.06f));
+        Assert.Equal(1, GameRules.AverageSellPrice(1, 0.5f, 1.86f));
+    }
+
+    [Fact]
+    public void Mean_factor_averages_the_towns_summed()
+    {
+        Assert.Equal(1f, GameRules.MeanFactor(Array.Empty<float>()));
+        Assert.Equal(1.1f, GameRules.MeanFactor(new[] { 1.0f, 1.2f }), 5);
+        Assert.Equal(0.9f, GameRules.MeanFactor(new[] { 0.9f }), 5);
+    }
+
+    [Fact]
+    public void Donation_influence_is_the_models_number_boosted_by_military_coronae()
+    {
+        Assert.Equal(1.0, GameRules.DonationInfluence(1.0f, inKingdom: true, militaryCoronae: false), 4);
+        Assert.Equal(1.2, GameRules.DonationInfluence(1.0f, inKingdom: true, militaryCoronae: true), 4);
+        Assert.Equal(0.0, GameRules.DonationInfluence(1.0f, inKingdom: false, militaryCoronae: true), 4);
+        Assert.Equal(0.0, GameRules.DonationInfluence(-1f, inKingdom: true, militaryCoronae: false), 4);
+    }
+
+    [Theory]
+    [InlineData(true, true, false, true, true)]
+    [InlineData(false, true, false, true, false)] // villages have no dungeon
+    [InlineData(true, false, false, true, false)] // another faction's town
+    [InlineData(true, true, true, true, false)]   // own clan's fief: "Manage prisoners", no influence
+    [InlineData(true, true, false, false, false)] // no dungeon access (bribe unpaid)
+    public void Donating_needs_own_faction_not_own_clan_and_the_dungeon(bool town, bool faction, bool ownClan,
+        bool dungeon, bool expected)
+    {
+        Assert.Equal(expected, GameRules.DonateAllowed(town, faction, ownClan, dungeon));
+    }
+
+    [Fact]
+    public void Skill_tag_names_the_best_two()
+    {
+        var skills = new Dictionary<string, int>
+        {
+            ["Riding"] = 95, ["Scouting"] = 120, ["Bow"] = 95, ["Trade"] = 0, ["Medicine"] = 40,
+        };
+        Assert.Equal("Scouting 120, Bow 95", GameRules.SkillTag(skills));
+        Assert.Equal("Scouting 120", GameRules.SkillTag(skills, 1));
+        Assert.Null(GameRules.SkillTag(new Dictionary<string, int> { ["Trade"] = 0 }));
+        Assert.Null(GameRules.SkillTag(Array.Empty<KeyValuePair<string, int>>()));
+    }
+
+    [Theory]
+    [InlineData(701, 700, 1, 1, true)]
+    [InlineData(700, 700, 1, 1, false)] // vanilla wants MORE than the price
+    [InlineData(5000, 700, 0, 1, false)]
+    [InlineData(5000, 700, 1, 0, false)]
+    public void A_wanderer_needs_more_gold_than_his_price_a_slot_and_room(int gold, int price, int slots, int room,
+        bool expected)
+    {
+        Assert.Equal(expected, GameRules.CanHireWanderer(gold, price, slots, room));
+    }
+
+    [Theory]
+    [InlineData(8, 8, 100, 10_000, 100, 8)]
+    [InlineData(8, 5, 100, 10_000, 100, 5)]  // the band shrank
+    [InlineData(8, 8, 3, 10_000, 100, 3)]    // party room
+    [InlineData(8, 8, 100, 450, 100, 4)]     // purse: 450 / 100
+    [InlineData(8, 8, 100, 50, 100, 0)]
+    [InlineData(-2, 8, 100, 10_000, 100, 0)]
+    [InlineData(8, 8, 100, 0, 0, 8)]         // free men (a mod): no purse cap
+    public void Mercenaries_hired_are_capped_by_offer_room_and_purse(int wanted, int available, int room, int gold,
+        int price, int expected)
+    {
+        Assert.Equal(expected, GameRules.MercenariesToHire(wanted, available, room, gold, price));
+    }
+
+    [Theory]
+    [InlineData(5, 2, 2)]
+    [InlineData(5, 9, 5)]
+    [InlineData(0, 3, 0)]
+    [InlineData(4, 0, 0)]
+    public void Wounded_go_first(int count, int wounded, int expected)
+    {
+        Assert.Equal(expected, GameRules.WoundedToMove(count, wounded));
+    }
+}
