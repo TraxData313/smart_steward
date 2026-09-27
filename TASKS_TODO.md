@@ -1,6 +1,6 @@
 PLAN (the build, one step at a time — the first unchecked line is the current step; see CLAUDE.md "manager mode"):
 - [x] 1. Bootstrap — concept → DESIGN.md, CLAUDE.md, this board, public GitHub repo
-- [ ] 2. Research — verify every game API the design needs → docs/RESEARCH.md (no code)
+- [x] 2. Research — verify every game API the design needs → docs/RESEARCH.md (no code)
 - [ ] 3. Scaffold — solution, Core/Module/tests, SubModule.xml, deploy.ps1; empty module loads in game
 - [ ] 4. Core planners + unit tests — food, pack, mounts, war mounts, prisoners, loot, tavern, money floors
 - [ ] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
