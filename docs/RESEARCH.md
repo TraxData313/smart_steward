@@ -682,6 +682,70 @@ as plain text, `\n` as a new line and drops `\r` — never put `<` in popup text
 
 ---
 
+## 14. The Party Steward window — verified in step 7 (2026.09.27)
+
+Read in `game-decompiled-1.4.8` plus `TaleWorlds.GauntletUI.PrefabSystem` / `.Data` / `TaleWorlds.Localization`
+(decompiled with ilspycmd for this step), the game's `Modules\*\GUI` data and `GUI\GauntletUI\Fonts\*.fnt`. The gate is
+**`tools\check-gui.ps1`** (every tag, attribute, literal value, brush, sprite category and view-model binding of our
+prefabs against the game's DLLs, brush/sprite XML and the built SmartSteward.dll); the game's own
+`WidgetPrefab.LoadFrom` also parses our file out of game.
+
+**What a prefab mistake does** (so the checker knows what matters):
+- Unknown **brush** name → `BrushFactory.GetBrush` returns **null** and the widget gets a null brush (render crash
+  territory). Only Native / SandBoxCore / SandBox brushes are always there in a campaign.
+- Unknown **widget tag** → `WidgetFactory.CreateBuiltinWidget` makes a plain `Widget` + `Debug.FailedAssert`.
+- Unknown **attribute** → silently ignored (`WidgetExtensions.SetWidgetAttributeFromStringAux` returns when the property
+  path does not resolve); a bad literal (enum name, number) throws inside and is caught with a FailedAssert.
+- Missing **VM property** → the binding reads null; missing **command** → `ViewModel.ExecuteCommand` does nothing.
+- A VM **getter, setter or command that throws** → `MethodInfo.InvokeWithLog` logs and **rethrows** into the game. Every
+  command / two-way setter of ours runs inside `StewardWindowVM.Guard`; a failure closes the window on the next tick.
+- An element's **own bindings resolve against its own `DataSource`** (`GauntletView.RefreshBinding` uses the view-model
+  path including it): `IsVisible="@IsExpanded"` on a `<ListPanel DataSource="{Breakdown}">` binds to the LIST → wrap
+  the list in a Widget that carries the visibility.
+- `ScrollablePanel` has **no `MouseScrollAxis`** in 1.4.8 (TrainingBattles' prefabs carry it as a dead attribute; the
+  wheel scrolls anyway).
+
+**Layer life cycle** (vanilla map views, e.g. `GauntletMapCampaignOptionsView`): `new GauntletLayer(name, order) {
+IsFocusLayer = true }`, `LoadMovie`, `Input.RegisterHotKeyCategory(...)`, `InputRestrictions.SetInputRestrictions()`,
+`screen.AddLayer`, `ScreenManager.TrySetFocus`; close = `ResetInputRestrictions`, `RemoveLayer`, `TryLoseFocus`.
+`RemoveLayer` finalizes the layer, and `GauntletLayer.OnFinalize` asserts on a movie never released → **`ReleaseMovie`
+first**. `TrySetFocus` compares `InputRestrictions.Order`: at 305 we sit under the Encyclopedia (310).
+
+**Keys**: `Input.IsHotKeyDown("FiveStackModifier" | "EntireStackModifier")` (GenericCampaignPanelsGameKeyCategory) and
+`IsHotKeyReleased("Exit")` (GenericPanelGameKeyCategory = Escape) — only for categories registered on the layer.
+`IsHotKeyReleased` fires only when the key went down while the layer had key permission, so the Encyclopedia's own
+Escape does not leak into us; two guard frames after it closes anyway.
+
+**Encyclopedia**: `EncyclopediaData` fires `EncyclopediaPageChangedEvent` with the page kind for every page it opens
+(Hero, Unit, lists…) and `None` on close — the open/closed flag needs nothing else. `EncyclopediaManager.GoToLink(type,
+id)` dereferences the page before its null check → always try/catch. Hero link = `Hero.EncyclopediaLink`, unit link =
+`CharacterObject.EncyclopediaLink`.
+
+**Disabled buttons and tooltips**: a disabled widget gets no mouse events (`EventManager.AnyWidgetsAt` /
+`CollectEnableWidgetsAt` skip disabled children), so a tooltip on a greyed button uses vanilla's wrapper: a Widget
+holding the button and a `HintWidget IsDisabled="true"` — `HintWidget` relays its PARENT's HoverBegin/HoverEnd to
+`ExecuteBeginHint` → `MBInformationManager.ShowHint(text)` (TaleWorlds.Core).
+
+**Text boxes**: `EditableTextWidget RealText="@X"` is two-way and writes on every key (`TextQueryPopup` uses it).
+`IntegerInputTextWidget` cannot be empty (an int `IntText`; −1 shows "-1", deleting every digit gives 0), so the price
+book's "empty = placeholder" boxes are EditableTextWidgets parsed by Core (`UiFormat.TryParseBase`).
+
+**Fonts**: FiraSansExtraCondensed-Regular and Galahad (`GUI\GauntletUI\Fonts\*\*.fnt`) carry `– — × · » ± … • ‹ ›` but
+**not** `→ − ≈ ⟲ ▸ ✓` (only FreeSerif-Dingbat has some). The window writes the minus as an en dash, "becomes" as `»`, and
+draws ⟲ and ▸ as sprites.
+
+**Always-loaded art we use** (all `ui_group1`): `ButtonSimpleBrush` (Native Brush.xml — a flat BlankWhiteSquare_9
+button with Default/Hovered/Pressed/Disabled/Selected colour factors, any size), `RefreshButton.Flat` (a refresh icon =
+our ⟲), `SPOptions.Checkbox.Empty/Full.Button`, `SPGeneral\SPOptions\collapser_indicator_closed/open` (▸ / ▾),
+`Header.Tab.*` + `Clan.TabControl.Text` (SandBox Clan.xml), the Popup.* brushes. `Popup.Button.Base` has a Disabled style
+(ColorFactor 0.5), `Popup.Button.Text` too (TextAlphaFactor 0.5).
+
+**Game data for the Prices tab**: `TaleWorlds.CampaignSystem.Extensions.Items.All` (= `Campaign.Current.AllItems`),
+`ItemObject.NotMerchandise`, `ItemCategory.GetName()`. Placeholders come from `SnapshotBuilder.AverageOf` — the snapshot's
+own formula (§13), so the tab and the planner agree.
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -729,6 +793,16 @@ as plain text, `\n` as a new line and drops `\r` — never put `<` in popup text
 38. **Popup text is rich text**: `<` starts a tag; `>` and `\n` are fine.
 39. **A Module namespace `SmartSteward.Game` hides `TaleWorlds.Core.Game`** inside `namespace SmartSteward` (CS0118) —
     the adapter lives in `SmartSteward.Adapter`.
+40. **An unknown brush name gives the widget a NULL brush**; an unknown attribute is silently ignored — run check-gui.ps1.
+41. **A VM getter / command that throws is rethrown into the game** (`InvokeWithLog`) — guard every one.
+42. **An element's own bindings use its own DataSource** — `IsVisible` on a list element binds to the list.
+43. **Disabled widgets get no hover** — a greyed button's tooltip needs the wrapper + `HintWidget IsDisabled="true"`.
+44. **ReleaseMovie before RemoveLayer** — the layer's finalize asserts on a loaded movie.
+45. **The UI fonts lack → − ≈ ⟲ ▸** — use – » and sprites.
+46. **`ScrollablePanel.MouseScrollAxis` does not exist in 1.4.8** (TrainingBattles carries it, harmlessly).
+47. **`IntegerInputTextWidget` cannot be empty** — use `EditableTextWidget` where "empty" means something.
+48. **A PowerShell AssemblyResolve script block can recurse into a StackOverflow** while game code runs — preload the
+    game DLLs instead when driving game code from a script.
 
 ---
 

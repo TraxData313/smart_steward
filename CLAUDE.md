@@ -46,7 +46,7 @@ nothing lost. Therefore:
 2. Build and test before committing: `dotnet build -c Release` and `dotnet test` must be green.
    After touching the Module, deploy with `tools\deploy.ps1` (fails while the game runs — the
    DLL is locked; say so instead of skipping silently) and run `tools\check-soft-deps.ps1` (the
-   module must still load without MCM).
+   module must still load without MCM); after touching a prefab or a view model, `tools\check-gui.ps1`.
 3. Commit in small, meaningful commits and **push** (`git push`). End every commit message with
    the Co-Authored-By line from the session's attribution guidance.
 4. Write your TASKS_DONE.md entry, tick your PLAN line, push again.
@@ -110,6 +110,10 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               PlanReport = the plan as text (full log / compact popup)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines)
+  Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
+                              parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
+                              PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
+                              SettingEdit + PrisonerTicks (Instructions tab). Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing), ModLog, SettingsHost (the one
                               SettingsService over settings.json — read Current afresh, a reload replaces it),
@@ -119,16 +123,23 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               SnapshotBuilder (live game → StewardSnapshot + GameVisit), GamePriceOracle (the
                               game's model; SelfCheck vs the trade screen), PlanExecutor (Transactions through
                               vanilla's paths — headless InventoryLogic, SellPrisonersAction, donate, hires),
-                              StewardMerchantListener
+                              StewardMerchantListener, PriceBookCatalog (the Prices tab's items + placeholders)
+  UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
+                              Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
+                              command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids)
+  StewardMenu.cs              "Party Steward" in the town and village menus → opens the window
   DebugDoor.cs                TEMPORARY "Party Steward (debug)" menu entry + popup — step 8 removes it
 tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and
                               StewardSettings + SettingsRegistry ↔ DESIGN §7 checks (keys, order, groups,
                               defaults, ranges); Settings/ = registry, file and service tests;
                               Planning/TestKit.cs = FakeOracle + Scenario builder for planner tests;
                               Snapshot/, Execution/ = the adapter's pure half
-module/SubModule.xml          the manifest (GUI prefabs and ModuleData join it in later steps)
+module/SubModule.xml          the manifest (ModuleData joins it in step 9)
+module/GUI/Prefabs/           SmartStewardWindow.xml — the window's one movie (three tabs)
 tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smart Steward (dev)")
 tools/check-soft-deps.ps1     the game loader's GetTypes() test without MCM (Windows PowerShell = .NET Framework)
+tools/check-gui.ps1           the prefab gate: every tag, attribute, value, brush, sprite category and VM binding
+                              against the game and the built DLL — run it after touching a prefab or a view model
 tools/McmProbe/               drives MCM's real fluent builder with the built bridge, outside the game
                               (not in the .sln; `dotnet run` it in Release after a Release build)
 tools/package.ps1             (step 10) clean release layout + zip for the Workshop upload

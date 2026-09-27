@@ -126,6 +126,19 @@ Buttons on Change:
     exactly.
   - Prisoners moved by hand join the same split as the steward's: the dungeon's room filled most valuable
     first, the rest ransomed.
+- **The window as built** **[decided: Claude, 2026.09.27 — step 7]**:
+  - **Re-planning keeps the player's hand.** A settings change (Prices or Instructions tab, MCM, the file) re-plans
+    on the same snapshot when the Suggestion tab shows again; every row the player had edited is set back to its
+    edited quantity by row id, as far as the new plan allows (new limits clamp it; a row the new plan no longer has
+    is dropped); the other rows take the new suggestion. **Do it** looks at the world again and plans afresh with no
+    carry-over — the edits were carried out. (Core `PlanCarryOver`, `StewardPlan.SetChange`.)
+  - The Price cell reads `units × unit price = signed total` (`3 × 180–240 = –630`, `5 × 48 = +240`); a tavern row at
+    0 shows the price to hire. The game's UI fonts have no → − ≈ ⟲ ▸ (RESEARCH §14): the header reads
+    `Gold 12,400 » 10,930 (–1,470)`, the minus is an en dash, ⟲ and ▸ are the game's refresh and collapser icons.
+  - A **Reset all** button sits bottom left of the Suggestion tab. The small grey words after a name carry the
+    role's target, the upgrade need, the weight a loot sale frees, a wanderer's skills and wage.
+  - Typed numbers (price bases, multipliers, settings) are saved on every key that leaves a valid number; anything
+    else turns the box red and saves nothing. An empty price box = the placeholder again.
 
 Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · weight freed
 or added · buttons **Do it** and **Not now**. When the player's edits break a money floor (§3),
@@ -136,6 +149,8 @@ the footer shows it in red, but **Do it** still works — the player's hand over
 Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). Plus
 one tick-list that does not fit MCM:
 - **Prisoners to ransom**: every troop type, ticked = the steward may ransom it.
+  **[decided: Claude, 2026.09.27 — step 7]** "Every troop type" is several hundred in vanilla, so the list shows the
+  prisoners held now plus every troop unticked before (so it can be ticked back); the settings file still takes any id.
 
 (The old *Food to keep* list moved into the Prices tab as the food rows' Buy ticks.)
 
@@ -180,6 +195,10 @@ One row per item:
   and any category a mod adds sit under War mounts — no auto-filled price by default. A final price
   is rounded to the nearest denar, halves up (`[11] × 1.2 → 13`).
 - Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
+- **Which items the tab lists** **[decided: Claude, 2026.09.27 — step 7]**: every food, pack animal and riding animal
+  of the game that is merchandise (livestock, quest and non-transferable items left out, as the steward classifies
+  them), plus anything the party or this market holds; sorted by name within Food / Pack animals / Mounts / War
+  mounts. Ticking an item back on or clearing a base removes the stored override.
 
 #### 1.3.1 LATER (not V1) — the Others group **[Anton 2026.09.27: "leave wood, jewelry etc for later"]**
 
