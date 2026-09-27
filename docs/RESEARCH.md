@@ -226,7 +226,8 @@ Also never sell: `EquipmentElement.IsQuestItem`, `!ItemObject.IsTransferable`
 the settlement; **selling equipment** (not trade good, not animal): +1.5 + 0.25×(tier−1)
 (Crafting.ArtisanSmith, Trade.Appraiser, Roguery.ArmsDealer adjust); selling a mount or a pack
 animal: +0.8; **at a village: +1.0 when selling, +0.1 when buying**. Sell price divides by
-(1 + penalty) — equipment sells for ~40% of value in a town and ~28% in a village.
+(1 + penalty) — equipment sells for 39% (tier 1) down to ~30% (tier 4) of its value in a town and
+28% → ~23% in a village.
 
 ---
 

@@ -22,5 +22,13 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [ ] Pack animals: fixed 10 by default — or scale with party size?
 - [ ] Auto-execute mode (no window, just a report) — wanted at all? built as an off-by-default option
 - [ ] Edited rows stay as edited; the steward does not re-balance the rest around them
+- [ ] Livestock (cows, sheep…) — the game counts it as food; proposed: steward ignores it (see RESEARCH "Design impact")
+- [ ] Recruits that can go foot OR cavalry — count them as needing a horse? proposed: yes (DESIGN §2.4)
+- [ ] Plain "horse" mounts double as upgrade horses — reserve them for upgrades first? proposed: yes
+- [ ] Prisoners locked in the party screen — never ransom them, like vanilla? proposed: yes
+- [ ] Lame/spirited (modified) horses — count them as mounts, never buy them? proposed: yes
 
 NOTICED (things spotted during a step, left for later):
+- [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
+- [ ] TrainingBattles' TrainingWindow.Close() never calls ReleaseMovie — add it in our window (step 7)
+- [ ] Vanilla's donate screen sizes the dungeon room by prisoner stacks, not men — we use NumberOfPrisoners
