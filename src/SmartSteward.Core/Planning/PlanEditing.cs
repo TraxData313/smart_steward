@@ -136,6 +136,17 @@ namespace SmartSteward.Core.Planning
             return MoveTo(row, row.SuggestedChange, Math.Sign(row.SuggestedChange - row.Change));
         }
 
+        /// <summary>
+        /// Moves a row toward <paramref name="value"/> as far as the walk allows — clamped to the row's range, never
+        /// taking what another row has, crossing zero through 0 (as ⟲ does). What a re-plan uses to carry the player's
+        /// edits over (<see cref="PlanCarryOver"/>); a click uses <see cref="Increase"/> / <see cref="Decrease"/>.
+        /// </summary>
+        public EditResult SetChange(string rowId, int value)
+        {
+            var row = RowOrThrow(rowId);
+            return MoveTo(row, value, Math.Sign(value - row.Change));
+        }
+
         /// <summary>Every row back to the steward's suggestion — exactly the plan as it was made.</summary>
         public void ResetAll()
         {
