@@ -75,16 +75,16 @@ namespace SmartSteward.UI
                 section.Refresh();
 
             var t = plan.Totals;
-            HeaderText = UiText.S3("ss_ui_header", "Gold {NOW} " + UiFormat.Arrow + " {AFTER}   ({CHANGE})",
+            HeaderText = UiText.S3("ss_ui_header", "Gold {NOW} » {AFTER}   ({CHANGE})",
                 "NOW", UiFormat.Money(t.GoldNow), "AFTER", UiFormat.Money(t.GoldAfter), "CHANGE", UiFormat.SignedMoney(t.GoldChange));
             HeaderColor = UiColors.ForGoldChange(t.GoldChange);
 
             FooterMoneyText = UiText.S2("ss_ui_footer_money", "Spent {SPENT}  ·  earned {EARNED}",
                 "SPENT", UiFormat.Money(t.Spent), "EARNED", UiFormat.Money(t.Earned));
             FooterFoodText = t.FoodDaysAfter == null
-                ? UiText.S2("ss_ui_footer_food_nodays", "Food {NOW} " + UiFormat.Arrow + " {AFTER}",
+                ? UiText.S2("ss_ui_footer_food_nodays", "Food {NOW} » {AFTER}",
                     "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter))
-                : UiText.S3("ss_ui_footer_food", "Food {NOW} " + UiFormat.Arrow + " {AFTER}  (~{DAYS} days)",
+                : UiText.S3("ss_ui_footer_food", "Food {NOW} » {AFTER}  (~{DAYS} days)",
                     "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter), "DAYS", UiFormat.Days(t.FoodDaysAfter));
             string weight = UiText.S1("ss_ui_footer_weight", "Weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
             if (t.InfluenceGained > 0.05)

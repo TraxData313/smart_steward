@@ -21,8 +21,8 @@ namespace SmartSteward.Adapter
     /// </summary>
     internal static class SnapshotBuilder
     {
-        /// <summary>The snapshot of the party at <paramref name="settlement"/>; null (with the reason) anywhere the
-        /// steward does not work — castles, hideouts, the open map.</summary>
+        /// <summary>The snapshot of the party at <paramref name="settlement"/>; null (with the reason — player-facing, so
+        /// through TextObject ids) anywhere the steward does not work — castles, hideouts, the open map.</summary>
         public static GameVisit? Build(Settlement? settlement, out string whyNot)
         {
             whyNot = "";
@@ -30,13 +30,13 @@ namespace SmartSteward.Adapter
             var hero = Hero.MainHero;
             if (settlement == null || main == null || hero == null || Campaign.Current == null)
             {
-                whyNot = "not in a settlement";
+                whyNot = UI.UiText.S("ss_why_no_settlement", "not in a settlement");
                 return null;
             }
             bool isTown = settlement.IsTown;
             if (!isTown && !settlement.IsVillage)
             {
-                whyNot = "not a town or a village";
+                whyNot = UI.UiText.S("ss_why_not_town_or_village", "not a town or a village");
                 return null;
             }
 

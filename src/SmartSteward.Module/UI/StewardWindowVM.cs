@@ -224,7 +224,7 @@ namespace SmartSteward.UI
         {
             if (report.Abort != null)
                 return UiText.S("ss_ui_done_abort", "Steward: nothing was done - see smart_steward.log.");
-            string text = UiText.T("ss_ui_done", "Steward: {DONE} of {ALL} done. Gold {BEFORE} " + UiFormat.Arrow + " {AFTER}.")
+            string text = UiText.T("ss_ui_done", "Steward: {DONE} of {ALL} done. Gold {BEFORE} » {AFTER}.")
                 .SetTextVariable("DONE", UiFormat.Money(report.FullyDone))
                 .SetTextVariable("ALL", UiFormat.Money(report.Planned))
                 .SetTextVariable("BEFORE", UiFormat.Money(report.GoldBefore))

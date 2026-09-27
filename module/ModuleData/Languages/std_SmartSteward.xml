@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Smart Steward - every player-facing text by its string id, in English: the SOURCE for translations.
+  The game reads English from the code itself ({=id}English); this file is what a translator starts from.
+
+  To translate (the vanilla way): copy this file to Languages\XX\std_SmartSteward_xx.xml, set the tag below to
+  the game's language id (e.g. "Deutsch" - see Modules\Native\ModuleData\Languages\XX\language_data.xml),
+  translate every text="..." (keep {VARIABLES} as they are), and add Languages\XX\language_data.xml:
+    <LanguageData id="Deutsch">
+      <LanguageFile xml_path="XX/std_SmartSteward_xx.xml" />
+    </LanguageData>
+
+  Generated from the code by tests\SmartSteward.Core.Tests\StringsFileTests.cs (SS_WRITE_STRINGS=1) - do not
+  edit the English here: change it in the code and regenerate.
+-->
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="string">
+  <tags>
+    <tag language="English" />
+  </tags>
+  <strings>
+    <string id="ss_auto_cut_short" text="cut short" />
+    <string id="ss_auto_donated" text="donated" />
+    <string id="ss_auto_failed" text="Smart Steward: the autonomous steward failed - see smart_steward.log." />
+    <string id="ss_auto_food" text="food" />
+    <string id="ss_auto_gold" text="gold" />
+    <string id="ss_auto_head" text="Steward at {SETTLEMENT}:" />
+    <string id="ss_auto_head_short" text="Steward:" />
+    <string id="ss_auto_influence" text="influence" />
+    <string id="ss_auto_kind" text="kind" />
+    <string id="ss_auto_kinds" text="kinds" />
+    <string id="ss_auto_loot" text="armour &amp; weapons" />
+    <string id="ss_auto_mounts" text="mounts" />
+    <string id="ss_auto_nothing_done" text="nothing was done" />
+    <string id="ss_auto_prisoners" text="prisoners" />
+    <string id="ss_auto_ransomed" text="ransomed" />
+    <string id="ss_auto_see_log" text="see smart_steward.log" />
+    <string id="ss_auto_skipped" text="skipped" />
+    <string id="ss_auto_sold" text="sold" />
+    <string id="ss_grp_Food" text="Food" />
+    <string id="ss_grp_General" text="General" />
+    <string id="ss_grp_Loot" text="Loot" />
+    <string id="ss_grp_Money" text="Money" />
+    <string id="ss_grp_Mounts" text="Mounts" />
+    <string id="ss_grp_Pack" text="Pack animals" />
+    <string id="ss_grp_Prices" text="Prices" />
+    <string id="ss_grp_Prisoners" text="Prisoners" />
+    <string id="ss_grp_Tavern" text="Tavern" />
+    <string id="ss_grp_Warmounts" text="War mounts" />
+    <string id="ss_hint_AutoFillFoodPrices" text="Food you gave no price in the Prices tab uses its average price as the base. Default: on." />
+    <string id="ss_hint_AutoFillPackAndMountPrices" text="Pack animals and riding horses you gave no price use their average price as the base. Default: on." />
+    <string id="ss_hint_AutoFillWarMountPrices" text="War and noble horses you gave no price use their average price as the base. When off, they are bought only under the upgrade horse price cap until you type a price. Default: off." />
+    <string id="ss_hint_AutoPopupOnTownEnter" text="Open the Party Steward window when your party enters a town. Default: on." />
+    <string id="ss_hint_AutoPopupOnVillageEnter" text="Open the Party Steward window when your party enters a village. Default: on." />
+    <string id="ss_hint_AutonomousMinGold" text="While the full-autonomous steward is on, it never takes your purse below this - both floors above rise to it when they are lower. Raise the price limits to let it spend more freely, never this. Default: 100,000. Range: 0 to 10,000,000." />
+    <string id="ss_hint_AutonomousSteward" text="For when you are rich and done with micromanaging: on arriving at a town or village the steward carries out its plan at once - no window, no questions, no warning - and sums it up in the message log. It never hires in the tavern and never takes your purse below Keep while autonomous. The Party Steward menu entry stays, to look or adjust. When off, the steward only proposes and you click. Default: off." />
+    <string id="ss_hint_BuyPriceMultiplier" text="Max buy price = the item's base price (Prices tab) times this. 1.2 pays up to 20% over the average. Richer now? Raise it. Default: 1.2. Range: 0.1 to 10.0." />
+    <string id="ss_hint_DonatePrisonersWhenPossible" text="In a town of your kingdom that is not your clan's, send prisoners to its dungeon for influence instead of gold. Those that do not fit are ransomed. Default: off." />
+    <string id="ss_hint_FoodCountPrisoners" text="Count your prisoners when working out the food target - half a man each, as the game feeds them. Default: on." />
+    <string id="ss_hint_FoodEnabled" text="Buy food up to the target and sell what is far above it. Default: on." />
+    <string id="ss_hint_FoodPerMan" text="Food units kept for every man. A man eats about one unit in 20 days, so 2 lasts about 40 days. Default: 2.0. Range: 0.1 to 10.0." />
+    <string id="ss_hint_FoodStrategy" text="Balanced buys the kinds you hold least of first - every different food lifts morale. Cheapest always buys the cheapest kind. Default: Balanced (variety first)." />
+    <string id="ss_hint_FoodSurplusTolerancePercent" text="How far above the target food may pile up before the steward sells: 25 sells only above 125% of the target. Default: 25. Range: 0 to 500." />
+    <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denars. Default: 1,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_ModEnabled" text="Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, nothing done on its own. Default: on." />
+    <string id="ss_hint_MountMaxPrice" text="Never pay more than this for a footman's horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 500. Range: 0 to 100,000." />
+    <string id="ss_hint_MountsEnabled" text="Buy horses for the men who walk, so the party moves faster. Default: on." />
+    <string id="ss_hint_MountsPer100Footmen" text="Riding horses kept for every 100 men on foot: 110 is one each plus 10% spare. Default: 110. Range: 0 to 300." />
+    <string id="ss_hint_PackAnimalMaxPrice" text="Never pay more than this for one pack animal, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 300. Range: 0 to 100,000." />
+    <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
+    <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
+    <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
+    <string id="ss_hint_PrisonersExcluded" text="Troop ids the steward never ransoms or donates - the ones unticked in the Instructions tab's Prisoners to ransom list. Example: [ &quot;looter&quot;, &quot;sea_raiders_boss&quot; ] Default: empty." />
+    <string id="ss_hint_RansomHeroPrisoners" text="Also ransom (or donate) captured lords. A ransomed lord goes free. Default: off." />
+    <string id="ss_hint_RansomPrisoners" text="Offer your prisoners to the town's ransom broker. Default: on." />
+    <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
+    <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields). Default: off." />
+    <string id="ss_hint_SellLootEquipment" text="Include weapons, armour, shields and ammunition in the loot sale. Default: on." />
+    <string id="ss_hint_SellLootMaxItemValue" text="Never sell a piece worth more than this many denars. 0 = no cap. Pieces you locked in the inventory are never sold anyway. Default: 0. Range: 0 to 1,000,000." />
+    <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the gold), the lowest price per kg, or the most expensive (the game's own habit). Default: Cheapest first." />
+    <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
+    <string id="ss_hint_SellPackAnimalSurplus" text="Sell pack animals above the target, the dearest first. Default: on." />
+    <string id="ss_hint_SellPriceMultiplier" text="Min sell price = the item's base price (Prices tab) times this. 0.8 sells at 80% of the average sell price or better; 0 sells at any price. Default: 0.8. Range: 0.0 to 10.0." />
+    <string id="ss_hint_SellWarMountSurplus" text="Sell upgrade horses above what your troops need, the dearest first. Default: on." />
+    <string id="ss_hint_ShowMercenaries" text="List the mercenary band in the town's tavern. Default: on." />
+    <string id="ss_hint_ShowTavern" text="Show the tavern section in towns: wanderers and mercenaries to hire with a click. Default: on." />
+    <string id="ss_hint_ShowWanderers" text="List the wanderers for hire in the town's tavern. Default: on." />
+    <string id="ss_hint_WarMountMaxPrice" text="Never pay more than this for one upgrade horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 2,000. Range: 0 to 100,000." />
+    <string id="ss_hint_WarMountsCountAsMounts" text="Horses kept for troop upgrades also count as riding horses for the footmen until the upgrade takes them. Default: on." />
+    <string id="ss_hint_WarMountsEnabled" text="Keep the horses your troops need to upgrade into cavalry. Default: on." />
+    <string id="ss_hint_WarMountsExtra" text="Extra horses on top of the automatic count, for each kind your troops upgrade into. Default: 0. Range: 0 to 100." />
+    <string id="ss_hint_WarMountsManualTarget" text="-1 keeps as many as your troops can use for upgrades right now. 0 or more keeps exactly that many of each kind your troops need. Default: -1. Range: -1 to 500." />
+    <string id="ss_hint_WarnIfNotReviewed" text="Ask before you leave a town or village whose suggestions you never looked at. Default: on." />
+    <string id="ss_leave_anyway" text="Leave anyway" />
+    <string id="ss_leave_review" text="Review" />
+    <string id="ss_leave_text" text="Your steward has suggestions you haven't looked at." />
+    <string id="ss_leave_title" text="Party Steward" />
+    <string id="ss_loaded" text="Smart Steward loaded." />
+    <string id="ss_mcm_title" text="Smart Steward" />
+    <string id="ss_menu" text="Party Steward" />
+    <string id="ss_opt_FoodStrategy_Balanced" text="Balanced (variety first)" />
+    <string id="ss_opt_FoodStrategy_Cheapest" text="Cheapest" />
+    <string id="ss_opt_SellLootOrder_Cheapest" text="Cheapest first" />
+    <string id="ss_opt_SellLootOrder_LowestPricePerKg" text="Lowest price per kg" />
+    <string id="ss_opt_SellLootOrder_MostExpensive" text="Most expensive first" />
+    <string id="ss_set_AutoFillFoodPrices" text="Average prices for food" />
+    <string id="ss_set_AutoFillPackAndMountPrices" text="Average prices for pack animals and horses" />
+    <string id="ss_set_AutoFillWarMountPrices" text="Average prices for war horses" />
+    <string id="ss_set_AutoPopupOnTownEnter" text="Open on entering a town" />
+    <string id="ss_set_AutoPopupOnVillageEnter" text="Open on entering a village" />
+    <string id="ss_set_AutonomousMinGold" text="Keep while autonomous (gold)" />
+    <string id="ss_set_AutonomousSteward" text="Full-autonomous steward" />
+    <string id="ss_set_BuyPriceMultiplier" text="Buy price multiplier" />
+    <string id="ss_set_DonatePrisonersWhenPossible" text="Donate when possible" />
+    <string id="ss_set_FoodCountPrisoners" text="Feed prisoners too" />
+    <string id="ss_set_FoodEnabled" text="Manage food" />
+    <string id="ss_set_FoodPerMan" text="Food per man" />
+    <string id="ss_set_FoodStrategy" text="Food buying" />
+    <string id="ss_set_FoodSurplusTolerancePercent" text="Surplus tolerance (%)" />
+    <string id="ss_set_MinGoldAfterDeal" text="Always keep (gold)" />
+    <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (gold)" />
+    <string id="ss_set_ModEnabled" text="Steward on" />
+    <string id="ss_set_MountMaxPrice" text="Max price per riding horse" />
+    <string id="ss_set_MountsEnabled" text="Manage riding horses" />
+    <string id="ss_set_MountsPer100Footmen" text="Horses per 100 footmen" />
+    <string id="ss_set_PackAnimalMaxPrice" text="Max price per pack animal" />
+    <string id="ss_set_PackAnimalsEnabled" text="Manage pack animals" />
+    <string id="ss_set_PackAnimalsTarget" text="Pack animals to keep" />
+    <string id="ss_set_PopupOnlyWithChanges" text="Only open with suggestions" />
+    <string id="ss_set_RansomHeroPrisoners" text="Include lords" />
+    <string id="ss_set_RansomPrisoners" text="Ransom prisoners" />
+    <string id="ss_set_SellFoodSurplus" text="Sell surplus food" />
+    <string id="ss_set_SellLoot" text="Sell loot" />
+    <string id="ss_set_SellLootEquipment" text="Sell weapons and armour" />
+    <string id="ss_set_SellLootMaxItemValue" text="Keep pieces worth more than" />
+    <string id="ss_set_SellLootOrder" text="Loot selling order" />
+    <string id="ss_set_SellMountSurplus" text="Sell surplus riding horses" />
+    <string id="ss_set_SellPackAnimalSurplus" text="Sell surplus pack animals" />
+    <string id="ss_set_SellPriceMultiplier" text="Sell price multiplier" />
+    <string id="ss_set_SellWarMountSurplus" text="Sell surplus upgrade horses" />
+    <string id="ss_set_ShowMercenaries" text="Show mercenaries" />
+    <string id="ss_set_ShowTavern" text="Show the tavern" />
+    <string id="ss_set_ShowWanderers" text="Show wanderers" />
+    <string id="ss_set_WarMountMaxPrice" text="Max price per upgrade horse" />
+    <string id="ss_set_WarMountsCountAsMounts" text="Upgrade horses carry footmen" />
+    <string id="ss_set_WarMountsEnabled" text="Manage upgrade horses" />
+    <string id="ss_set_WarMountsExtra" text="Spare upgrade horses" />
+    <string id="ss_set_WarMountsManualTarget" text="Upgrade horses to keep" />
+    <string id="ss_set_WarnIfNotReviewed" text="Warn before leaving" />
+    <string id="ss_ui_block_all_on_offer" text="Everything on offer is already in the plan." />
+    <string id="ss_ui_block_all_sold" text="Everything that may go is already in the plan. Locked ones never are." />
+    <string id="ss_ui_block_buy_only" text="Only ever hired." />
+    <string id="ss_ui_block_companions" text="Your clan's companion limit is reached." />
+    <string id="ss_ui_block_dungeon_full" text="The dungeon has no more room." />
+    <string id="ss_ui_block_gold" text="You do not have the gold for it." />
+    <string id="ss_ui_block_market_gold" text="The market has no gold left to pay for more." />
+    <string id="ss_ui_block_min_sell" text="The next one would fetch less than its min sell price - a town's prices fall as you sell." />
+    <string id="ss_ui_block_none_eligible" text="Nothing on offer the steward may buy: none in the market, unticked in the Prices tab, or dearer than its max buy price." />
+    <string id="ss_ui_block_nothing_to_sell" text="Nothing to sell: none held, all locked, or unticked for selling in the Prices tab." />
+    <string id="ss_ui_block_other_row" text="What is left is already planned for another row." />
+    <string id="ss_ui_block_party_full" text="Your party is full." />
+    <string id="ss_ui_block_price_limit" text="The next one costs more than its max buy price - a town's prices climb as you buy." />
+    <string id="ss_ui_block_sell_only" text="Only ever sold, ransomed or donated - never bought." />
+    <string id="ss_ui_col_buy" text="Buy" />
+    <string id="ss_ui_col_change" text="Change" />
+    <string id="ss_ui_col_item" text="Item" />
+    <string id="ss_ui_col_market" text="Market" />
+    <string id="ss_ui_col_max_buy" text="Max buy price" />
+    <string id="ss_ui_col_min_sell" text="Min sell price" />
+    <string id="ss_ui_col_mine" text="Mine" />
+    <string id="ss_ui_col_price" text="Price" />
+    <string id="ss_ui_col_result" text="Result" />
+    <string id="ss_ui_col_sell" text="Sell" />
+    <string id="ss_ui_col_type" text="Type" />
+    <string id="ss_ui_detail_donated" text="{N} to the dungeon" />
+    <string id="ss_ui_detail_excluded" text="not ticked for ransom" />
+    <string id="ss_ui_detail_frees" text="{KG} kg" />
+    <string id="ss_ui_detail_lord" text="lord" />
+    <string id="ss_ui_detail_need" text="needed for upgrades {N}" />
+    <string id="ss_ui_detail_target" text="target {N}" />
+    <string id="ss_ui_detail_wage" text="{WAGE} a day" />
+    <string id="ss_ui_detail_wage_each" text="{WAGE} a day each" />
+    <string id="ss_ui_do_it" text="Do it" />
+    <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Gold {BEFORE} » {AFTER}." />
+    <string id="ss_ui_done_abort" text="Steward: nothing was done - see smart_steward.log." />
+    <string id="ss_ui_done_partly" text="{CUT} cut short, {SKIPPED} skipped - see smart_steward.log." />
+    <string id="ss_ui_empty" text="Nothing for the steward to do here." />
+    <string id="ss_ui_enum_hint" text="Click for the next choice" />
+    <string id="ss_ui_expand_hint" text="Show the kinds of animal in this row" />
+    <string id="ss_ui_failed" text="Smart Steward: something went wrong - the window closed. See smart_steward.log." />
+    <string id="ss_ui_footer_food" text="Food {NOW} » {AFTER}  (~{DAYS} days)" />
+    <string id="ss_ui_footer_food_nodays" text="Food {NOW} » {AFTER}" />
+    <string id="ss_ui_footer_influence" text="Influence {INF}" />
+    <string id="ss_ui_footer_money" text="Spent {SPENT}  ·  earned {EARNED}" />
+    <string id="ss_ui_footer_weight" text="Weight {KG} kg" />
+    <string id="ss_ui_header" text="Gold {NOW} » {AFTER}   ({CHANGE})" />
+    <string id="ss_ui_instructions_intro" text="Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does." />
+    <string id="ss_ui_link_hint" text="Open in the Encyclopedia" />
+    <string id="ss_ui_loot_armour" text="Armour" />
+    <string id="ss_ui_loot_melee" text="Melee weapons" />
+    <string id="ss_ui_loot_ranged" text="Ranged" />
+    <string id="ss_ui_loot_shields" text="Shields" />
+    <string id="ss_ui_mine_kept" text="(+{N} kept)" />
+    <string id="ss_ui_mine_locked" text="(+{N} locked)" />
+    <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
+    <string id="ss_ui_no_prisoners" text="(no prisoners now)" />
+    <string id="ss_ui_not_now" text="Not now" />
+    <string id="ss_ui_nothing_to_do" text="Nothing to do." />
+    <string id="ss_ui_open_failed" text="Smart Steward: the window could not open - see smart_steward.log." />
+    <string id="ss_ui_price_influence" text="{INF} influence" />
+    <string id="ss_ui_prices_food" text="Food" />
+    <string id="ss_ui_prices_horses" text="Horses" />
+    <string id="ss_ui_prices_intro" text="Final = your base price × the multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold." />
+    <string id="ss_ui_prices_mounts" text="Mounts" />
+    <string id="ss_ui_prices_pack" text="Pack animals" />
+    <string id="ss_ui_prices_reset_hint" text="Clear your prices - the grey average applies again" />
+    <string id="ss_ui_prices_war_mounts" text="War mounts" />
+    <string id="ss_ui_prisoner_tick_hint" text="Ticked: the steward may ransom (or donate) this troop." />
+    <string id="ss_ui_prisoners_to_ransom" text="Prisoners to ransom" />
+    <string id="ss_ui_reset_all" text="Reset all" />
+    <string id="ss_ui_reset_hint" text="Back to the steward's suggestion" />
+    <string id="ss_ui_role_pack" text="Pack animals" />
+    <string id="ss_ui_role_riding" text="Riding mounts" />
+    <string id="ss_ui_role_upgrade" text="Upgrade horses ({CATEGORY})" />
+    <string id="ss_ui_sec_food" text="Food" />
+    <string id="ss_ui_sec_food_detail" text="target {TARGET} for {EATERS} eaters" />
+    <string id="ss_ui_sec_loot" text="Armour &amp; weapons" />
+    <string id="ss_ui_sec_mounts" text="Mounts" />
+    <string id="ss_ui_sec_mounts_detail" text="{FOOTMEN} men on foot  ·  riding target {TARGET}" />
+    <string id="ss_ui_sec_prisoners" text="Prisoners" />
+    <string id="ss_ui_sec_tavern" text="Tavern" />
+    <string id="ss_ui_shortcuts" text="Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia" />
+    <string id="ss_ui_tab_instructions" text="Instructions" />
+    <string id="ss_ui_tab_prices" text="Prices" />
+    <string id="ss_ui_tab_suggestion" text="Suggestion" />
+    <string id="ss_ui_title" text="Party Steward — {SETTLEMENT}" />
+    <string id="ss_ui_type_food" text="Food" />
+    <string id="ss_ui_type_loot" text="Loot" />
+    <string id="ss_ui_type_mount" text="Mount" />
+    <string id="ss_ui_type_pack" text="Pack" />
+    <string id="ss_ui_type_prisoner" text="Prisoner" />
+    <string id="ss_ui_type_tavern" text="Tavern" />
+    <string id="ss_ui_type_war_mount" text="War mount" />
+    <string id="ss_ui_warn_cannot_afford" text="You cannot afford this deal - take something back." />
+    <string id="ss_ui_warn_market_gold" text="The market cannot pay for all the sales." />
+    <string id="ss_ui_warn_min_gold" text="Below the gold you always keep ({GOLD})." />
+    <string id="ss_ui_warn_min_gold_horses" text="Below the gold you keep before buying animals ({GOLD})." />
+    <string id="ss_why_no_settlement" text="not in a settlement" />
+    <string id="ss_why_not_town_or_village" text="not a town or a village" />
+  </strings>
+</base>

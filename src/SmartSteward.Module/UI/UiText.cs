@@ -3,9 +3,12 @@ using TaleWorlds.Localization;
 namespace SmartSteward.UI
 {
     /// <summary>
-    /// Every player-facing text of the Party Steward window goes through a <see cref="TextObject"/> with a string id
-    /// (<c>{=ss_ui_…}English</c>), so translators can replace it later (PLAN step 9 gathers the ids into a strings
-    /// file). Numbers are formatted by Core's <c>UiFormat</c> and put in as variables.
+    /// Every player-facing text of the mod goes through a <see cref="TextObject"/> with a string id
+    /// (<c>{=ss_…}English</c>), so translators can replace it: the ids and their English live in
+    /// <c>module\ModuleData\Languages\std_SmartSteward.xml</c> (the vanilla strings format), and the Core test
+    /// <c>StringsFileTests</c> holds that file to the code. Keep the English ONE string literal per call (no
+    /// concatenation) so the test can read it; numbers are formatted by Core's <c>UiFormat</c> and put in as
+    /// variables.
     /// </summary>
     internal static class UiText
     {
