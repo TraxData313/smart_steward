@@ -45,7 +45,8 @@ nothing lost. Therefore:
    `NOTICED` in TASKS_TODO.md instead of doing it.
 2. Build and test before committing: `dotnet build -c Release` and `dotnet test` must be green.
    After touching the Module, deploy with `tools\deploy.ps1` (fails while the game runs — the
-   DLL is locked; say so instead of skipping silently).
+   DLL is locked; say so instead of skipping silently) and run `tools\check-soft-deps.ps1` (the
+   module must still load without MCM).
 3. Commit in small, meaningful commits and **push** (`git push`). End every commit message with
    the Co-Authored-By line from the session's attribution guidance.
 4. Write your TASKS_DONE.md entry, tick your PLAN line, push again.
@@ -90,7 +91,12 @@ nothing lost. Therefore:
 SmartSteward.sln, Directory.Build.props   GameFolder / McmBinFolder; override them in a
                               git-ignored Directory.Build.props.user
 src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-tested:
-  Settings/                   StewardSettings = the DESIGN §7 keys as a POCO (+ price-book entries)
+  Settings/                   StewardSettings = the DESIGN §7 keys as a POCO (+ price-book entries);
+                              SettingsRegistry = every §7 key with group, label, help, range, accessors —
+                              drives the file, MCM and the Instructions tab; SettingsFile = the commented
+                              settings.json (Generate / Parse, Newtonsoft 13.0.1 compile-only — the game's
+                              copy runs); SettingsService = the live values (load, reload-if-changed, save
+                              on change, Changed)
   Snapshot/                   StewardSnapshot — the game-free input the Module fills; LootGroups table
   Pricing/                    IPriceOracle (the Module implements it with the game's price model),
                               PriceBook rules, MarketState + TradeLane/LaneCursor = the price walk
@@ -100,18 +106,25 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
-                              SmartStewardBehavior (SyncData stores nothing), ModLog
+                              SmartStewardBehavior (SyncData stores nothing), ModLog, SettingsHost (the one
+                              SettingsService over settings.json — read Current afresh, a reload replaces it),
+                              McmBridge (Mod Options via MCM's fluent builder; MCM types only in method
+                              bodies/signatures — read its class comment before touching it)
 tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and
-                              StewardSettings ↔ DESIGN §7 checks; Planning/TestKit.cs = FakeOracle +
-                              Scenario builder for planner tests
+                              StewardSettings + SettingsRegistry ↔ DESIGN §7 checks (keys, order, groups,
+                              defaults, ranges); Settings/ = registry, file and service tests;
+                              Planning/TestKit.cs = FakeOracle + Scenario builder for planner tests
 module/SubModule.xml          the manifest (GUI prefabs and ModuleData join it in later steps)
 tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smart Steward (dev)")
+tools/check-soft-deps.ps1     the game loader's GetTypes() test without MCM (Windows PowerShell = .NET Framework)
+tools/McmProbe/               drives MCM's real fluent builder with the built bridge, outside the game
+                              (not in the .sln; `dotnet run` it in Release after a Release build)
 tools/package.ps1             (step 10) clean release layout + zip for the Workshop upload
 docs/                         DESIGN.md, RESEARCH.md
 ```
 
-Log: `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log` (the
-settings file will live beside it).
+Log: `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log`; the
+settings file `settings.json` (+ `settings.json.bak` after a repair) lives beside it.
 
 Conventions carried over from the sibling mods: **Core = pure and unit-tested, Module = game
 glue**; game DLLs and MCM are referenced with `Private=false` (never shipped); raw game-API

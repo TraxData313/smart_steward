@@ -496,7 +496,7 @@ Fine for ~30 rows.
   service provider exists — built in `MCMSubModule.OnBeforeInitialModuleScreenSetAsRoot`; call ours
   from our own `OnBeforeInitialModuleScreenSetAsRoot`, MCM loads before us).
   `ISettingsBuilder`: `SetFolderName(string)`, `SetSubFolder(string)`, `SetFormat(string)` (default
-  **"memory"** — MCM writes no file of its own; our settings.json stays the only store),
+  "memory" — **but see the step 5 facts below: use `"none"`**),
   `SetUIVersion(int)`, `SetSubGroupDelimiter(char)`, `SetOnPropertyChanged(PropertyChangedEventHandler)`,
   `CreateGroup(string name, Action<ISettingsPropertyGroupBuilder>)`, `CreatePreset(...)`,
   `WithoutDefaultPreset()`, `FluentGlobalSettings BuildAsGlobal()` → `.Register()` / `.Unregister()`.
@@ -556,6 +556,50 @@ Fine for ~30 rows.
   .NET Framework, with the game's bin resolvable and MCM not, succeeds (the loader's own call);
   the DLL references no MCMv5.
 
+**MCM 5.12.3 and the loader — verified in step 5 (2026.09.27)** (MCMv5.dll IL via ilspycmd, the UI in
+`Bannerlord.MBOptionScreen.v1.4.8.dll`, and `tools\McmProbe` driving the real builder):
+- **The default "memory" format throws on the first registration.** `MemorySettingsFormat.Load` is
+  `if (_settings.TryGetValue(key, out v) || settings != v) OverrideSettings(settings, v)` (checked in
+  the IL) — with no stored copy `v` is null, and `OverrideValues(current, null)` dereferences it
+  (`GetUnsortedSettingPropertyGroups` → `settings.DiscoveryType`). `RegisterSettings` has already
+  added the settings, so the page may still show, but `Register()` throws. `MCMSubModule` registers
+  `MemorySettingsFormat` **twice** and `NoneSettingsFormat` never; the implementation adds `json`/`json2`
+  and `xml`. So **`SetFormat("none")`** matches no format: `Load` and `Save` are skipped (`?.`), MCM
+  keeps and writes nothing, and a `Configs\ModSettings` folder is only touched for an empty FolderName
+  (= its root). `json` would be worse: MCM's own file would override our values at every start.
+- **The "Default" preset snapshots CURRENT values**: `DefaultSettingsBuilder`'s constructor creates
+  preset `"default"`; `BuildAsGlobal` calls `SetPropertyValue(id, ref.Value)` for every property, and
+  `SetPropertyValue` keeps the FIRST value per id. Filling that preset ourselves first
+  (`CreatePreset("default", …)`) makes MCM's Default / reset buttons mean the registry defaults.
+- **The UI writes live**: every control change is `URS.Do(action)` → `DoAction()` → `ref.Value = v`
+  at once; Cancel is `UndoAll()` (through the same setter); Done calls `SaveSettings` (format save —
+  a no-op for "none" — then `PropertyChanged("SAVE_TRIGGERED")`). So saving on every setter call is right.
+- **The control type comes from `ProxyRef<T>`'s T** (`SettingsPropertyDefinition` ctor): bool, int,
+  **float** (not double — values are read `value is float`), string, a dropdown when T is an `IList<>`
+  with `SelectedIndex`, `Action` = button.
+- **A dropdown pick never calls the setter**: `SetSelectedIndexAction` reads `ref.Value` and sets
+  `SelectedIndex` on THAT object (via `SelectedIndexWrapper`, reflection through Harmony's AccessTools2).
+  Keep one `Dropdown<string>` per setting and listen to its `PropertyChanged("SelectedIndex")`; presets
+  (`OverrideValues`) do call the setter with a whole dropdown.
+- Property builders are stored per group **by display name** (`Properties[name]`) — labels must be
+  unique within a group; presets address properties by **id**. Group paths split on the sub-group
+  delimiter `/`. Display names, group names, hints and dropdown labels all go through `TextObject`
+  (`{=id}` works; `{X}` is a variable — no braces in texts). The hint shows as `Name: hint`.
+- **What `GetTypes()` really resolves** (.NET Framework, canary classes built into SmartSteward.dll and
+  run through `tools\check-soft-deps.ps1`): a class **deriving** from an MCM type → `GetTypes()` throws
+  (the module would be unloaded). A reference-type **field** of an MCM type (`Dropdown<string>`) and a
+  cached lambda (`<>c` static field typed `Action<ISettingsPropertyGroupBuilder>`) do **not** — field
+  types of reference type are not resolved at type load. The "no MCM fields, no lambdas" rule above is
+  kept anyway: any reflective scan that reads fields would hit them.
+- **The game reflects over our static methods**: `CommandLineFunctionality.CollectCommandLineFunctions`
+  (TaleWorlds.Library) runs `GetMethods(Static | Public | NonPublic)` + attribute lookup on every type of
+  every assembly referencing TaleWorlds.Library. Keep MCM types out of STATIC method signatures (the
+  check script resolves every static signature).
+- **Newtonsoft**: Core compiles against the NuGet package 13.0.1 (assembly 13.0.0.0, token
+  30ad4fe6b2a6aeed — the game's exact identity) with `PrivateAssets="all"`, so no copy reaches the
+  Module's output; at runtime the game's own DLL answers (the probe ran Core's file code on it). Its
+  reader also accepts trailing commas; `JsonTextReader.DateParseHandling = None` keeps date-like ids text.
+
 ---
 
 ## Gotchas (one line each)
@@ -595,6 +639,9 @@ Fine for ~30 rows.
 29. **The vanilla launcher ignores `DependedModuleMetadatas`** — optional load order needs
     `<DependedModule Id="…" Optional="true" />` too.
 30. **Module DLLs stay locked while the game runs** (main menu too) — quit before deploying.
+31. **MCM's default "memory" format throws on first register** (5.12.3) — `SetFormat("none")`.
+32. **MCM dropdown picks set `SelectedIndex` on the getter's object**, never call the setter.
+33. **MCM float controls need `ProxyRef<float>`**; its Default preset snapshots the current values.
 
 ---
 

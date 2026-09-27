@@ -567,10 +567,30 @@ float slider and the file agree on the same number). A value outside its range i
   all three views — the file, MCM (fluent builder, soft dependency) and the Instructions tab —
   so they can never drift apart.
   **[research 2026.09.27]** MCM binds through `ProxyRef<T>(getter, setter)` straight onto the
-  registry; the fluent builder's default format "memory" means MCM keeps no file of its own. Enum
-  settings (`FoodStrategy`, `SellLootOrder`) become MCM dropdowns. The game refuses to load a
-  module if any of its types cannot resolve — no field, base type or captured lambda may touch an
-  MCM type (RESEARCH §12).
+  registry. Enum settings (`FoodStrategy`, `SellLootOrder`) become MCM dropdowns. The game refuses to
+  load a module if any of its types cannot resolve — no field, base type or captured lambda may touch
+  an MCM type (RESEARCH §12).
+  **[research 2026.09.27 — step 5]** Format **"none"**, not the default "memory" (which throws on the
+  first registration in MCM 5.12.3): MCM keeps and writes nothing, settings.json is the only store.
+- **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
+  - Core: `SettingsRegistry` (the 45 §7 keys in table order: 43 scalars + the price book + the prisoner
+    list), `SettingsFile` (text in, text out), `SettingsService` (the live values). Module: `SettingsHost`
+    (the one service over the disk) and `McmBridge`.
+  - The file opens with a short header (how to edit, when it is re-read, delete to reset, where the
+    fixes are logged) and has a `// ===== Group =====` heading per group; above every key sits
+    `// Label: help` (wrapped at 100) and `// Default: … Allowed: …`. Plain ASCII, CRLF, written sorted
+    and deterministic — comparing texts tells whether anything changed.
+  - Read at module load, again at campaign start and when the Party Steward window opens **if the
+    file changed on disk** (size + write time) — or was deleted (a fresh default file is written).
+  - Reading never fails the game: missing keys → default; unknown keys → ignored; numbers clamped;
+    wrong types → default; keys and enum names are case-insensitive; `//`, `/* */` and trailing commas
+    are fine. Every fix is a log line with its line number. After reading, the file is rewritten
+    whenever its text differs from what the values would write (new keys appear, fixes land); a file
+    that lost something (unreadable, clamped, wrong type, unknown key) is first kept as
+    `settings.json.bak`. A file that cannot even be opened (locked) is never written over.
+  - Every change (MCM, later the Instructions and Prices tabs) goes through the service: clamped,
+    saved at once (written beside and swapped in), `Changed` raised for the window. MCM's Default preset
+    holds the registry defaults. The log gets one line of the non-default values at each campaign start.
 - The **price book** (§1.3) lives in the same file as a `PriceBook` object keyed by item id,
   holding only what the player changed (ticks flipped, bases typed). It is edited in the Prices
   tab or by hand; MCM shows only the multipliers and the auto-fill switches.
