@@ -79,8 +79,7 @@ namespace SmartSteward.UI
             ModLog.Info("plan", why + " at " + visit.Settlement.Name + ": " + SnapshotBuilder.Describe(visit.Snapshot));
             ModLog.Info("plan", visit.Oracle.SelfCheck(visit.Snapshot));
             var plan = StewardPlanner.Plan(visit.Snapshot, SettingsHost.Current, visit.Oracle);
-            foreach (var line in PlanReport.Full(plan))
-                ModLog.Info("plan", line);
+            ModLog.Info("plan", PlanReport.Full(plan));
             return plan;
         }
 
@@ -199,8 +198,7 @@ namespace SmartSteward.UI
             if (plan == null || !PlanFooter.CanExecute(plan))
                 return;
             var report = PlanExecutor.Execute(plan, _visit);
-            foreach (var line in report.LogLines())
-                ModLog.Info("execute", line);
+            ModLog.Info("execute", report.LogLines());
             string summary = Summary(report);
             InformationManager.DisplayMessage(new InformationMessage(summary));
             StewardMenu.RefreshCurrentMenu();

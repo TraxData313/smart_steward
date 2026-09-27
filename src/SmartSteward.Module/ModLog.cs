@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using SmartSteward.Core;
 
 namespace SmartSteward
@@ -28,6 +30,25 @@ namespace SmartSteward
         /// tag (load, campaign, plan, execute…) so the file greps clean.</summary>
         public static void Info(string area, string message) => Write(area, message);
 
+        /// <summary>Many lines under one area in ONE append — a big plan's report is hundreds of lines, and opening the
+        /// file once per line cost tens of milliseconds on every window open (PLAN step 9).</summary>
+        public static void Info(string area, IEnumerable<string> lines)
+        {
+            try
+            {
+                string stamp = DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss") + " [" + area + "] ";
+                var text = new StringBuilder();
+                foreach (var line in lines)
+                    text.Append(stamp).Append(line).Append(Environment.NewLine);
+                if (text.Length > 0)
+                    Append(text.ToString());
+            }
+            catch (Exception ex)
+            {
+                Write(area, "ERROR writing a report to the log — " + ex); // e.g. the report itself threw
+            }
+        }
+
         /// <summary>An error line with the exception's type, message and stack.</summary>
         public static void Error(string area, string message, Exception ex) =>
             Write(area, "ERROR " + message + " — " + ex);
@@ -36,16 +57,19 @@ namespace SmartSteward
         {
             try
             {
-                lock (Gate)
-                {
-                    Directory.CreateDirectory(ConfigDirectory);
-                    File.AppendAllText(LogFilePath,
-                        DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss")
-                        + " [" + area + "] " + message + Environment.NewLine);
-                    TrimIfHuge();
-                }
+                Append(DateTime.Now.ToString("yyyy.MM.dd HH:mm:ss") + " [" + area + "] " + message + Environment.NewLine);
             }
             catch { /* the log is a luxury, the game is not */ }
+        }
+
+        private static void Append(string text)
+        {
+            lock (Gate)
+            {
+                Directory.CreateDirectory(ConfigDirectory);
+                File.AppendAllText(LogFilePath, text);
+                TrimIfHuge();
+            }
         }
 
         /// <summary>Keeps the newest half once the file tops <see cref="TrimAtBytes"/>, cut at a

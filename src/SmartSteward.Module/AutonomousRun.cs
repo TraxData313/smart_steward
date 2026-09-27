@@ -33,8 +33,7 @@ namespace SmartSteward
                 var plan = StewardPlanner.Plan(visit.Snapshot, settings, visit.Oracle, PlanMode.Autonomous);
                 ModLog.Info("auto", "floors while autonomous: all purchases " + plan.Floors.All + ", animals "
                     + Math.Max(plan.Floors.All, plan.Floors.Animals));
-                foreach (var line in PlanReport.Full(plan))
-                    ModLog.Info("plan", line);
+                ModLog.Info("plan", PlanReport.Full(plan));
                 if (!PlanFooter.CanExecute(plan))
                 {
                     ModLog.Info("auto", "nothing to do");
@@ -42,8 +41,7 @@ namespace SmartSteward
                 }
 
                 var report = PlanExecutor.Execute(plan, visit);
-                foreach (var line in report.LogLines())
-                    ModLog.Info("execute", line);
+                ModLog.Info("execute", report.LogLines());
                 var summary = AutonomousReport.From(plan, report);
                 var lines = summary.Lines(
                     UiText.S1("ss_auto_head", "Steward at {SETTLEMENT}:", "SETTLEMENT", visit.Settlement.Name?.ToString() ?? ""),
