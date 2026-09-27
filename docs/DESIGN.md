@@ -7,15 +7,15 @@ open questions for Anton are listed on the board under NOT FULLY DECIDED.
 ## Release scope **[Anton 2026.09.27]**
 
 **V1 (the first Steam release)** = the Party Steward window with its three tabs, the triggers and
-settings, and exactly four jobs:
+settings, and exactly five jobs:
 1. **Tavern** — wanderers and mercenaries (§2.7)
 2. **Food** (§2.1)
 3. **Horses** — pack animals, riding mounts, upgrade and war horses (§2.2–2.4)
 4. **Armour & weapons selling** — in bulk groups (§2.6)
+5. **Prisoners** — ransom, or send to a friendly jail (§2.5) (Anton re-added them the same day)
 
 **LATER** (designed here so a later update starts from a spec, but NOT built for V1 — marked
-*LATER* where they appear): **prisoners** (ransom / donate, §2.5) and the price book's **Others**
-(trade goods, §1.3.1). Build steps must not implement LATER parts; keep the code open for them
+*LATER* where it appears): the price book's **Others** (trade goods, §1.3.1). Build steps must not implement LATER parts; keep the code open for them
 (e.g. a section list the window renders, not hard-wired sections).
 
 Terms: **food** = any item the game treats as food; **pack animal** = a pack-animal horse item
@@ -54,7 +54,7 @@ can add by hand).
 2. **Food** — one row per food item (variety matters, so food stays itemised)
 3. **Mounts** — ROLE rows, not one row per horse type (§1.1.1)
 4. **Armour & weapons** — the loot group rows (§2.6)
-5. *(LATER — not V1)* **Prisoners** (§2.5) — last, with the other selling
+5. **Prisoners** (§2.5) — last, with the other selling **[decided: Claude, 2026.09.27]**
 6. *(LATER — not V1)* **Others** — the trade goods the player ticked in the Prices tab (§1.3.1)
 
 #### 1.1.1 Mount rows are grouped by role **[Anton 2026.09.27 — "don't show each type of mount"]**
@@ -114,7 +114,7 @@ the footer shows it in red, but **Do it** still works — the player's hand over
 
 Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). Plus
 one tick-list that does not fit MCM:
-- *(LATER — with prisoners)* **Prisoners to ransom**: every troop type, ticked = the steward may ransom it.
+- **Prisoners to ransom**: every troop type, ticked = the steward may ransom it.
 
 (The old *Food to keep* list moved into the Prices tab as the food rows' Buy ticks.)
 
@@ -246,7 +246,7 @@ pure Core logic fed a snapshot of the party and the market (§5).
   no auto-filled placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**).
 - **Sell surplus** (`SellWarMountSurplus`, default on) above what is needed, most expensive first.
 
-### 2.5 LATER (not V1) — Prisoners: ransom or donate
+### 2.5 Prisoners — ransom or donate
 
 - Only in towns (villages have no ransom broker). `RansomPrisoners` default on.
 - Every ticked prisoner troop type is proposed for ransom; heroes (lords) never unless
@@ -341,7 +341,7 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 
 ## 3. Money — the order and the floors
 
-1. **Sell first** (surplus food, surplus animals, loot groups; LATER prisoners and ticked Others) — the
+1. **Sell first** (surplus food, surplus animals, loot groups, prisoners; LATER ticked Others) — the
    proceeds fund the buys.
 2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts (LATER → Others, the
    price-book trading of §1.3.1, answering to `MinGoldAfterDeal`).
@@ -474,10 +474,10 @@ the click.
 | War mounts | WarMountsExtra | 0 | buffer on top of the automatic count |
 | War mounts | WarMountMaxPrice | 2000 | role cap: never pay more per upgrade horse (0 = none; not scaled) |
 | War mounts | SellWarMountSurplus | true | sell above need, most expensive first |
-| Prisoners *(LATER)* | RansomPrisoners | true | ransom prisoners in towns |
-| Prisoners *(LATER)* | RansomHeroPrisoners | false | include lords |
-| Prisoners *(LATER)* | DonatePrisonersWhenPossible | false | donate to own garrison (influence) instead |
-| Prisoners *(LATER)* | PrisonersExcluded | [] | troop ids unticked in *Prisoners to ransom* |
+| Prisoners | RansomPrisoners | true | ransom prisoners in towns |
+| Prisoners | RansomHeroPrisoners | false | include lords |
+| Prisoners | DonatePrisonersWhenPossible | false | donate to own garrison (influence) instead |
+| Prisoners | PrisonersExcluded | [] | troop ids unticked in *Prisoners to ransom* |
 | Loot | SellLoot | false | sell other items |
 | Loot | SellLootEquipment | true | weapons, armour, shields, ammo |
 | Loot | SellLootMaxItemValue | 0 | never auto-sell items worth more per unit (0 = no cap) |
