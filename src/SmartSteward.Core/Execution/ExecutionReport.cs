@@ -102,7 +102,8 @@ namespace SmartSteward.Core.Execution
     }
 
     /// <summary>One run of the executor: the gold before and after, and every transaction's outcome — written to
-    /// smart_steward.log line by line, and summed up in one line for the player.</summary>
+    /// smart_steward.log line by line. The player's words are the Module's (the window's summary line, the autonomous
+    /// steward's <see cref="AutonomousReport"/>), through TextObject ids.</summary>
     public sealed class ExecutionReport
     {
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
@@ -131,18 +132,6 @@ namespace SmartSteward.Core.Execution
         public int FullyDone => Outcomes.Count(o => o.Done >= o.Transaction.Count);
         public int CutShort => Outcomes.Count(o => o.Done > 0 && o.Done < o.Transaction.Count);
         public int NotDone => Outcomes.Count(o => o.Done == 0 && o.Transaction.Count > 0);
-
-        /// <summary>The player's one line: "Steward: 14 of 16 done, 1 cut short, 1 skipped. Gold 12,400 -> 10,930."</summary>
-        public string Summary()
-        {
-            var parts = new List<string> { FullyDone.ToString(Inv) + " of " + Planned.ToString(Inv) + " done" };
-            if (CutShort > 0) parts.Add(CutShort.ToString(Inv) + " cut short");
-            if (NotDone > 0) parts.Add(NotDone.ToString(Inv) + " skipped");
-            string text = "Steward: " + string.Join(", ", parts) + ". Gold " + Money(GoldBefore) + " -> " + Money(GoldAfter) + ".";
-            if (Abort != null) text = "Steward: nothing done - " + Abort;
-            else if (CutShort + NotDone > 0) text += " Details in smart_steward.log.";
-            return text;
-        }
 
         /// <summary>One log line per transaction, then the gold line.</summary>
         public IEnumerable<string> LogLines()

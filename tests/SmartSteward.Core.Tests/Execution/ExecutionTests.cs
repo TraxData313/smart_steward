@@ -111,7 +111,7 @@ public class ExecutionTests
     }
 
     [Fact]
-    public void The_report_sums_up_for_the_player_and_logs_every_transaction()
+    public void The_report_counts_and_logs_every_transaction()
     {
         var plan = Scenario.BusyTown().Plan();
         var txs = plan.Transactions;
@@ -131,12 +131,6 @@ public class ExecutionTests
 
         Assert.Equal(3, report.Planned);
         Assert.Equal(1, report.NotDone);
-        string summary = report.Summary();
-        Assert.StartsWith("Steward: ", summary);
-        Assert.Contains("Gold 30,000 -> 28,530.", summary);
-        Assert.Contains("1 skipped", summary);
-        Assert.Contains("smart_steward.log", summary);
-
         var lines = report.LogLines().ToList();
         Assert.Equal(4, lines.Count);
         Assert.Contains("done " + txs[0].Count, lines[0]);
@@ -198,8 +192,7 @@ public class ExecutionTests
     public void An_aborted_run_says_so()
     {
         var report = new ExecutionReport(500) { Abort = "the party left the settlement" };
-        Assert.Equal("Steward: nothing done - the party left the settlement", report.Summary());
-        Assert.StartsWith("ABORTED: ", report.LogLines().First());
+        Assert.Equal("ABORTED: the party left the settlement", report.LogLines().First());
     }
 
     [Fact]

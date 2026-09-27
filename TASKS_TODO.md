@@ -49,4 +49,4 @@ NOTICED (things spotted during a step, left for later):
 - [x] Step 8: the "Party Steward" menu entry already exists (StewardMenu, step 7) — step 8 added the popup, leave warning and autonomy
 - [ ] Step 9: the window's texts carry ids ss_ui_* (+ MCM's ss_set_/ss_hint_/ss_opt_/ss_grp_, step 8's ss_auto_*/ss_leave_*) — gather them into a strings file
 - [ ] Playtest: the window's look was never seen — column widths, font sizes, the Encyclopedia focus round trip (PLAYTEST Step 7)
-- [ ] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — keep or drop
+- [x] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — dropped (step 9)

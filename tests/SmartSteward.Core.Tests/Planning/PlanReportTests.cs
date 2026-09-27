@@ -3,35 +3,13 @@ using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Tests.Planning;
 
-/// <summary>The plan as text — the debug door's popup and the log (PLAN step 6).</summary>
+/// <summary>The plan as text for the log (PLAN step 6).</summary>
 public class PlanReportTests
 {
-    [Fact]
-    public void Compact_shows_the_gold_line_the_changing_rows_and_the_footer()
-    {
-        var plan = Scenario.BusyTown().Plan();
-        string text = PlanReport.Compact(plan);
-        var t = plan.Totals;
-
-        Assert.StartsWith("Gold 30,000 -> " + t.GoldAfter.ToString("N0", System.Globalization.CultureInfo.InvariantCulture), text);
-        Assert.Contains("TAVERN: 2 wanderers, 8 Blades at 100 on offer", text);
-        Assert.Contains("FOOD (target ", text);
-        Assert.Contains("MOUNTS (footmen 10)", text);
-        Assert.Contains("ARMOUR & WEAPONS", text);
-        Assert.Contains("PRISONERS", text);
-        Assert.Contains("Pack animals: ", text);
-        Assert.Contains("looter: 8 -8 = 0 (8 ransomed +160)", text);
-        Assert.Contains(plan.Transactions.Count + " transactions", text);
-        // rows that change nothing are left out
-        foreach (var row in plan.Rows.Where(r => !r.HasChange && r.Type != RowType.Tavern))
-            Assert.DoesNotContain("  " + PlanReport.RowLabel(row) + ": ", text);
-    }
-
     [Fact]
     public void The_text_is_plain_ascii_for_the_games_font()
     {
         var plan = Scenario.BusyTown().Plan();
-        Assert.All(PlanReport.Compact(plan), c => Assert.True(c < 128, "non-ASCII '" + c + "'"));
         Assert.All(PlanReport.Full(plan), line => Assert.All(line, c => Assert.True(c < 128, "non-ASCII '" + c + "' in " + line)));
     }
 
@@ -60,12 +38,11 @@ public class PlanReportTests
     }
 
     [Fact]
-    public void An_idle_plan_says_there_is_nothing_to_do()
+    public void An_idle_plan_lists_no_transactions()
     {
-        var plan = new Scenario().Plan();
-        string text = PlanReport.Compact(plan);
-        Assert.Contains("Nothing to do here.", text);
-        Assert.Contains("0 transactions", text);
+        var lines = PlanReport.Full(new Scenario().Plan()).ToList();
+        Assert.Contains("transactions: 0", lines);
+        Assert.DoesNotContain(lines, l => l.StartsWith("flags: ", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -75,14 +52,14 @@ public class PlanReportTests
         var s = new Scenario().Party(10, footmen: 10).Gold(5_200).Mount("hunter", "horse", market: 5, buy: 300);
         var plan = s.Plan();
         Assert.Equal(0, plan.FindRow("mounts:riding")!.Change);
-        Assert.DoesNotContain("! ", PlanReport.Compact(plan));
+        Assert.DoesNotContain(PlanReport.Full(plan), l => l.StartsWith("flags: ", StringComparison.Ordinal));
 
         // …the player's hand buys one anyway: the floor shows, it does not block
         plan.Increase("mounts:riding");
-        var edited = PlanReport.Compact(plan);
-        Assert.Contains("Riding mounts: 0 +1 = 1 (1 x 300 = -300)", edited);
-        Assert.Contains("! below the minimum gold for horses", edited);
-        Assert.DoesNotContain("cannot afford", edited);
+        var edited = PlanReport.Full(plan).ToList();
+        Assert.Contains(edited, l => l.Contains("mounts:riding \"Riding mounts\" Mount: mine 0, change +1 (suggested +0)"));
+        Assert.Contains("flags: below the minimum gold for horses", edited);
+        Assert.DoesNotContain(edited, l => l.Contains("cannot afford"));
     }
 
     [Fact]

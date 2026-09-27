@@ -7,51 +7,13 @@ using System.Text;
 namespace SmartSteward.Core.Planning
 {
     /// <summary>
-    /// A plan as plain English text: <see cref="Full"/> for smart_steward.log (every row, the facts, the totals,
-    /// every transaction) and <see cref="Compact"/> for the debug door's popup (PLAN step 6) — only the rows that
-    /// change something, and the totals. ASCII only (the game's popup font may lack arrows and minus signs). The
-    /// window (step 7) labels rows through TextObject ids; this text is for the log and for debugging.
+    /// A plan as plain English text for smart_steward.log (<see cref="Full"/>: every row, the facts, the totals, every
+    /// transaction) — ASCII only, so the log reads anywhere. The player never sees it: the window labels rows through
+    /// TextObject ids. (The debug door's compact popup text went with the door — PLAN step 9.)
     /// </summary>
     public static class PlanReport
     {
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-
-        /// <summary>The debug popup: the header gold line, the changing rows per section, the footer.</summary>
-        public static string Compact(StewardPlan plan)
-        {
-            if (plan == null) throw new ArgumentNullException(nameof(plan));
-            var t = plan.Totals;
-            var sb = new StringBuilder();
-            sb.Append("Gold ").Append(Money(t.GoldNow)).Append(" -> ").Append(Money(t.GoldAfter))
-                .Append(" (").Append(Signed(t.GoldChange)).Append(')').Append('\n');
-
-            foreach (var section in plan.Sections)
-            {
-                var rows = section.Rows.Where(r => r.HasChange).ToList();
-                if (section.Kind == PlanSectionKind.Tavern)
-                {
-                    int wanderers = section.Rows.Count(r => r.Tavern?.Kind == TavernRowKind.Wanderer);
-                    var band = section.Rows.FirstOrDefault(r => r.Tavern?.Kind == TavernRowKind.Mercenaries);
-                    sb.Append('\n').Append("TAVERN: ").Append(wanderers.ToString(Inv)).Append(wanderers == 1 ? " wanderer" : " wanderers");
-                    if (band != null)
-                        sb.Append(", ").Append((band.Market ?? 0).ToString(Inv)).Append(' ').Append(band.Name)
-                            .Append(" at ").Append(Money(band.Tavern!.UnitPrice));
-                    sb.Append(" on offer").Append('\n');
-                }
-                else if (rows.Count > 0)
-                    sb.Append('\n').Append(SectionTitle(section.Kind, plan)).Append('\n');
-                foreach (var row in rows)
-                    sb.Append("  ").Append(CompactRow(row)).Append('\n');
-            }
-
-            sb.Append('\n').Append(Footer(plan));
-            var flags = Flags(t);
-            if (flags.Count > 0)
-                sb.Append('\n').Append("! ").Append(string.Join("; ", flags));
-            if (!plan.HasChanges)
-                sb.Append('\n').Append("Nothing to do here.");
-            return sb.ToString();
-        }
 
         /// <summary>The log: every section and row (zeros too) with its numbers and breakdown, the facts, the totals
         /// and the executor's transaction list.</summary>
@@ -134,48 +96,6 @@ namespace SmartSteward.Core.Planning
             if (tx.UnitPrices.Count > 0)
                 text += " (" + PriceRange(tx.UnitPrices.Min(), tx.UnitPrices.Max()) + ")";
             return text;
-        }
-
-        private static string SectionTitle(PlanSectionKind kind, StewardPlan plan)
-        {
-            switch (kind)
-            {
-                case PlanSectionKind.Food:
-                    return "FOOD (target " + plan.Facts.FoodTarget.ToString(Inv) + ")";
-                case PlanSectionKind.Mounts:
-                    return "MOUNTS (footmen " + plan.Facts.Footmen.ToString(Inv) + ")";
-                case PlanSectionKind.ArmourAndWeapons:
-                    return "ARMOUR & WEAPONS";
-                case PlanSectionKind.Prisoners:
-                    return "PRISONERS";
-                default:
-                    return kind.ToString().ToUpperInvariant();
-            }
-        }
-
-        /// <summary>"Grain: 5 +7 = 12 (7 x 10..11 = -74)".</summary>
-        private static string CompactRow(PlanRow row)
-        {
-            var sb = new StringBuilder();
-            sb.Append(RowLabel(row)).Append(": ").Append(row.Mine.ToString(Inv)).Append(' ')
-                .Append(SignedCount(row.Change)).Append(" = ").Append(row.Result.ToString(Inv));
-            if (row.Type == RowType.Prisoner && row.Prisoner != null)
-            {
-                var p = row.Prisoner;
-                var parts = new List<string>();
-                if (p.RansomCount > 0) parts.Add(p.RansomCount.ToString(Inv) + " ransomed " + Signed(row.GoldDelta));
-                if (p.DonateCount > 0) parts.Add(p.DonateCount.ToString(Inv) + " donated +" + row.InfluenceDelta.ToString("0.#", Inv) + " influence");
-                sb.Append(" (").Append(string.Join(", ", parts)).Append(')');
-                return sb.ToString();
-            }
-            int units = Math.Abs(row.Change);
-            sb.Append(" (").Append(units.ToString(Inv)).Append(" x ").Append(PriceRange(row.UnitPriceMin, row.UnitPriceMax))
-                .Append(" = ").Append(Signed(row.GoldDelta)).Append(')');
-            if (row.Target != null) sb.Append(" target ").Append(row.Target.Value.ToString(Inv));
-            if (row.Need != null) sb.Append(" need ").Append(row.Need.Value.ToString(Inv));
-            if (row.Type == RowType.Loot && row.WeightDelta < 0)
-                sb.Append(", frees ").Append((-row.WeightDelta).ToString("0.#", Inv)).Append(" kg");
-            return sb.ToString();
         }
 
         private static string FullRow(PlanRow row)
