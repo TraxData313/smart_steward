@@ -84,7 +84,9 @@ namespace SmartSteward.Core.Execution
             Detail = detail;
         }
 
-        /// <summary>Everything undone (the trade batch was reset): no units, no gold.</summary>
+        /// <summary>Everything undone (the trade batch was reset): no units, no gold. A transaction that had
+        /// already stopped with nothing done keeps its reason; the one whose error caused the reset keeps
+        /// <see cref="SkipReason.Error"/>.</summary>
         public void RollBack(string? detail = null)
         {
             if (Done == 0 && Reason != SkipReason.None)
@@ -92,6 +94,8 @@ namespace SmartSteward.Core.Execution
             _unitPrices.Clear();
             Done = 0;
             Gold = 0;
+            if (Reason == SkipReason.Error)
+                return;
             Reason = SkipReason.RolledBack;
             Detail = detail;
         }

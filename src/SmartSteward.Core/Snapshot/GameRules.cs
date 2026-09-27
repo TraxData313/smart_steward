@@ -135,26 +135,6 @@ namespace SmartSteward.Core.Snapshot
             return best.Count == 0 ? null : string.Join(", ", best);
         }
 
-        /// <summary>A wanderer can be hired right now (vanilla's hire dialogue + DESIGN §2.7): gold strictly
-        /// MORE than his price (<c>Hero.MainHero.Gold &gt; price</c>), a free companion slot, and — our own rule,
-        /// vanilla has none — room in the party.</summary>
-        public static bool CanHireWanderer(int gold, int price, int companionSlotsFree, int partyRoom) =>
-            gold > price && companionSlotsFree > 0 && partyRoom > 0;
-
-        /// <summary>
-        /// How many of the tavern's mercenaries to hire now: what the plan wants, capped by what is on offer, by
-        /// the party's room (our rule — vanilla never checks it) and by the purse (the tavern menu's
-        /// <c>min(Number, Gold / price)</c>). Never negative.
-        /// </summary>
-        public static int MercenariesToHire(int wanted, int available, int partyRoom, int gold, int pricePerMan)
-        {
-            int n = Math.Min(Math.Max(0, wanted), Math.Max(0, available));
-            n = Math.Min(n, Math.Max(0, partyRoom));
-            if (pricePerMan > 0)
-                n = Math.Min(n, Math.Max(0, gold) / pricePerMan);
-            return Math.Max(0, n);
-        }
-
         /// <summary>Wounded men to move with <paramref name="count"/> of a stack: the wounded go first (never
         /// more than the stack has), so the healthy ones are only moved once no wounded are left.</summary>
         public static int WoundedToMove(int count, int woundedInStack) =>

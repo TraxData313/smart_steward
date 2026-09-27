@@ -110,31 +110,6 @@ public class GameRulesTests
     }
 
     [Theory]
-    [InlineData(701, 700, 1, 1, true)]
-    [InlineData(700, 700, 1, 1, false)] // vanilla wants MORE than the price
-    [InlineData(5000, 700, 0, 1, false)]
-    [InlineData(5000, 700, 1, 0, false)]
-    public void A_wanderer_needs_more_gold_than_his_price_a_slot_and_room(int gold, int price, int slots, int room,
-        bool expected)
-    {
-        Assert.Equal(expected, GameRules.CanHireWanderer(gold, price, slots, room));
-    }
-
-    [Theory]
-    [InlineData(8, 8, 100, 10_000, 100, 8)]
-    [InlineData(8, 5, 100, 10_000, 100, 5)]  // the band shrank
-    [InlineData(8, 8, 3, 10_000, 100, 3)]    // party room
-    [InlineData(8, 8, 100, 450, 100, 4)]     // purse: 450 / 100
-    [InlineData(8, 8, 100, 50, 100, 0)]
-    [InlineData(-2, 8, 100, 10_000, 100, 0)]
-    [InlineData(8, 8, 100, 0, 0, 8)]         // free men (a mod): no purse cap
-    public void Mercenaries_hired_are_capped_by_offer_room_and_purse(int wanted, int available, int room, int gold,
-        int price, int expected)
-    {
-        Assert.Equal(expected, GameRules.MercenariesToHire(wanted, available, room, gold, price));
-    }
-
-    [Theory]
     [InlineData(5, 2, 2)]
     [InlineData(5, 9, 5)]
     [InlineData(0, 3, 0)]

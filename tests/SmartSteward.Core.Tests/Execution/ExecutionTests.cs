@@ -145,6 +145,55 @@ public class ExecutionTests
         Assert.StartsWith("gold 30,000 -> 28,530 (-1,470)", lines[3]);
     }
 
+    [Theory]
+    [InlineData(701, 700, 1, 1, SkipReason.None)]
+    [InlineData(700, 700, 1, 1, SkipReason.NotEnoughGold)] // vanilla wants MORE than the price
+    [InlineData(5000, 700, 0, 1, SkipReason.CompanionLimit)]
+    [InlineData(5000, 700, 1, 0, SkipReason.PartyFull)]
+    public void A_wanderer_needs_a_slot_room_and_more_gold_than_his_price(int gold, int price, int slots, int room,
+        SkipReason expected)
+    {
+        Assert.Equal(expected, ExecutionBudget.WandererBlock(gold, price, slots, room));
+    }
+
+    [Theory]
+    [InlineData(8, 8, 100, 10_000, 100, 8, SkipReason.None)]
+    [InlineData(8, 5, 100, 10_000, 100, 5, SkipReason.NotOnOffer)]    // the band shrank
+    [InlineData(8, 8, 3, 10_000, 100, 3, SkipReason.PartyFull)]
+    [InlineData(8, 8, 100, 450, 100, 4, SkipReason.NotEnoughGold)]    // the tavern menu's Gold / price
+    [InlineData(8, 8, 100, 50, 100, 0, SkipReason.NotEnoughGold)]
+    [InlineData(8, 0, 100, 10_000, 100, 0, SkipReason.NotOnOffer)]
+    [InlineData(0, 8, 100, 10_000, 100, 0, SkipReason.None)]
+    [InlineData(8, 8, 100, 0, 0, 8, SkipReason.None)]                 // free men (a mod): no purse cap
+    public void Mercenaries_are_capped_by_offer_room_and_purse(int wanted, int available, int room, int gold,
+        int price, int expected, SkipReason expectedReason)
+    {
+        Assert.Equal(expected, ExecutionBudget.MercenaryCount(wanted, available, room, gold, price, out var reason));
+        Assert.Equal(expectedReason, reason);
+    }
+
+    [Fact]
+    public void A_rollback_keeps_the_error_that_caused_it_and_earlier_reasons()
+    {
+        var tx = Scenario.BusyTown().Plan().Transactions.First(t => t.Kind == TransactionKind.Sell);
+        var failed = new TransactionOutcome(tx);
+        failed.AddUnit(5);
+        failed.Stop(SkipReason.Error, "boom");
+        failed.RollBack("batch reset");
+        Assert.Equal(SkipReason.Error, failed.Reason);
+        Assert.Equal("boom", failed.Detail);
+        Assert.Equal(0, failed.Done);
+
+        var neverStarted = new TransactionOutcome(tx);
+        neverStarted.Stop(SkipReason.Locked);
+        neverStarted.RollBack("batch reset");
+        Assert.Equal(SkipReason.Locked, neverStarted.Reason);
+
+        var untouched = new TransactionOutcome(tx);
+        untouched.RollBack("batch reset");
+        Assert.Equal(SkipReason.RolledBack, untouched.Reason);
+    }
+
     [Fact]
     public void An_aborted_run_says_so()
     {
