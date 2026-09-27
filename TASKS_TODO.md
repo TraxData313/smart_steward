@@ -13,7 +13,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Playtest the triggers: arrival popup, leave question, ships, autonomy — checklist in docs/PLAYTEST.md "Step 8 — triggers & autonomy"
 - [x] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
   - [ ] Playtest the review fixes: big clicks, ▸ breakdown, autonomous floor, log — checklist in docs/PLAYTEST.md "Step 9"
-- [ ] 10. Packaging — package.ps1, Steam description + workshop files, README
+- [x] 10. Packaging — package.ps1, Steam description + workshop files, README
 - [ ] 11. Anton's first playtest
 
 SHIPPING NEXT (done in main, NOT released yet):
@@ -53,4 +53,8 @@ NOTICED (things spotted during a step, left for later):
 - [x] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — dropped (step 9)
 - [ ] Step 9 (left on purpose): a click on a huge plan still costs ~20 ms — one trial walk per live button; incremental walks could cut it, measure in game first (PlanPerformanceTests)
 - [ ] Step 9 (left on purpose): surplus riding horses are kept while an upgrade horse is on offer, even when the floors will not let the steward buy it — "never sell and buy mounts in one visit" taken strictly
-- [ ] Step 10: README — translations welcome: copy module/ModuleData/Languages/std_SmartSteward.xml into Languages\XX (how-to in the file's header)
+- [x] Step 10: README — translations welcome: copy module/ModuleData/Languages/std_SmartSteward.xml into Languages\XX (how-to in the file's header) — README + Steam page
+- [ ] Release day (after step 11): tools\WORKSHOP-UPLOAD.md — bump v1.0.0, package.ps1, create Private, paste the page, flip Public
+- [ ] Step 10: the Workshop preview is a drawn stand-in of the window — after the playtest put a real shot in tools\preview_thumbnail.html, re-render (tools\render-preview.ps1)
+- [ ] Step 10: the release ships no PDBs (like TrainingBattles) — with them a player's log would carry line numbers (~100 KB); Anton's call
+- [ ] TrainingBattles' package.ps1 zips with Compress-Archive → backslash entry names (seen in TrainingBattles_v1.4.0.zip); ours writes '/' — port it there
