@@ -10,7 +10,8 @@ namespace SmartSteward
 {
     /// <summary>
     /// "Party Steward" in the town and village menus (DESIGN §6), right after Trade — opens the window. Always there
-    /// while the mod is enabled (ModEnabled). The arrival popup, the leave warning and auto-execute are PLAN step 8.
+    /// while the mod is enabled (ModEnabled), the Full-autonomous steward included. The arrival popup, the leave
+    /// warning and autonomy are <see cref="StewardTriggers"/> (PLAN step 8).
     /// </summary>
     internal static class StewardMenu
     {
@@ -40,6 +41,21 @@ namespace SmartSteward
             catch
             {
                 return -1;
+            }
+        }
+
+        /// <summary>Re-reads the current menu's options (gold, stock and prisoners changed under it).</summary>
+        public static void RefreshCurrentMenu()
+        {
+            try
+            {
+                var context = Campaign.Current?.CurrentMenuContext;
+                if (context?.GameMenu != null)
+                    Campaign.Current!.GameMenuManager.RefreshMenuOptions(context);
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("menu", "refreshing the menu", ex);
             }
         }
 

@@ -29,8 +29,10 @@ $outDir = Join-Path $repoRoot "src\SmartSteward.Module\bin\$Configuration"
 if (-not (Test-Path (Join-Path $outDir "SmartSteward.dll"))) { throw "Build first: no SmartSteward.dll in $outDir." }
 if (-not (Test-Path (Join-Path $gameBin "TaleWorlds.Library.dll"))) { throw "No game bin at $gameBin." }
 
-# Resolve like the game does (its own bin, then the module's), and refuse MCM - as for a player without it.
-$searchDirs = @($outDir, $gameBin)
+# Resolve like the game does (its own bin, the modules loaded before us - SandBox, whose SandBox.View the triggers
+# use - then the module's), and refuse MCM - as for a player without it.
+$sandBoxBin = Join-Path $GameFolder "Modules\SandBox\bin\Win64_Shipping_Client"
+$searchDirs = @($outDir, $gameBin, $sandBoxBin)
 $resolver = {
     param($sender, $resolveArgs)
     $name = (New-Object System.Reflection.AssemblyName $resolveArgs.Name).Name

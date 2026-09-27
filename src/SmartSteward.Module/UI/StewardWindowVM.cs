@@ -54,9 +54,9 @@ namespace SmartSteward.UI
             _subscribed = true;
         }
 
-        /// <summary>Snapshot + plan for the settlement the party stands in; null (and a message) where the steward
-        /// cannot work.</summary>
-        internal static StewardWindowVM? Create(Settlement? settlement)
+        /// <summary>Snapshot + plan for the settlement the party stands in; null (and a message, unless
+        /// <paramref name="quiet"/>) where the steward cannot work.</summary>
+        internal static StewardWindowVM? Create(Settlement? settlement, bool quiet = false)
         {
             SettingsHost.ReloadIfChanged();
             settlement ??= MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement;
@@ -64,8 +64,9 @@ namespace SmartSteward.UI
             if (visit == null)
             {
                 ModLog.Info("window", "no plan - " + whyNot);
-                InformationManager.DisplayMessage(new InformationMessage(UiText.S1("ss_ui_no_plan",
-                    "Smart Steward: nothing to plan here ({WHY}).", "WHY", whyNot)));
+                if (!quiet)
+                    InformationManager.DisplayMessage(new InformationMessage(UiText.S1("ss_ui_no_plan",
+                        "Smart Steward: nothing to plan here ({WHY}).", "WHY", whyNot)));
                 return null;
             }
             var plan = PlanFor(visit, "window");
@@ -82,6 +83,12 @@ namespace SmartSteward.UI
                 ModLog.Info("plan", line);
             return plan;
         }
+
+        /// <summary>The settlement the window plans for.</summary>
+        internal Settlement Settlement => _settlement;
+
+        /// <summary>The steward suggests something (PopupOnlyWithChanges opens the window only then).</summary>
+        internal bool HasChanges => Suggestion.Plan?.HasChanges ?? false;
 
         /// <summary>Every frame while open: the window closes itself when the party is no longer where it planned.</summary>
         internal void Tick()
@@ -196,7 +203,7 @@ namespace SmartSteward.UI
                 ModLog.Info("execute", line);
             string summary = Summary(report);
             InformationManager.DisplayMessage(new InformationMessage(summary));
-            RefreshGameMenu();
+            StewardMenu.RefreshCurrentMenu();
 
             var visit = SnapshotBuilder.Build(_settlement, out string whyNot);
             if (visit == null)
@@ -227,20 +234,6 @@ namespace SmartSteward.UI
                 text += " " + UiText.S2("ss_ui_done_partly", "{CUT} cut short, {SKIPPED} skipped - see smart_steward.log.",
                     "CUT", UiFormat.Money(report.CutShort), "SKIPPED", UiFormat.Money(report.NotDone));
             return text;
-        }
-
-        private static void RefreshGameMenu()
-        {
-            try
-            {
-                var context = Campaign.Current?.CurrentMenuContext;
-                if (context?.GameMenu != null)
-                    Campaign.Current!.GameMenuManager.RefreshMenuOptions(context);
-            }
-            catch (Exception ex)
-            {
-                ModLog.Error("execute", "refreshing the menu", ex);
-            }
         }
 
         /// <summary>Runs a command, a two-way setter or a settings callback; any exception is logged and closes the

@@ -71,6 +71,7 @@ namespace SmartSteward
         {
             base.OnApplicationTick(dt);
             UI.StewardWindow.Tick(dt); // cheap when the window is closed
+            StewardTriggers.Tick();    // arrival popup / autonomy / leave warning answers — cheap when nothing waits
             if (!_announcePending) return;
             try
             {
@@ -93,6 +94,7 @@ namespace SmartSteward
         {
             _announcePending = false;
             UI.StewardWindow.Close(); // a window must not outlive its campaign
+            StewardTriggers.Reset();  // nor a visit or a pending popup
             base.OnGameEnd(game);
         }
 

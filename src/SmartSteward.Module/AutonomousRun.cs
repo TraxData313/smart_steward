@@ -1,0 +1,87 @@
+using System;
+using SmartSteward.Adapter;
+using SmartSteward.Core.Execution;
+using SmartSteward.Core.Planning;
+using SmartSteward.Core.Presentation;
+using SmartSteward.UI;
+using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Library;
+
+namespace SmartSteward
+{
+    /// <summary>
+    /// The Full-autonomous steward (DESIGN §6): on arrival — once per visit, on a quiet map (<see cref="StewardTriggers"/>)
+    /// — plan with the autonomous floors (<see cref="PlanMode.Autonomous"/>: AutonomousMinGold, no tavern), carry the
+    /// plan out through the same executor as Do it, and sum it up in the message log. No window, no popup, no warning.
+    /// The whole plan and every transaction go to smart_steward.log.
+    /// </summary>
+    internal static class AutonomousRun
+    {
+        public static void Run(Settlement settlement)
+        {
+            try
+            {
+                var visit = SnapshotBuilder.Build(settlement, out string whyNot);
+                if (visit == null)
+                {
+                    ModLog.Info("auto", "no plan at " + settlement.Name + " - " + whyNot);
+                    return;
+                }
+                var settings = SettingsHost.Current;
+                ModLog.Info("auto", "autonomous steward at " + visit.Settlement.Name + ": " + SnapshotBuilder.Describe(visit.Snapshot));
+                ModLog.Info("auto", visit.Oracle.SelfCheck(visit.Snapshot));
+                var plan = StewardPlanner.Plan(visit.Snapshot, settings, visit.Oracle, PlanMode.Autonomous);
+                ModLog.Info("auto", "floors while autonomous: all purchases " + plan.Floors.All + ", animals "
+                    + Math.Max(plan.Floors.All, plan.Floors.Animals));
+                foreach (var line in PlanReport.Full(plan))
+                    ModLog.Info("plan", line);
+                if (!PlanFooter.CanExecute(plan))
+                {
+                    ModLog.Info("auto", "nothing to do");
+                    return; // nothing happened -> no message (DESIGN §6)
+                }
+
+                var report = PlanExecutor.Execute(plan, visit);
+                foreach (var line in report.LogLines())
+                    ModLog.Info("execute", line);
+                var summary = AutonomousReport.From(plan, report);
+                var lines = summary.Lines(
+                    UiText.S1("ss_auto_head", "Steward at {SETTLEMENT}:", "SETTLEMENT", visit.Settlement.Name?.ToString() ?? ""),
+                    UiText.S("ss_auto_head_short", "Steward:"),
+                    Words());
+                foreach (var line in lines)
+                {
+                    ModLog.Info("auto", line);
+                    InformationManager.DisplayMessage(new InformationMessage(line));
+                }
+                StewardMenu.RefreshCurrentMenu();
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("auto", "the autonomous steward at " + settlement.Name, ex);
+                InformationManager.DisplayMessage(new InformationMessage(UiText.S("ss_auto_failed",
+                    "Smart Steward: the autonomous steward failed - see smart_steward.log.")));
+            }
+        }
+
+        /// <summary>The report's words through TextObject ids (PLAN step 9 gathers them into the strings file).</summary>
+        private static ReportWords Words() => new ReportWords
+        {
+            Food = UiText.S("ss_auto_food", "food"),
+            Mounts = UiText.S("ss_auto_mounts", "mounts"),
+            ArmourAndWeapons = UiText.S("ss_auto_loot", "armour & weapons"),
+            Prisoners = UiText.S("ss_auto_prisoners", "prisoners"),
+            Kind = UiText.S("ss_auto_kind", "kind"),
+            Kinds = UiText.S("ss_auto_kinds", "kinds"),
+            Sold = UiText.S("ss_auto_sold", "sold"),
+            Ransomed = UiText.S("ss_auto_ransomed", "ransomed"),
+            Donated = UiText.S("ss_auto_donated", "donated"),
+            Influence = UiText.S("ss_auto_influence", "influence"),
+            Gold = UiText.S("ss_auto_gold", "gold"),
+            CutShort = UiText.S("ss_auto_cut_short", "cut short"),
+            Skipped = UiText.S("ss_auto_skipped", "skipped"),
+            NothingDone = UiText.S("ss_auto_nothing_done", "nothing was done"),
+            SeeLog = UiText.S("ss_auto_see_log", "see smart_steward.log"),
+        };
+    }
+}

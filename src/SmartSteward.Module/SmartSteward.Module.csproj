@@ -97,6 +97,13 @@
       <HintPath>$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.TwoDimension.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- The triggers (PLAN step 8): the arrival popup waits until the map screen is quiet - no incident, no
+         encyclopedia, no army or town management, no escape menu (MapScreen's own flags, the ones vanilla's map
+         navigation checks). Only used inside method bodies; the SandBox module always loads before us. -->
+    <Reference Include="SandBox.View">
+      <HintPath>$(GameFolder)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

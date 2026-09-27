@@ -55,16 +55,25 @@ namespace SmartSteward.UI
         /// <summary>How far a [+] / [−] click goes right now (DESIGN §1.1).</summary>
         public static EditSize CurrentEditSize => UiInput.EditSizeFor(FiveStackHeld, EntireStackHeld);
 
-        /// <summary>Opens the window for the settlement the party stands in (the menu entry's consequence).</summary>
-        public static void Open(Settlement? settlement)
+        /// <summary>Opens the window for the settlement the party stands in — from the menu entry, the leave warning's
+        /// Review, or the arrival popup (<paramref name="onlyWithChanges"/>: PopupOnlyWithChanges — a plan with nothing
+        /// to suggest opens nothing; <paramref name="quiet"/>: no "nothing to plan here" message). True when it opened;
+        /// an opened window marks the visit reviewed (no leave warning).</summary>
+        public static bool Open(Settlement? settlement, bool onlyWithChanges = false, bool quiet = false)
         {
             if (IsOpen)
                 Close();
             try
             {
-                var vm = StewardWindowVM.Create(settlement);
+                var vm = StewardWindowVM.Create(settlement, quiet);
                 if (vm == null)
-                    return; // it said why
+                    return false; // it said why (or kept quiet)
+                if (onlyWithChanges && !vm.HasChanges)
+                {
+                    ModLog.Info("window", "nothing to suggest at " + vm.Settlement.Name + " - not opened");
+                    vm.OnFinalize();
+                    return false;
+                }
                 _vm = vm;
                 _layer = new GauntletLayer("SmartStewardWindow", LayerOrder) { IsFocusLayer = true };
                 _movie = _layer.LoadMovie(MovieName, vm);
@@ -78,7 +87,9 @@ namespace SmartSteward.UI
                 Game.Current?.EventManager?.RegisterEvent(_onEncyclopediaPage);
                 _encyclopediaOpen = false;
                 _escapeGuardFrames = 2;
-                ModLog.Info("window", "opened at " + (settlement?.Name?.ToString() ?? "?"));
+                ModLog.Info("window", "opened at " + vm.Settlement.Name);
+                StewardTriggers.MarkReviewed(vm.Settlement);
+                return true;
             }
             catch (Exception ex)
             {
@@ -86,6 +97,7 @@ namespace SmartSteward.UI
                 Close();
                 InformationManager.DisplayMessage(new InformationMessage(UiText.S("ss_ui_open_failed",
                     "Smart Steward: the window could not open - see smart_steward.log.")));
+                return false;
             }
         }
 
