@@ -3,7 +3,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 2. Research — verify every game API the design needs → docs/RESEARCH.md (no code)
 - [x] 3. Scaffold — solution, Core/Module/tests, SubModule.xml, deploy.ps1; empty module loads in game
 - [x] 4. Core planners + unit tests — food, pack, mounts, war mounts, armour & weapons groups, prisoners, tavern, money floors
-- [ ] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
+- [x] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
 - [ ] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [ ] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
 - [ ] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
@@ -24,6 +24,7 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [ ] Pack animals: fixed 10 by default — or scale with party size?
 - [ ] Auto-execute mode (no window, just a report) — wanted at all? built as an off-by-default option
 - [ ] Edited rows stay as edited; the steward does not re-balance the rest around them
+- [ ] Shift/Ctrl steps stop at zero — one click never flips a row from selling to buying (DESIGN §1.1)
 - [ ] Livestock (cows, sheep…) — the game counts it as food; proposed: steward ignores it (see RESEARCH "Design impact")
 - [ ] Recruits that can go foot OR cavalry — count them as needing a horse? proposed: yes (DESIGN §2.4)
 - [ ] Plain "horse" mounts double as upgrade horses — reserve them for upgrades first? proposed: yes

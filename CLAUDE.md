@@ -95,7 +95,10 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
   Pricing/                    IPriceOracle (the Module implements it with the game's price model),
                               PriceBook rules, MarketState + TradeLane/LaneCursor = the price walk
   Planning/                   StewardPlanner.Plan(snapshot, settings, oracle) → StewardPlan
-                              (sections → rows with their lanes, totals, facts); one planner per job
+                              (sections → rows with their lanes, totals, facts); one planner per job;
+                              PlanWalk = the picking rules the planner and the editor share. The plan is
+                              edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
+                              button; PlanReplay re-walks it) and yields Transactions for the executor
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing), ModLog
 tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and

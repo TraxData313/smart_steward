@@ -105,6 +105,27 @@ Buttons on Change:
 - Every edit re-prices the row (marginal prices, §4.1) and refreshes the footer live.
 - A row the player edits stays as edited — the steward does not re-plan other rows around it
   **[decided: Claude, 2026.09.27 — predictable beats clever]**.
+- **How an edit behaves** **[decided: Claude, 2026.09.27 — step 4b]** (Core: `StewardPlan.Increase` /
+  `Decrease` / `Reset` / `ResetAll`, the rows' live `IncreaseBlock` / `DecreaseBlock`):
+  - Every click walks the WHOLE plan again in the planner's own order and picking rules (§3, §4.1), each
+    row at its quantity — a town row can re-price another row of the same item category; no other row's
+    quantity moves.
+  - Toward zero (buy less, sell less) always works. Away from zero goes as far as it can **without taking
+    what another row already has** — the market's stock, its gold, the price room under a row's max in a
+    shared category. The button greys with the reason: nothing eligible, all on offer / all sold, price limit,
+    below min sell, market out of gold, not enough gold, needed by another row, companion limit, party full,
+    dungeon full, sell-only / hire-only.
+  - **Shift and Ctrl stop at zero**: one click never flips a row from selling to buying; a plain click crosses
+    zero where the row does both (food, the mount role rows). Loot and prisoners only sell; tavern rows only hire.
+  - The floors never block (red flags). An **empty purse does**: a buy or hire the purse cannot pay is refused
+    (a wanderer needs MORE gold than his price, like vanilla). Taking income back (a ransom, a sale) may still
+    leave the deal unaffordable — the footer shows it (`CannotAfford`) and **Do it** is disabled then.
+  - Rarely, lowering one row makes another impossible (a sale taken back raises a category's price past the
+    max of a row buying in it): that row is cut to what the market allows.
+  - ⟲ returns a row to the suggestion as far as what other rows took since allows; reset-all restores the plan
+    exactly.
+  - Prisoners moved by hand join the same split as the steward's: the dungeon's room filled most valuable
+    first, the rest ransomed.
 
 Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · weight freed
 or added · buttons **Do it** and **Not now**. When the player's edits break a money floor (§3),
@@ -440,6 +461,12 @@ own trade/ransom/donate actions so gold, stock, prices and skill XP behave as in
 `SellPrisonersAction`; **donate** by moving the prisoners and firing `OnPrisonerDonatedToSettlement`
 (influence); **wanderers** and **mercenaries** as §2.7. Gold, limits and stock are checked again at
 the click.
+
+**[decided: Claude, 2026.09.27 — step 4b]** Core hands the executor `StewardPlan.Transactions`, in the order
+to run them: donations and ransoms (the ransom funds the buys), every sale, every purchase (the walk's own
+order, grouped by item category — which never changes a price, since a town's price walks per category), then
+the wanderers, then the mercenaries; each with the stack (item + modifier) / troop / hero, the count and the
+expected unit prices.
 
 ---
 

@@ -36,8 +36,8 @@ namespace SmartSteward.Core.Pricing
             _boughtByKey = boughtByKey;
         }
 
-        /// <summary>What the market can still pay. May go negative only when a caller records a sale the
-        /// planner itself would never propose (a player's edit) — the plan then flags it.</summary>
+        /// <summary>What the market can still pay. The walks never take a sale past it (the planner and the
+        /// editor alike); only a caller recording units by hand could drive it negative.</summary>
         public int MarketGoldLeft { get; private set; }
 
         public int CategoryDelta(string categoryId) =>
