@@ -41,6 +41,7 @@ namespace SmartSteward.UI
         private static StewardWindowVM? _vm;
         private static bool _encyclopediaOpen;
         private static int _escapeGuardFrames;
+        private static bool _closeRequested;
         private static Action<EncyclopediaPageChangedEvent>? _onEncyclopediaPage;
 
         public static bool IsOpen => _layer != null;
@@ -88,10 +89,15 @@ namespace SmartSteward.UI
             }
         }
 
+        /// <summary>Closes the window on the next tick — for a failure inside a widget's own event (a text box's key
+        /// handling), where releasing the movie at once would pull the widgets from under the running code.</summary>
+        public static void RequestClose() => _closeRequested = true;
+
         /// <summary>Closes the window: the movie released BEFORE the layer goes (vanilla asserts otherwise), the
         /// input restrictions and the focus given back, the view model finalized. Safe to call twice.</summary>
         public static void Close()
         {
+            _closeRequested = false;
             var layer = _layer;
             var movie = _movie;
             var host = _host;
@@ -162,6 +168,11 @@ namespace SmartSteward.UI
         {
             if (_layer == null)
                 return;
+            if (_closeRequested)
+            {
+                Close();
+                return;
+            }
             try
             {
                 var input = _layer.Input;

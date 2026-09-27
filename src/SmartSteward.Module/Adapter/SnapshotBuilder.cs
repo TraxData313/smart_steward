@@ -229,8 +229,6 @@ namespace SmartSteward.Adapter
         private static void ReadAverages(StewardSnapshot snap, Settlement settlement, Dictionary<string, EquipmentElement> elements,
             MobileParty main)
         {
-            var model = Campaign.Current.Models.TradeItemPriceFactorModel;
-            var here = settlement.IsVillage ? settlement.Village?.Bound?.Town : settlement.Town;
             var factors = new Dictionary<ItemCategory, float>();
             foreach (var stack in snap.Inventory.Concat(snap.Market))
             {
@@ -238,22 +236,34 @@ namespace SmartSteward.Adapter
                     continue;
                 if (snap.AveragePrices.ContainsKey(stack.ItemId) || !elements.TryGetValue(stack.Key, out var el))
                     continue;
-                var item = el.Item;
-                var category = item.ItemCategory;
-                if (category == null)
-                    continue;
-                if (!factors.TryGetValue(category, out float factor))
-                {
-                    factor = GameRules.MeanFactor(Town.AllTowns.Where(t => t != here)
-                        .Select(t => t.MarketData.GetPriceFactor(category)));
-                    factors[category] = factor;
-                }
-                float buyPenalty = model.GetTradePenalty(item, main, null, false, 0f, 0f, 0f);
-                float sellPenalty = model.GetTradePenalty(item, main, null, true, 0f, 0f, 0f);
-                snap.AveragePrices[stack.ItemId] = new AveragePrices(
-                    GameRules.AverageBuyPrice(item.Value, factor, buyPenalty),
-                    GameRules.AverageSellPrice(item.Value, factor, sellPenalty));
+                var average = AverageOf(el.Item, settlement, main, factors);
+                if (average != null)
+                    snap.AveragePrices[stack.ItemId] = average;
             }
+        }
+
+        /// <summary>One item's placeholder prices (DESIGN §4.2) — the snapshot's and the Prices tab's (step 7) come from
+        /// here, so they always agree. <paramref name="factors"/> caches each category's mean factor. Null for an item
+        /// without a category. Callers pass FOOD AND ANIMALS ONLY.</summary>
+        internal static AveragePrices? AverageOf(ItemObject? item, Settlement settlement, MobileParty main,
+            Dictionary<ItemCategory, float> factors)
+        {
+            var category = item?.ItemCategory;
+            if (item == null || category == null)
+                return null;
+            var model = Campaign.Current.Models.TradeItemPriceFactorModel;
+            if (!factors.TryGetValue(category, out float factor))
+            {
+                var here = settlement.IsVillage ? settlement.Village?.Bound?.Town : settlement.Town;
+                factor = GameRules.MeanFactor(Town.AllTowns.Where(t => t != here)
+                    .Select(t => t.MarketData.GetPriceFactor(category)));
+                factors[category] = factor;
+            }
+            float buyPenalty = model.GetTradePenalty(item, main, null, false, 0f, 0f, 0f);
+            float sellPenalty = model.GetTradePenalty(item, main, null, true, 0f, 0f, 0f);
+            return new AveragePrices(
+                GameRules.AverageBuyPrice(item.Value, factor, buyPenalty),
+                GameRules.AverageSellPrice(item.Value, factor, sellPenalty));
         }
 
         /// <summary>Every troop stack with upgrade targets, with the party screen's ready count per target

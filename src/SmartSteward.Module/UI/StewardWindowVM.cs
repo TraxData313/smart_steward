@@ -47,6 +47,7 @@ namespace SmartSteward.UI
             DoItHint = new HintVM();
             Suggestion = new SuggestionTabVM(RefreshDoIt);
             Suggestion.SetPlan(plan, settlement);
+            Prices = new PricesTabVM();
             RefreshDoIt();
             SettingsHost.Service.Changed += OnSettingsChanged;
             _subscribed = true;
@@ -104,13 +105,19 @@ namespace SmartSteward.UI
 
         // ── settings changes and re-planning ───────────────────────────────────────────────────────────
 
-        /// <summary>The settings service changed a value (our tabs, MCM, a reloaded file): the plan is stale.
-        /// While the Suggestion tab is showing (a change from elsewhere), re-plan at once.</summary>
+        /// <summary>The settings service changed a value (our tabs, MCM, a reloaded file): the plan is stale. The tab
+        /// on show follows at once — the Suggestion tab re-plans, the others refresh everything but the box being
+        /// typed in; a tab shown later refreshes whole when selected.</summary>
         private void OnSettingsChanged()
         {
             _planStale = true;
-            if (IsSuggestionSelected)
-                Guard("re-plan", ReplanIfStale);
+            Guard("settings changed", () =>
+            {
+                if (IsSuggestionSelected)
+                    ReplanIfStale();
+                else if (IsPricesSelected)
+                    Prices.RefreshAll(includeTypedTexts: false);
+            });
         }
 
         /// <summary>Plans again on the same snapshot (nothing traded since) and carries the player's edits over.</summary>
@@ -158,6 +165,11 @@ namespace SmartSteward.UI
 
         private void SelectTab(int tab)
         {
+            if (tab == 1)
+            {
+                Prices.EnsureBuilt(_visit);
+                Prices.RefreshAll(includeTypedTexts: true);
+            }
             IsSuggestionSelected = tab == 0;
             IsPricesSelected = tab == 1;
             IsInstructionsSelected = tab == 2;
@@ -223,8 +235,8 @@ namespace SmartSteward.UI
             }
         }
 
-        /// <summary>Runs a command; any exception is logged and closes the window with a message — it never
-        /// reaches Gauntlet (which would rethrow it into the game).</summary>
+        /// <summary>Runs a command, a two-way setter or a settings callback; any exception is logged and closes the
+        /// window (on the next tick) with a message — it never reaches Gauntlet, which would rethrow it into the game.</summary>
         internal static void Guard(string what, Action action)
         {
             try
@@ -234,15 +246,24 @@ namespace SmartSteward.UI
             catch (Exception ex)
             {
                 ModLog.Error("window", what, ex);
-                InformationManager.DisplayMessage(new InformationMessage(UiText.S("ss_ui_failed",
-                    "Smart Steward: something went wrong - the window closed. See smart_steward.log.")));
-                StewardWindow.Close();
+                try
+                {
+                    InformationManager.DisplayMessage(new InformationMessage(UiText.S("ss_ui_failed",
+                        "Smart Steward: something went wrong - the window closed. See smart_steward.log.")));
+                }
+                catch
+                {
+                    // the message is a courtesy
+                }
+                StewardWindow.RequestClose();
             }
         }
 
         // ── bound properties ───────────────────────────────────────────────────────────────────────────────
 
         [DataSourceProperty] public SuggestionTabVM Suggestion { get; }
+
+        [DataSourceProperty] public PricesTabVM Prices { get; }
 
         [DataSourceProperty] public string SuggestionTabText { get; }
 
