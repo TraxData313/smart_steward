@@ -805,6 +805,31 @@ same set); `InformationManager.IsAnyInquiryActive()` (TaleWorlds.Library); `Conv
 / `IsConversationInProgress`; `MapState.AtMenu`, `MapState.MenuContext`, `MapState.NextIncident`. Menu layers: the menu
 "MapMenuView" **100**, its overlay "MapMenuOverlay" **202**, incidents **203**, our window 305.
 
+## 16. Strings and translations — verified in step 9 (2026.09.27)
+
+`TaleWorlds.Localization.dll` decompiled for this (ilspycmd, into `game-decompiled-1.4.8\TaleWorlds.Localization`), and
+the installed modules' `ModuleData\Languages` folders read.
+
+**What the game reads** (`LocalizedTextManager.LoadLocalizationXmls(loadedModules)`, `LanguageData.Deserialize`): for
+every loaded module, every `language_data.xml` anywhere under `<module>\ModuleData\Languages` (recursive). Each holds
+`<LanguageData id="Deutsch">` with `<LanguageFile xml_path="DE/…xml" />` lines — paths relative to the `Languages`
+folder — merged by language id into the game's `LanguageData` (so a mod needs no `supported_iso`: Native's own file
+gives the codes; `IsValid` is the union). Nothing else in `Languages` is read.
+
+**English is the code.** A `TextObject("{=id}English")` shows its own English unless the current language's loaded
+files have that id. The vanilla modules keep their English SOURCE as `Languages\std_*.xml` at the root (SandBox:
+`std_SandBox_GauntletUI.xml` …), never named by a `language_data.xml` (SandBox's English one lists only a voice file):
+the file is for translators. Translations: `Languages\DE\language_data.xml` + `DE\std_*_ger-DE.xml`.
+
+**The strings format** (vanilla, both the English source and a translation):
+`<base xmlns:xsi="…" xmlns:xsd="…" type="string"><tags><tag language="English" /></tags><strings>
+<string id="…" text="…" /> …</strings></base>` — a translation's tag is the language id (`Deutsch`). Community mods
+(ShowSkillLimit) ship the same with an `EN\language_data.xml` of their own; not needed, and not what vanilla does.
+
+**Ours**: `module\ModuleData\Languages\std_SmartSteward.xml` — 229 ids (the window, the leave question, the autonomous
+report, the menu entry, the settings' `ss_set_` / `ss_hint_` / `ss_opt_` / `ss_grp_` built from the registry for MCM
+and the Instructions tab). Generated and held to the code by `StringsFileTests`; deploy.ps1 copies `ModuleData`.
+
 ---
 
 ## Gotchas (one line each)
@@ -871,6 +896,8 @@ same set); `InformationManager.IsAnyInquiryActive()` (TaleWorlds.Library); `Conv
     session launch.
 52. **An incident rolled on a menu event starts on the next campaign tick, inside the menu** — wait for
     `MapState.NextIncident == null` and `!MapScreen.IsMapIncidentActive` before opening anything.
+53. **A module's `Languages\std_*.xml` is never loaded by itself** — only files a `language_data.xml` names are; English
+    comes from the code's `{=id}English`, the root std file is the translators' source.
 
 ---
 

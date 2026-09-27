@@ -109,8 +109,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               the floors (window, or autonomous: raised to AutonomousMinGold, no tavern). The plan is
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor;
-                              PlanReport = the plan as text (full log / compact popup)
-  Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit, hire rules),
+                              PlanReport = the plan as text for the log
+  Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
+                              floor, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
                               AutonomousReport (the autonomous steward's message-log lines, words from outside)
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
@@ -127,10 +128,11 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               SnapshotBuilder (live game → StewardSnapshot + GameVisit), GamePriceOracle (the
                               game's model; SelfCheck vs the trade screen), PlanExecutor (Transactions through
                               vanilla's paths — headless InventoryLogic, SellPrisonersAction, donate, hires),
-                              StewardMerchantListener, PriceBookCatalog (the Prices tab's items + placeholders)
+                              StewardMerchantListener, PriceBookCatalog (the Prices tab's items + placeholders), GameVisit
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
-                              command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids)
+                              command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids —
+                              every English ONE literal per UiText call: StringsFileTests reads them from the source)
   StewardMenu.cs              "Party Steward" in the town and village menus → opens the window
   StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map, the leave warning (LeaveGuard wraps
                               the leave options lazily at their menu's first opening), the IsSettlementBusy veto
@@ -139,8 +141,12 @@ tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xm
                               StewardSettings + SettingsRegistry ↔ DESIGN §7 checks (keys, order, groups,
                               defaults, ranges); Settings/ = registry, file and service tests;
                               Planning/TestKit.cs = FakeOracle + Scenario builder for planner tests;
-                              Snapshot/, Execution/ = the adapter's pure half
-module/SubModule.xml          the manifest (ModuleData joins it in step 9)
+                              Planning/PlanPerformanceTests = a big late-game plan, open + clicks timed;
+                              Snapshot/, Execution/ = the adapter's pure half; StringsFileTests = the strings file ↔
+                              the code (SS_WRITE_STRINGS=1 dotnet test --filter StringsFileTests regenerates it)
+module/SubModule.xml          the manifest
+module/ModuleData/Languages/  std_SmartSteward.xml — every player-facing text by id, English (the vanilla source format;
+                              a translation goes in Languages\XX\ with its language_data.xml) — generated, never hand-edited
 module/GUI/Prefabs/           SmartStewardWindow.xml — the window's one movie (three tabs)
 tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smart Steward (dev)")
 tools/check-soft-deps.ps1     the game loader's GetTypes() test without MCM (Windows PowerShell = .NET Framework;

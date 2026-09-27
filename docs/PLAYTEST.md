@@ -92,3 +92,15 @@ question is on; the autonomous steward is off. Mod Options (or settings.json) ch
    same value (the log: `"AutoExecute" is now AutonomousSteward`).
 10. **Master switch.** Untick General → Steward on: no menu entry, no popup, no question, no autonomy. Tick it back.
 11. **The debug entries are gone** from the town and village menus.
+
+## Step 9 — the review pass
+
+Deploy (game closed). Mostly invisible fixes — these points check nothing got worse.
+
+1. **Big clicks.** After a few battles (lots of loot, Loot → Sell loot ticked), open Party Steward in a town and click
+   [–]/[+] on the loot, food and horse rows quickly: each click answers at once, no stutter.
+2. **▸ breakdown.** Open a horse row's ▸: its kinds show; click [+]/[–] on that row while it is open — the lines follow.
+   Close it and open it again: still right.
+3. **Autonomous floor.** With the Full-autonomous steward on, set Money → Keep while autonomous a little below your
+   gold (e.g. gold − 500) and enter a town where it wants horses or food: your gold never ends below that number.
+4. **Log.** After a session, `smart_steward.log` has no `ERROR` lines (search for it) — send it if it does.

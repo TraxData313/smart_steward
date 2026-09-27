@@ -695,4 +695,6 @@ float slider and the file agree on the same number). A value outside its range i
   party is in (§1.3); weapons and armour never.
 - Castles have no market: nothing happens there.
 - All player-facing text goes through TextObject string ids (English only at release; other
-  languages can be added by translators later).
+  languages can be added by translators later). **[step 9]** The ids and their English are gathered in
+  `module\ModuleData\Languages\std_SmartSteward.xml` (the game's own strings format — the English source a
+  translator copies into `Languages\XX\`); a test holds the file to the code, so it cannot drift.
