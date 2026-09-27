@@ -377,10 +377,22 @@ namespace SmartSteward.UI
             CanReset = _row.IsEdited;
 
             HasBreakdown = cells.HasBreakdown;
+            RefreshBreakdown();
+        }
+
+        /// <summary>The ▸ lines exist only while the row is open: Gauntlet builds a widget row for every item of a
+        /// list whether it shows or not, and every click refreshes every row (PLAN step 9, review area 5).</summary>
+        private void RefreshBreakdown()
+        {
+            if (!(HasBreakdown && IsExpanded))
+            {
+                if (Breakdown.Count > 0)
+                    Breakdown = new MBBindingList<BreakdownLineVM>();
+                return;
+            }
             var lines = new MBBindingList<BreakdownLineVM>();
-            if (HasBreakdown)
-                foreach (var line in _row.Breakdown)
-                    lines.Add(new BreakdownLineVM(line));
+            foreach (var line in _row.Breakdown)
+                lines.Add(new BreakdownLineVM(line));
             Breakdown = lines;
         }
 
@@ -421,7 +433,11 @@ namespace SmartSteward.UI
 
         public void ExecuteReset() => StewardWindowVM.Guard("reset " + _row.Id, () => _tab.Reset(_row));
 
-        public void ExecuteToggleBreakdown() => StewardWindowVM.Guard("breakdown " + _row.Id, () => IsExpanded = !IsExpanded);
+        public void ExecuteToggleBreakdown() => StewardWindowVM.Guard("breakdown " + _row.Id, () =>
+        {
+            IsExpanded = !IsExpanded;
+            RefreshBreakdown();
+        });
 
         public void ExecuteOpenLink() => StewardWindowVM.Guard("link " + _row.Id, () => _tab.OpenLink(_row));
 
