@@ -9,22 +9,27 @@ namespace SmartSteward.Core.Planning
     internal sealed class TallyBook
     {
         private readonly List<StackTally> _tallies = new List<StackTally>();
+        private readonly Dictionary<string, StackTally> _buys = new Dictionary<string, StackTally>(StringComparer.Ordinal);
+        private readonly Dictionary<string, StackTally> _sells = new Dictionary<string, StackTally>(StringComparer.Ordinal);
+        private StackTally? _last;
 
         public IReadOnlyList<StackTally> Tallies => _tallies;
 
+        /// <summary>Books one unit. Consecutive units of one stack are the common case (a lane walks a stack out),
+        /// so the last tally is tried first; the rest is a lookup, never a scan (PLAN step 9, review area 5).</summary>
         public void Add(ItemStack stack, TradeDirection direction, int price)
         {
-            StackTally? tally = null;
-            foreach (var t in _tallies)
-                if (t.Direction == direction && string.Equals(t.Stack.Key, stack.Key, StringComparison.Ordinal))
-                {
-                    tally = t;
-                    break;
-                }
-            if (tally == null)
+            var tally = _last;
+            if (tally == null || tally.Direction != direction || !string.Equals(tally.Stack.Key, stack.Key, StringComparison.Ordinal))
             {
-                tally = new StackTally(stack, direction);
-                _tallies.Add(tally);
+                var index = direction == TradeDirection.Buy ? _buys : _sells;
+                if (!index.TryGetValue(stack.Key, out tally))
+                {
+                    tally = new StackTally(stack, direction);
+                    _tallies.Add(tally);
+                    index[stack.Key] = tally;
+                }
+                _last = tally;
             }
             tally.Add(price);
         }

@@ -18,7 +18,7 @@ namespace SmartSteward.Core.Planning
             Settings = settings;
             Mode = mode;
             Floors = floors;
-            Oracle = new CachingPriceOracle(oracle);
+            Oracle = oracle as CachingPriceOracle ?? new CachingPriceOracle(oracle); // the planner's own cache, warm
             FoodBalanced = foodBalanced;
             LootOrder = lootOrder;
             Ransom = ransom;

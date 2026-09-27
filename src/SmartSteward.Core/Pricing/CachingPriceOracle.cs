@@ -4,10 +4,11 @@ using System.Collections.Generic;
 namespace SmartSteward.Core.Pricing
 {
     /// <summary>
-    /// Remembers every price it has been asked for. The plan editor re-walks the whole plan after each click
-    /// (and once per row for the buttons' blocked reasons); the same few (stack, side, delta) quotes come up
-    /// again and again, and the game's price model is not free. Valid because a plan's prices are a snapshot:
-    /// nothing trades while the window is open.
+    /// Remembers every price it has been asked for. The planner peeks every line of a walk for every unit, and the
+    /// plan editor re-walks the whole plan after each click (and once per row for the buttons' blocked reasons); the
+    /// same (stack, side, delta) quotes come up again and again, and the game's price model is not free. One cache
+    /// serves the planner and then the editor of its plan. Valid because a plan's prices are a snapshot: nothing
+    /// trades while the plan is made or the window is open.
     /// </summary>
     internal sealed class CachingPriceOracle : IPriceOracle
     {

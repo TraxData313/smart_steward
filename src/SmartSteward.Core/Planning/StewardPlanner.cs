@@ -35,7 +35,10 @@ namespace SmartSteward.Core.Planning
             if (oracle == null) throw new ArgumentNullException(nameof(oracle));
             if (snapshot.Party == null) snapshot.Party = new PartyInfo();
 
-            var ctx = new PlanContext(snapshot, settings, oracle, mode);
+            // One price cache for the planner AND the editor that re-walks the plan after every click: a plan's
+            // prices are a snapshot (nothing trades while it is planned or edited), and the game's price model is
+            // not free — the same quotes come up again and again (PLAN step 9, review area 5).
+            var ctx = new PlanContext(snapshot, settings, new CachingPriceOracle(oracle), mode);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
                 return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0);

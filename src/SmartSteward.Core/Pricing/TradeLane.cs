@@ -97,16 +97,23 @@ namespace SmartSteward.Core.Pricing
     {
         private readonly int[] _moved;
 
+        /// <summary>Every stack before this index has moved all the lane may take from it — it can never offer a unit
+        /// again (the lane's own count only grows), so <see cref="Peek"/> starts here. A big loot group walked in order
+        /// would otherwise rescan its sold-out pieces for every unit (PLAN step 9, review area 5).</summary>
+        private int _firstLive;
+
         public LaneCursor(TradeLane lane)
-            : this(lane, new int[lane.Stacks.Count], 0)
+            : this(lane, new int[lane.Stacks.Count], 0, 0)
         {
         }
 
-        private LaneCursor(TradeLane lane, int[] moved, int total)
+        private LaneCursor(TradeLane lane, int[] moved, int total, int firstLive)
         {
             Lane = lane;
             _moved = moved;
             Moved = total;
+            _firstLive = firstLive;
+            SkipSpent();
         }
 
         public TradeLane Lane { get; }
@@ -133,7 +140,7 @@ namespace SmartSteward.Core.Pricing
         public UnitQuote? Peek(MarketState market, int? ceiling = null)
         {
             UnitQuote? best = null;
-            for (int i = 0; i < Lane.Stacks.Count; i++)
+            for (int i = _firstLive; i < Lane.Stacks.Count; i++)
             {
                 if (Remaining(i, market) <= 0)
                     continue;
@@ -160,6 +167,14 @@ namespace SmartSteward.Core.Pricing
             _moved[quote.Index]++;
             Moved++;
             market.Record(quote.Stack, Lane.Direction, quote.Price);
+            SkipSpent();
+        }
+
+        private void SkipSpent()
+        {
+            var stacks = Lane.Stacks;
+            while (_firstLive < stacks.Count && stacks[_firstLive].Available - _moved[_firstLive] <= 0)
+                _firstLive++;
         }
 
         /// <summary>Why <see cref="Peek"/> finds nothing — the first rule that stops every stack, in the order
@@ -167,7 +182,7 @@ namespace SmartSteward.Core.Pricing
         public LaneStop WhyNot(MarketState market, int? ceiling = null)
         {
             bool laneLeft = false, stockLeft = false, passes = false;
-            for (int i = 0; i < Lane.Stacks.Count; i++)
+            for (int i = _firstLive; i < Lane.Stacks.Count; i++)
             {
                 var laneStack = Lane.Stacks[i];
                 if (laneStack.Available - _moved[i] <= 0)
@@ -188,7 +203,7 @@ namespace SmartSteward.Core.Pricing
             return passes ? LaneStop.Ceiling : LaneStop.PriceLimit;
         }
 
-        public LaneCursor Clone() => new LaneCursor(Lane, (int[])_moved.Clone(), Moved);
+        public LaneCursor Clone() => new LaneCursor(Lane, (int[])_moved.Clone(), Moved, _firstLive);
     }
 
     /// <summary>Why a lane cannot move another unit (<see cref="LaneCursor.WhyNot"/>).</summary>
