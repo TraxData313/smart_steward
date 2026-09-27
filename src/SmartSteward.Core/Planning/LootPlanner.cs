@@ -23,19 +23,16 @@ namespace SmartSteward.Core.Planning
     {
         private sealed class Group
         {
-            public Group(int index, PlanRow row, LaneCursor sell, List<ItemStack> held)
+            public Group(PlanRow row, WalkLine sell, List<ItemStack> held)
             {
-                Index = index;
                 Row = row;
                 Sell = sell;
                 Held = held;
             }
 
-            public int Index { get; }
             public PlanRow Row { get; }
-            public LaneCursor Sell { get; }
+            public WalkLine Sell { get; }
             public List<ItemStack> Held { get; }
-            public bool Stopped { get; set; }
         }
 
         private readonly PlanContext _ctx;
@@ -62,9 +59,8 @@ namespace SmartSteward.Core.Planning
 
             int cap = settings.SellLootMaxItemValue;
             var equipment = ctx.Inventory(ItemKind.Equipment).ToList();
-            for (int index = 0; index < LootGroups.All.Count; index++)
+            foreach (var group in LootGroups.All)
             {
-                var group = LootGroups.All[index];
                 var held = equipment.Where(s => s.LootGroup == group).ToList();
                 var sellable = held.Where(s => !s.IsLocked && (cap <= 0 || s.UnitValue <= cap)).ToList();
                 if (sellable.Count == 0)
@@ -82,11 +78,14 @@ namespace SmartSteward.Core.Planning
                     MaxSell = lane.Capacity,
                     SellLane = lane,
                 };
-                _groups.Add(new Group(index, row, new LaneCursor(lane), sellable));
+                _groups.Add(new Group(row, new WalkLine(row, lane, book: row.Book), sellable));
             }
         }
 
         public IReadOnlyList<PlanRow> Rows => _groups.Select(g => g.Row).ToList();
+
+        /// <summary>The static SellLootOrder of this visit — the editor walks the groups by it too.</summary>
+        public Comparison<ItemStack> SellOrder => _order;
 
         /// <summary>
         /// The static order of SellLootOrder, at the untouched market's sell price; ties → the lower value,
@@ -123,37 +122,7 @@ namespace SmartSteward.Core.Planning
         private static double PerKg(ItemStack stack, Func<ItemStack, int> startPrice) =>
             stack.UnitWeight > 0 ? startPrice(stack) / stack.UnitWeight : double.PositiveInfinity;
 
-        public void PlanSells()
-        {
-            var market = _ctx.Market;
-            while (true)
-            {
-                Group? best = null;
-                UnitQuote bestQuote = default;
-                foreach (var group in _groups)
-                {
-                    if (group.Stopped)
-                        continue;
-                    var quote = group.Sell.Peek(market);
-                    if (quote == null)
-                        continue;
-                    if (best == null || _order(quote.Value.Stack, bestQuote.Stack) < 0)
-                    {
-                        best = group;
-                        bestQuote = quote.Value;
-                    }
-                }
-                if (best == null)
-                    return;
-                if (bestQuote.Price > market.MarketGoldLeft)
-                {
-                    best.Stopped = true;
-                    continue;
-                }
-                PlanMath.Take(best.Row, best.Sell, bestQuote, market);
-                _ctx.Gold += bestQuote.Price;
-            }
-        }
+        public void PlanSells() => PlanWalk.SellInOrder(_ctx.Walk, _groups.Select(g => g.Sell).ToList(), _order);
 
         public void Finish()
         {

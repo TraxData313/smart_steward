@@ -16,20 +16,18 @@ namespace SmartSteward.Core.Planning
     {
         private sealed class Line
         {
-            public Line(PlanRow row, int held, List<ItemStack> heldStacks, LaneCursor buy, LaneCursor sell)
+            public Line(PlanRow row, List<ItemStack> heldStacks, WalkLine sell)
             {
                 Row = row;
-                Held = held;
                 HeldStacks = heldStacks;
-                Buy = buy;
                 Sell = sell;
             }
 
             public PlanRow Row { get; }
-            public int Held { get; set; }
             public List<ItemStack> HeldStacks { get; }
-            public LaneCursor Buy { get; }
-            public LaneCursor Sell { get; }
+
+            /// <summary>The sell walk; its Held is the units held as the plan goes.</summary>
+            public WalkLine Sell { get; }
         }
 
         private readonly PlanContext _ctx;
@@ -103,7 +101,7 @@ namespace SmartSteward.Core.Planning
                     BuyLane = buyLane,
                     SellLane = sellLane,
                 };
-                _lines.Add(new Line(row, held, item.Held, new LaneCursor(buyLane), new LaneCursor(sellLane)));
+                _lines.Add(new Line(row, item.Held, new WalkLine(row, sellLane, held, book: row.Book)));
             }
         }
 
@@ -113,7 +111,7 @@ namespace SmartSteward.Core.Planning
 
         public IReadOnlyList<PlanRow> Rows => _lines.Select(l => l.Row).ToList();
 
-        private int TotalHeld => _lines.Sum(l => l.Held);
+        private int TotalHeld => _lines.Sum(l => l.Sell.Held);
 
         /// <summary>Surplus: only above target × (1 + tolerance), back down to the target — the most-held type
         /// first (keeps variety), only Sell-ticked types at ≥ their min sell, never beyond the market's gold.</summary>
@@ -121,34 +119,9 @@ namespace SmartSteward.Core.Planning
         {
             if (!_active || !_ctx.Settings.SellFoodSurplus)
                 return;
-            int total = TotalHeld;
-            if (total <= SellAbove)
+            if (TotalHeld <= SellAbove)
                 return;
-
-            var market = _ctx.Market;
-            while (total > Target)
-            {
-                Line? best = null;
-                UnitQuote bestQuote = default;
-                foreach (var line in _lines)
-                {
-                    var quote = line.Sell.Peek(market, market.MarketGoldLeft);
-                    if (quote == null)
-                        continue;
-                    if (best == null || line.Held > best.Held
-                        || (line.Held == best.Held && quote.Value.Price > bestQuote.Price))
-                    {
-                        best = line;
-                        bestQuote = quote.Value;
-                    }
-                }
-                if (best == null)
-                    break;
-                PlanMath.Take(best.Row, best.Sell, bestQuote, market);
-                best.Held--;
-                total--;
-                _ctx.Gold += bestQuote.Price;
-            }
+            PlanWalk.SellMostHeldFirst(_ctx.Walk, _lines.Select(l => l.Sell).ToList(), () => TotalHeld > Target);
         }
 
         /// <summary>Below the target: one unit at a time — Balanced: the allowed type held the fewest of, ties →
@@ -157,39 +130,12 @@ namespace SmartSteward.Core.Planning
         {
             if (!_active)
                 return;
-            bool balanced = _ctx.Settings.FoodStrategy == FoodStrategy.Balanced;
-            var market = _ctx.Market;
+            // No row sells and buys in one visit (sold only above target + tolerance, bought only below the
+            // target), so the buy walk starts from the units held after the sales.
+            var buys = _lines.Select(l => new WalkLine(l.Row, l.Row.BuyLane!, l.Sell.Held, book: l.Row.Book)).ToList();
             int total = TotalHeld;
-            while (total < Target)
-            {
-                int ceiling = _ctx.Gold - _ctx.FoodFloor;
-                if (ceiling < 0)
-                    break;
-                Line? best = null;
-                UnitQuote bestQuote = default;
-                foreach (var line in _lines)
-                {
-                    var quote = line.Buy.Peek(market, ceiling);
-                    if (quote == null)
-                        continue;
-                    int price = quote.Value.Price;
-                    bool better = best == null
-                        || (balanced
-                            ? line.Held < best.Held || (line.Held == best.Held && price < bestQuote.Price)
-                            : price < bestQuote.Price || (price == bestQuote.Price && line.Held < best.Held));
-                    if (better)
-                    {
-                        best = line;
-                        bestQuote = quote.Value;
-                    }
-                }
-                if (best == null)
-                    break;
-                PlanMath.Take(best.Row, best.Buy, bestQuote, market);
-                best.Held++;
-                total++;
-                _ctx.Gold -= bestQuote.Price;
-            }
+            PlanWalk.BuyFood(_ctx.Walk, buys, _ctx.Settings.FoodStrategy == FoodStrategy.Balanced,
+                () => _ctx.Gold - _ctx.FoodFloor, () => total + buys.Sum(b => b.Cursor.Moved) < Target);
         }
 
         public void Finish()

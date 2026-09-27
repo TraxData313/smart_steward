@@ -168,15 +168,15 @@ public class StewardPlanTests
     }
 
     [Fact]
-    public void Trades_list_every_sale_before_any_buy()
+    public void Transactions_list_every_sale_before_any_buy()
     {
         var plan = BusyTown().Plan();
-        var trades = plan.Trades;
+        var trades = plan.Transactions.Where(t => t.IsItemTrade).ToList();
         Assert.NotEmpty(trades);
-        int firstBuy = trades.ToList().FindIndex(t => t.Direction == TradeDirection.Buy);
+        int firstBuy = trades.FindIndex(t => t.Kind == TransactionKind.Buy);
         Assert.True(firstBuy > 0);
-        Assert.All(trades.Skip(firstBuy), t => Assert.Equal(TradeDirection.Buy, t.Direction));
-        Assert.Equal(plan.Totals.MarketSales, trades.Where(t => t.Direction == TradeDirection.Sell).Sum(t => t.Gold));
+        Assert.All(trades.Skip(firstBuy), t => Assert.Equal(TransactionKind.Buy, t.Kind));
+        Assert.Equal(plan.Totals.MarketSales, trades.Where(t => t.Kind == TransactionKind.Sell).Sum(t => t.Gold));
     }
 
     [Fact]
@@ -232,41 +232,7 @@ public class StewardPlanTests
         Assert.Equal(20, s.Plan().Row("food:grain").Change);
     }
 
-    /// <summary>A town where every job has something to do.</summary>
-    private static Scenario BusyTown()
-    {
-        var s = new Scenario().Party(20, footmen: 10).Gold(30_000, marketGold: 5_000)
-            .Upgrade("recruit", 10, (null, 4), ("war_horse", 4))
-            .Food("grain", held: 5, market: 100, buy: 10)
-            .Food("fish", market: 50, buy: 14)
-            .Food("cheese", held: 2, market: 10, buy: 25)
-            .Pack("mule", held: 3, market: 20, buy: 140)
-            .Pack("sumpter_horse", market: 10, buy: 160)
-            .Mount("hunter", "horse", held: 2, market: 30, buy: 210)
-            .Mount("aserai_horse", "horse", market: 30, buy: 260)
-            .Mount("charger", "war_horse", held: 1, market: 6, buy: 1500)
-            .Loot("rags", LootGroup.Armour, held: 30, sell: 8)
-            .Loot("helmet", LootGroup.Armour, held: 4, sell: 60, weight: 3)
-            .Loot("spear", LootGroup.MeleeWeapons, held: 6, sell: 25)
-            .Prisoner("looter", 8, 20)
-            .Prisoner("lord_x", 1, 3000, hero: true);
-        s.Settings.SellLoot = true;
-        s.Oracle.Slope = 0.0001;
-        s.Snap.Tavern = new TavernInfo
-        {
-            Wanderers =
-            {
-                new WandererForHire { HeroId = "w1", Name = "Arn", HirePrice = 700, DailyWage = 10 },
-                new WandererForHire { HeroId = "w2", Name = "Bea", HirePrice = 800, DailyWage = 12 },
-            },
-            Mercenaries = new MercenaryOffer { TroopId = "merc", Name = "Blades", Available = 8, PricePerMan = 100 },
-        };
-        return s;
-    }
+    private static Scenario BusyTown() => Scenario.BusyTown();
 
-    private static string Describe(StewardPlan plan) =>
-        string.Join("\n", plan.Rows.Select(r =>
-            $"{r.Id} mine={r.Mine} change={r.Change} gold={r.GoldDelta} min={r.UnitPriceMin} max={r.UnitPriceMax} " +
-            string.Join(",", r.Tallies.Select(t => $"{t.Stack.Key}:{t.Direction}:{t.Count}:{t.Gold}"))))
-        + $"\ngold={plan.Totals.GoldAfter}";
+    private static string Describe(StewardPlan plan) => plan.Describe();
 }

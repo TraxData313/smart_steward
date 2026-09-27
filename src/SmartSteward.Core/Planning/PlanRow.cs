@@ -46,7 +46,8 @@ namespace SmartSteward.Core.Planning
         Mercenaries,
     }
 
-    /// <summary>Why a tavern row cannot be raised (the row is greyed; the tooltip says why).</summary>
+    /// <summary>Why a tavern row could not be raised when the plan was made (the live reason, after the player's
+    /// clicks, is <see cref="PlanRow.IncreaseBlock"/>).</summary>
     public enum HireBlock
     {
         None,
@@ -140,8 +141,6 @@ namespace SmartSteward.Core.Planning
     /// </summary>
     public sealed class PlanRow
     {
-        private readonly List<StackTally> _tallies = new List<StackTally>();
-
         internal PlanRow(string id, PlanSectionKind section, RowType type)
         {
             Id = id;
@@ -179,8 +178,25 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>The steward's proposal — what ⟲ resets to.</summary>
         public int SuggestedChange { get; internal set; }
+
+        /// <summary>The quantity the plan will do — the steward's, or the player's after an edit
+        /// (<see cref="StewardPlan.Increase"/>, <see cref="StewardPlan.Decrease"/>, <see cref="StewardPlan.Reset"/>).</summary>
         public int Change { get; internal set; }
         public int Result => Mine + Change;
+
+        /// <summary>The player moved this row away from the steward's suggestion (⟲ is live).</summary>
+        public bool IsEdited => Change != SuggestedChange;
+
+        /// <summary>Why a [+] cannot move this row right now (<see cref="EditBlock.None"/> = it can) — live:
+        /// recomputed after every edit, since rows share the market's stock, gold and prices, the purse and the
+        /// party's room.</summary>
+        public EditBlock IncreaseBlock => Owner?.BlockOf(this, +1) ?? EditBlock.None;
+
+        /// <summary>Why a [−] cannot move this row right now (<see cref="EditBlock.None"/> = it can).</summary>
+        public EditBlock DecreaseBlock => Owner?.BlockOf(this, -1) ?? EditBlock.None;
+
+        public bool CanIncrease => IncreaseBlock == EditBlock.None;
+        public bool CanDecrease => DecreaseBlock == EditBlock.None;
 
         /// <summary>Clamps: Change stays within [−MaxSell, +MaxBuy]. For item rows MaxBuy = units on offer whose
         /// first price passes their limit, MaxSell = units the sell lane holds; the walk may stop sooner as
@@ -220,29 +236,23 @@ namespace SmartSteward.Core.Planning
         public TradeLane? SellLane { get; internal set; }
 
         /// <summary>The units moved, per stack and direction, in the order first moved.</summary>
-        public IReadOnlyList<StackTally> Tallies => _tallies;
+        public IReadOnlyList<StackTally> Tallies => Book.Tallies;
 
         /// <summary>Per-type breakdown (role rows and food rows).</summary>
         public IReadOnlyList<PlanRowLine> Breakdown { get; internal set; } = Array.Empty<PlanRowLine>();
 
         public bool HasChange => Change != 0;
 
-        internal void Tally(ItemStack stack, TradeDirection direction, int price)
-        {
-            StackTally? tally = null;
-            foreach (var t in _tallies)
-                if (t.Direction == direction && string.Equals(t.Stack.Key, stack.Key, StringComparison.Ordinal))
-                {
-                    tally = t;
-                    break;
-                }
-            if (tally == null)
-            {
-                tally = new StackTally(stack, direction);
-                _tallies.Add(tally);
-            }
-            tally.Add(price);
-        }
+        /// <summary>Where the row's units are booked; the editor swaps in the book of each re-walk.</summary>
+        internal TallyBook Book { get; set; } = new TallyBook();
+
+        /// <summary>Item rows: the party's stacks in this row and how many units of each (role rows: the units in
+        /// the role) — the breakdown's Mine.</summary>
+        internal IReadOnlyList<KeyValuePair<ItemStack, int>> HeldStacks { get; set; } =
+            Array.Empty<KeyValuePair<ItemStack, int>>();
+
+        /// <summary>The plan the row belongs to (its editor).</summary>
+        internal StewardPlan? Owner { get; set; }
 
         /// <summary>Change, prices, gold and weight of an item row, from its tallies.</summary>
         internal void SumTallies()
@@ -250,7 +260,7 @@ namespace SmartSteward.Core.Planning
             int change = 0, gold = 0, min = 0, max = 0;
             double weight = 0;
             bool any = false;
-            foreach (var t in _tallies)
+            foreach (var t in Book.Tallies)
             {
                 int sign = t.Direction == TradeDirection.Buy ? 1 : -1;
                 change += sign * t.Count;

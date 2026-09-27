@@ -17,16 +17,24 @@ namespace SmartSteward.Core.Planning
         {
             Snapshot = snapshot;
             Settings = settings;
-            Market = new MarketState(oracle, snapshot.MarketGold);
-            Gold = snapshot.PlayerGold;
+            Oracle = oracle;
+            Walk = new WalkState(new MarketState(oracle, snapshot.MarketGold), snapshot.PlayerGold);
         }
 
         public StewardSnapshot Snapshot { get; }
         public StewardSettings Settings { get; }
-        public MarketState Market { get; }
+        public IPriceOracle Oracle { get; }
+
+        /// <summary>The market and the purse as the plan moves them.</summary>
+        public WalkState Walk { get; }
+        public MarketState Market => Walk.Market;
 
         /// <summary>The purse as the plan goes: gold now + earned − spent.</summary>
-        public int Gold { get; set; }
+        public int Gold
+        {
+            get => Walk.Gold;
+            set => Walk.Gold = value;
+        }
 
         public bool IsTown => Snapshot.SettlementKind == SettlementKind.Town;
 
@@ -68,13 +76,6 @@ namespace SmartSteward.Core.Planning
         public static int Ceiling(double value) =>
             value <= 0 ? 0 : (int)Math.Ceiling(Math.Round(value, 6));
 
-        /// <summary>Moves the quoted unit and books it on the row.</summary>
-        public static void Take(PlanRow row, LaneCursor cursor, UnitQuote quote, MarketState market)
-        {
-            cursor.Take(quote, market);
-            row.Tally(quote.Stack, cursor.Lane.Direction, quote.Price);
-        }
-
         /// <summary>Units on offer in a buy lane whose first unit passes its limit at the market's current state
         /// — the role rows' Market column.</summary>
         public static int EligibleOnOffer(TradeLane lane, MarketState market)
@@ -87,14 +88,23 @@ namespace SmartSteward.Core.Planning
         }
 
         /// <summary>
-        /// Fills a row from its tallies (change, prices, gold, weight), freezes the suggestion, and builds its
-        /// per-stack breakdown from what it holds (<paramref name="held"/>: stack → units in this row) and the
-        /// stacks its buy lane may take.
+        /// Fills a row from its tallies, freezes the suggestion, and keeps what the row holds per stack
+        /// (<paramref name="held"/>: stack → units in this row) for its breakdown.
         /// </summary>
         public static void FinishItemRow(PlanRow row, IEnumerable<KeyValuePair<ItemStack, int>> held)
         {
-            row.SumTallies();
+            row.HeldStacks = held.Where(p => p.Value > 0).ToList();
+            RefreshItemRow(row);
             row.SuggestedChange = row.Change;
+        }
+
+        /// <summary>
+        /// Change, prices, gold and weight of an item row from its tallies, and its per-stack breakdown from
+        /// what it holds and the stacks its buy lane may take. The editor calls it after every re-walk.
+        /// </summary>
+        public static void RefreshItemRow(PlanRow row)
+        {
+            row.SumTallies();
 
             var lines = new Dictionary<string, PlanRowLine>(StringComparer.Ordinal);
             PlanRowLine Line(ItemStack stack)
@@ -107,9 +117,8 @@ namespace SmartSteward.Core.Planning
                 return line;
             }
 
-            foreach (var pair in held)
-                if (pair.Value > 0)
-                    Line(pair.Key).Mine += pair.Value;
+            foreach (var pair in row.HeldStacks)
+                Line(pair.Key).Mine += pair.Value;
             if (row.BuyLane != null)
                 foreach (var laneStack in row.BuyLane.Stacks)
                     Line(laneStack.Stack).Market = laneStack.Available;

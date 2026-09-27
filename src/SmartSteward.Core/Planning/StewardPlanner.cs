@@ -13,7 +13,8 @@ namespace SmartSteward.Core.Planning
     /// </summary>
     /// <remarks>
     /// The canonical walk — the order units move in, so every price is the true marginal price (DESIGN §3,
-    /// §4.1). A re-pricer (PLAN step 4b) walks the rows' lanes in this same order:
+    /// §4.1). The plan editor (<see cref="PlanReplay"/>) walks the rows' lanes in this same order, with the
+    /// same picking rules (<see cref="PlanWalk"/>) — change one, change both:
     /// <list type="number">
     /// <item>Prisoners — ransom gold (paid by the game, not the market) and donations.</item>
     /// <item>SELL: food surplus (most-held type first), pack surplus, riding surplus, loot (all groups
@@ -35,7 +36,7 @@ namespace SmartSteward.Core.Planning
             var ctx = new PlanContext(snapshot, settings, oracle);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
-                return Assemble(ctx, facts, new List<PlanRow>());
+                return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0);
 
             // 1. Prisoners first: their gold funds the buys, and the food target counts only those who stay.
             var prisonerRows = PrisonerPlanner.Plan(ctx, out int prisonersAfter);
@@ -81,10 +82,11 @@ namespace SmartSteward.Core.Planning
             rows.AddRange(mounts.Rows);
             rows.AddRange(loot.Rows);
             rows.AddRange(prisonerRows);
-            return Assemble(ctx, facts, rows);
+            return Assemble(ctx, facts, rows, loot.SellOrder);
         }
 
-        private static StewardPlan Assemble(PlanContext ctx, PlanFacts facts, List<PlanRow> rows)
+        private static StewardPlan Assemble(PlanContext ctx, PlanFacts facts, List<PlanRow> rows,
+            Comparison<ItemStack> lootOrder)
         {
             var sections = new List<PlanSection>();
             foreach (PlanSectionKind kind in Enum.GetValues(typeof(PlanSectionKind)))
@@ -94,7 +96,10 @@ namespace SmartSteward.Core.Planning
                     sections.Add(new PlanSection(kind, inSection));
             }
             var totals = PlanTotals.Compute(rows, ctx.Snapshot, ctx.Settings);
-            return new StewardPlan(sections, totals, facts);
+            var inputs = new PlanInputs(ctx.Snapshot, ctx.Settings, ctx.Oracle,
+                ctx.Settings.FoodStrategy == FoodStrategy.Balanced, lootOrder,
+                PrisonerPlanner.CanRansom(ctx), PrisonerPlanner.CanDonate(ctx), PrisonerPlanner.DungeonRoom(ctx));
+            return new StewardPlan(sections, totals, facts, inputs);
         }
     }
 }

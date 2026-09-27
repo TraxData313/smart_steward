@@ -18,29 +18,6 @@ namespace SmartSteward.Core.Planning
         public IReadOnlyList<PlanRow> Rows { get; }
     }
 
-    /// <summary>One item transfer for the executor: sells come before buys (DESIGN §3, RESEARCH §9).</summary>
-    public sealed class PlanTrade
-    {
-        internal PlanTrade(string rowId, StackTally tally)
-        {
-            RowId = rowId;
-            StackKey = tally.Stack.Key;
-            ItemId = tally.Stack.ItemId;
-            Direction = tally.Direction;
-            Count = tally.Count;
-            Gold = tally.Gold;
-        }
-
-        public string RowId { get; }
-        public string StackKey { get; }
-        public string ItemId { get; }
-        public TradeDirection Direction { get; }
-        public int Count { get; }
-
-        /// <summary>The planned total (positive); the game re-walks the real prices at the click.</summary>
-        public int Gold { get; }
-    }
-
     /// <summary>The numbers the planners derived — for tooltips, the log and tests.</summary>
     public sealed class PlanFacts
     {
@@ -106,8 +83,11 @@ namespace SmartSteward.Core.Planning
         /// <summary>An animal is bought and the purse ends below MinGoldForHorses (shown red).</summary>
         public bool BelowMinGoldForHorses { get; internal set; }
 
-        /// <summary>The deal costs more than the party has.</summary>
-        public bool CannotAfford => GoldAfter < 0;
+        /// <summary>The deal costs more than the party has — or leaves a wanderer's hire with no more gold than
+        /// his price (vanilla wants more). Only the player's edits can get here; the window should not run it.</summary>
+        public bool CannotAfford => GoldAfter < 0 || HireUnaffordable;
+
+        internal bool HireUnaffordable { get; set; }
 
         internal static PlanTotals Compute(IEnumerable<PlanRow> rows, StewardSnapshot snapshot,
             StewardSettings settings)
@@ -195,20 +175,30 @@ namespace SmartSteward.Core.Planning
 
     /// <summary>
     /// The steward's proposal for one visit: the sections in DESIGN §1.1's order, the totals, and the facts
-    /// behind them. Deterministic for a given snapshot, settings and price oracle.
+    /// behind them. Deterministic for a given snapshot, settings and price oracle. The player edits it in place
+    /// (PlanEditing.cs): rows, totals and <see cref="Transactions"/> follow every click.
     /// </summary>
-    public sealed class StewardPlan
+    public sealed partial class StewardPlan
     {
-        internal StewardPlan(IReadOnlyList<PlanSection> sections, PlanTotals totals, PlanFacts facts)
+        private readonly PlanInputs? _inputs;
+
+        internal StewardPlan(IReadOnlyList<PlanSection> sections, PlanTotals totals, PlanFacts facts, PlanInputs? inputs)
         {
             Sections = sections;
             Totals = totals;
             Facts = facts;
+            _inputs = inputs;
+            foreach (var row in Rows)
+                row.Owner = this;
         }
 
         /// <summary>Only the sections that have rows, in order: tavern, food, mounts, armour &amp; weapons, prisoners.</summary>
         public IReadOnlyList<PlanSection> Sections { get; }
-        public PlanTotals Totals { get; }
+
+        /// <summary>The header and footer — replaced after every edit.</summary>
+        public PlanTotals Totals { get; private set; }
+
+        /// <summary>What the steward derived when planning (targets, needs) — edits do not change them.</summary>
         public PlanFacts Facts { get; }
 
         /// <summary>At least one row changes something — PopupOnlyWithChanges opens the window only then.</summary>
@@ -247,21 +237,6 @@ namespace SmartSteward.Core.Planning
                 if (string.Equals(row.Id, id, StringComparison.Ordinal))
                     return row;
             return null;
-        }
-
-        /// <summary>The item transfers for the executor — every sell, then every buy.</summary>
-        public IReadOnlyList<PlanTrade> Trades
-        {
-            get
-            {
-                var trades = new List<PlanTrade>();
-                foreach (var direction in new[] { TradeDirection.Sell, TradeDirection.Buy })
-                    foreach (var row in Rows)
-                        foreach (var tally in row.Tallies)
-                            if (tally.Direction == direction && tally.Count > 0)
-                                trades.Add(new PlanTrade(row.Id, tally));
-                return trades;
-            }
         }
     }
 }

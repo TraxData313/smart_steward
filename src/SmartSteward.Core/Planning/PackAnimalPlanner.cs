@@ -15,8 +15,8 @@ namespace SmartSteward.Core.Planning
     {
         private readonly PlanContext _ctx;
         private readonly List<ItemStack> _held;
-        private readonly LaneCursor? _buy;
-        private readonly LaneCursor? _sell;
+        private readonly WalkLine? _buy;
+        private readonly WalkLine? _sell;
         private int _heldCount;
 
         public PackAnimalPlanner(PlanContext ctx)
@@ -54,43 +54,28 @@ namespace SmartSteward.Core.Planning
                 SellLane = sellLane,
             };
             Row.MaxBuy = Row.Market ?? 0;
-            _buy = new LaneCursor(buyLane);
-            _sell = new LaneCursor(sellLane);
+            _buy = new WalkLine(Row, buyLane, book: Row.Book);
+            _sell = new WalkLine(Row, sellLane, book: Row.Book);
         }
 
         public int Target { get; }
         public PlanRow? Row { get; }
 
+        /// <summary>Surplus above the target, the most expensive first, while the market can pay.</summary>
         public void PlanSells()
         {
             if (Row == null || _sell == null || !_ctx.Settings.SellPackAnimalSurplus)
                 return;
             var market = _ctx.Market;
-            while (_heldCount > Target)
-            {
-                var quote = _sell.Peek(market, market.MarketGoldLeft);
-                if (quote == null)
-                    break;
-                PlanMath.Take(Row, _sell, quote.Value, market);
-                _heldCount--;
-                _ctx.Gold += quote.Value.Price;
-            }
+            _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, _heldCount - Target, () => market.MarketGoldLeft);
         }
 
+        /// <summary>Up to the target, the cheapest eligible first, never below the animal floor.</summary>
         public void PlanBuys()
         {
             if (Row == null || _buy == null)
                 return;
-            var market = _ctx.Market;
-            while (_heldCount < Target)
-            {
-                var quote = _buy.Peek(market, _ctx.Gold - _ctx.AnimalFloor);
-                if (quote == null)
-                    break;
-                PlanMath.Take(Row, _buy, quote.Value, market);
-                _heldCount++;
-                _ctx.Gold -= quote.Value.Price;
-            }
+            _heldCount += PlanWalk.WalkLane(_ctx.Walk, _buy, Target - _heldCount, () => _ctx.Gold - _ctx.AnimalFloor);
         }
 
         public void Finish()

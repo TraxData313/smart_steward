@@ -77,9 +77,9 @@ internal sealed class Scenario
     /// <summary>A food item. Averages default to the prices (so the auto-filled book allows buying at up to
     /// 1.2 × buy and selling at down to 0.8 × sell); pass <paramref name="noAverage"/> to leave them out.</summary>
     public Scenario Food(string id, int held = 0, int market = 0, int buy = 10, int sell = 8,
-        double weight = 1, bool locked = false, bool noAverage = false)
+        double weight = 1, bool locked = false, bool noAverage = false, string? category = null)
     {
-        Item(id, id, null, ItemKind.Food, id, held, market, buy, sell, weight, locked);
+        Item(id, id, null, ItemKind.Food, category ?? id, held, market, buy, sell, weight, locked);
         if (!noAverage) Snap.AveragePrices[id] = new AveragePrices(buy, sell);
         return this;
     }
@@ -143,6 +143,38 @@ internal sealed class Scenario
         return this;
     }
 
+    /// <summary>A town where every job has something to do.</summary>
+    public static Scenario BusyTown()
+    {
+        var s = new Scenario().Party(20, footmen: 10).Gold(30_000, marketGold: 5_000)
+            .Upgrade("recruit", 10, (null, 4), ("war_horse", 4))
+            .Food("grain", held: 5, market: 100, buy: 10)
+            .Food("fish", market: 50, buy: 14)
+            .Food("cheese", held: 2, market: 10, buy: 25)
+            .Pack("mule", held: 3, market: 20, buy: 140)
+            .Pack("sumpter_horse", market: 10, buy: 160)
+            .Mount("hunter", "horse", held: 2, market: 30, buy: 210)
+            .Mount("aserai_horse", "horse", market: 30, buy: 260)
+            .Mount("charger", "war_horse", held: 1, market: 6, buy: 1500)
+            .Loot("rags", LootGroup.Armour, held: 30, sell: 8)
+            .Loot("helmet", LootGroup.Armour, held: 4, sell: 60, weight: 3)
+            .Loot("spear", LootGroup.MeleeWeapons, held: 6, sell: 25)
+            .Prisoner("looter", 8, 20)
+            .Prisoner("lord_x", 1, 3000, hero: true);
+        s.Settings.SellLoot = true;
+        s.Oracle.Slope = 0.0001;
+        s.Snap.Tavern = new TavernInfo
+        {
+            Wanderers =
+            {
+                new WandererForHire { HeroId = "w1", Name = "Arn", HirePrice = 700, DailyWage = 10 },
+                new WandererForHire { HeroId = "w2", Name = "Bea", HirePrice = 800, DailyWage = 12 },
+            },
+            Mercenaries = new MercenaryOffer { TroopId = "merc", Name = "Blades", Available = 8, PricePerMan = 100 },
+        };
+        return s;
+    }
+
     private void Item(string key, string id, string? modifier, ItemKind kind, string category, int held, int market,
         int buy, int sell, double weight, bool locked, int? value = null)
     {
@@ -172,6 +204,17 @@ internal static class PlanExtensions
     public static PlanRow Row(this StewardPlan plan, string id) =>
         plan.FindRow(id) ?? throw new Xunit.Sdk.XunitException(
             $"no row '{id}'; rows: {string.Join(", ", plan.Rows.Select(r => r.Id))}");
+
+    /// <summary>Every row's quantity, prices and tallies, and the purse — equal strings = equal plans.</summary>
+    public static string Describe(this StewardPlan plan) =>
+        string.Join("\n", plan.Rows.Select(r =>
+            $"{r.Id} mine={r.Mine} change={r.Change} gold={r.GoldDelta} min={r.UnitPriceMin} max={r.UnitPriceMax} " +
+            $"w={r.WeightDelta} inf={r.InfluenceDelta} " +
+            string.Join(",", r.Tallies.Select(t => $"{t.Stack.Key}:{t.Direction}:{t.Count}:{t.Gold}:{t.MinPrice}-{t.MaxPrice}")) +
+            " " + string.Join(",", r.Breakdown.Select(l => $"{l.StackKey}:{l.Mine}:{l.Change}:{l.GoldDelta}"))))
+        + $"\ngold={plan.Totals.GoldAfter} earned={plan.Totals.Earned} spent={plan.Totals.Spent} " +
+          $"sales={plan.Totals.MarketSales} food={plan.Totals.FoodUnitsAfter} days={plan.Totals.FoodDaysAfter} " +
+          $"flags={plan.Totals.BelowMinGoldAfterDeal}{plan.Totals.BelowMinGoldForHorses}{plan.Totals.CannotAfford}";
 
     /// <summary>Units of one stack a row moved (+ bought, − sold).</summary>
     public static int Moved(this PlanRow row, string stackKey) =>

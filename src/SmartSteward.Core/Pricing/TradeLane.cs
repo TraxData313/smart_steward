@@ -162,6 +162,51 @@ namespace SmartSteward.Core.Pricing
             market.Record(quote.Stack, Lane.Direction, quote.Price);
         }
 
+        /// <summary>Why <see cref="Peek"/> finds nothing — the first rule that stops every stack, in the order
+        /// the lane's own units, the market's stock, the price limits, then the ceiling.</summary>
+        public LaneStop WhyNot(MarketState market, int? ceiling = null)
+        {
+            bool laneLeft = false, stockLeft = false, passes = false;
+            for (int i = 0; i < Lane.Stacks.Count; i++)
+            {
+                var laneStack = Lane.Stacks[i];
+                if (laneStack.Available - _moved[i] <= 0)
+                    continue;
+                laneLeft = true;
+                if (Remaining(i, market) <= 0)
+                    continue;
+                stockLeft = true;
+                int price = market.Quote(laneStack.Stack, Lane.Direction);
+                if (!laneStack.Accepts(Lane.Direction, price))
+                    continue;
+                passes = true;
+                if (ceiling == null || price <= ceiling.Value)
+                    return LaneStop.None;
+            }
+            if (!laneLeft) return LaneStop.Exhausted;
+            if (!stockLeft) return LaneStop.StockTaken;
+            return passes ? LaneStop.Ceiling : LaneStop.PriceLimit;
+        }
+
         public LaneCursor Clone() => new LaneCursor(Lane, (int[])_moved.Clone(), Moved);
+    }
+
+    /// <summary>Why a lane cannot move another unit (<see cref="LaneCursor.WhyNot"/>).</summary>
+    public enum LaneStop
+    {
+        /// <summary>A unit can still move.</summary>
+        None,
+
+        /// <summary>The lane has moved every unit it may (a buy: all its stacks offer; a sale: all it holds).</summary>
+        Exhausted,
+
+        /// <summary>The lane may take more, but the market's stock left went to another lane.</summary>
+        StockTaken,
+
+        /// <summary>Units are left, but the next one's price fails its limit (max buy / min sell).</summary>
+        PriceLimit,
+
+        /// <summary>Units pass their limit but not the ceiling (the market's gold, or the purse).</summary>
+        Ceiling,
     }
 }

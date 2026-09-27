@@ -48,7 +48,7 @@ namespace SmartSteward.Core.Planning
         private readonly Dictionary<string, int> _reservedByKey = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly List<UpgradeLine> _upgrades = new List<UpgradeLine>();
         private readonly LaneCursor? _ridingBuy;
-        private readonly LaneCursor? _ridingSell;
+        private readonly WalkLine? _ridingSell;
         private bool _soldRiding;
 
         public MountPlanner(PlanContext ctx)
@@ -143,7 +143,7 @@ namespace SmartSteward.Core.Planning
                 };
                 RidingRow.MaxBuy = RidingRow.Market ?? 0;
                 _ridingBuy = new LaneCursor(buyLane);
-                _ridingSell = new LaneCursor(sellLane);
+                _ridingSell = new WalkLine(RidingRow, sellLane, book: RidingRow.Book);
             }
 
             foreach (var pair in need.Where(p => p.Value > 0).OrderBy(p => p.Key, StringComparer.Ordinal))
@@ -212,16 +212,7 @@ namespace SmartSteward.Core.Planning
             foreach (var line in _upgrades)
                 if (line.Short > 0 && line.Buy.Peek(market) != null)
                     return;
-            while (surplus > 0)
-            {
-                var quote = _ridingSell.Peek(market, market.MarketGoldLeft);
-                if (quote == null)
-                    break;
-                PlanMath.Take(RidingRow, _ridingSell, quote.Value, market);
-                _ctx.Gold += quote.Value.Price;
-                surplus--;
-                _soldRiding = true;
-            }
+            _soldRiding = PlanWalk.WalkLane(_ctx.Walk, _ridingSell, surplus, () => market.MarketGoldLeft) > 0;
         }
 
         /// <summary>
@@ -245,70 +236,27 @@ namespace SmartSteward.Core.Planning
                 while (true)
                 {
                     ridingCap = Math.Max(0, ridingNeed - pledged);
-                    var market = _ctx.Market.Clone();
-                    int gold = _ctx.Gold;
-                    BuyRiding(market, ref gold, _ridingBuy!.Clone(), ridingCap, null);
-                    int got = BuyUpgrades(market, ref gold, _upgrades.Select(u => u.Buy.Clone()).ToList(), false);
+                    var whatIf = _ctx.Walk.Simulation();
+                    BuyRiding(whatIf, new WalkLine(null, _ridingBuy!.Clone()), ridingCap);
+                    int got = BuyUpgrades(whatIf, _upgrades.Select(u => new WalkLine(null, u.Buy.Clone(), quota: u.Short)));
                     if (got >= pledged)
                         break;
                     pledged = got;
                 }
             }
 
-            int purse = _ctx.Gold;
+            var walk = _ctx.Walk;
             if (_ridingBuy != null && RidingRow != null)
-                BuyRiding(_ctx.Market, ref purse, _ridingBuy, ridingCap, RidingRow);
-            BuyUpgrades(_ctx.Market, ref purse, _upgrades.Select(u => u.Buy).ToList(), true);
-            _ctx.Gold = purse;
+                BuyRiding(walk, new WalkLine(RidingRow, _ridingBuy, book: RidingRow.Book), ridingCap);
+            BuyUpgrades(walk, _upgrades.Select(u => new WalkLine(u.Row, u.Buy, quota: u.Short, book: u.Row.Book)));
         }
 
-        private void BuyRiding(MarketState market, ref int gold, LaneCursor cursor, int cap, PlanRow? row)
-        {
-            for (int bought = 0; bought < cap; bought++)
-            {
-                var quote = cursor.Peek(market, gold - _ctx.AnimalFloor);
-                if (quote == null)
-                    return;
-                if (row != null)
-                    PlanMath.Take(row, cursor, quote.Value, market);
-                else
-                    cursor.Take(quote.Value, market);
-                gold -= quote.Value.Price;
-            }
-        }
+        private int BuyRiding(WalkState walk, WalkLine line, int cap) =>
+            PlanWalk.WalkLane(walk, line, cap, () => walk.Gold - _ctx.AnimalFloor);
 
         /// <summary>The cheapest next upgrade horse across the categories still short; ties → category order.</summary>
-        private int BuyUpgrades(MarketState market, ref int gold, IReadOnlyList<LaneCursor> cursors, bool record)
-        {
-            var left = _upgrades.Select(u => u.Short).ToArray();
-            int total = 0;
-            while (true)
-            {
-                int ceiling = gold - _ctx.AnimalFloor;
-                int bestIndex = -1;
-                UnitQuote bestQuote = default;
-                for (int i = 0; i < cursors.Count; i++)
-                {
-                    if (left[i] <= 0)
-                        continue;
-                    var quote = cursors[i].Peek(market, ceiling);
-                    if (quote != null && (bestIndex < 0 || quote.Value.Price < bestQuote.Price))
-                    {
-                        bestIndex = i;
-                        bestQuote = quote.Value;
-                    }
-                }
-                if (bestIndex < 0)
-                    return total;
-                if (record)
-                    PlanMath.Take(_upgrades[bestIndex].Row, cursors[bestIndex], bestQuote, market);
-                else
-                    cursors[bestIndex].Take(bestQuote, market);
-                gold -= bestQuote.Price;
-                left[bestIndex]--;
-                total++;
-            }
-        }
+        private int BuyUpgrades(WalkState walk, IEnumerable<WalkLine> lines) =>
+            PlanWalk.BuyCheapestAcross(walk, lines.ToList(), () => walk.Gold - _ctx.AnimalFloor);
 
         public void Finish()
         {
