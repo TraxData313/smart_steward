@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+  The Steam Workshop preview (1024 x 1024), in the house style of TrainingBattles / ImmersiveAI: gold frame,
+  title block, feature strip. Render it to Screenshots\preview_thumbnail.jpg (Steam's cap is 1 MB) with:
+    powershell -ExecutionPolicy Bypass -File tools\render-preview.ps1
+  STAND-IN ART: no in-game screenshot existed when this was made (step 10, before Anton's first playtest), so the
+  "ledger" below is the Party Steward's Suggestion table drawn in CSS with made-up but plausible numbers. After the
+  playtest, replace it with a real shot of the window: set .art's background-image to the screenshot (as the
+  sibling mods do), delete the .ledger block, re-render - and upload real screenshots on the item page too.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 1024px; overflow: hidden; }
+  .canvas {
+    position: relative;
+    width: 1024px; height: 1024px;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 34%, #3a2c1b 0%, #1d160e 55%, #0d0a07 100%);
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  }
+  /* A real screenshot goes here after the playtest (background-image), and the .ledger goes away. */
+  .art { position: absolute; inset: 0; }
+  .shade {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(13,10,7,0) 0%, rgba(13,10,7,0) 56%, rgba(13,10,7,0.85) 70%, rgba(13,10,7,1) 78%);
+  }
+  .frame {
+    position: absolute; inset: 22px;
+    border: 3px solid rgba(214, 178, 94, 0.85);
+    border-radius: 26px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 60px rgba(0,0,0,0.35);
+  }
+
+  /* ── the Party Steward window, drawn ─────────────────────────────────────── */
+  .ledger {
+    position: absolute; left: 74px; right: 74px; top: 70px;
+    background: linear-gradient(to bottom, #2a2016 0%, #1f1810 100%);
+    border: 2px solid rgba(214, 178, 94, 0.7);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.75), inset 0 0 0 1px rgba(0,0,0,0.7);
+    padding: 18px 26px 20px;
+    color: #e6d8b8;
+    transform: rotate(-1.2deg);
+  }
+  .ledger .title { text-align: center; color: #e8c874; font-size: 27px; letter-spacing: 1px; font-variant: small-caps; }
+  .tabs { display: flex; justify-content: center; gap: 8px; margin: 12px 0 10px; }
+  .tab { padding: 5px 20px; border: 1px solid rgba(214,178,94,0.45); border-radius: 6px; font-size: 18px; color: #a8966e; }
+  .tab.on { background: rgba(214,178,94,0.22); color: #f3e2b0; border-color: rgba(232,200,116,0.9); }
+  .gold { text-align: center; font-size: 21px; margin-bottom: 10px; color: #d9cba8; }
+  .gold b { color: #e8c874; font-weight: normal; }
+  .gold .minus { color: #d98a6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 19px; font-variant-numeric: tabular-nums; }
+  td { padding: 4px 6px; white-space: nowrap; }
+  tr.sec td { padding-top: 9px; color: #e8c874; font-size: 17px; letter-spacing: 1.5px; font-variant: small-caps; border-bottom: 1px solid rgba(214,178,94,0.3); }
+  tr.sec td span { color: #9c8a64; letter-spacing: 0; font-variant: normal; font-size: 16px; }
+  td.n { text-align: right; width: 54px; }
+  td.chg { text-align: center; width: 140px; }
+  td.chg i { font-style: normal; display: inline-block; width: 22px; height: 22px; line-height: 20px; margin: 0 5px;
+             border: 1px solid rgba(214,178,94,0.55); border-radius: 4px; font-size: 16px; color: #cdb27a; text-align: center; }
+  td.price { text-align: right; width: 205px; color: #b9a984; font-size: 17px; }
+  td.item { padding-left: 18px; }
+  .buy { color: #8fd18a; }
+  .sell { color: #e58f76; }
+  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 16px; color: #9c8a64; }
+  .doit { padding: 6px 30px; border: 2px solid rgba(232,200,116,0.95); border-radius: 7px; color: #f6e7bc;
+          background: rgba(214,178,94,0.25); font-size: 21px; font-variant: small-caps; letter-spacing: 1px; }
+
+  /* ── the title block, as the sibling mods ────────────────────────────────── */
+  .titleblock { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center; }
+  .ornament { color: #d6b25e; font-size: 30px; letter-spacing: 14px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); margin-bottom: 8px; }
+  h1 {
+    color: #e8c874; font-size: 100px; font-weight: 600; letter-spacing: 5px; font-variant: small-caps; line-height: 1;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.95), 0 0 45px rgba(232, 200, 116, 0.28);
+  }
+  .tagline { margin-top: 16px; color: #f0e4c8; font-size: 37px; font-style: italic; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
+  .features { margin-top: 20px; color: #cdb27a; font-size: 26px; font-variant: small-caps; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0,0,0,0.95); }
+  .features .dot { color: #8a7448; padding: 0 10px; }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="art"></div>
+    <div class="ledger">
+      <div class="title">Party Steward — Sargot</div>
+      <div class="tabs"><span class="tab on">Suggestion</span><span class="tab">Prices</span><span class="tab">Instructions</span></div>
+      <div class="gold">Gold <b>12,400</b> » <b>10,930</b> <span class="minus">(–1,470)</span></div>
+      <table>
+        <tr class="sec"><td colspan="5">Food <span>&nbsp;target 130 for 65 eaters</span></td></tr>
+        <tr><td class="n">31</td><td class="chg"><i>–</i><span class="buy">+17</span><i>+</i></td><td class="n">48</td><td class="price">17 × 11–13 = <span class="sell">–204</span></td><td class="item">Grain</td></tr>
+        <tr><td class="n">4</td><td class="chg"><i>–</i><span class="buy">+12</span><i>+</i></td><td class="n">16</td><td class="price">12 × 24–27 = <span class="sell">–306</span></td><td class="item">Cheese</td></tr>
+        <tr class="sec"><td colspan="5">Mounts <span>&nbsp;38 men on foot · riding target 42</span></td></tr>
+        <tr><td class="n">30</td><td class="chg"><i>–</i><span class="buy">+12</span><i>+</i></td><td class="n">42</td><td class="price">12 × 150–190 = <span class="sell">–2,040</span></td><td class="item">Riding mounts</td></tr>
+        <tr><td class="n">1</td><td class="chg"><i>–</i><span class="buy">+2</span><i>+</i></td><td class="n">3</td><td class="price">2 × 1,210 = <span class="sell">–2,420</span></td><td class="item">Upgrade horses</td></tr>
+        <tr class="sec"><td colspan="5">Armour &amp; weapons</td></tr>
+        <tr><td class="n">41</td><td class="chg"><i>–</i><span class="sell">–41</span><i>+</i></td><td class="n">0</td><td class="price"><span class="buy">+2,132</span></td><td class="item">Armour</td></tr>
+        <tr class="sec"><td colspan="5">Prisoners</td></tr>
+        <tr><td class="n">12</td><td class="chg"><i>–</i><span class="sell">–12</span><i>+</i></td><td class="n">0</td><td class="price"><span class="buy">+1,368</span></td><td class="item">Looter</td></tr>
+      </table>
+      <div class="foot"><span>Click ±1 · Shift ±5 · Ctrl all</span><span class="doit">Do it</span></div>
+    </div>
+    <div class="shade"></div>
+    <div class="frame"></div>
+    <div class="titleblock">
+      <div class="ornament">✦ ✦ ✦</div>
+      <h1>Smart Steward</h1>
+      <div class="tagline">Your steward, finally doing the steward's job.</div>
+      <div class="features">food <span class="dot">·</span> horses <span class="dot">·</span> loot <span class="dot">·</span> prisoners <span class="dot">·</span> tavern</div>
+    </div>
+  </div>
+</body>
+</html>
