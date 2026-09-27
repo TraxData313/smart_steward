@@ -602,6 +602,86 @@ Fine for ~30 rows.
 
 ---
 
+## 13. The game adapter — verified in step 6 (2026.09.27)
+
+Read in `game-decompiled-1.4.8` while writing `src\SmartSteward.Module\Adapter\` (and, for the popup text,
+`TaleWorlds.TwoDimension.dll` decompiled with ilspycmd). Every method body of the built DLL was JIT-compiled
+out of game against the real game DLLs (`RuntimeHelpers.PrepareMethod`, .NET Framework) — all resolve.
+
+**Headless trade — the details `InventoryLogic` hides** (`CS\...Inventory\InventoryLogic.cs`, `CS\Helpers\InventoryScreenHelper.cs`):
+- `Initialize(...)` installs a **`FakeInventoryListener`** (gold 0) — call `SetInventoryListener` AFTER it, as
+  `OpenScreenAsTrade` does, or the merchant has no purse. Vanilla builds the logic as
+  `new InventoryLogic(settlementComponent.Owner)` and `Initialize(settlement.ItemRoster, PartyBase.MainParty.ItemRoster,
+  PartyBase.MainParty.MemberRoster, isTrading: true, isSpecialActionsPermitted: true, CharacterObject.PlayerCharacter,
+  InventoryCategoryType.None, marketData, useBasePrices: false, InventoryMode.Trade)`.
+- `TransactionDebt`'s setter calls `TotalAmountChange(...)` only when the value changes (Initialize sets 0 → no
+  call), but every transfer does — set it before the first command.
+- `TransferItem` moves `Amount` units one by one, pricing each with `GetItemPrice` BEFORE it moves (so the town's
+  in-store value walks per unit), and **does nothing at all** when the from-roster holds fewer than `Amount`
+  (`DoesTransferItemExist`) or the element is a quest item — no error. The executor sends one unit per command and
+  checks the roster moved.
+- `GetItemPrice(element, isBuying)` = `MarketData.GetPrice(element, OwnerParty, !isBuying, OtherParty)`, except a
+  buy-back: when the last transfer of the SAME element went the other way, the last price is reused.
+- `DoneLogic()` returns false only while previewing or when `Hero.Gold − TotalAmount < 0`; otherwise it pays the
+  player `min(−TotalAmount, merchant gold)` — the NET of sales and buys —, the merchant through the listener's
+  `SetGold`, Trickle Down (towns, ≥ 10,000 of trade goods bought), then `OnPlayerInventoryExchange(bought, sold, true)`.
+  It needs `Settlement.CurrentSettlement` (the party must still be in the settlement).
+- `Reset(fromCancel: true)` (vanilla's Cancel) = `Clear()` + re-`Add` of the backups on the LIVE rosters.
+  `ItemRoster.Clear()` fires `RosterUpdatedEvent(default, 0)` → `TownMarketData.OnTownInventoryUpdated` → `ClearStores()`
+  (InStore/InStoreValue zeroed for every category), then every element re-added walks them back — the category data
+  is rebuilt from the roster. Safe to undo a half-done batch.
+- Vanilla's `MerchantInventoryListener` is private: GetGold/SetGold → `SettlementComponent.Gold` / `ChangeGold(gold −
+  Gold)` (clamps at 0), `GetOppositeParty`/`GetTraderName` → `Owner`; its `OnTransaction` throws and is never called.
+- A roster holds ONE element per item + modifier: `FindIndexOfElement` → `EquipmentElement.IsEqualTo` compares only
+  `Item` and `ItemModifier`. So `item|modifier` is a unique stack key on each side.
+
+**Access and settlement state:**
+- Trade (`DefaultSettlementAccessModel.CanMainHeroTrade`): a village trades only when `VillageState == Normal` AND its
+  roster has items — a village with gold but nothing on offer allows **no trade at all** (not even selling); raided →
+  no trade; hostile → disabled. It reads `Settlement.CurrentSettlement.Village` — call it while in the settlement.
+  Use the return value (`MenuHelper.SetOptionProperties`: shown-but-disabled is still "cannot").
+- Dungeon (`CanMainHeroEnterKeepInternal`): own clan or same faction → FullAccess; LimitedAccess needs
+  `BribePaid ≥ BribeCalculationModel.GetBribeToEnterDungeon`.
+- `Town.AllTowns` holds towns only (castles are a separate list). `InventoryLogic.InitializeCategoryAverages` excludes
+  the current town (a village: `Village.Bound.Town`, which may be a CASTLE — then nothing is excluded) yet always
+  divides by `AllTowns.Count − 1`. We divide by the towns actually summed.
+- `GetTradePenalty(item, MainParty, merchant: null, …)` is null-safe: no settlement, war or network terms — our
+  "average town at peace" for the placeholders.
+
+**Party reads:** `MobileParty.FoodChange` (daily, negative); livestock food = Σ `Amount × HorseComponent.MeatCount`
+over `IsLiveStock` elements (what `ItemRoster.TotalFood` adds); `EquipmentElement.GetEquipmentElementWeight()` is
+per roster unit (a consumable's whole stack); animals carry 0 (`GetItemEffectiveWeight`). Upgrade-ready
+(`PartyCharacterVM.InitializeUpgrades`): `DoesPartyHaveRequiredPerksForUpgrade(party, troop, target, out _)` false →
+0; bandit cultures also need `CanPartyUpgradeTroopToTarget` (else the button is disabled); `Character.Culture.IsBandit`.
+
+**Prisoners:**
+- Vanilla's donate screen moves prisoners with `AddToCounts` on BOTH live rosters (heroes too — an owned roster calls
+  `OnHeroRemoved`/`OnHeroAdded`), then `DonatePrisonersDoneHandler` runs `EnterSettlementAction.ApplyForPrisoner` for
+  heroes and fires ONE `OnPrisonerDonatedToSettlement(MainParty, FlattenedTroopRoster, settlement)`
+  (`FlattenedTroopRoster.Add(troop, number, wounded)`). Influence = Σ model value, then
+  `GainKingdomInfluenceAction.ApplyForDonatePrisoners` × 1.2 under Military Coronae (`Kingdom.ActivePolicies.Contains(
+  DefaultPolicies.MilitaryCoronae)`); nothing without a kingdom.
+- `TroopRoster.AddToCounts(c, n, insertAtFront, wounded)`: `Number` includes the wounded; a dummy roster
+  (`CreateDummyTroopRoster`) has no owner party. `SellPrisonersAction` pays `PrisonerRansomValue(c,
+  sellerParty.LeaderHero)` × n through `GiveGoldAction` to the main hero; a hero is freed (`ApplyByRansom`).
+
+**Tavern:** `TownMercenaryData.HasAvailableMercenary()` = `TroopType != null && Number > 0`; `GetMercenaryData(town)`
+creates an empty record when none; `ChangeMercenaryCount` fires `OnMercenaryNumberChangedInTown`. Vanilla's hire
+dialogue: `conversation_hero_hire_on_condition` (not a player companion, Occupation Wanderer, not a prisoner,
+`PartyBelongedTo == null`) and `Hero.MainHero.Gold > GetCompanionHiringPrice(hero)` (strict). The tavern placement
+rule: `HeroesWithoutParty` ∧ (`IsWanderer` ∨ `IsPlayerCompanion`) ∧ not governor of this town.
+
+**Menus and popups:** `CampaignGameStarter.AddGameMenuOption` creates the menu if it does not exist yet
+(`GetPresumedGameMenu`); `GameMenu.AddOption` inserts at `index` when `0 ≤ index ≤ count`, else appends.
+`Campaign.Current.GameMenuManager.GetGameMenu(id).MenuOptions` (`IdString`), `RefreshMenuOptions(Campaign.Current.
+CurrentMenuContext)` → `Handler.OnMenuRefresh()`. `InquiryData(title, text, affirmativeShown, negativeShown,
+affirmativeText, negativeText, Action affirmative, Action negative, …)`; `InformationManager.ShowInquiry(data,
+pauseGameActiveState, prioritize)`. The single-query popup's text is a **`RichTextWidget`** inside a scrollable panel
+(max 480 px, then it scrolls): `RichTextParser` (TaleWorlds.TwoDimension) treats `<` as the start of a tag, a lone `>`
+as plain text, `\n` as a new line and drops `\r` — never put `<` in popup text.
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -642,6 +722,13 @@ Fine for ~30 rows.
 31. **MCM's default "memory" format throws on first register** (5.12.3) — `SetFormat("none")`.
 32. **MCM dropdown picks set `SelectedIndex` on the getter's object**, never call the setter.
 33. **MCM float controls need `ProxyRef<float>`**; its Default preset snapshots the current values.
+34. **`InventoryLogic.Initialize` installs a fake listener** — `SetInventoryListener` must come after it.
+35. **A transfer the from-roster cannot cover does nothing, silently** — clip counts, check the roster moved.
+36. **DoneLogic pays the NET (sales − buys) capped by merchant gold**; the planner caps GROSS sales.
+37. **A village with nothing on offer allows no trade at all** — not even selling to it.
+38. **Popup text is rich text**: `<` starts a tag; `>` and `\n` are fine.
+39. **A Module namespace `SmartSteward.Game` hides `TaleWorlds.Core.Game`** inside `namespace SmartSteward` (CS0118) —
+    the adapter lives in `SmartSteward.Adapter`.
 
 ---
 

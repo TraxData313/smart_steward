@@ -441,6 +441,10 @@ colours (`InventoryLogic.InitializeCategoryAverages`). Every purchase carries at
 penalty on top, so an exactly average item costs ~106% of it — which is why the placeholders
 above run that factor through the price model rather than using the bare average.
 
+**[decided: Claude, 2026.09.27 — step 6]** The trade penalty is taken with NO merchant — an average town at peace: no
+village, war or scouting-network term, the player's own trade perks included — and the mean runs over the towns
+actually summed (vanilla divides by the town count − 1 even when a castle-bound village excluded none).
+
 ---
 
 ## 5. The snapshot (Core input) and the executor (Module)
@@ -468,6 +472,21 @@ order, grouped by item category — which never changes a price, since a town's 
 the wanderers, then the mercenaries; each with the stack (item + modifier) / troop / hero, the count and the
 expected unit prices.
 
+**[decided: Claude, 2026.09.27 — step 6]** How the executor behaves (`Module\Adapter\PlanExecutor`, Core `Execution\`):
+- Every unit is checked again at the click, the way the plan walked it: its live price (the trade logic's own) must
+  pass its row's limit (max buy / min sell), a sale must fit the market's remaining gold (gross sales, the planner's
+  rule), a purchase the purse. What no longer fits — sold out, no longer held, locked since, no access any more, no
+  room in the dungeon or the party, no companion slot — is skipped and logged; the rest goes through. The money
+  floors are not checked again: the player saw them and clicked.
+- All item trades run in ONE headless trade; if any of them fails with an error the whole trade is reset (vanilla's
+  Cancel) — the party never keeps goods it did not pay for. Each prisoner row and each hire is its own transaction.
+- Ransom: one vanilla call per prisoner row. Donation: vanilla's donate screen without the screen, one influence
+  event for all. Moved prisoners take the wounded first.
+- A wanderer is hired at his LIVE price (the trades may have moved the town's prices, and his gear's value with
+  them); the log shows the difference. Mercenaries: what is still on offer, capped by the party's room and the purse.
+- Every run is logged — gold before, each transaction with its real unit prices and its drift from the plan, gold
+  after — and the player gets a one-line summary.
+
 ---
 
 ## 6. When the window appears
@@ -482,6 +501,10 @@ expected unit prices.
 - `AutoExecute` (default **off**) **[decided: Claude, 2026.09.27 — optional hands-off mode]**:
   carry the plan out on arrival without the window, then post a one-line summary message.
 - `ModEnabled` (default on) master switch.
+- **TEMPORARY (step 6 → removed in step 8)**: "Party Steward (debug)" in the town and village menus — snapshot,
+  plan, the full plan in the log, a vanilla popup with the changing rows and totals, Execute / Cancel. A second town
+  entry "(debug, + tavern hires)" adds one wanderer and the whole mercenary band, to try the hire executors before
+  the window exists. Playtest checklist: `docs/PLAYTEST.md`.
 - **[research 2026.09.27]** (RESEARCH §10)
   - Menu entries go into the `town` and `village` menus (right after Trade); arrival =
     `SettlementEntered`, then the next `town`/`village` menu opening (it re-fires on every return

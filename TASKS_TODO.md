@@ -5,7 +5,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 4. Core planners + unit tests — food, pack, mounts, war mounts, armour & weapons groups, prisoners, tavern, money floors
 - [x] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
 - [x] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
-- [ ] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
+- [x] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
+  - [ ] Playtest the debug door: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6"
 - [ ] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
 - [ ] 8. Triggers — menu entries, popup on arrival, leave warning, auto-execute
 - [ ] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
@@ -42,3 +43,5 @@ NOTICED (things spotted during a step, left for later):
 - [ ] TrainingBattles + ImmersiveAI list MCM only in DependedModuleMetadatas — the vanilla launcher ignores that; add an Optional DependedModule (RESEARCH §12)
 - [ ] Step 8: War Sails' port/sail menus must exist before the leave-wrap — make NavalDLC an optional load-before in SubModule.xml, or wrap lazily
 - [ ] Playtest: Mod Options page (10 groups, 43 settings) never seen in game yet — gold sliders run 0–1,000,000, are they usable?
+- [ ] Step 8: remove the TEMPORARY debug door (DebugDoor.cs + its OnSessionLaunched hook in SmartStewardBehavior)
+- [ ] Step 7: a wanderer's hire price is re-read at Do it (the trades move the town's prices) — the row may show a slightly different number
