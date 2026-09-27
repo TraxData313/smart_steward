@@ -5,7 +5,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [ ] 4. Core planners + unit tests — food, pack, mounts, war mounts, armour & weapons groups, tavern, money floors
 - [ ] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [ ] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
-- [ ] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Instructions tab
+- [ ] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
 - [ ] 8. Triggers — menu entries, popup on arrival, leave warning, auto-execute
 - [ ] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
 - [ ] 10. Packaging — package.ps1, Steam description + workshop files, README
