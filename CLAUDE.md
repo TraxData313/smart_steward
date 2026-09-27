@@ -155,7 +155,13 @@ tools/check-gui.ps1           the prefab gate: every tag, attribute, value, brus
                               against the game and the built DLL — run it after touching a prefab or a view model
 tools/McmProbe/               drives MCM's real fluent builder with the built bridge, outside the game
                               (not in the .sln; `dotnet run` it in Release after a Release build)
-tools/package.ps1             (step 10) clean release layout + zip for the Workshop upload
+tools/package.ps1             (step 10) the release gate + layout: clean build (warnings fail), tests, check-soft-deps,
+                              check-gui, a reference allowlist (our DLLs may name only .NET, the game, hard dependencies
+                              and MCMv5), then dist\SmartSteward (real identity, our 2 DLLs only) + SmartSteward_vX.Y.Z.zip
+tools/WORKSHOP-UPLOAD.md      (step 10) release day + the update loop + the uploader's quirks; WorkshopCreate.xml (once,
+                              Private) / WorkshopUpdate.xml (item id filled after the create); nothing uploads by itself
+tools/STEAM-DESCRIPTION.bbcode  the Workshop page (Steam BBCode, cap 8000 UTF-8 bytes - measure after edits)
+tools/preview_thumbnail.html  the Workshop preview; tools/render-preview.ps1 → Screenshots/preview_thumbnail.jpg (< 1 MB)
 docs/                         DESIGN.md, RESEARCH.md, PLAYTEST.md (Anton's checklists per step)
 ```
 
