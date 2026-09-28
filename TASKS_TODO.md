@@ -18,6 +18,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 12. Playtest round 1 fixes — the six BUGS lines marked (R1), the save-load bug first
   - [ ] Deploy (the game was running at the end of step 12), then playtest the fixes — checklist in docs/PLAYTEST.md "Round 1 fixes"
 - [ ] 13. Playtest round 2 fixes — the BUGS lines marked (R2)
+- [ ] 14. Round 3, small — party limit never blocks hires (show 99/96), steward also on docking into a port
+- [ ] 15. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -28,6 +30,8 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Prices tab: the item name is the first column
 
 BUGS:
+- [ ] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
+- [ ] (R3) Docking into a port (War Sails) must trigger the steward too — popup + menu entry at the port, not only the town menu
 - [ ] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)
 - [x] (R1) Prices tab: Item name must be the FIRST (leftmost) column
 - [x] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
@@ -35,6 +39,10 @@ BUGS:
 - [x] (R1) Arrival popup opened at a village with NO TRADE and nothing to do (Hiblet) — must stay shut (the log: the popup stayed shut, the window came from the menu entry; now also never at a closed market)
 - [x] (R1) Closed market (war, crime…) shows an empty table — say the game's reason in the window instead
 - [x] (R1) TOP: after loading a save in the same game session, clicking towns/villages no longer entered them ("clan tier not high enough to request a meeting" shown) — a game RESTART cured it. Found: the game read Left Alt as HELD (Alt+Tab) → every click asked for a parley; not the mod — tap Left Alt (RESEARCH §17)
+
+NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
+- [ ] (R3) TROOPS section right after the Tavern: the recruits on offer in this town/village (volunteers of its notables you may take) at the top, then the troops you have — one row per troop type, Mine / [-] [+] / Result / price / on offer; [+] recruits, [-] dismisses; never every troop in the game; starts at 0 like the tavern; names open the Encyclopedia
+- [ ] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
