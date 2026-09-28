@@ -31,10 +31,10 @@ internal sealed class FakeOracle : IPriceOracle
 
 /// <summary>Builds a snapshot, settings and oracle together. Defaults: a town, rich party and market, 10
 /// members, no footmen — so each test switches on only what it looks at.
-/// <para>The settings are the defaults EXCEPT the two round-4 changes that would switch jobs off under the tests' small
-/// purses (<see cref="LegacyDefaults"/>): the activation thresholds are 0 (every job acts, whatever the purse) and
-/// WarMountsToKeep is 0 — the defaults every test before step 20 was written against. <c>JobThresholdTests</c> tests the real
-/// defaults.</para></summary>
+/// <para>The settings are the defaults EXCEPT the round-4 changes that would change what the old tests look at
+/// (<see cref="LegacyDefaults"/>): the activation thresholds are 0 (every job acts, whatever the purse), WarMountsToKeep is 0
+/// and food uses the old 1.2 / 0.8 multipliers — the defaults every test before step 20 was written against.
+/// <c>JobThresholdTests</c> and <c>FoodMultiplierTests</c> test the real defaults.</para></summary>
 internal sealed class Scenario
 {
     /// <summary>The defaults, with the activation thresholds at 0 and no war horses kept (the pre-round-4 defaults).</summary>
@@ -45,6 +45,9 @@ internal sealed class Scenario
         MountsMinDenari = 0,
         WarHorsesMinDenari = 0,
         WarMountsToKeep = 0,
+        // Food shared the horses' 1.2 / 0.8 until round 4 (now 2.0 / 0.5): the food tests keep the old limits.
+        FoodBuyPriceMultiplier = 1.2,
+        FoodSellPriceMultiplier = 0.8,
     };
 
     public StewardSnapshot Snap { get; } = new()

@@ -30,8 +30,10 @@ namespace SmartSteward.UI
 
         internal PricesTabVM()
         {
-            _buyMultiplier = SettingsRegistry.Find(nameof(StewardSettings.BuyPriceMultiplier)) as FloatSetting;
-            _sellMultiplier = SettingsRegistry.Find(nameof(StewardSettings.SellPriceMultiplier)) as FloatSetting;
+            // Step 20: the two boxes at the top are the HORSE multipliers (food got its own pair - Instructions tab and MCM
+            // until step 21 gives the Food group boxes of its own); every line shows its own group's multiplier.
+            _buyMultiplier = SettingsRegistry.Find(nameof(StewardSettings.HorseBuyPriceMultiplier)) as FloatSetting;
+            _sellMultiplier = SettingsRegistry.Find(nameof(StewardSettings.HorseSellPriceMultiplier)) as FloatSetting;
             BuyMultiplierLabel = SettingLabel(_buyMultiplier);
             SellMultiplierLabel = SettingLabel(_sellMultiplier);
             BuyMultiplierHint = new HintVM(SettingHint(_buyMultiplier));
@@ -97,8 +99,8 @@ namespace SmartSteward.UI
             var settings = SettingsHost.Current;
             if (includeTypedTexts)
             {
-                BuyMultiplierText = UiFormat.Decimal(settings.BuyPriceMultiplier);
-                SellMultiplierText = UiFormat.Decimal(settings.SellPriceMultiplier);
+                BuyMultiplierText = UiFormat.Decimal(settings.HorseBuyPriceMultiplier);
+                SellMultiplierText = UiFormat.Decimal(settings.HorseSellPriceMultiplier);
                 BuyMultiplierColor = UiColors.Text;
                 SellMultiplierColor = UiColors.Text;
             }

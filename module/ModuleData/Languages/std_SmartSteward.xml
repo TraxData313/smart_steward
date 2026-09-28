@@ -53,14 +53,17 @@
     <string id="ss_hint_AutoPopupOnVillageEnter" text="Open the Party Steward window when your party enters a village. Default: on." />
     <string id="ss_hint_AutonomousMinGold" text="While the full-autonomous steward is on, it never takes your purse below this - both floors above rise to it when they are lower. Raise the price limits to let it spend more freely, never this. Default: 100,000. Range: 0 to 10,000,000." />
     <string id="ss_hint_AutonomousSteward" text="For when you are rich and done with micromanaging: on arriving at a town or village the steward carries out its plan at once - no window, no questions, no warning - and sums it up in the message log. It never hires in the tavern and never takes your purse below Keep while autonomous. The Party Steward menu entry stays, to look or adjust. When off, the steward only proposes and you click. Default: off." />
-    <string id="ss_hint_BuyPriceMultiplier" text="Max buy price = the item's base price (Prices tab) times this. 1.2 pays up to 20% over the average. Richer now? Raise it. Default: 1.2. Range: 0.1 to 10.0." />
     <string id="ss_hint_DonatePrisonersWhenPossible" text="In a town of your kingdom that is not your clan's, send prisoners to its dungeon for influence instead of gold. Those that do not fit are ransomed. Default: off." />
+    <string id="ss_hint_FoodBuyPriceMultiplier" text="Max buy price of a food = its base price (Prices tab) times this. 2.0 pays up to twice the average - grain at 10 is bought up to 20. Food is cheap and keeps the party alive, so this is generous. Default: 2.0. Range: 0.1 to 10.0." />
     <string id="ss_hint_FoodCountPrisoners" text="Count your prisoners when working out the food target - half a man each, as the game feeds them. Default: on." />
     <string id="ss_hint_FoodDays" text="How many days of food the steward keeps for your party as it will be after the deal - at the game's own rate, perks included (a man eats one food in about 20 days, a prisoner half as much), so 40 days is about 2 food per man. The Instructions tab shows what your days mean per man right now. Default: 40. Range: 1 to 365." />
     <string id="ss_hint_FoodEnabled" text="Buy food up to the target and sell what is far above it. Default: on." />
     <string id="ss_hint_FoodMinDenari" text="The steward starts managing food once your purse holds at least this many denari when you arrive - below it it neither buys nor sells food, and you trade by hand. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_FoodSellPriceMultiplier" text="Min sell price of a food = its base price (Prices tab) times this. 0.5 sells surplus food at half the average sell price or better; 0 sells at any price. Default: 0.5. Range: 0.0 to 10.0." />
     <string id="ss_hint_FoodStrategy" text="Balanced buys the kinds you hold least of first - every different food lifts morale. Cheapest always buys the cheapest kind. Default: Balanced (variety first)." />
     <string id="ss_hint_FoodSurplusTolerancePercent" text="How far above the target food may pile up before the steward sells: 25 sells only above 125% of the target. Default: 25. Range: 0 to 500." />
+    <string id="ss_hint_HorseBuyPriceMultiplier" text="Max buy price of a horse, mule or camel = its base price (Prices tab) times this. 1.2 pays up to 20% over the average. Richer now? Raise it. Default: 1.2. Range: 0.1 to 10.0." />
+    <string id="ss_hint_HorseSellPriceMultiplier" text="Min sell price of a horse, mule or camel = its base price (Prices tab) times this. 0.8 sells at 80% of the average sell price or better; 0 sells at any price. Default: 0.8. Range: 0.0 to 10.0." />
     <string id="ss_hint_LocksProtectFoodAndHorses" text="Off: the steward manages food and horses even when you locked them in the inventory - your locks keep guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons. Default: off." />
     <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denari. Default: 1,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
@@ -85,7 +88,6 @@
     <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
     <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
     <string id="ss_hint_SellPackAnimalSurplus" text="Sell pack animals above the target, the dearest first. Default: on." />
-    <string id="ss_hint_SellPriceMultiplier" text="Min sell price = the item's base price (Prices tab) times this. 0.8 sells at 80% of the average sell price or better; 0 sells at any price. Default: 0.8. Range: 0.0 to 10.0." />
     <string id="ss_hint_SellWarMountSurplus" text="Sell war horses above the number to keep, the dearest first. Default: on." />
     <string id="ss_hint_ShowMercenaries" text="List the mercenary band in the town's tavern. Default: on." />
     <string id="ss_hint_ShowTavern" text="Show the tavern section in towns: wanderers and mercenaries to hire with a click. Default: on." />
@@ -115,14 +117,17 @@
     <string id="ss_set_AutoPopupOnVillageEnter" text="Open on entering a village" />
     <string id="ss_set_AutonomousMinGold" text="Keep while autonomous (denari)" />
     <string id="ss_set_AutonomousSteward" text="Full-autonomous steward" />
-    <string id="ss_set_BuyPriceMultiplier" text="Buy price multiplier" />
     <string id="ss_set_DonatePrisonersWhenPossible" text="Donate when possible" />
+    <string id="ss_set_FoodBuyPriceMultiplier" text="Food buy price multiplier" />
     <string id="ss_set_FoodCountPrisoners" text="Feed prisoners too" />
     <string id="ss_set_FoodDays" text="Keep food for (days)" />
     <string id="ss_set_FoodEnabled" text="Manage food" />
     <string id="ss_set_FoodMinDenari" text="Manage food from (denari)" />
+    <string id="ss_set_FoodSellPriceMultiplier" text="Food sell price multiplier" />
     <string id="ss_set_FoodStrategy" text="Food buying" />
     <string id="ss_set_FoodSurplusTolerancePercent" text="Surplus tolerance (%)" />
+    <string id="ss_set_HorseBuyPriceMultiplier" text="Horse buy price multiplier" />
+    <string id="ss_set_HorseSellPriceMultiplier" text="Horse sell price multiplier" />
     <string id="ss_set_LocksProtectFoodAndHorses" text="Locks protect food &amp; horses" />
     <string id="ss_set_MinGoldAfterDeal" text="Always keep (denari)" />
     <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (denari)" />
@@ -147,7 +152,6 @@
     <string id="ss_set_SellMountSurplus" text="Sell surplus riding horses" />
     <string id="ss_set_SellNobleHorses" text="Sell noble horses" />
     <string id="ss_set_SellPackAnimalSurplus" text="Sell surplus pack animals" />
-    <string id="ss_set_SellPriceMultiplier" text="Sell price multiplier" />
     <string id="ss_set_SellWarMountSurplus" text="Sell surplus war horses" />
     <string id="ss_set_ShowMercenaries" text="Show mercenaries" />
     <string id="ss_set_ShowTavern" text="Show the tavern" />

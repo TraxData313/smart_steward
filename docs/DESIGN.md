@@ -287,8 +287,14 @@ Changes save to the settings file at once (and MCM shows them — same values, �
 ### 1.3 Prices tab — the price book **[Anton 2026.09.27]**
 
 Anton: *"as I get richer I will stop caring for the price — I don't want to raise the max price
-for each item, give me a multiplier."* So every item has its own base prices, and two global
-multipliers scale them all.
+for each item, give me a multiplier."* So every item has its own base prices, and global
+multipliers scale them all — **since round 4 one pair for FOOD and one for HORSES** **[Anton 2026.09.28 — "food prices
+multipliers set from 0.5 to 2, gain costs 10 up to 20 id be happy to buy"]**: food ×2.0 / ×0.5, horses (pack animals, riding,
+war and noble horses) ×1.2 / ×0.8 (`PriceBook.BuyMultiplier` / `SellMultiplier` by group). The old `BuyPriceMultiplier` /
+`SellPriceMultiplier` are the horse pair renamed (`HorseBuyPriceMultiplier` / `HorseSellPriceMultiplier`) — an old settings
+file carries its values over to them once, logged. (Until step 21 gives the Food group boxes of its own, the Prices tab's
+two boxes at the top are the horse pair; the food pair is in the Instructions tab and MCM; every line shows its own
+group's multiplier.)
 
 Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts · **Noble horses — sell
 only**, step 17: no buy column there, the sell placeholder always filled).
@@ -309,8 +315,8 @@ One row per item:
 - **Buy tick** — the steward may buy this item. **Sell tick** — the steward may sell it.
 - **Base prices** are editable. When empty they show a grey **placeholder**: the item's average
   buy price (Max buy) or average sell price (Min sell) — §4.2 — IF auto-fill is on for its group.
-- **Final** = base × `BuyPriceMultiplier` (default **1.2** = average + 20%) or base ×
-  `SellPriceMultiplier` (default **0.8** = average − 20%). Getting richer = raise one multiplier.
+- **Final** = base × the group's buy multiplier (food **2.0** = up to twice the average; horses **1.2** = average + 20%) or
+  base × its sell multiplier (food **0.5**, horses **0.8** = average − 20%). Getting richer = raise one multiplier.
 - The steward buys an item only at a marginal price ≤ its final max buy; it sells only at a
   marginal price ≥ its final min sell. An EMPTY base (no typed value, auto-fill off) means: buy —
   not bought unless a role cap covers it (animals, §2.2–2.4), sell — any price.
@@ -390,7 +396,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   (3 types) … +7 (9 types, the vanilla maximum).
 - **Allowed** food = Buy-ticked in the Prices tab AND marginal price ≤ its final max buy price
   (§1.3). **[Anton 2026.09.27]** replaces the old `FoodMaxPricePercent` (120) and
-  `FoodMaxUnitPrice` (100) — the 120% lives on as `BuyPriceMultiplier` = 1.2.
+  `FoodMaxUnitPrice` (100) — the 120% lived on as `BuyPriceMultiplier` = 1.2; **[Anton 2026.09.28, round 4]** food has its own
+  `FoodBuyPriceMultiplier` **2.0** and `FoodSellPriceMultiplier` **0.5** now (grain at 10 is bought up to 20).
 - **Buy**: while held < target and budget allows — pick the allowed type the party holds the
   FEWEST of (variety first: every distinct food type lifts morale), ties → cheapest; buy one;
   repeat. `FoodStrategy = Balanced` (default) or `Cheapest` (always the cheapest type).
@@ -940,8 +947,10 @@ troop / hero, the count and the expected unit prices.
 | Food | FoodStrategy | Balanced | Balanced / Cheapest | Balanced (variety first) or Cheapest |
 | Food | SellFoodSurplus | true | — | sell food above target + tolerance |
 | Food | FoodSurplusTolerancePercent | 25 | 0–500 | how far above target before selling |
-| Prices | BuyPriceMultiplier | 1.2 | 0.1–10 | final max buy = base × this **[Anton]** |
-| Prices | SellPriceMultiplier | 0.8 | 0–10 | final min sell = base × this **[Anton]** |
+| Prices | FoodBuyPriceMultiplier | 2.0 | 0.1–10 | FOOD: final max buy = base × this ("grain at 10 → up to 20") **[Anton 2026.09.28, round 4]** |
+| Prices | FoodSellPriceMultiplier | 0.5 | 0–10 | FOOD: final min sell = base × this (0 = any price) **[Anton 2026.09.28, round 4]** |
+| Prices | HorseBuyPriceMultiplier | 1.2 | 0.1–10 | HORSES (pack, riding, war, noble): final max buy = base × this — was `BuyPriceMultiplier` (for food too) until round 4; an old file's key carries over once (logged) **[Anton]** |
+| Prices | HorseSellPriceMultiplier | 0.8 | 0–10 | HORSES: final min sell = base × this — was `SellPriceMultiplier` **[Anton]** |
 | Prices | AutoFillFoodPrices | true | — | placeholder = average price for food |
 | Prices | AutoFillPackAndMountPrices | true | — | … for pack animals and riding mounts |
 | Prices | AutoFillWarMountPrices | false | — | … for war horses (off: trader's cheat sheet); noble horses always show their sell average (sell only, step 17) |

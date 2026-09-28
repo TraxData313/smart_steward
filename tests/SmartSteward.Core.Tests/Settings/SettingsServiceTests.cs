@@ -96,15 +96,15 @@ public class SettingsServiceTests
     [Fact]
     public void Values_out_of_range_are_clamped_logged_backed_up_and_rewritten()
     {
-        var original = "{ \"BuyPriceMultiplier\": 50, \"Colour\": \"red\" }";
+        var original = "{ \"HorseBuyPriceMultiplier\": 50, \"Colour\": \"red\" }";
         _storage.EditOutside(original);
         _service.Load();
 
-        Assert.Equal(10.0, _service.Current.BuyPriceMultiplier);
+        Assert.Equal(10.0, _service.Current.HorseBuyPriceMultiplier);
         Assert.Equal(original, _storage.Backup);
-        Assert.Contains("\"BuyPriceMultiplier\": 10.0,", _storage.Text);
+        Assert.Contains("\"HorseBuyPriceMultiplier\": 10.0,", _storage.Text);
         Assert.DoesNotContain("Colour", _storage.Text);
-        Assert.Contains(_log, l => l.Contains("BuyPriceMultiplier") && l.Contains("above the maximum"));
+        Assert.Contains(_log, l => l.Contains("HorseBuyPriceMultiplier") && l.Contains("above the maximum"));
         Assert.Contains(_log, l => l.Contains("unknown key \"Colour\""));
     }
 
@@ -224,14 +224,14 @@ public class SettingsServiceTests
 
         Assert.True(_service.Set(Def("SellLoot"), true));
         Assert.True(_service.Set(Def("MountMaxPrice"), 650));
-        Assert.True(_service.Set(Def("BuyPriceMultiplier"), 1.5f)); // MCM hands over floats
+        Assert.True(_service.Set(Def("HorseBuyPriceMultiplier"), 1.5f)); // MCM hands over floats
         Assert.True(_service.Set(Def("FoodStrategy"), 1));
         Assert.True(_service.Set(Def("SellLootOrder"), "mostexpensive"));
 
         var s = _service.Current;
         Assert.True(s.SellLoot);
         Assert.Equal(650, s.MountMaxPrice);
-        Assert.Equal(1.5, s.BuyPriceMultiplier);
+        Assert.Equal(1.5, s.HorseBuyPriceMultiplier);
         Assert.Equal(FoodStrategy.Cheapest, s.FoodStrategy);
         Assert.Equal(SellLootOrder.MostExpensive, s.SellLootOrder);
         Assert.Equal(5, _changes);
@@ -246,7 +246,7 @@ public class SettingsServiceTests
         var writes = _storage.Writes;
 
         Assert.False(_service.Set(Def("ModEnabled"), true));
-        Assert.False(_service.Set(Def("BuyPriceMultiplier"), 1.2));
+        Assert.False(_service.Set(Def("HorseBuyPriceMultiplier"), 1.2));
         Assert.False(_service.Set(Def("FoodStrategy"), FoodStrategy.Balanced));
 
         Assert.Equal(writes, _storage.Writes);
@@ -258,9 +258,9 @@ public class SettingsServiceTests
     {
         _service.Load();
         _service.Set(Def("WarMountsToKeep"), 5000);
-        _service.Set(Def("SellPriceMultiplier"), -3.0);
+        _service.Set(Def("HorseSellPriceMultiplier"), -3.0);
         Assert.Equal(500, _service.Current.WarMountsToKeep);
-        Assert.Equal(0.0, _service.Current.SellPriceMultiplier);
+        Assert.Equal(0.0, _service.Current.HorseSellPriceMultiplier);
     }
 
     [Fact]

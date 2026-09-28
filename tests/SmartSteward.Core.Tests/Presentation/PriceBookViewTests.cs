@@ -55,17 +55,17 @@ public class PriceBookViewTests
         Assert.Equal("", view.BuyBaseText);
         Assert.Equal("11", view.BuyPlaceholder);
         Assert.Equal("7", view.SellPlaceholder);
-        Assert.Equal("× 1.2", view.BuyMultiplier);
-        Assert.Equal("× 0.8", view.SellMultiplier);
-        Assert.Equal("13", view.BuyFinal);  // [11] × 1.2 → 13 (DESIGN §1.3)
-        Assert.Equal("6", view.SellFinal);  // [7] × 0.8 → 6
+        Assert.Equal("× 2", view.BuyMultiplier);   // food's own multipliers since round 4
+        Assert.Equal("× 0.5", view.SellMultiplier);
+        Assert.Equal("22", view.BuyFinal);  // [11] × 2.0 → 22
+        Assert.Equal("4", view.SellFinal);  // [7] × 0.5 = 3.5 → 4 (halves up)
         Assert.False(view.HasTypedBase);
     }
 
     [Fact]
     public void A_typed_base_replaces_the_placeholder_in_the_final()
     {
-        var s = new StewardSettings { BuyPriceMultiplier = 2 };
+        var s = new StewardSettings { FoodBuyPriceMultiplier = 2 };
         PriceBookEditor.SetBuyBase(s, "grain", 20);
         var view = PriceRowView.Of("grain", PriceBookGroup.Food, s, Grain);
         Assert.Equal("20", view.BuyBaseText);
@@ -96,7 +96,24 @@ public class PriceBookViewTests
         PriceBookEditor.SetBuy(s, "grain", false);
         var view = PriceRowView.Of("grain", PriceBookGroup.Food, s, Grain);
         Assert.False(view.BuyTicked);
-        Assert.Equal("13", view.BuyFinal);
+        Assert.Equal("22", view.BuyFinal);
+    }
+
+    [Fact]
+    public void Food_rows_show_the_food_multipliers_and_horse_rows_the_horse_ones()
+    {
+        var s = new StewardSettings { FoodBuyPriceMultiplier = 3, FoodSellPriceMultiplier = 0.25, HorseBuyPriceMultiplier = 1.5, HorseSellPriceMultiplier = 0.7, AutoFillWarMountPrices = true };
+        var food = PriceRowView.Of("grain", PriceBookGroup.Food, s, Grain);
+        Assert.Equal("× 3", food.BuyMultiplier);
+        Assert.Equal("× 0.25", food.SellMultiplier);
+        Assert.Equal("33", food.BuyFinal);
+        foreach (var group in new[] { PriceBookGroup.PackAnimals, PriceBookGroup.Mounts, PriceBookGroup.WarMounts, PriceBookGroup.NobleHorses })
+        {
+            var horse = PriceRowView.Of("x", group, s, new AveragePrices(200, 100));
+            Assert.Equal("× 1.5", horse.BuyMultiplier);
+            Assert.Equal("× 0.7", horse.SellMultiplier);
+            Assert.Equal("70", horse.SellFinal);
+        }
     }
 
     [Fact]

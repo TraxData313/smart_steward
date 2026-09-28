@@ -183,7 +183,7 @@ public class FoodPlannerTests
         s.Snap.AveragePrices["grain"] = new(10, 8);
         Assert.Equal(0, s.Plan().Row("food:grain").Change);
 
-        s.Settings.BuyPriceMultiplier = 1.3; // "getting richer = raise one multiplier"
+        s.Settings.FoodBuyPriceMultiplier = 1.3; // "getting richer = raise one multiplier"
         Assert.Equal(20, s.Plan().Row("food:grain").Change);
     }
 

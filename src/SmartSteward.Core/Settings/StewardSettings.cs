@@ -37,13 +37,13 @@ namespace SmartSteward.Core.Settings
         /// <summary>Buy tick — the steward may buy this item. Null = default (ticked).</summary>
         public bool? Buy { get; set; }
 
-        /// <summary>Typed base of the max buy price (final = base × BuyPriceMultiplier). Null = placeholder.</summary>
+        /// <summary>Typed base of the max buy price (final = base × the group's buy multiplier: food or horses). Null = placeholder.</summary>
         public int? BuyBase { get; set; }
 
         /// <summary>Sell tick — the steward may sell this item. Null = default (ticked).</summary>
         public bool? Sell { get; set; }
 
-        /// <summary>Typed base of the min sell price (final = base × SellPriceMultiplier). Null = placeholder.</summary>
+        /// <summary>Typed base of the min sell price (final = base × the group's sell multiplier). Null = placeholder.</summary>
         public int? SellBase { get; set; }
 
         /// <summary>True when nothing is overridden — such an entry need not be stored.</summary>
@@ -101,10 +101,16 @@ namespace SmartSteward.Core.Settings
         public int FoodSurplusTolerancePercent { get; set; } = 25;
 
         // ── Prices (DESIGN §1.3) ─────────────────────────────────────────────────────────────────
-        /// <summary>Final max buy = base × this (range 0.1–10).</summary>
-        public double BuyPriceMultiplier { get; set; } = 1.2;
-        /// <summary>Final min sell = base × this (range 0–10).</summary>
-        public double SellPriceMultiplier { get; set; } = 0.8;
+        /// <summary>FOOD: final max buy = base × this (range 0.1–10). Round 4 (Anton 2026.09.28: "food prices multipliers set from
+        /// 0.5 to 2, grain costs 10 up to 20 id be happy to buy"): food has multipliers of its own.</summary>
+        public double FoodBuyPriceMultiplier { get; set; } = 2.0;
+        /// <summary>FOOD: final min sell = base × this (range 0–10).</summary>
+        public double FoodSellPriceMultiplier { get; set; } = 0.5;
+        /// <summary>HORSES (pack animals, riding, war and noble horses): final max buy = base × this (range 0.1–10) — the old
+        /// BuyPriceMultiplier, renamed in round 4 (a settings file's old key carries over once).</summary>
+        public double HorseBuyPriceMultiplier { get; set; } = 1.2;
+        /// <summary>HORSES: final min sell = base × this (range 0–10) — the old SellPriceMultiplier.</summary>
+        public double HorseSellPriceMultiplier { get; set; } = 0.8;
         public bool AutoFillFoodPrices { get; set; } = true;
         public bool AutoFillPackAndMountPrices { get; set; } = true;
         public bool AutoFillWarMountPrices { get; set; } = false;

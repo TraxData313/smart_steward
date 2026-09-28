@@ -41,10 +41,10 @@ namespace SmartSteward.Core.Pricing
         public int? SellBase { get; internal set; }
         public bool SellBaseIsPlaceholder { get; internal set; }
 
-        /// <summary>base × BuyPriceMultiplier, rounded; null when the base is empty.</summary>
+        /// <summary>base × the group's buy multiplier (<see cref="PriceBook.BuyMultiplier"/>), rounded; null when the base is empty.</summary>
         public int? FinalMaxBuy { get; internal set; }
 
-        /// <summary>base × SellPriceMultiplier, rounded; null when the base is empty (= any price).</summary>
+        /// <summary>base × the group's sell multiplier, rounded; null when the base is empty (= any price).</summary>
         public int? FinalMinSell { get; internal set; }
     }
 
@@ -124,11 +124,20 @@ namespace SmartSteward.Core.Pricing
             }
 
             if (prices.BuyBase != null)
-                prices.FinalMaxBuy = Final(prices.BuyBase.Value, settings.BuyPriceMultiplier);
+                prices.FinalMaxBuy = Final(prices.BuyBase.Value, BuyMultiplier(group, settings));
             if (prices.SellBase != null)
-                prices.FinalMinSell = Final(prices.SellBase.Value, settings.SellPriceMultiplier);
+                prices.FinalMinSell = Final(prices.SellBase.Value, SellMultiplier(group, settings));
             return prices;
         }
+
+        /// <summary>The buy multiplier of a group: food has its own (round 4 — Anton 2026.09.28: ×2.0), every horse group
+        /// the horse one (×1.2).</summary>
+        public static double BuyMultiplier(PriceBookGroup group, StewardSettings settings) =>
+            group == PriceBookGroup.Food ? settings.FoodBuyPriceMultiplier : settings.HorseBuyPriceMultiplier;
+
+        /// <summary>The sell multiplier of a group: food ×0.5, horses ×0.8 by default.</summary>
+        public static double SellMultiplier(PriceBookGroup group, StewardSettings settings) =>
+            group == PriceBookGroup.Food ? settings.FoodSellPriceMultiplier : settings.HorseSellPriceMultiplier;
 
         public static bool AutoFills(PriceBookGroup group, StewardSettings settings)
         {

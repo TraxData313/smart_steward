@@ -185,8 +185,8 @@ public class SettingsTests
         Assert.True(food.BuyTicked && food.SellTicked);
         Assert.Equal(100, food.BuyBase);
         Assert.True(food.BuyBaseIsPlaceholder);
-        Assert.Equal(120, food.FinalMaxBuy);
-        Assert.Equal(40, food.FinalMinSell);
+        Assert.Equal(200, food.FinalMaxBuy);  // food: × 2.0 (round 4)
+        Assert.Equal(25, food.FinalMinSell);  // food: × 0.5
 
         // War mounts do not auto-fill by default: empty bases.
         var war = PriceBook.Resolve("charger", PriceBookGroup.WarMounts, settings, avg);
@@ -195,7 +195,7 @@ public class SettingsTests
         Assert.Null(war.FinalMinSell);
 
         settings.PriceBook["charger"] = new PriceBookEntry { BuyBase = 1500, Sell = false };
-        settings.BuyPriceMultiplier = 2;
+        settings.HorseBuyPriceMultiplier = 2;
         war = PriceBook.Resolve("charger", PriceBookGroup.WarMounts, settings, avg);
         Assert.Equal(1500, war.BuyBase);
         Assert.False(war.BuyBaseIsPlaceholder);

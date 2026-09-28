@@ -106,7 +106,7 @@ public class SettingsRegistryTests
         var gold = (IntSetting)SettingsRegistry.Find("MinGoldAfterDeal")!;
         Assert.Equal(gold.Help + " Default: 1,000. Range: 0 to 1,000,000.", gold.Hint);
 
-        var multiplier = (FloatSetting)SettingsRegistry.Find("BuyPriceMultiplier")!;
+        var multiplier = (FloatSetting)SettingsRegistry.Find("HorseBuyPriceMultiplier")!;
         Assert.EndsWith(" Default: 1.2. Range: 0.1 to 10.0.", multiplier.Hint);
         var days = (IntSetting)SettingsRegistry.Find("FoodDays")!;
         Assert.EndsWith(" Default: 40. Range: 1 to 365.", days.Hint);
@@ -140,20 +140,20 @@ public class SettingsRegistryTests
     [Fact]
     public void Float_settings_clamp_round_and_refuse_nonsense()
     {
-        var multiplier = (FloatSetting)SettingsRegistry.Find("BuyPriceMultiplier")!;
+        var multiplier = (FloatSetting)SettingsRegistry.Find("HorseBuyPriceMultiplier")!;
         var s = new StewardSettings();
         multiplier.Set(s, 1.2f); // what MCM's float slider hands over: 1.2000000476837158
-        Assert.Equal(1.2, s.BuyPriceMultiplier);
+        Assert.Equal(1.2, s.HorseBuyPriceMultiplier);
         multiplier.Set(s, 0.0);
-        Assert.Equal(0.1, s.BuyPriceMultiplier);
+        Assert.Equal(0.1, s.HorseBuyPriceMultiplier);
         multiplier.Set(s, 55);
-        Assert.Equal(10, s.BuyPriceMultiplier);
+        Assert.Equal(10, s.HorseBuyPriceMultiplier);
         multiplier.Set(s, 1.23456);
-        Assert.Equal(1.23, s.BuyPriceMultiplier);
+        Assert.Equal(1.23, s.HorseBuyPriceMultiplier);
         multiplier.Set(s, double.NaN);
-        Assert.Equal(1.2, s.BuyPriceMultiplier);
+        Assert.Equal(1.2, s.HorseBuyPriceMultiplier);
         multiplier.Set(s, double.PositiveInfinity);
-        Assert.Equal(1.2, s.BuyPriceMultiplier);
+        Assert.Equal(1.2, s.HorseBuyPriceMultiplier);
         Assert.Equal("1.25", multiplier.Format(1.25));
         Assert.Equal("10.0", multiplier.Format(10));
     }

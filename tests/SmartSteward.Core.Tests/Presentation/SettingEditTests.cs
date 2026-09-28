@@ -23,7 +23,7 @@ public class SettingEditTests
     {
         var s = new StewardSettings();
         var gold = (IntSetting)SettingsRegistry.Find("MinGoldAfterDeal")!;
-        var food = (FloatSetting)SettingsRegistry.Find("BuyPriceMultiplier")!;
+        var food = (FloatSetting)SettingsRegistry.Find("HorseBuyPriceMultiplier")!;
         var manual = (IntSetting)SettingsRegistry.Find("FoodSurplusTolerancePercent")!;
         var negative = new IntSetting("Negative", SettingsRegistry.General, "Negative", "A range below zero.", -1, 500,
             _ => -1, (_, _) => { });
@@ -42,7 +42,7 @@ public class SettingEditTests
     public void Typed_values_are_read_and_the_service_clamps_them()
     {
         var gold = SettingsRegistry.Find("MinGoldAfterDeal")!;
-        var food = SettingsRegistry.Find("BuyPriceMultiplier")!;
+        var food = SettingsRegistry.Find("HorseBuyPriceMultiplier")!;
         Assert.True(SettingEdit.TryRead(gold, "2,500", out var g));
         Assert.Equal(2500L, g);
         Assert.True(SettingEdit.TryRead(food, "1,5", out var f));

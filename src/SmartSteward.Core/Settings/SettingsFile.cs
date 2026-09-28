@@ -65,11 +65,14 @@ namespace SmartSteward.Core.Settings
 
         /// <summary>Keys that were renamed (old → new, old names case-insensitive): a file that still has the old name
         /// keeps its value under the new one, once — the rewrite drops the old name.
-        /// AutoExecute became the Full-autonomous steward in PLAN step 8 (DESIGN §6).</summary>
+        /// AutoExecute became the Full-autonomous steward in PLAN step 8 (DESIGN §6); round 4 (step 20) gave food multipliers of
+        /// its own, so the old pair became the HORSE multipliers.</summary>
         public static readonly IReadOnlyDictionary<string, string> RenamedKeys =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["AutoExecute"] = nameof(StewardSettings.AutonomousSteward),
+                ["BuyPriceMultiplier"] = nameof(StewardSettings.HorseBuyPriceMultiplier),
+                ["SellPriceMultiplier"] = nameof(StewardSettings.HorseSellPriceMultiplier),
             };
 
         /// <summary>A key whose value changes its unit on the way to its new name.</summary>

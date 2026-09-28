@@ -117,11 +117,11 @@ static class Program
         Check((int)P("MountMaxPrice").PropertyReference.Value == 777, "int reads the live value");
         P("SellLoot").PropertyReference.Value = true;
         Check(service.Current.SellLoot && storage.Text.Contains("\"SellLoot\": true"), "bool write reaches the service and the file");
-        P("BuyPriceMultiplier").PropertyReference.Value = 1.5f;
-        Check(service.Current.BuyPriceMultiplier == 1.5 && (float)P("BuyPriceMultiplier").PropertyReference.Value == 1.5f,
+        P("HorseBuyPriceMultiplier").PropertyReference.Value = 1.5f;
+        Check(service.Current.HorseBuyPriceMultiplier == 1.5 && (float)P("HorseBuyPriceMultiplier").PropertyReference.Value == 1.5f,
             "float write, read back as float");
-        P("SellPriceMultiplier").PropertyReference.Value = 0.7f;
-        Check(service.Current.SellPriceMultiplier == 0.7, "float 0.7f is stored as 0.7 (" + service.Current.SellPriceMultiplier + ")");
+        P("HorseSellPriceMultiplier").PropertyReference.Value = 0.7f;
+        Check(service.Current.HorseSellPriceMultiplier == 0.7, "float 0.7f is stored as 0.7 (" + service.Current.HorseSellPriceMultiplier + ")");
         P("FoodDays").PropertyReference.Value = 55;
         Check(service.Current.FoodDays == 55 && storage.Text.Contains("\"FoodDays\": 55"), "the food goal in days: an int");
         P("PackAnimalsTarget").PropertyReference.Value = 9999;
@@ -157,7 +157,7 @@ static class Program
         Check((bool)values["SellLoot"] == false, "Default preset: SellLoot off (current was on)");
         foreach (var pair in values)
             P(pair.Key).PropertyReference.Value = pair.Value;
-        Check(service.Current.MountMaxPrice == 500 && service.Current.BuyPriceMultiplier == 1.2 && !service.Current.SellLoot
+        Check(service.Current.MountMaxPrice == 500 && service.Current.HorseBuyPriceMultiplier == 1.2 && !service.Current.SellLoot
               && service.Current.PackAnimalsTarget == 10, "applying the Default preset resets the live settings");
         Check(service.Current.FoodStrategy == FoodStrategy.Balanced, "... dropdowns included (" + service.Current.FoodStrategy + ")");
     }

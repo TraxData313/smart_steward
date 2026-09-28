@@ -163,14 +163,14 @@ public class SettingsFileTests
     {
         var s = new StewardSettings
         {
-            BuyPriceMultiplier = double.NaN,
+            HorseBuyPriceMultiplier = double.NaN,
             MinGoldAfterDeal = -40,
             PackAnimalsTarget = int.MaxValue,
             PriceBook = null!,
         };
         var parsed = SettingsFile.Parse(SettingsFile.Generate(s));
         Assert.False(parsed.Unreadable);
-        Assert.Equal(1.2, parsed.Settings.BuyPriceMultiplier);
+        Assert.Equal(1.2, parsed.Settings.HorseBuyPriceMultiplier);
         Assert.Equal(0, parsed.Settings.MinGoldAfterDeal);
         Assert.Equal(500, parsed.Settings.PackAnimalsTarget);
         Assert.Empty(parsed.Settings.PriceBook);
@@ -281,10 +281,10 @@ public class SettingsFileTests
     }
 
     [Theory]
-    [InlineData("BuyPriceMultiplier", "0", 0.1, "below the minimum")]
-    [InlineData("SellPriceMultiplier", "12.5", 10.0, "above the maximum")]
-    [InlineData("SellPriceMultiplier", "-1", 0.0, "below the minimum")]
-    [InlineData("BuyPriceMultiplier", "1e9", 10.0, "above the maximum")]
+    [InlineData("HorseBuyPriceMultiplier", "0", 0.1, "below the minimum")]
+    [InlineData("HorseSellPriceMultiplier", "12.5", 10.0, "above the maximum")]
+    [InlineData("HorseSellPriceMultiplier", "-1", 0.0, "below the minimum")]
+    [InlineData("HorseBuyPriceMultiplier", "1e9", 10.0, "above the maximum")]
     public void Decimals_out_of_range_are_clamped_and_reported(string key, string json, double expected, string why)
     {
         var parsed = ParseOne(key, json);
@@ -297,8 +297,8 @@ public class SettingsFileTests
     [Fact]
     public void Decimals_are_kept_to_two_places_silently()
     {
-        var parsed = ParseOne("BuyPriceMultiplier", "1.23456");
-        Assert.Equal(1.23, parsed.Settings.BuyPriceMultiplier);
+        var parsed = ParseOne("HorseBuyPriceMultiplier", "1.23456");
+        Assert.Equal(1.23, parsed.Settings.HorseBuyPriceMultiplier);
         Assert.Empty(parsed.Problems);
     }
 
@@ -310,9 +310,9 @@ public class SettingsFileTests
     [InlineData("MinGoldAfterDeal", "10.5")]
     [InlineData("MinGoldAfterDeal", "true")]
     [InlineData("MinGoldAfterDeal", "[ 1 ]")]
-    [InlineData("BuyPriceMultiplier", "\"2\"")]
-    [InlineData("BuyPriceMultiplier", "NaN")]
-    [InlineData("BuyPriceMultiplier", "{ }")]
+    [InlineData("HorseBuyPriceMultiplier", "\"2\"")]
+    [InlineData("HorseBuyPriceMultiplier", "NaN")]
+    [InlineData("HorseBuyPriceMultiplier", "{ }")]
     [InlineData("FoodStrategy", "1")]
     [InlineData("FoodStrategy", "\"Fancy\"")]
     [InlineData("SellLootOrder", "null")]

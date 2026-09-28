@@ -165,14 +165,22 @@ namespace SmartSteward.Core.Settings
                 0, 500, s => s.FoodSurplusTolerancePercent, (s, v) => s.FoodSurplusTolerancePercent = v),
 
             // ── Prices ───────────────────────────────────────────────────────────────────────────
-            new FloatSetting(nameof(StewardSettings.BuyPriceMultiplier), Prices, "Buy price multiplier",
-                "Max buy price = the item's base price (Prices tab) times this. 1.2 pays up to 20% over the average. "
-                + "Richer now? Raise it.",
-                0.1, 10, 2, s => s.BuyPriceMultiplier, (s, v) => s.BuyPriceMultiplier = v),
-            new FloatSetting(nameof(StewardSettings.SellPriceMultiplier), Prices, "Sell price multiplier",
-                "Min sell price = the item's base price (Prices tab) times this. 0.8 sells at 80% of the average sell "
-                + "price or better; 0 sells at any price.",
-                0, 10, 2, s => s.SellPriceMultiplier, (s, v) => s.SellPriceMultiplier = v),
+            new FloatSetting(nameof(StewardSettings.FoodBuyPriceMultiplier), Prices, "Food buy price multiplier",
+                "Max buy price of a food = its base price (Prices tab) times this. 2.0 pays up to twice the average - "
+                + "grain at 10 is bought up to 20. Food is cheap and keeps the party alive, so this is generous.",
+                0.1, 10, 2, s => s.FoodBuyPriceMultiplier, (s, v) => s.FoodBuyPriceMultiplier = v),
+            new FloatSetting(nameof(StewardSettings.FoodSellPriceMultiplier), Prices, "Food sell price multiplier",
+                "Min sell price of a food = its base price (Prices tab) times this. 0.5 sells surplus food at half the "
+                + "average sell price or better; 0 sells at any price.",
+                0, 10, 2, s => s.FoodSellPriceMultiplier, (s, v) => s.FoodSellPriceMultiplier = v),
+            new FloatSetting(nameof(StewardSettings.HorseBuyPriceMultiplier), Prices, "Horse buy price multiplier",
+                "Max buy price of a horse, mule or camel = its base price (Prices tab) times this. 1.2 pays up to 20% over "
+                + "the average. Richer now? Raise it.",
+                0.1, 10, 2, s => s.HorseBuyPriceMultiplier, (s, v) => s.HorseBuyPriceMultiplier = v),
+            new FloatSetting(nameof(StewardSettings.HorseSellPriceMultiplier), Prices, "Horse sell price multiplier",
+                "Min sell price of a horse, mule or camel = its base price (Prices tab) times this. 0.8 sells at 80% of the "
+                + "average sell price or better; 0 sells at any price.",
+                0, 10, 2, s => s.HorseSellPriceMultiplier, (s, v) => s.HorseSellPriceMultiplier = v),
             new BoolSetting(nameof(StewardSettings.AutoFillFoodPrices), Prices, "Average prices for food",
                 "Food you gave no price in the Prices tab uses its average price as the base.",
                 s => s.AutoFillFoodPrices, (s, v) => s.AutoFillFoodPrices = v),
@@ -186,8 +194,8 @@ namespace SmartSteward.Core.Settings
                 s => s.AutoFillWarMountPrices, (s, v) => s.AutoFillWarMountPrices = v),
             new PriceBookSetting(nameof(StewardSettings.PriceBook), Prices, "Price book",
                 "Your own prices and ticks from the Prices tab, by item id - only what you changed. Each item may have "
-                + "\"Buy\": false (never buy it), \"BuyBase\": your max buy price before the buy multiplier, "
-                + "\"Sell\": false (never sell it), \"SellBase\": your min sell price before the sell multiplier. "
+                + "\"Buy\": false (never buy it), \"BuyBase\": your max buy price before its buy multiplier (food or "
+                + "horse), \"Sell\": false (never sell it), \"SellBase\": your min sell price before its sell multiplier. "
                 + "Leave a field out to use the default (ticked, average price).\n"
                 + "Example: \"grain\": { \"BuyBase\": 12, \"Sell\": false }"),
 
