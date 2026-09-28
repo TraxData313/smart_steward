@@ -99,7 +99,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               drives the file, MCM and the Instructions tab; SettingsFile = the commented
                               settings.json (Generate / Parse, Newtonsoft 13.0.1 compile-only — the game's
                               copy runs); SettingsService = the live values (load, reload-if-changed, save
-                              on change, Changed)
+                              on change, Changed; SaveQuietly = saved, NOT announced — the goal edits, step 22);
+                              ManualGoals + GoalEdit (step 22) = the standing goals by row id (food:<id>, mounts:pack /
+                              riding / war) in settings.json's commented "Goals" object
   Snapshot/                   StewardSnapshot — the game-free input the Module fills; LootGroups table;
                               GameRules = the pure rules the adapter applies (stack key item|modifier, lock id,
                               item kind, bad modifier (step 17), average prices, donate rule, wounded first)
@@ -132,7 +134,12 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               JobThresholds (step 20) = the activation thresholds (a job acts only from its purse before the deal:
                               PlanContext.JobActive, PlanRow.StartsAtDenari, PlanFacts.Waiting); PlanMetrics (step 20) = the
                               spreadsheet's number columns per row (Denari, Influence, Party, Prisoners, Land kg, Sea kg), summed;
-                              Overburden + CarryTotals.ComputeSlowdown (step 20) = the game's overburden slowdown, land and sea (RESEARCH §25)
+                              Overburden + CarryTotals.ComputeSlowdown (step 20) = the game's overburden slowdown, land and sea (RESEARCH §25);
+                              THE GOAL (step 22, DESIGN §1.1): a manual goal IS a live re-plan pin (PlanContext.PinOf: goal − Mine,
+                              walked first — touched = has a goal for food / pack / riding / war rows), MoneyFloors.ForGoals + the
+                              rows' hand lanes (HandBuyLane/HandSellLane) = the three "Goals you set by hand" switches; a click on
+                              such a row is a goal edit (StewardPlan.SetGoal / Reset / TakeGoalEdits — every goal edit re-plans);
+                              RowGoal = a row's Goal cell (value, editable, yours, hands-off -*, GoalShort = why a Result stops short)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
@@ -150,7 +157,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               cheapest first; SheetView (step 21) = the lines ON SCREEN built from the sheet after every click: every
                               cell as text + colour, the notes after the names, the Denari tooltips, every button's live block (a troop
                               row under its line shows only its side), the folds applied — a folded part is never asked for blocks;
-                              SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults.
+                              SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults;
+                              SheetGoalCell (step 22) = the Goal column per line and title line (SheetItem.Goal, SheetSectionView.Goal /
+                              Mine / MineWarning) — step 23's window binds it.
                               Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
@@ -187,6 +196,8 @@ tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xm
                               Planning/PlanPerformanceTests = a big late-game plan, open + clicks timed;
                               Planning/LivePlanTests = the live re-plan (plan → edit the party → Do it → nothing new; troops,
                               a village too); Planning/TroopPlanTests = the troops section (step 16);
+                              Planning/GoalPlanTests, Presentation/SheetGoalTests, Settings/GoalsSettingsTests = the goals (step 22;
+                              the test kit's LegacyDefaults keeps ManualGoalsKeepPurseFloor off, the pre-round-5 way);
                               Snapshot/, Execution/ = the adapter's pure half; StringsFileTests = the strings file ↔
                               the code (SS_WRITE_STRINGS=1 dotnet test --filter StringsFileTests regenerates it)
 module/SubModule.xml          the manifest

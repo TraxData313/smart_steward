@@ -354,3 +354,22 @@ column). Close to the mockup, not a copy: more polish rounds follow — say what
 9. **Prices tab.** The top line: `Food buy × [2] sell × [0.5]   Horses buy × [1.2] sell × [0.8]` — type in each; the food lines
    follow the food pair, the horse lines the horse pair. Cheapest first inside each group.
 10. **Speed.** Open Your troops with a big party and click fast: no stutter (the benchmark says 0–15 ms a click).
+
+## Step 22 — round 5, the goals' Core under the step-21 window (deployed 2026.09.28)
+
+The Goal COLUMN is step 23; this install already plans with the goals. What you can try now:
+
+1. **A click on a food or pack / riding / war row is a standing order.** Click [+] on Grain in one town, leave, enter another
+   town: Grain aims at the same Result there (the ⟲ shows on it). `settings.json` has it under `"Goals"` (`"food:grain": 60`).
+   The ⟲ gives the row back to the steward (the key goes from the file). Reset all keeps the goals — only their own ⟲ clears them.
+2. **The steward fills the rest.** Raise one food: the steward's other food rows shrink so the days goal still holds; lower
+   it and they grow.
+3. **Goals you set by hand** — a new Instructions group (and in Mod Options): "Your goals wait for the thresholds" (off),
+   "Your goals keep the purse floors" (on), "Your goals obey the price limits" (on). With the floor on, a food [+] greys at
+   `Always keep` (hover: "…below the floor your goals keep") — until now a hand edit went below the floor with a red flag.
+4. **Below a threshold** (e.g. under 2,000 denari for food) a goal you set still buys; switch "wait for the thresholds" on and
+   it waits (its buttons grey, hover says why).
+5. **Weight, not kg.** The column heads read `Land weight` / `Sea weight`; the slowdown hover and "lowest price per weight"
+   have no kg left. An old settings.json with `"LowestPricePerKg"` is read and rewritten as `"LowestPricePerWeight"`.
+6. **Hand-edit settings.json**: put `"Goals": { "mounts:war": 15 }` in while the game runs, reopen the window — the war horses
+   aim at 15. A junk key (`"mounts:noble": 3`) is dropped with a line in smart_steward.log (and a settings.json.bak).

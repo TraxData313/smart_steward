@@ -50,10 +50,11 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   Total row, header denari + influence, footer weight table with the vanilla speed icon, colours by meaning, "denari" everywhere,
   hint moved to Instructions, Prices tab cheapest first, prisoner tiers + Encyclopedia
   - [ ] Deployed at the end of step 21 (the game was closed — the install carries steps 12–21), then playtest — checklist in docs/PLAYTEST.md "Step 21 — the spreadsheet"
-- [ ] 22. Round 5 CORE — the GOAL (docs/feedback/2026-09-28-round5.md): a Goal per line (troops = party limit, prisoners/other 0,
+- [x] 22. Round 5 CORE — the GOAL (docs/feedback/2026-09-28-round5.md): a Goal per line (troops = party limit, prisoners/other 0,
   food + pack/riding/war typed by hand = STANDING orders in settings.json until ⟲, the policy fills the rest, "-*" below a job's
   threshold), [-]/[+] on food & horse rows edit the goal, "Goals you set by hand" switches (thresholds / purse floor / price caps),
   weight without "kg" — DESIGN first, then Core + settings + tests
+  - [ ] Deployed at the end of step 22 (the game was closed — the install carries steps 12–22), then playtest — checklist in docs/PLAYTEST.md "Step 22" (the Goal column is step 23)
 - [ ] 23. Round 5 WINDOW — columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight;
   typed goal boxes with ⟲, the "-*" hover, troops Mine red over the limit, the Instructions info lines + the new group; deploy + PLAYTEST
 
@@ -92,6 +93,9 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Footer = only the weight table: Land / Sea × before · change · after · capacity · left · slowdown, with the game's own speed icon (the horse; the ship at sea)
 - Every fold remembered (sections, Recruits, Your troops, each horse row, Other goods); the first window opens in the everyday view
 - "denari" in every money text; the "Click ±1 · Shift ±5 · Ctrl all" hint moved to the top of the Instructions tab; the Prices tab has Food's own multiplier boxes beside the horses'
+- Goals: a click on a food, pack, riding or war horse row is a standing order kept in settings.json for every town until its ⟲ — the steward plans around it (Reset all keeps them); the autonomous steward obeys them too
+- Instructions: "Goals you set by hand" — your goals wait for the thresholds (off), keep the purse floors (on), obey the price limits (on)
+- Weight, not kg: "Land weight" / "Sea weight", "lowest price per weight"
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -176,3 +180,8 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 21: "names in gold open the Encyclopedia" keeps "gold" — the colour of the names, not the money (every money text says denari)
 - [ ] Step 21: a closed market's notice (560 px, right of the header line) may touch a long centred Denari header — check at 1080p
 - [ ] Step 21: never seen in game — the Denari-cell tooltip rides a HintWidget on a plain Widget (the Prices tab labels' pattern); check it shows
+- [ ] Step 22: until step 23 shows the Goal column, a click on a food / horse row silently becomes a standing order (saved in settings.json) — the ⟲ is its only sign; do not release between 22 and 23
+- [ ] Step 22: food and horse clicks re-plan now (the policy fills the rest): the benchmark's clicks went 0–15 → 0–30 ms (ResetAll the slowest) — fine under the 100 ms budget; measure in game with a big party
+- [ ] Step 22: a steward's riding row short of its target may show no reason when the war-horse pledge simulation cut its buys (GoalShort None) — rare; say if a Result stops short without a hover
+- [ ] Step 22: SectionSummary's SummaryWords.Kg still says "kg" — dead code since step 21 (see the RowCells / SectionSummary cleanup line), never shown
+- [ ] Release day: the Steam page and README say nothing of goals and still say "A row you edit stays as you set it" — describe the standing goals and "Goals you set by hand"
