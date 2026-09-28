@@ -55,13 +55,14 @@ public class SettingsRegistryTests
     }
 
     [Fact]
-    public void The_only_collection_is_the_price_book()
+    public void The_only_collections_are_the_price_book_and_the_goals()
     {
-        // The prisoner tick-list (PrisonersExcluded) is retired since step 12 - ransom is all or none.
+        // The prisoner tick-list (PrisonersExcluded) is retired since step 12 - ransom is all or none. Round 5 added the goals.
         var collections = SettingsRegistry.All.Where(d => !d.IsScalar).ToList();
-        Assert.Equal(new[] { "PriceBook" }, collections.Select(d => d.Key));
+        Assert.Equal(new[] { "Goals", "PriceBook" }, collections.Select(d => d.Key));
         var settings = new StewardSettings();
-        Assert.Same(settings.PriceBook, collections[0].GetValue(settings));
+        Assert.Same(settings.Goals, collections[0].GetValue(settings));
+        Assert.Same(settings.PriceBook, collections[1].GetValue(settings));
         Assert.Null(SettingsRegistry.Find("PrisonersExcluded"));
     }
 
@@ -163,7 +164,7 @@ public class SettingsRegistryTests
     {
         var order = (EnumSetting)SettingsRegistry.Find("SellLootOrder")!;
         var s = new StewardSettings();
-        Assert.Equal(new[] { "Cheapest", "LowestPricePerKg", "MostExpensive" }, order.Names);
+        Assert.Equal(new[] { "Cheapest", "LowestPricePerWeight", "MostExpensive" }, order.Names);
         Assert.Equal(3, order.Labels.Count);
         Assert.Equal(0, order.DefaultIndex);
 

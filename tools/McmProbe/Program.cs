@@ -88,7 +88,7 @@ static class Program
         var groups = settings.SettingPropertyGroups.Where(g => All(g).Any()).ToList();
         var props = groups.SelectMany(All).ToList();
         var scalars = SettingsRegistry.All.Where(d => d.IsScalar).ToList();
-        Check(groups.Count == 10, groups.Count + " groups with controls (10 expected: every group of DESIGN 7)");
+        Check(groups.Count == SettingsRegistry.Groups.Count, groups.Count + " groups with controls (" + SettingsRegistry.Groups.Count + " expected: every group of DESIGN 7)");
         Check(props.Count == scalars.Count, props.Count + " controls for " + scalars.Count + " scalar settings");
         int wrong = 0;
         foreach (var def in scalars)

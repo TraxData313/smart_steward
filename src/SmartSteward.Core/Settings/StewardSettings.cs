@@ -20,8 +20,9 @@ namespace SmartSteward.Core.Settings
         /// <summary>The cheapest pieces first — the most weight for the market's money.</summary>
         Cheapest,
 
-        /// <summary>The lowest price per kg first (weightless pieces last).</summary>
-        LowestPricePerKg,
+        /// <summary>The lowest price per weight first (weightless pieces last). "LowestPricePerKg" until round 5 (Anton 2026.09.28:
+        /// the game writes weight with no unit) — an old settings file's value is still read (<c>SettingsFile</c>).</summary>
+        LowestPricePerWeight,
 
         /// <summary>The dearest pieces first — vanilla's habit.</summary>
         MostExpensive,
@@ -99,6 +100,21 @@ namespace SmartSteward.Core.Settings
         /// <summary>The purse floor while the steward acts alone: both floors above rise to it
         /// (<c>Planning.MoneyFloors</c>).</summary>
         public int AutonomousMinGold { get; set; } = 100000;
+
+        // ── Goals you set by hand (DESIGN §1.1 "THE GOAL", round 5) ─────────────────────────────────
+        /// <summary>A manual goal waits for its job's activation threshold like the steward (Anton 2026.09.28, round 5). Off
+        /// (the default): your goal acts below it — it is your order.</summary>
+        public bool ManualGoalsWaitForThresholds { get; set; } = false;
+        /// <summary>A manual goal's buys stop at the purse floors — food at MinGoldAfterDeal, animals at the higher animal floor.
+        /// AutonomousMinGold always holds while autonomous, whatever this says (<c>Planning.MoneyFloors.ForGoals</c>).</summary>
+        public bool ManualGoalsKeepPurseFloor { get; set; } = true;
+        /// <summary>A manual goal buys and sells only within the price book (max buy / min sell) and the role caps. Off: at any
+        /// price — the ticks still hold.</summary>
+        public bool ManualGoalsObeyPriceCaps { get; set; } = true;
+        /// <summary>The standing goals typed or clicked in the Suggestion tab, by row id (<c>food:grain</c>, <c>mounts:pack</c>,
+        /// <c>mounts:riding</c>, <c>mounts:war</c>) → the Result the row should end at; a row without one follows the policy
+        /// (<see cref="ManualGoals"/>). Global like the price book, never in the save.</summary>
+        public Dictionary<string, int> Goals { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
 
         // ── Food (DESIGN §2.1) ───────────────────────────────────────────────────────────────────
         public bool FoodEnabled { get; set; } = true;

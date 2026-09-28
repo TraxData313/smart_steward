@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace SmartSteward.Core.Settings
 {
@@ -14,6 +15,10 @@ namespace SmartSteward.Core.Settings
 
         /// <summary>The price book (DESIGN §1.3): item id → the player's overrides. File + Prices tab only.</summary>
         PriceBook,
+
+        /// <summary>The standing goals (DESIGN §1.1 "THE GOAL", round 5): row id → the Result the row should end at. File +
+        /// Suggestion tab only.</summary>
+        Goals,
     }
 
     /// <summary>
@@ -50,8 +55,8 @@ namespace SmartSteward.Core.Settings
         public string Help { get; }
 
         /// <summary>A plain value with its own control (checkbox, number, dropdown). The price book is edited in the
-        /// Party Steward window's Prices tab and is never in MCM.</summary>
-        public bool IsScalar => Kind != SettingKind.PriceBook;
+        /// Party Steward window's Prices tab and the goals in its Suggestion tab — never in MCM.</summary>
+        public bool IsScalar => Kind != SettingKind.PriceBook && Kind != SettingKind.Goals;
 
         /// <summary>The current value, boxed (bool, int, double, the enum or the dictionary).</summary>
         public abstract object GetValue(StewardSettings settings);
@@ -229,11 +234,21 @@ namespace SmartSteward.Core.Settings
         /// <summary>Writes the value at <paramref name="index"/>; an index out of range writes the default.</summary>
         public abstract void SetIndex(StewardSettings settings, int index);
 
-        /// <summary>The index of <paramref name="name"/>, ignoring case; -1 when it is none of <see cref="Names"/>.</summary>
+        /// <summary>Old spellings of values (old name → current name, ignoring case) — a settings file that still says the old
+        /// one reads as the new, silently (nothing is lost; the rewrite spells it anew). Round 5: <c>LowestPricePerKg</c> →
+        /// <c>LowestPricePerWeight</c>.</summary>
+        public IReadOnlyDictionary<string, string> OldNames { get; protected set; } =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>The index of <paramref name="name"/> (or of its old spelling, <see cref="OldNames"/>), ignoring case; -1 when
+        /// it is none of <see cref="Names"/>.</summary>
         public int IndexOf(string name)
         {
+            string wanted = name.Trim();
+            if (OldNames.TryGetValue(wanted, out var renamed))
+                wanted = renamed;
             for (int i = 0; i < Names.Count; i++)
-                if (string.Equals(Names[i], name.Trim(), StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Names[i], wanted, StringComparison.OrdinalIgnoreCase))
                     return i;
             return -1;
         }
@@ -260,11 +275,14 @@ namespace SmartSteward.Core.Settings
         private readonly Action<StewardSettings, TEnum> _set;
 
         public EnumSetting(string key, string group, string label, string help, IReadOnlyList<string> labels,
-            Func<StewardSettings, TEnum> get, Action<StewardSettings, TEnum> set)
+            Func<StewardSettings, TEnum> get, Action<StewardSettings, TEnum> set,
+            IReadOnlyDictionary<string, string>? oldNames = null)
             : base(key, group, label, help, Enum.GetNames(typeof(TEnum)), labels)
         {
             _get = get;
             _set = set;
+            if (oldNames != null)
+                OldNames = new Dictionary<string, string>(oldNames.ToDictionary(p => p.Key, p => p.Value), StringComparer.OrdinalIgnoreCase);
         }
 
         public TEnum Get(StewardSettings settings) => _get(settings);
@@ -301,6 +319,28 @@ namespace SmartSteward.Core.Settings
 
         public override string RangeFileText =>
             "per item id, Buy and Sell true or false, BuyBase and SellBase 0 to " + FormatInt(MaxBase);
+
+        public override string DefaultUiText => "empty";
+    }
+
+    /// <summary>The standing goals (DESIGN §1.1 "THE GOAL", round 5) — row id → the Result the row should end at; only the
+    /// player's goals are stored (<see cref="ManualGoals"/>).</summary>
+    public sealed class GoalsSetting : SettingDefinition
+    {
+        public GoalsSetting(string key, string group, string label, string help)
+            : base(key, SettingKind.Goals, group, label, help)
+        {
+        }
+
+        public Dictionary<string, int> Get(StewardSettings settings) =>
+            settings.Goals ??= new Dictionary<string, int>(StringComparer.Ordinal);
+
+        public override object GetValue(StewardSettings settings) => Get(settings);
+
+        public override string DefaultFileText => "{}";
+
+        public override string RangeFileText =>
+"per row id, a whole number 0 to " + FormatInt(ManualGoals.MaxGoal);
 
         public override string DefaultUiText => "empty";
     }

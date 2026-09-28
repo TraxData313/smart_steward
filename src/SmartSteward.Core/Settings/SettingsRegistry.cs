@@ -17,6 +17,9 @@ namespace SmartSteward.Core.Settings
     {
         public const string General = "General";
         public const string Money = "Money";
+
+        /// <summary>"Goals you set by hand" (round 5) — the switches for the manual goals, and the goals themselves.</summary>
+        public const string Goals = "Goals";
         public const string Food = "Food";
         public const string Prices = "Prices";
         public const string Pack = "Pack";
@@ -38,7 +41,7 @@ namespace SmartSteward.Core.Settings
         /// <summary>The §7 groups in the table's order.</summary>
         public static IReadOnlyList<string> Groups { get; } = new[]
         {
-            General, Money, Food, Prices, Pack, Mounts, WarMounts, Prisoners, Loot, Tavern,
+            General, Money, Goals, Food, Prices, Pack, Mounts, WarMounts, Prisoners, Loot, Tavern,
         };
 
         /// <summary>Every registered setting, in the §7 table's order.</summary>
@@ -47,7 +50,8 @@ namespace SmartSteward.Core.Settings
         private static readonly Dictionary<string, SettingDefinition> ByKey = Index();
 
         /// <summary>The group's heading for players ("Pack" → "Pack animals").</summary>
-        public static string GroupLabel(string group) => group == Pack ? "Pack animals" : group;
+        public static string GroupLabel(string group) =>
+            group == Pack ? "Pack animals" : group == Goals ? "Goals you set by hand" : group;
 
         /// <summary>The setting with this key, ignoring case (a hand-edited file may say "foodperman").</summary>
         public static SettingDefinition? Find(string key) =>
@@ -76,6 +80,13 @@ namespace SmartSteward.Core.Settings
                         foreach (var entry in book.Get(settings).Values)
                             if (entry != null && !entry.IsEmpty) items++;
                         if (items > 0) parts.Add(def.Key + ": " + items + (items == 1 ? " item" : " items"));
+                        break;
+                    case GoalsSetting goals:
+                        var set = goals.Get(settings);
+                        if (set.Count > 0)
+                            parts.Add(def.Key + ": " + string.Join(", ", System.Linq.Enumerable.Select(
+                                System.Linq.Enumerable.OrderBy(set, p => p.Key, StringComparer.Ordinal),
+                                p => p.Key + "=" + p.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))));
                         break;
                     default:
                         var text = SettingsFile.ValueText(def, settings);
@@ -135,6 +146,27 @@ namespace SmartSteward.Core.Settings
                 "While the full-autonomous steward is on, it never takes your purse below this - both floors above "
                 + "rise to it when they are lower. Raise the price limits to let it spend more freely, never this.",
                 0, MaxAutonomousGold, s => s.AutonomousMinGold, (s, v) => s.AutonomousMinGold = v),
+
+            // ── Goals you set by hand (round 5) ─────────────────────────────────────────────────
+            new BoolSetting(nameof(StewardSettings.ManualGoalsWaitForThresholds), Goals, "Your goals wait for the thresholds",
+                "A goal you typed (or clicked) in the Suggestion tab acts even while your purse is below its job's \"Manage ... "
+                + "from\" denari - it is your order. On: your goals wait for those thresholds too, like the steward.",
+                s => s.ManualGoalsWaitForThresholds, (s, v) => s.ManualGoalsWaitForThresholds = v),
+            new BoolSetting(nameof(StewardSettings.ManualGoalsKeepPurseFloor), Goals, "Your goals keep the purse floors",
+                "Buying for your goals stops at the floors above - food at Always keep, horses at Keep before buying animals. "
+                + "Off: your goals may spend below them. While autonomous, Keep while autonomous always holds.",
+                s => s.ManualGoalsKeepPurseFloor, (s, v) => s.ManualGoalsKeepPurseFloor = v),
+            new BoolSetting(nameof(StewardSettings.ManualGoalsObeyPriceCaps), Goals, "Your goals obey the price limits",
+                "Your goals buy only up to the max buy prices (Prices tab) and the max price per animal, and sell only at the "
+                + "min sell prices. Off: they buy and sell at any price. An item unticked in the Prices tab is never traded "
+                + "either way.",
+                s => s.ManualGoalsObeyPriceCaps, (s, v) => s.ManualGoalsObeyPriceCaps = v),
+            new GoalsSetting(nameof(StewardSettings.Goals), Goals, "Goals",
+                "The goals you set in the Suggestion tab - where a row should end after the deal - kept for every town until "
+                + "you click its reset. By row: \"food:\" and the item id for a food, \"mounts:pack\" (pack animals), "
+                + "\"mounts:riding\" (riding horses), \"mounts:war\" (war horses). A row without a goal follows the rules "
+                + "of the Instructions tab.\n"
+                + "Example: \"food:grain\": 60, \"mounts:war\": 15"),
 
             // ── Food ─────────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.FoodEnabled), Food, "Manage food",
@@ -301,9 +333,10 @@ namespace SmartSteward.Core.Settings
                 0, MaxGold, s => s.SellLootMaxItemValue, (s, v) => s.SellLootMaxItemValue = v),
             new EnumSetting<SellLootOrder>(nameof(StewardSettings.SellLootOrder), Loot, "Loot selling order",
                 "Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for "
-                + "the denari), the lowest price per kg, or the most expensive (the game's own habit).",
-                new[] { "Cheapest first", "Lowest price per kg", "Most expensive first" },
-                s => s.SellLootOrder, (s, v) => s.SellLootOrder = v),
+                + "the denari), the lowest price per weight, or the most expensive (the game's own habit).",
+                new[] { "Cheapest first", "Lowest price per weight", "Most expensive first" },
+                s => s.SellLootOrder, (s, v) => s.SellLootOrder = v,
+                new Dictionary<string, string> { ["LowestPricePerKg"] = nameof(SellLootOrder.LowestPricePerWeight) }),
 
             // ── Tavern ───────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.ShowTavern), Tavern, "Show the tavern",

@@ -98,7 +98,7 @@ public class SettingsTests
     public void Enum_values_match_the_design_options()
     {
         Assert.Equal(new[] { "Balanced", "Cheapest" }, Enum.GetNames(typeof(FoodStrategy)));
-        Assert.Equal(new[] { "Cheapest", "LowestPricePerKg", "MostExpensive" }, Enum.GetNames(typeof(SellLootOrder)));
+        Assert.Equal(new[] { "Cheapest", "LowestPricePerWeight", "MostExpensive" }, Enum.GetNames(typeof(SellLootOrder)));
     }
 
     // ── The settings registry (step 5) against the same table: it drives the file, MCM and the
@@ -147,6 +147,9 @@ public class SettingsTests
                     break;
                 case PriceBookSetting:
                     Assert.Equal((0.0, (double)PriceBookSetting.MaxBase), ParseRange(row.Range.Replace("bases ", "")));
+                    break;
+                case GoalsSetting:
+                    Assert.Equal((0.0, (double)ManualGoals.MaxGoal), ParseRange(row.Range.Replace("goals ", "")));
                     break;
                 default:
                     Assert.True(row.Range == "—", $"{row.Key} has no range, but §7 says {row.Range}");

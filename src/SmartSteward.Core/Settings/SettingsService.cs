@@ -161,6 +161,35 @@ namespace SmartSteward.Core.Settings
             return Commit();
         }
 
+        /// <summary>
+        /// An edit whose caller has ALREADY applied it — saved at once like <see cref="Update"/>, but NOT announced through
+        /// <see cref="Changed"/>. The Suggestion tab's goal edits (DESIGN §1.1 "THE GOAL", round 5): the plan keeps its own copy of
+        /// the goals and re-planned itself on the click; announcing would re-plan the window a second time. True when the file's
+        /// values changed.
+        /// </summary>
+        public bool SaveQuietly(Action<StewardSettings> edit)
+        {
+            try
+            {
+                edit(Current);
+            }
+            catch (Exception ex)
+            {
+                _log("settings: an edit failed (" + ex.Message + ") - reloading the saved values");
+                Current = SettingsFile.Parse(_text).Settings;
+                return false;
+            }
+            var normalized = SettingsFile.Parse(SettingsFile.Generate(Current));
+            foreach (var problem in normalized.Problems) _log("settings: " + problem);
+            Current = normalized.Settings;
+            var generated = SettingsFile.Generate(Current);
+            if (generated == _text) return false;
+            TryWrite(generated);
+            _stamp = TryStamp();
+            _text = generated;
+            return true;
+        }
+
         private static bool IsNumber(object value) =>
             value is int || value is long || value is float || value is double || value is decimal
             || value is short || value is byte;

@@ -52,7 +52,7 @@ namespace SmartSteward.UI
             Goods = UiText.S("ss_ui_sheet_goods", "goods"),
             NothingSold = UiText.S("ss_ui_sheet_nothing_sold", "nothing sold"),
             CheapestFirst = UiText.S("ss_ui_sheet_cheapest_first", "cheapest first"),
-            LowestPerKgFirst = UiText.S("ss_ui_sheet_lowest_per_kg", "lowest price per kg first"),
+            LowestPerWeightFirst = UiText.S("ss_ui_sheet_lowest_per_weight", "lowest price per weight first"),
             DearestFirst = UiText.S("ss_ui_sheet_dearest_first", "dearest first"),
             OnOffer = UiText.S("ss_ui_sheet_on_offer", "on offer"),
             BestTierFirst = UiText.S("ss_ui_sheet_best_tier_first", "[+] takes the best tier first"),

@@ -16,7 +16,7 @@ namespace SmartSteward.Core.Planning
     /// </summary>
     /// <remarks>
     /// Each group's pieces are ordered once by SellLootOrder, judged at the untouched market's price
-    /// (Cheapest, LowestPricePerKg or MostExpensive); "−N" on a group row always means "the first N in that
+    /// (Cheapest, LowestPricePerWeight or MostExpensive); "−N" on a group row always means "the first N in that
     /// order". The steward walks all groups together in that same order — so a poor village's gold goes to the
     /// pieces the order prefers, whatever their group — and a group stops at its first piece the market can no
     /// longer pay for (DESIGN §3.4: never a sale the market cannot pay).
@@ -94,7 +94,7 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>
         /// The static order of SellLootOrder, at the untouched market's sell price; ties → the lower value,
-        /// then the stack key. Weightless pieces come last under LowestPricePerKg.
+        /// then the stack key. Weightless pieces come last under LowestPricePerWeight.
         /// </summary>
         internal static Comparison<ItemStack> Order(SellLootOrder order, Func<ItemStack, int> startPrice)
         {
@@ -107,7 +107,7 @@ namespace SmartSteward.Core.Planning
                         if (c == 0) c = b.UnitValue.CompareTo(a.UnitValue);
                         return c != 0 ? c : string.CompareOrdinal(a.Key, b.Key);
                     };
-                case SellLootOrder.LowestPricePerKg:
+                case SellLootOrder.LowestPricePerWeight:
                     return (a, b) =>
                     {
                         int c = PerKg(a, startPrice).CompareTo(PerKg(b, startPrice));

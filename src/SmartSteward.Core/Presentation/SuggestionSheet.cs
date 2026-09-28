@@ -71,7 +71,7 @@ namespace SmartSteward.Core.Presentation
         public string Goods { get; set; } = "goods";
         public string NothingSold { get; set; } = "nothing sold";
         public string CheapestFirst { get; set; } = "cheapest first";
-        public string LowestPerKgFirst { get; set; } = "lowest price per kg first";
+        public string LowestPerWeightFirst { get; set; } = "lowest price per weight first";
         public string DearestFirst { get; set; } = "dearest first";
         public string OnOffer { get; set; } = "on offer";
         public string BestTierFirst { get; set; } = "[+] takes the best tier first";
@@ -555,7 +555,7 @@ namespace SmartSteward.Core.Presentation
                 : goods > 0 ? UiFormat.Money(goods) + " " + words.Goods + " " + words.Sold
                 : words.NothingSold;
             string order = settings.SellLootOrder == SellLootOrder.MostExpensive ? words.DearestFirst
-                : settings.SellLootOrder == SellLootOrder.LowestPricePerKg ? words.LowestPerKgFirst
+                : settings.SellLootOrder == SellLootOrder.LowestPricePerWeight ? words.LowestPerWeightFirst
                 : words.CheapestFirst;
             return new SheetSection(SheetGroup.Other)
             {

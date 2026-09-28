@@ -229,6 +229,8 @@ namespace SmartSteward.Core.Settings
                     return JsonConvert.ToString(e.Names[e.GetIndex(settings)]);
                 case PriceBookSetting p:
                     return PriceBookText(p.Get(settings));
+                case GoalsSetting g:
+                    return GoalsText(g.Get(settings));
                 default:
                     throw new InvalidOperationException("no file syntax for " + def.Key);
             }
@@ -253,6 +255,23 @@ namespace SmartSteward.Core.Settings
                 sb.Append("    ").Append(JsonConvert.ToString(ids[i])).Append(": { ")
                     .Append(string.Join(", ", fields)).Append(" }");
                 if (i < ids.Count - 1) sb.Append(',');
+                sb.Append(NewLine);
+            }
+            sb.Append("  }");
+            return sb.ToString();
+        }
+
+        private static string GoalsText(Dictionary<string, int> goals)
+        {
+            var keys = goals.Keys.Where(ManualGoals.IsGoalKey).OrderBy(k => k, StringComparer.Ordinal).ToList();
+            if (keys.Count == 0) return "{}";
+            var sb = new StringBuilder();
+            sb.Append('{').Append(NewLine);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                sb.Append("    ").Append(JsonConvert.ToString(keys[i])).Append(": ")
+                    .Append(SettingDefinition.FormatInt(ManualGoals.Clamp(goals[keys[i]])));
+                if (i < keys.Count - 1) sb.Append(',');
                 sb.Append(NewLine);
             }
             sb.Append("  }");
@@ -480,6 +499,48 @@ namespace SmartSteward.Core.Settings
                 case PriceBookSetting p:
                     ReadPriceBook(p, token, result);
                     break;
+
+                case GoalsSetting g:
+                    ReadGoals(g, token, result);
+                    break;
+            }
+        }
+
+        /// <summary>The standing goals: every key a goal row's id, every value a whole number (clamped into 0 … MaxGoal); anything
+        /// else is dropped with a problem line — the rest is kept.</summary>
+        private static void ReadGoals(GoalsSetting def, JToken token, SettingsParseResult result)
+        {
+            if (token.Type == JTokenType.Null)
+                return;
+            if (!(token is JObject goals))
+            {
+                WrongType(def, token, "{ row id: goal, ... }", result);
+                return;
+            }
+            var target = def.Get(result.Settings);
+            foreach (var item in goals.Properties())
+            {
+                var key = item.Name.Trim();
+                var where = def.Key + "[\"" + key + "\"]";
+                if (!ManualGoals.IsGoalKey(key))
+                {
+                    result.Problems.Add(At(item) + where + ": not a row that takes a goal (\"food:<item id>\", \"mounts:pack\", "
+                        + "\"mounts:riding\", \"mounts:war\") - dropped");
+                    continue;
+                }
+                if (item.Value.Type == JTokenType.Null)
+                    continue; // no goal: the policy's row
+                if (!TryWholeNumber(item.Value, out var raw))
+                {
+                    result.Problems.Add(At(item) + where + ": expected a whole number, found " + Describe(item.Value) + " - dropped");
+                    continue;
+                }
+                int goal = ManualGoals.Clamp(raw);
+                if (goal != raw)
+                    result.Problems.Add(At(item) + where + ": " + raw.ToString(CultureInfo.InvariantCulture) + " is outside 0 to "
+                        + ManualGoals.MaxGoal.ToString(CultureInfo.InvariantCulture) + " - using "
+                        + goal.ToString(CultureInfo.InvariantCulture));
+                target[key] = goal;
             }
         }
 

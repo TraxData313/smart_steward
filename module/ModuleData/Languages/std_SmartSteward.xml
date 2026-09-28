@@ -38,6 +38,7 @@
     <string id="ss_auto_sold" text="sold" />
     <string id="ss_grp_Food" text="Food" />
     <string id="ss_grp_General" text="General" />
+    <string id="ss_grp_Goals" text="Goals you set by hand" />
     <string id="ss_grp_Loot" text="Loot" />
     <string id="ss_grp_Money" text="Money" />
     <string id="ss_grp_Mounts" text="Mounts" />
@@ -65,6 +66,9 @@
     <string id="ss_hint_HorseSellPriceMultiplier" text="Min sell price of a horse, mule or camel = its base price (Prices tab) times this. 0.8 sells at 80% of the average sell price or better; 0 sells at any price. Default: 0.8. Range: 0.0 to 10.0." />
     <string id="ss_hint_LocksProtectFoodAndHorses" text="Off: the steward manages food and horses even when you locked them in the inventory - your locks keep guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons. Default: off." />
     <string id="ss_hint_LordPrisonerAction" text="What the steward does with captured lords in a town: keep them, ransom them for denari (a ransomed lord goes free), or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence. A lord to donate is kept where the game does not allow it or the dungeon is full. Default: Keep." />
+    <string id="ss_hint_ManualGoalsKeepPurseFloor" text="Buying for your goals stops at the floors above - food at Always keep, horses at Keep before buying animals. Off: your goals may spend below them. While autonomous, Keep while autonomous always holds. Default: on." />
+    <string id="ss_hint_ManualGoalsObeyPriceCaps" text="Your goals buy only up to the max buy prices (Prices tab) and the max price per animal, and sell only at the min sell prices. Off: they buy and sell at any price. An item unticked in the Prices tab is never traded either way. Default: on." />
+    <string id="ss_hint_ManualGoalsWaitForThresholds" text="A goal you typed (or clicked) in the Suggestion tab acts even while your purse is below its job's &quot;Manage ... from&quot; denari - it is your order. On: your goals wait for those thresholds too, like the steward. Default: off." />
     <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denari. Default: 1,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_ModEnabled" text="Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, nothing done on its own. Default: on." />
@@ -83,7 +87,7 @@
     <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields) and your other goods, in the Other section. Default: off." />
     <string id="ss_hint_SellLootEquipment" text="Include weapons, armour, shields and ammunition in the loot sale. Default: on." />
     <string id="ss_hint_SellLootMaxItemValue" text="Never sell a piece worth more than this many denari. 0 = no cap. Pieces you locked in the inventory are never sold anyway. Default: 0. Range: 0 to 1,000,000." />
-    <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the denari), the lowest price per kg, or the most expensive (the game's own habit). Default: Cheapest first." />
+    <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the denari), the lowest price per weight, or the most expensive (the game's own habit). Default: Cheapest first." />
     <string id="ss_hint_SellLootOtherGoods" text="Include every trade good that is not food or an animal - wool, salt, pottery, jewelry, iron... - in the sale, one Other goods line. Goods you lock in the inventory are never sold. Default: on." />
     <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
     <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
@@ -114,7 +118,7 @@
     <string id="ss_opt_PrisonerAction_Keep" text="Keep" />
     <string id="ss_opt_PrisonerAction_Ransom" text="Ransom for denari" />
     <string id="ss_opt_SellLootOrder_Cheapest" text="Cheapest first" />
-    <string id="ss_opt_SellLootOrder_LowestPricePerKg" text="Lowest price per kg" />
+    <string id="ss_opt_SellLootOrder_LowestPricePerWeight" text="Lowest price per weight" />
     <string id="ss_opt_SellLootOrder_MostExpensive" text="Most expensive first" />
     <string id="ss_set_AutoFillFoodPrices" text="Average prices for food" />
     <string id="ss_set_AutoFillPackAndMountPrices" text="Average prices for pack animals and horses" />
@@ -135,6 +139,9 @@
     <string id="ss_set_HorseSellPriceMultiplier" text="Horse sell price multiplier" />
     <string id="ss_set_LocksProtectFoodAndHorses" text="Locks protect food &amp; horses" />
     <string id="ss_set_LordPrisonerAction" text="Captured lords" />
+    <string id="ss_set_ManualGoalsKeepPurseFloor" text="Your goals keep the purse floors" />
+    <string id="ss_set_ManualGoalsObeyPriceCaps" text="Your goals obey the price limits" />
+    <string id="ss_set_ManualGoalsWaitForThresholds" text="Your goals wait for the thresholds" />
     <string id="ss_set_MinGoldAfterDeal" text="Always keep (denari)" />
     <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (denari)" />
     <string id="ss_set_ModEnabled" text="Steward on" />
@@ -272,7 +279,7 @@
     <string id="ss_ui_sheet_lord" text="lord" />
     <string id="ss_ui_sheet_lords" text="lords" />
     <string id="ss_ui_sheet_lords_line" text="Lords" />
-    <string id="ss_ui_sheet_lowest_per_kg" text="lowest price per kg first" />
+    <string id="ss_ui_sheet_lowest_per_weight" text="lowest price per weight first" />
     <string id="ss_ui_sheet_lowest_tier_first" text="[–] drops the lowest tier first" />
     <string id="ss_ui_sheet_men_after" text="men after the deal / party limit" />
     <string id="ss_ui_sheet_mercenaries" text="mercenaries" />

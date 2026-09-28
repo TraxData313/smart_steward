@@ -83,7 +83,7 @@ public class LootPlannerTests
 
     [Theory]
     [InlineData(SellLootOrder.Cheapest, 10, 5, 60)]         // helmets first: 50 gold, then 5 rags
-    [InlineData(SellLootOrder.LowestPricePerKg, 0, 10, 100)] // rags are 1/kg, helmets 5/kg
+    [InlineData(SellLootOrder.LowestPricePerWeight, 0, 10, 100)] // rags are 1/kg, helmets 5/kg
     [InlineData(SellLootOrder.MostExpensive, 0, 10, 100)]
     public void SellLootOrder_decides_what_a_poor_market_takes(SellLootOrder order, int helms, int rags, double kg)
     {
