@@ -224,8 +224,8 @@ with `troops N types, on offer [5 imperial_recruit at 20, …], in the party …
    men of that type. The row's detail says how many are wounded — they go first, so the weight line's capacity drops only
    after them. Party and the food/mount rows follow at once.
 5. **The live re-plan.** Recruit foot soldiers: the food target and "men on foot · riding target" grow, the steward buys more.
-   Dismiss men who are ready to upgrade (the Instructions tab's "Troops ready to upgrade now" and the upgrade-horse row's
-   "needed for upgrades" drop). Recruits whose upgrade needs a horse bring the upgrade-horse row if you keep a fixed number.
+   Dismiss men who are ready to upgrade: the upgrade-horse row's "needed for upgrades" drops (the Instructions tab's "Troops
+   ready to upgrade now" counts the party as it is, before the deal). Recruits whose upgrade needs a horse bring the upgrade-horse row if you keep a fixed number.
 6. **Do it.** Recruit some, dismiss some, **Do it**: the party screen shows the new men and the dismissed ones gone (wounded
    first); the recruit screen shows those slots empty; the gold dropped by the recruits' price; your Leadership gains XP
    for the recruits (as from vanilla's recruit screen — check the character screen). The window plans afresh: nothing new for food and

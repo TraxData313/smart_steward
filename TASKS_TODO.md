@@ -23,7 +23,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deploy (the game was running at the end of step 14), then playtest — checklist in docs/PLAYTEST.md "Round 3 — small"
 - [x] 15. Round 3, core — LIVE RE-PLAN: untouched food/mount/upgrade-horse rows follow every party change in the window (hires, recruits, dismissals, ransoms); edited rows stay — so Do it leaves nothing new to suggest (+ the food goal in days)
   - [ ] Deployed (the game was closed at the end of step 15 — the install carries steps 12–15), then playtest — checklist in docs/PLAYTEST.md "Round 3 — live re-plan"
-- [ ] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
+- [x] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
+  - [ ] Deployed (the game was closed at the end of step 16 — the install carries steps 12–16), then playtest — checklist in docs/PLAYTEST.md "Round 3 — troops"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -40,6 +41,8 @@ SHIPPING NEXT (done in main, NOT released yet):
 - A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
 - Live re-plan: hires and prisoners kept or ransomed re-plan the food and horses at once — your own rows (⟲ shown) stay and go first
 - Food goal in days: "Keep food for [40] days (~2.0 per soul)" at your party's own rate, perks included; an old "Food per man" converts once (× 20)
+- Troops section right after the Tavern (towns and villages): the recruits the notables offer you, then your own troops — [+] recruits, [-] dismisses (the wounded first), past the party limit; food and horses follow
+- A closed market keeps the table for what you can still do there (troops, wanderers), the reason above it
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -54,7 +57,7 @@ BUGS:
 - [x] (R1) TOP: after loading a save in the same game session, clicking towns/villages no longer entered them ("clan tier not high enough to request a meeting" shown) — a game RESTART cured it. Found: the game read Left Alt as HELD (Alt+Tab) → every click asked for a parley; not the mod — tap Left Alt (RESEARCH §17)
 
 NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
-- [ ] (R3) TROOPS section right after the Tavern: the recruits on offer in this town/village (volunteers of its notables you may take) at the top, then the troops you have — one row per troop type, Mine / [-] [+] / Result / price / on offer; [+] recruits, [-] dismisses; never every troop in the game; starts at 0 like the tavern; names open the Encyclopedia
+- [x] (R3) TROOPS section right after the Tavern: the recruits on offer in this town/village (volunteers of its notables you may take) at the top, then the troops you have — one row per troop type, Mine / [-] [+] / Result / price / on offer; [+] recruits, [-] dismisses; never every troop in the game; starts at 0 like the tavern; names open the Encyclopedia
 - [x] (R3) Live re-plan (Anton: "after I change the troops the mounts etc are not accurate… so when I hit Do it I won't see new suggestions"): untouched rows follow the party after the deal; touched rows stay
 - [x] (R3) Weight line like the food: "1,000 +120 kg → 1,120 kg · capacity land 1,500 / sea 1,000" — capacity AFTER the deal (pack animals and troops add to it), the part over a capacity in red ("+120 over at sea")
 - [x] (R3) The "Not now" button next to Do it is just "Close"
@@ -101,4 +104,5 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 13: with "Locks protect food & horses" on, a food / animal row shows `40 (+40 locked)` — its Mine already counts the locked units (loot's Mine does not), so "+" reads as extra; say "(40 locked)" there?
 - [ ] Step 14: the footer grew a line (the weight line) — the table is ~30 px (one row) shorter; check the look at 1080p
 - [ ] Step 14: unverified whether a party docked at a port counts as IsCurrentlyAtSea (the party screen's capacity uses that live flag) — compare with the footer's land / sea in game
-- [ ] Step 15: a village has no tavern and no ransom, so the live re-plan's promise is tested in towns (walking and flat prices) — step 16: add a village case with recruits to LivePlanTests
+- [x] Step 15: a village has no tavern and no ransom, so the live re-plan's promise is tested in towns (walking and flat prices) — step 16: add a village case with recruits to LivePlanTests (done: 3 village cases)
+- [ ] Step 16: with PopupOnlyWithChanges OFF the arrival popup now opens at nearly every open market — the "Your troops" rows count as rows (at 0 they never count as changes); fine by that switch's meaning?
