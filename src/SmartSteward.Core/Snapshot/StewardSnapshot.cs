@@ -134,6 +134,35 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>Food the game counts in livestock meat (<c>TotalFood</c> minus the food items) — in the
         /// footer's days, never in the steward's target (livestock is not food to the steward).</summary>
         public int LivestockFoodUnits { get; set; }
+
+        /// <summary>Head of livestock (cows, sheep, hogs… — <c>HorseComponent.IsLiveStock</c>): the steward never trades them,
+        /// but the game's herd counts every one (the footer's herd line, step 18, RESEARCH §23).</summary>
+        public int LivestockAnimals { get; set; }
+
+        /// <summary>The parties attached to the player's army party — the game's speed model pools their men, footmen and
+        /// animals with the party's own for the herd (RESEARCH §23). All zero outside an army.</summary>
+        public AttachedParties Attached { get; set; } = new AttachedParties();
+    }
+
+    /// <summary>What the parties attached to the player's (army) party bring to the herd rule — read from the game as they
+    /// are; a deal never moves them (RESEARCH §23: <c>CalculateLandBaseSpeed</c> adds each attached party's men, footmen,
+    /// mounts and herd animals to the leader's).</summary>
+    public sealed class AttachedParties
+    {
+        /// <summary><c>MemberRoster.TotalManCount</c> summed.</summary>
+        public int Men { get; set; }
+
+        /// <summary><c>Party.NumberOfMenWithoutHorse</c> summed.</summary>
+        public int Footmen { get; set; }
+
+        /// <summary><c>ItemRoster.NumberOfMounts</c> summed.</summary>
+        public int Mounts { get; set; }
+
+        /// <summary><c>ItemRoster.NumberOfPackAnimals</c> summed.</summary>
+        public int PackAnimals { get; set; }
+
+        /// <summary><c>ItemRoster.NumberOfLivestockAnimals</c> summed.</summary>
+        public int Livestock { get; set; }
     }
 
     public enum ItemKind

@@ -232,9 +232,26 @@ Buttons on Change:
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
 Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
-the weight line · buttons **Do it** and **Close** (Escape = Close; the button read "Not now" until **[Anton 2026.09.28,
-playtest round 3]**: "it is just Close").
-**The weight line** **[Anton 2026.09.28, playtest round 3 — "like the food line"]**, on its own footer line:
+the weight lines and the herd line · buttons **Do it** and **Close** (Escape = Close; the button read "Not now" until
+**[Anton 2026.09.28, playtest round 3]**: "it is just Close").
+**The weight on two lines** **[Anton 2026.09.28 — PLAN step 18: "the weight line splits in TWO … (pack horses raise land
+capacity but add weight at sea) — each part over its capacity in red"]**, each like the food line:
+- `Land:  weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900` — the land load now, the change, after; the land capacity now
+  and after the deal (just `capacity 1,500` when the deal does not move it); `+720 over` in red beside it when the load after
+  is over the capacity after.
+- `Sea:   weight 1,300 +420 » 1,720 kg · capacity 1,000` — the same at sea (the animals and the mounted men's horses weigh
+  there, RESEARCH §19), only when the party has ships (War Sails, as step 14 decided); `+720 over` in red likewise.
+- A failed capacity read: `Land:  weight +120 kg` alone. The sea line, the warnings and the status line stack below the land
+  line and close up when hidden; the footer grew 146 → 176 px (the table ~one row shorter — folding sections gives it back).
+**The herd line** **[Anton 2026.09.28 — PLAN step 18: "Horses 110 / 200 before the herd slows you" — the game's real herding
+threshold, red when over]**, after the land line (the herd is a land rule): `Horses H / R before the herd slows you` — H = the
+mounts and pack animals after the deal, R = the men after the deal + the mounts their footmen ride − the livestock the party
+drives (`(20 livestock take room too)` is added when it drives any). The game slows a party only when its herd (pack
+animals, livestock and the mounts nobody rides) OUTNUMBERS its men — equal is fine — and H ≤ R is exactly that (RESEARCH
+§23; Core `Planning\HerdTotals`). An army's attached parties are pooled in, as the game does; prisoners are not men to it; at
+sea there is no herd. Red when H > R; live with every click. Anton's example: 100 footmen, 110 horses → `Horses 110 / 200`.
+~~**The weight line** **[Anton 2026.09.28, playtest round 3 — "like the food line"]**, on its own footer line:~~ (step 14; the
+two lines above replace its one-line form — the rules below still hold)
 `Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000` — the load now, the change and the load after, then
 the carrying capacity AFTER the deal: pack animals and mounts bought or sold and troops hired change it (the ransomed
 prisoners too, with the Forced Labor perk). The sea capacity (the fleet's cargo + the men) shows only when the party has

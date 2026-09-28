@@ -123,7 +123,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               PlanPins (touched rows pinned, walked first; the steward's rows leave them room);
                               FoodGoal (step 15) = the food goal in days at the game's own rate;
                               TroopPlanner (step 16) = the troops section: "Recruits on offer" + "Your troops", one row per
-                              troop type ([+] recruits, [-] dismisses), party rows of the live re-plan
+                              troop type ([+] recruits, [-] dismisses), party rows of the live re-plan;
+                              HerdTotals (step 18) = the footer's herd line: horses after the deal vs the most before the herd
+                              slows the party (the game's rule, RESEARCH §23)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),

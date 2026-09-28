@@ -73,6 +73,10 @@ namespace SmartSteward.Core.Planning
         /// <summary>The load and carrying capacity after the deal, on land and at sea (round 3) — the footer's weight line.</summary>
         public CarryTotals Carry { get; internal set; } = new CarryTotals();
 
+        /// <summary>The horses after the deal against the most before the herd slows the party (step 18) — the footer's herd
+        /// line, the game's own rule (RESEARCH §23).</summary>
+        public HerdTotals Herd { get; internal set; } = new HerdTotals();
+
         public double InfluenceGained { get; internal set; }
 
         /// <summary>The party after the deal (hires and recruits added, dismissed men gone) — against <see cref="PartySizeLimit"/>
@@ -171,6 +175,7 @@ namespace SmartSteward.Core.Planning
             totals.MembersAfter = Math.Max(0, snapshot.Party.Members + hired);
             totals.PrisonersAfter = prisonersNow - prisonersMoved;
             totals.Carry = CarryTotals.Compute(rows, snapshot.Carry, totals.WeightChange, prisonersNow, totals.PrisonersAfter);
+            totals.Herd = HerdTotals.Compute(rows, snapshot);
             totals.BelowMinGoldAfterDeal = bought && totals.GoldAfter < floors.All;
             totals.BelowMinGoldForHorses = animalBought && totals.GoldAfter < floors.Animals;
 

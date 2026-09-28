@@ -32,9 +32,15 @@ namespace SmartSteward.UI
         private string _headerColor = UiColors.Muted;
         private string _footerMoneyText = "";
         private string _footerFoodText = "";
-        private string _footerWeightText = "";
-        private string _footerOverText = "";
-        private bool _hasFooterOver;
+        private string _footerLandText = "";
+        private string _footerLandOverText = "";
+        private bool _hasFooterLandOver;
+        private string _footerSeaText = "";
+        private string _footerSeaOverText = "";
+        private bool _hasFooterSeaOver;
+        private bool _hasSeaLine;
+        private string _footerHerdText = "";
+        private string _footerHerdColor = UiColors.Text;
         private string _footerPartyText = "";
         private string _footerPartyColor = UiColors.Text;
         private string _warningText = "";
@@ -65,6 +71,8 @@ namespace SmartSteward.UI
             _emptyText = _nothingToDoText;
             ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             ResetAllText = UiText.S("ss_ui_reset_all", "Reset all");
+            LandLabel = UiText.S("ss_ui_footer_label_land", "Land:");
+            SeaLabel = UiText.S("ss_ui_footer_label_sea", "Sea:");
             Words = new SummaryWords
             {
                 Kind = UiText.S("ss_ui_sum_kind", "kind"),
@@ -174,7 +182,8 @@ namespace SmartSteward.UI
             FooterPartyText = UiText.S2("ss_ui_footer_party", "Party {AFTER}/{LIMIT}",
                 "AFTER", UiFormat.Money(t.MembersAfter), "LIMIT", UiFormat.Money(t.PartySizeLimit));
             FooterPartyColor = t.OverPartyLimit ? UiColors.Warning : UiColors.Text;
-            RefreshWeightLine(t);
+            RefreshCarryLines(t);
+            RefreshHerdLine(t.Herd);
 
             var floors = plan.Floors; // the floors the flags were computed against
             var warnings = PlanFooter.Warnings(t);
@@ -187,40 +196,68 @@ namespace SmartSteward.UI
             CanResetAll = plan.IsEdited;
         }
 
-        /// <summary>The weight line (round 3), like the food line: the load now, the change and the load after, then the
-        /// capacity AFTER the deal — land, and sea when the party has ships (War Sails) — and, in red beside it, how far the
-        /// deal takes the load over a capacity. Without a capacity read (a failed read) only the change shows.</summary>
-        private void RefreshWeightLine(PlanTotals t)
+        /// <summary>
+        /// The weight on TWO lines (step 18 — Anton 2026.09.28: "pack horses raise land capacity but add weight at sea"), each
+        /// like the food line: <c>Land:  weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900</c> and — only when the party has
+        /// ships (War Sails) — <c>Sea:  weight 1,300 +420 » 1,720 kg · capacity 1,000</c>; the capacity AFTER the deal (» only
+        /// when the deal moves it), and beside each line, in red, how far the deal takes the load over it (<c>+720 over</c>).
+        /// Without a capacity read (a failed read) the land line shows the weight change only.
+        /// </summary>
+        private void RefreshCarryLines(PlanTotals t)
         {
             var c = t.Carry;
             if (!c.Known)
             {
-                FooterWeightText = UiText.S1("ss_ui_footer_weight", "Weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
-                FooterOverText = "";
-                HasFooterOver = false;
+                FooterLandText = UiText.S1("ss_ui_footer_carry_change_only", "weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
+                SetLandOver(0);
+                HasSeaLine = false;
                 return;
             }
-            string line = UiFormat.SignedWeight(t.WeightChange) == "0"
-                ? UiText.S1("ss_ui_footer_load_same", "Weight {NOW} kg", "NOW", UiFormat.Kg(c.WeightNow))
-                : UiText.S3("ss_ui_footer_load", "Weight {NOW} {CHANGE} kg » {AFTER} kg",
-                    "NOW", UiFormat.Kg(c.WeightNow), "CHANGE", UiFormat.SignedWeight(t.WeightChange), "AFTER", UiFormat.Kg(c.WeightAfter));
-            line += "  ·  " + (c.ShowSea
-                ? UiText.S2("ss_ui_footer_capacity_sea", "capacity land {LAND} / sea {SEA}",
-                    "LAND", UiFormat.Kg(c.CapacityLandAfter), "SEA", UiFormat.Kg(c.CapacitySeaAfter))
-                : UiText.S1("ss_ui_footer_capacity", "capacity {LAND}", "LAND", UiFormat.Kg(c.CapacityLandAfter)));
-            if (c.SeaLoadDiffers)
-                line += " " + UiText.S1("ss_ui_footer_sea_load", "({KG} kg at sea)", "KG", UiFormat.Kg(c.WeightAtSeaAfter));
-            FooterWeightText = line;
+            FooterLandText = CarryLine(c.WeightNow, t.WeightChange, c.WeightAfter, c.CapacityLandNow, c.CapacityLandAfter);
+            SetLandOver(c.OverLand);
+            HasSeaLine = c.ShowSea;
+            if (!c.ShowSea)
+                return;
+            FooterSeaText = CarryLine(c.WeightAtSeaNow, c.WeightAtSeaAfter - c.WeightAtSeaNow, c.WeightAtSeaAfter,
+                c.CapacitySeaNow, c.CapacitySeaAfter);
+            FooterSeaOverText = c.OverSea > 0 ? Over(c.OverSea) : "";
+            HasFooterSeaOver = c.OverSea > 0;
+        }
 
-            var over = new List<string>();
-            if (c.OverLand > 0)
-                over.Add(c.ShowSea
-                    ? UiText.S1("ss_ui_footer_over_land", "{KG} over on land", "KG", UiFormat.KgOver(c.OverLand))
-                    : UiText.S1("ss_ui_footer_over", "{KG} over", "KG", UiFormat.KgOver(c.OverLand)));
-            if (c.OverSea > 0)
-                over.Add(UiText.S1("ss_ui_footer_over_sea", "{KG} over at sea", "KG", UiFormat.KgOver(c.OverSea)));
-            FooterOverText = string.Join("  ·  ", over);
-            HasFooterOver = over.Count > 0;
+        /// <summary><c>weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900</c> (no change: <c>weight 1,000 kg</c>, <c>capacity
+        /// 1,500</c>).</summary>
+        private static string CarryLine(double now, double change, double after, double capacityNow, double capacityAfter)
+        {
+            string weight = UiFormat.SignedWeight(change) == "0"
+                ? UiText.S1("ss_ui_footer_carry_same", "weight {NOW} kg", "NOW", UiFormat.Kg(now))
+                : UiText.S3("ss_ui_footer_carry", "weight {NOW} {CHANGE} » {AFTER} kg",
+                    "NOW", UiFormat.Kg(now), "CHANGE", UiFormat.SignedWeight(change), "AFTER", UiFormat.Kg(after));
+            string capacity = UiFormat.Kg(capacityNow) == UiFormat.Kg(capacityAfter)
+                ? UiText.S1("ss_ui_footer_cap", "capacity {NOW}", "NOW", UiFormat.Kg(capacityAfter))
+                : UiText.S2("ss_ui_footer_cap_change", "capacity {NOW} » {AFTER}",
+                    "NOW", UiFormat.Kg(capacityNow), "AFTER", UiFormat.Kg(capacityAfter));
+            return weight + "  " + UiFormat.Dot + "  " + capacity;
+        }
+
+        private void SetLandOver(double kg)
+        {
+            FooterLandOverText = kg > 0 ? Over(kg) : "";
+            HasFooterLandOver = kg > 0;
+        }
+
+        private static string Over(double kg) => UiText.S1("ss_ui_footer_over", "{KG} over", "KG", UiFormat.KgOver(kg));
+
+        /// <summary>The herd line (step 18 — Anton 2026.09.28): <c>Horses 110 / 200 before the herd slows you</c> — the party's
+        /// horses after the deal against the most it may have before the game's herd penalty (RESEARCH §23, Core
+        /// <see cref="HerdTotals"/>); red when over. Livestock takes room too — said when the party drives any.</summary>
+        private void RefreshHerdLine(HerdTotals herd)
+        {
+            string line = UiText.S2("ss_ui_footer_herd", "Horses {HORSES} / {ROOM} before the herd slows you",
+                "HORSES", UiFormat.Money(herd.Horses), "ROOM", UiFormat.Money(herd.Room));
+            if (herd.Livestock > 0)
+                line += " " + UiText.S1("ss_ui_footer_herd_livestock", "({N} livestock take room too)", "N", UiFormat.Money(herd.Livestock));
+            FooterHerdText = line;
+            FooterHerdColor = herd.SlowsParty ? UiColors.Warning : UiColors.Text;
         }
 
         internal void SetStatus(string text)
@@ -350,26 +387,76 @@ namespace SmartSteward.UI
             set { if (value != _footerFoodText) { _footerFoodText = value; OnPropertyChangedWithValue(value, nameof(FooterFoodText)); } }
         }
 
+        [DataSourceProperty] public string LandLabel { get; }
+        [DataSourceProperty] public string SeaLabel { get; }
+
+        /// <summary>"weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900" — after the "Land:" label.</summary>
         [DataSourceProperty]
-        public string FooterWeightText
+        public string FooterLandText
         {
-            get => _footerWeightText;
-            set { if (value != _footerWeightText) { _footerWeightText = value; OnPropertyChangedWithValue(value, nameof(FooterWeightText)); } }
+            get => _footerLandText;
+            set { if (value != _footerLandText) { _footerLandText = value; OnPropertyChangedWithValue(value, nameof(FooterLandText)); } }
         }
 
-        /// <summary>The part of the load over a capacity after the deal: "+120 over at sea" (red).</summary>
+        /// <summary>The part of the land load over the land capacity after the deal: "+720 over" (red).</summary>
         [DataSourceProperty]
-        public string FooterOverText
+        public string FooterLandOverText
         {
-            get => _footerOverText;
-            set { if (value != _footerOverText) { _footerOverText = value; OnPropertyChangedWithValue(value, nameof(FooterOverText)); } }
+            get => _footerLandOverText;
+            set { if (value != _footerLandOverText) { _footerLandOverText = value; OnPropertyChangedWithValue(value, nameof(FooterLandOverText)); } }
         }
 
         [DataSourceProperty]
-        public bool HasFooterOver
+        public bool HasFooterLandOver
         {
-            get => _hasFooterOver;
-            set { if (value != _hasFooterOver) { _hasFooterOver = value; OnPropertyChangedWithValue(value, nameof(HasFooterOver)); } }
+            get => _hasFooterLandOver;
+            set { if (value != _hasFooterLandOver) { _hasFooterLandOver = value; OnPropertyChangedWithValue(value, nameof(HasFooterLandOver)); } }
+        }
+
+        /// <summary>The sea line shows only when the party has ships (War Sails).</summary>
+        [DataSourceProperty]
+        public bool HasSeaLine
+        {
+            get => _hasSeaLine;
+            set { if (value != _hasSeaLine) { _hasSeaLine = value; OnPropertyChangedWithValue(value, nameof(HasSeaLine)); } }
+        }
+
+        /// <summary>"weight 1,300 +420 » 1,720 kg · capacity 1,000" — after the "Sea:" label.</summary>
+        [DataSourceProperty]
+        public string FooterSeaText
+        {
+            get => _footerSeaText;
+            set { if (value != _footerSeaText) { _footerSeaText = value; OnPropertyChangedWithValue(value, nameof(FooterSeaText)); } }
+        }
+
+        [DataSourceProperty]
+        public string FooterSeaOverText
+        {
+            get => _footerSeaOverText;
+            set { if (value != _footerSeaOverText) { _footerSeaOverText = value; OnPropertyChangedWithValue(value, nameof(FooterSeaOverText)); } }
+        }
+
+        [DataSourceProperty]
+        public bool HasFooterSeaOver
+        {
+            get => _hasFooterSeaOver;
+            set { if (value != _hasFooterSeaOver) { _hasFooterSeaOver = value; OnPropertyChangedWithValue(value, nameof(HasFooterSeaOver)); } }
+        }
+
+        /// <summary>"Horses 110 / 200 before the herd slows you".</summary>
+        [DataSourceProperty]
+        public string FooterHerdText
+        {
+            get => _footerHerdText;
+            set { if (value != _footerHerdText) { _footerHerdText = value; OnPropertyChangedWithValue(value, nameof(FooterHerdText)); } }
+        }
+
+        /// <summary>Red when the herd after the deal would slow the party.</summary>
+        [DataSourceProperty]
+        public string FooterHerdColor
+        {
+            get => _footerHerdColor;
+            set { if (value != _footerHerdColor) { _footerHerdColor = value; OnPropertyChangedWithValue(value, nameof(FooterHerdColor)); } }
         }
 
         /// <summary>"Party 99/96" — the party after the deal against its size limit.</summary>

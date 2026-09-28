@@ -118,7 +118,8 @@ trade penalty of 0.06 (§8).
 - **Herd** = `NumberOfPackAnimals + NumberOfLivestockAnimals + max(0, NumberOfMounts −
   mountedFootmen)`. Penalty only when herd > total men: `max(−0.8, −0.3 × (herd − men) / men)`
   (Riding.Shepherd softens). **Surplus mounts are herd**, so a 10% buffer costs nothing until
-  animals outnumber men.
+  animals outnumber men. **[step 18]** Re-read line by line for the footer's herd line — exact rule, army pooling,
+  land only: §23.
 - **Capacity** (`DefaultInventoryCapacityModel`): 10 base + 20 per healthy member + **20 per mount**
   + **100 per pack animal** (× Scouting.BeastWhisperer, Riding.DeeperSacks, Steward.ArenicosMules;
   Trade.CaravanMaster on the total). Over capacity → up to −0.4 ("Overburdened"). The full formula, at sea too: §19.
@@ -1130,6 +1131,40 @@ their role rows buy healthy ones; off, they are kept and counted.
 
 ---
 
+## 23. The herd — when animals slow the party (verified in step 18, 2026.09.28)
+
+Anton's round-3 wish: `Horses 110 / 200 before the herd slows you` in the footer, "the game's real herding threshold". Read in
+`game-decompiled-1.4.8`: `CS\...GameComponents\DefaultPartySpeedCalculatingModel.cs` (`CalculateLandBaseSpeed`,
+`AddCargoStats`, `GetHerdingModifier`), `CS\...Roster\ItemRoster.cs`, War Sails'
+`NavalDLC\NavalDLC.GameComponents\NavalDLCPartySpeedCalculationModel.cs`.
+
+- **Men** `num = MobileParty.MemberRoster.TotalManCount` (heroes and wounded in; **prisoners never** — only their own
+  "Prisoners" factor), + each attached party's `MemberRoster.TotalManCount` (an army leader's speed pools the army).
+- **Mounts** `numberOfAvailableMounts = ItemRoster.NumberOfMounts` (every `HorseComponent.IsMount` animal — war, noble and
+  camels too), + the attached parties'. **Footmen** `num5 = Party.NumberOfMenWithoutHorse` (+ attached; §3 for who counts).
+  **Ridden** `num10 = min(footmen, mounts)` — a pack animal never carries a man.
+- **Herd** `herdSize = NumberOfPackAnimals + NumberOfLivestockAnimals` (+ attached, `AddCargoStats`) `+ max(0, mounts −
+  ridden)` — pack animals, livestock and the mounts nobody rides.
+- **The threshold** (`GetHerdingModifier(num, herdSize)`): `herdSize −= men; if (herdSize <= 0) return 0` — the herd may EQUAL
+  the men with no penalty; one more and the factor is `max(−0.8, −0.3 × (herd − men) / men)` (no men: −0.8), plus
+  Riding.Shepherd's share of it back (`herdingModifier × Shepherd.PrimaryBonus`). Skipped for villager parties
+  (`!IsVillager`) — never the player.
+- **Land only**: War Sails' `CalculateBaseSpeed` returns `CalculateNavalBaseSpeed` while `IsCurrentlyAtSea` — ship speeds,
+  crew, fleet size, overburdened; no herd at all (at sea the animals weigh instead, §19).
+- **Counters**: `ItemRoster.NumberOfMounts/PackAnimals` skip modified animals in-session (`OnRosterUpdated`) but count them on
+  a full recount (§3, §22); `NumberOfLivestockAnimals` counts every head.
+
+**The line** (Core `Planning\HerdTotals`, DESIGN §1.1): with H = mounts + pack animals and R = men + ridden − livestock, H ≤ R
+exactly when herd ≤ men (H − R = herd − men), so `Horses H / R before the herd slows you` is the game's own threshold said in
+horses — R is the most horses the party may drive before it slows. Counted for the party AFTER the deal: members and footmen
+through `PartyAfter` (hires, recruits, dismissals — a man on foot who joins adds one to both), mounts and pack animals from
+the inventory ± the plan's animal tallies (lame and old ones count as mounts, as the steward counts them — the in-session
+counter may disagree until a reload, §22), livestock as held (never traded); an army's attached parties added as read
+(`SnapshotBuilder.ReadAttached`). Red when H > R. The log's footer line carries every number (`horses H of R before the herd
+slows (herd … vs … men; …)`).
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -1224,6 +1259,8 @@ their role rows buy healthy ones; off, they are kept and counted.
     weapon stats only and says nothing about a horse (§22).
 66. **A modified horse trades at `Item.Value × PriceMultiplier`** (a lame one at a tenth) but a town's price walk moves by
     the plain `Item.Value`, and the price book's average is the plain item's — scale a modified stack's min sell (§22).
+67. **The herd may equal the men — only MORE slows** (`herdSize − men <= 0` → no factor); prisoners are not men to it, an
+    army's attached parties pool in, and at sea (War Sails) there is no herd at all (§23).
 
 ---
 

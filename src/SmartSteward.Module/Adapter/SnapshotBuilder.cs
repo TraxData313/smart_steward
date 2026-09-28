@@ -274,6 +274,12 @@ namespace SmartSteward.Adapter
                    + "/" + s.Party.PartySizeLimit.ToString(inv) + " (footmen " + s.Party.Footmen.ToString(inv)
                    + ", companion slots " + s.Party.CompanionSlotsFree.ToString(inv) + ", food/day "
                    + s.Party.DailyFoodUse.ToString("0.##", inv) + ", livestock food " + s.Party.LivestockFoodUnits.ToString(inv)
+                   + ", livestock " + s.Party.LivestockAnimals.ToString(inv)
+                   + (s.Party.Attached.Men > 0
+                       ? ", army attached: " + s.Party.Attached.Men.ToString(inv) + " men (" + s.Party.Attached.Footmen.ToString(inv)
+                         + " on foot), mounts " + s.Party.Attached.Mounts.ToString(inv) + ", pack " + s.Party.Attached.PackAnimals.ToString(inv)
+                         + ", livestock " + s.Party.Attached.Livestock.ToString(inv)
+                       : "")
                    + "); load " + s.Carry.WeightNow.ToString("0", inv) + " kg, capacity land " + s.Carry.CapacityLandNow.ToString("0", inv)
                    + (s.Carry.HasShips ? ", at sea " + s.Carry.WeightAtSeaNow.ToString("0", inv) + " of " + s.Carry.CapacitySeaNow.ToString("0", inv) : "")
                    + " (per member " + s.Carry.LandPerMember.ToString("0.#", inv) + ", mount " + s.Carry.LandPerMount.ToString("0.#", inv)
@@ -304,16 +310,48 @@ namespace SmartSteward.Adapter
             snap.Party.PartySizeLimit = main.Party.PartySizeLimit;
             snap.Party.CompanionSlotsFree = CompanionSlotsFree();
             snap.Party.DailyFoodUse = Math.Max(0, -main.FoodChange);
-            int livestockMeat = 0;
+            int livestockMeat = 0, livestock = 0;
             var roster = main.ItemRoster;
             for (int i = 0; i < roster.Count; i++)
             {
                 var element = roster.GetElementCopyAtIndex(i);
                 var horse = element.EquipmentElement.Item?.HorseComponent;
                 if (horse != null && horse.IsLiveStock && element.Amount > 0)
+                {
                     livestockMeat += element.Amount * horse.MeatCount; // what ItemRoster.TotalFood adds for it
+                    livestock += element.Amount;                       // the herd counts every head (RESEARCH §23)
+                }
             }
             snap.Party.LivestockFoodUnits = livestockMeat;
+            snap.Party.LivestockAnimals = livestock;
+            snap.Party.Attached = ReadAttached(main);
+        }
+
+        /// <summary>An army's attached parties, as the speed model pools them for the herd (step 18, RESEARCH §23 —
+        /// <c>CalculateLandBaseSpeed</c>: each attached party's <c>MemberRoster.TotalManCount</c>, <c>NumberOfMenWithoutHorse</c>,
+        /// <c>NumberOfMounts</c>, <c>NumberOfPackAnimals</c> and <c>NumberOfLivestockAnimals</c>). Empty outside an army.</summary>
+        private static AttachedParties ReadAttached(MobileParty main)
+        {
+            var attached = new AttachedParties();
+            try
+            {
+                foreach (var party in main.AttachedParties)
+                {
+                    if (party == null || party == main)
+                        continue;
+                    attached.Men += party.MemberRoster.TotalManCount;
+                    attached.Footmen += party.Party.NumberOfMenWithoutHorse;
+                    attached.Mounts += party.ItemRoster.NumberOfMounts;
+                    attached.PackAnimals += party.ItemRoster.NumberOfPackAnimals;
+                    attached.Livestock += party.ItemRoster.NumberOfLivestockAnimals;
+                }
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading the army's attached parties", ex);
+                attached = new AttachedParties();
+            }
+            return attached;
         }
 
         private static void ReadItems(ItemRoster roster, List<ItemStack> into, Dictionary<string, EquipmentElement> elements,

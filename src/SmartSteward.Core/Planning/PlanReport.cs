@@ -163,6 +163,12 @@ namespace SmartSteward.Core.Planning
                 sb.Append(" | influence +").Append(t.InfluenceGained.ToString("0.#", Inv));
             sb.Append(" | party ").Append(t.MembersAfter.ToString(Inv)).Append('/').Append(t.PartySizeLimit.ToString(Inv))
                 .Append(t.OverPartyLimit ? " (over the limit)" : "");
+            var h = t.Herd;
+            sb.Append(" | horses ").Append(h.Horses.ToString(Inv)).Append(" of ").Append(h.Room.ToString(Inv))
+                .Append(" before the herd slows (herd ").Append(h.Herd.ToString(Inv)).Append(" vs ").Append(h.Men.ToString(Inv))
+                .Append(" men; ").Append(h.Footmen.ToString(Inv)).Append(" footmen, ").Append(h.Mounts.ToString(Inv)).Append(" mounts, ")
+                .Append(h.PackAnimals.ToString(Inv)).Append(" pack, ").Append(h.Livestock.ToString(Inv)).Append(" livestock)")
+                .Append(h.SlowsParty ? " SLOWED by " + h.Over.ToString(Inv) : "");
             sb.Append(" | ").Append(plan.Transactions.Count.ToString(Inv)).Append(" transactions");
             return sb.ToString();
         }
