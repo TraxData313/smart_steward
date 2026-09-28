@@ -25,7 +25,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deployed (the game was closed at the end of step 15 — the install carries steps 12–15), then playtest — checklist in docs/PLAYTEST.md "Round 3 — live re-plan"
 - [x] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
   - [ ] Deployed (the game was closed at the end of step 16 — the install carries steps 12–16), then playtest — checklist in docs/PLAYTEST.md "Round 3 — troops"
-- [ ] 17. Horses simplified (Anton's decisions 2026.09.28 — see the NOT FULLY DECIDED answers):
+- [x] 17. Horses simplified (Anton's decisions 2026.09.28 — see the NOT FULLY DECIDED answers):
   total horses = footmen × MountsPer100Footmen/100; a plain "War mounts to keep" NUMBER (no automatic upgrade counting,
   no plain-horse upgrade reserve); regular mounts fill the rest (e.g. 100 footmen at 110 + keep 10 war → 100 mounts + 10 war);
   noble horses never bought, sold unless locked; lame horses never bought, "Replace lame horses with healthy ones" (default ON)
