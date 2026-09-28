@@ -79,6 +79,7 @@ namespace SmartSteward.Core.Planning
                     case Snapshot.LootGroup.MeleeWeapons: return "Melee weapons";
                     case Snapshot.LootGroup.Ranged: return "Ranged";
                     case Snapshot.LootGroup.Shields: return "Shields";
+                    case Snapshot.LootGroup.OtherGoods: return "Other goods";
                 }
             }
             return row.Id;

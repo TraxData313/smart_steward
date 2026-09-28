@@ -381,7 +381,7 @@ namespace SmartSteward.Adapter
                     ModifierId = modifierId,
                     Kind = kind,
                     CategoryId = item.ItemCategory?.StringId ?? "",
-                    LootGroup = kind == ItemKind.Equipment ? group : LootGroup.None,
+                    LootGroup = kind == ItemKind.Equipment || kind == ItemKind.Goods ? group : LootGroup.None,
                     Count = element.Amount,
                     IsLocked = locks != null && locks.Contains(GameRules.LockId(itemId, modifierId)),
                     // the game's own model (DefaultInventoryCapacityModel: animals weigh nothing carried on land; War

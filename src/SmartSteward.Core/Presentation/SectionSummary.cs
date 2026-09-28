@@ -18,7 +18,10 @@ namespace SmartSteward.Core.Presentation
         Troops,
         Food,
         Mounts,
-        ArmourAndWeapons,
+
+        /// <summary>The Other section (round 4) — its state-file name was "ArmourAndWeapons" until then; that name still reads
+        /// as this group (<see cref="SectionGroups.TryParse"/>).</summary>
+        Other,
         Prisoners,
     }
 
@@ -27,7 +30,7 @@ namespace SmartSteward.Core.Presentation
         /// <summary>Every group, in the table's order.</summary>
         public static IReadOnlyList<SectionGroup> All { get; } = new[]
         {
-            SectionGroup.Tavern, SectionGroup.Troops, SectionGroup.Food, SectionGroup.Mounts, SectionGroup.ArmourAndWeapons,
+            SectionGroup.Tavern, SectionGroup.Troops, SectionGroup.Food, SectionGroup.Mounts, SectionGroup.Other,
             SectionGroup.Prisoners,
         };
 
@@ -41,7 +44,7 @@ namespace SmartSteward.Core.Presentation
                 case PlanSectionKind.Troops: return SectionGroup.Troops;
                 case PlanSectionKind.Food: return SectionGroup.Food;
                 case PlanSectionKind.Mounts: return SectionGroup.Mounts;
-                case PlanSectionKind.ArmourAndWeapons: return SectionGroup.ArmourAndWeapons;
+                case PlanSectionKind.Other: return SectionGroup.Other;
                 default: return SectionGroup.Prisoners;
             }
         }
@@ -49,9 +52,15 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The group's name in the state file (the enum name).</summary>
         public static string Key(SectionGroup group) => group.ToString();
 
-        /// <summary>A name from the state file, case-insensitive; false for anything unknown.</summary>
+        /// <summary>A name from the state file, case-insensitive; false for anything unknown. The Other section's old name
+        /// (<c>ArmourAndWeapons</c>, until round 4) reads as <see cref="SectionGroup.Other"/>.</summary>
         public static bool TryParse(string? key, out SectionGroup group)
         {
+            if (string.Equals((key ?? "").Trim(), "ArmourAndWeapons", StringComparison.OrdinalIgnoreCase))
+            {
+                group = SectionGroup.Other;
+                return true;
+            }
             foreach (var g in All)
             {
                 if (string.Equals(Key(g), (key ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
@@ -101,7 +110,7 @@ namespace SmartSteward.Core.Presentation
     /// (more than three types: <c>recruiting 12 (5 types) –640</c>) / <c>nobody recruited or dismissed</c></item>
     /// <item>Food — <c>+29 (5 kinds), 12 sold –510 · 64 » 71 days</c> / <c>no change · 64 days</c></item>
     /// <item>Mounts — <c>+10 (2 kinds), 3 sold –1,200</c> / <c>no change</c></item>
-    /// <item>Armour &amp; weapons — <c>41 sold +2,132 · –380 kg</c> / <c>nothing sold</c></item>
+    /// <item>Other (armour &amp; weapons and the other goods) — <c>41 sold +2,132 · –380 kg</c> / <c>nothing sold</c></item>
     /// <item>Prisoners — <c>12 ransomed, 4 to the dungeon +980 +3.2 influence</c> / <c>nobody ransomed</c></item>
     /// </list>
     /// The same shape as the autonomous steward's report (<see cref="Execution.AutonomousReport"/>): moves, then the gold.
@@ -119,7 +128,7 @@ namespace SmartSteward.Core.Presentation
                 case SectionGroup.Troops: return Troops(rows, words);
                 case SectionGroup.Food: return Food(plan, rows, words);
                 case SectionGroup.Mounts: return Mounts(rows, words);
-                case SectionGroup.ArmourAndWeapons: return Loot(rows, words);
+                case SectionGroup.Other: return Loot(rows, words);
                 default: return Prisoners(rows, words);
             }
         }

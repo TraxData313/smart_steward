@@ -45,7 +45,7 @@ public class WindowStateTests
     public void The_file_is_plain_ascii_with_comments_and_crlf()
     {
         var state = new WindowState();
-        state.SetCollapsed(SectionGroup.ArmourAndWeapons, true);
+        state.SetCollapsed(SectionGroup.Other, true);
         string text = state.Generate();
         Assert.All(text, c => Assert.True(c < 128, "non-ASCII character in window_state.json"));
         Assert.StartsWith("// Smart Steward", text);

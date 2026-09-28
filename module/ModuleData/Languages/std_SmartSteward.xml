@@ -28,9 +28,9 @@
     <string id="ss_auto_influence" text="influence" />
     <string id="ss_auto_kind" text="kind" />
     <string id="ss_auto_kinds" text="kinds" />
-    <string id="ss_auto_loot" text="armour &amp; weapons" />
     <string id="ss_auto_mounts" text="mounts" />
     <string id="ss_auto_nothing_done" text="nothing was done" />
+    <string id="ss_auto_other" text="other" />
     <string id="ss_auto_prisoners" text="prisoners" />
     <string id="ss_auto_ransomed" text="ransomed" />
     <string id="ss_auto_see_log" text="see smart_steward.log" />
@@ -80,10 +80,11 @@
     <string id="ss_hint_PrisonerAction" text="What the steward does with every other prisoner in a town: keep them, ransom them for denari, or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence - the most valuable first; those that do not fit, or all of them where the game does not allow it, are ransomed. Default: Ransom for denari." />
     <string id="ss_hint_ReplaceLameHorses" text="Sell the party's lame and old horses and pack animals and buy healthy ones in their place. When off they are kept - a lame horse still carries a footman. The steward never buys one either way. Default: on." />
     <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
-    <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields). Default: off." />
+    <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields) and your other goods, in the Other section. Default: off." />
     <string id="ss_hint_SellLootEquipment" text="Include weapons, armour, shields and ammunition in the loot sale. Default: on." />
     <string id="ss_hint_SellLootMaxItemValue" text="Never sell a piece worth more than this many denari. 0 = no cap. Pieces you locked in the inventory are never sold anyway. Default: 0. Range: 0 to 1,000,000." />
-    <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the gold), the lowest price per kg, or the most expensive (the game's own habit). Default: Cheapest first." />
+    <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the denari), the lowest price per kg, or the most expensive (the game's own habit). Default: Cheapest first." />
+    <string id="ss_hint_SellLootOtherGoods" text="Include every trade good that is not food or an animal - wool, salt, pottery, jewelry, iron... - in the sale, one Other goods line. Goods you lock in the inventory are never sold. Default: on." />
     <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
     <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
     <string id="ss_hint_SellPackAnimalSurplus" text="Sell pack animals above the target, the dearest first. Default: on." />
@@ -153,6 +154,7 @@
     <string id="ss_set_SellLootEquipment" text="Sell weapons and armour" />
     <string id="ss_set_SellLootMaxItemValue" text="Keep pieces worth more than" />
     <string id="ss_set_SellLootOrder" text="Loot selling order" />
+    <string id="ss_set_SellLootOtherGoods" text="Sell other goods" />
     <string id="ss_set_SellMountSurplus" text="Sell surplus riding horses" />
     <string id="ss_set_SellNobleHorses" text="Sell noble horses" />
     <string id="ss_set_SellPackAnimalSurplus" text="Sell surplus pack animals" />
@@ -233,6 +235,7 @@
     <string id="ss_ui_link_hint" text="Open in the Encyclopedia" />
     <string id="ss_ui_loot_armour" text="Armour" />
     <string id="ss_ui_loot_melee" text="Melee weapons" />
+    <string id="ss_ui_loot_other_goods" text="Other goods" />
     <string id="ss_ui_loot_ranged" text="Ranged" />
     <string id="ss_ui_loot_shields" text="Shields" />
     <string id="ss_ui_market_closed" text="Market closed: {REASON}" />
@@ -260,9 +263,9 @@
     <string id="ss_ui_role_war" text="War horses" />
     <string id="ss_ui_sec_food" text="Food" />
     <string id="ss_ui_sec_food_detail" text="target {TARGET} for {EATERS} eaters" />
-    <string id="ss_ui_sec_loot" text="Armour &amp; weapons" />
     <string id="ss_ui_sec_mounts" text="Mounts" />
     <string id="ss_ui_sec_mounts_detail" text="{FOOTMEN} men on foot  ·  {TOTAL} horses to keep" />
+    <string id="ss_ui_sec_other" text="Other" />
     <string id="ss_ui_sec_prisoners" text="Prisoners" />
     <string id="ss_ui_sec_recruits" text="Recruits on offer" />
     <string id="ss_ui_sec_recruits_detail" text="[+] recruits  ·  [–] dismisses yours" />

@@ -41,6 +41,8 @@ namespace SmartSteward.Core.Snapshot
                 if (isMount) return ItemKind.Mount;
                 return ItemKind.Other; // livestock — not food to the steward, never traded in V1
             }
+            if (lootGroup == LootGroup.OtherGoods)
+                return ItemKind.Goods; // round 4: a trade good that is not food
             return lootGroup != LootGroup.None ? ItemKind.Equipment : ItemKind.Other;
         }
 

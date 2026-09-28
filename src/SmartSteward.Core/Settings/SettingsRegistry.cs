@@ -285,18 +285,23 @@ namespace SmartSteward.Core.Settings
 
             // ── Loot ─────────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.SellLoot), Loot, "Sell loot",
-                "Offer to sell captured gear in groups (armour, melee weapons, ranged, shields).",
+                "Offer to sell captured gear in groups (armour, melee weapons, ranged, shields) and your other goods, in the "
+                + "Other section.",
                 s => s.SellLoot, (s, v) => s.SellLoot = v),
             new BoolSetting(nameof(StewardSettings.SellLootEquipment), Loot, "Sell weapons and armour",
                 "Include weapons, armour, shields and ammunition in the loot sale.",
                 s => s.SellLootEquipment, (s, v) => s.SellLootEquipment = v),
+            new BoolSetting(nameof(StewardSettings.SellLootOtherGoods), Loot, "Sell other goods",
+                "Include every trade good that is not food or an animal - wool, salt, pottery, jewelry, iron... - in the sale, "
+                + "one Other goods line. Goods you lock in the inventory are never sold.",
+                s => s.SellLootOtherGoods, (s, v) => s.SellLootOtherGoods = v),
             new IntSetting(nameof(StewardSettings.SellLootMaxItemValue), Loot, "Keep pieces worth more than",
                 "Never sell a piece worth more than this many denari. 0 = no cap. Pieces you locked in the inventory "
                 + "are never sold anyway.",
                 0, MaxGold, s => s.SellLootMaxItemValue, (s, v) => s.SellLootMaxItemValue = v),
             new EnumSetting<SellLootOrder>(nameof(StewardSettings.SellLootOrder), Loot, "Loot selling order",
                 "Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for "
-                + "the gold), the lowest price per kg, or the most expensive (the game's own habit).",
+                + "the denari), the lowest price per kg, or the most expensive (the game's own habit).",
                 new[] { "Cheapest first", "Lowest price per kg", "Most expensive first" },
                 s => s.SellLootOrder, (s, v) => s.SellLootOrder = v),
 

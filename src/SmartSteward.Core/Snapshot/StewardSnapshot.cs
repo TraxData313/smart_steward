@@ -170,8 +170,8 @@ namespace SmartSteward.Core.Snapshot
 
     public enum ItemKind
     {
-        /// <summary>Everything the steward leaves alone in V1: livestock, trade goods that are not food,
-        /// banners, books, quest items, non-transferable items.</summary>
+        /// <summary>Everything the steward leaves alone: livestock, banners, books, quest items, non-transferable items (trade
+        /// goods are <see cref="Goods"/> since round 4).</summary>
         Other,
 
         /// <summary><c>ItemObject.IsFood</c>.</summary>
@@ -185,6 +185,11 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary>Sellable equipment in one of the loot groups (<see cref="ItemStack.LootGroup"/>).</summary>
         Equipment,
+
+        /// <summary>A trade good that is not food (round 4 — coal, jewelry, wool, wine, oil…: the game's item type <c>Goods</c>,
+        /// <c>IsFood</c> false): the Other goods line (<see cref="LootGroup.OtherGoods"/>), sold in bulk like the loot.
+        /// Livestock, banners, books, quest and non-transferable items stay <see cref="Other"/>.</summary>
+        Goods,
     }
 
     /// <summary>The loot groups of DESIGN §2.6, in display order.</summary>
@@ -195,6 +200,10 @@ namespace SmartSteward.Core.Snapshot
         MeleeWeapons,
         Ranged,
         Shields,
+
+        /// <summary>Every good that is not food, an animal or equipment (round 4, Anton 2026.09.28: "a line there that combines
+        /// all other stuff that I have not pinned, like coal, jewelry etc") — <see cref="ItemKind.Goods"/>.</summary>
+        OtherGoods,
     }
 
     /// <summary>
@@ -225,7 +234,7 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>The item category id (price walk key; the role of a mount).</summary>
         public string CategoryId { get; set; } = "";
 
-        /// <summary>Only for <see cref="ItemKind.Equipment"/>; see <see cref="LootGroups.FromItemType"/>.</summary>
+        /// <summary>Only for <see cref="ItemKind.Equipment"/> and <see cref="ItemKind.Goods"/>; see <see cref="LootGroups.FromItemType"/>.</summary>
         public LootGroup LootGroup { get; set; }
 
         public int Count { get; set; }

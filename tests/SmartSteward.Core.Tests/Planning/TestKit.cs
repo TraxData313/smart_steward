@@ -153,6 +153,14 @@ internal sealed class Scenario
         return this;
     }
 
+    /// <summary>A trade good that is not food (round 4: the Other goods line) — 10 kg a unit like vanilla's goods.</summary>
+    public Scenario Goods(string id, int held, int sell, double weight = 10, bool locked = false, int? value = null)
+    {
+        Item(id, id, null, ItemKind.Goods, id, held, 0, sell * 2, sell, weight, locked, value ?? sell * 2);
+        Snap.Inventory[^1].LootGroup = LootGroup.OtherGoods;
+        return this;
+    }
+
     public Scenario Prisoner(string troop, int count, int ransom, bool hero = false, bool locked = false,
         double influence = 1.0)
     {

@@ -23,7 +23,7 @@ public class SectionSummaryTests
         Assert.Equal(SectionGroup.Tavern, SectionGroups.Of(PlanSectionKind.Tavern));
         Assert.Equal(SectionGroup.Food, SectionGroups.Of(PlanSectionKind.Food));
         Assert.Equal(SectionGroup.Mounts, SectionGroups.Of(PlanSectionKind.Mounts));
-        Assert.Equal(SectionGroup.ArmourAndWeapons, SectionGroups.Of(PlanSectionKind.ArmourAndWeapons));
+        Assert.Equal(SectionGroup.Other, SectionGroups.Of(PlanSectionKind.Other));
         Assert.Equal(SectionGroup.Prisoners, SectionGroups.Of(PlanSectionKind.Prisoners));
         // Every group, in the table's order (DESIGN §1.1).
         Assert.Equal(Enum.GetValues<SectionGroup>(), SectionGroups.All);
@@ -32,7 +32,7 @@ public class SectionSummaryTests
 
     [Theory]
     [InlineData("Food", SectionGroup.Food)]
-    [InlineData("armourandweapons", SectionGroup.ArmourAndWeapons)]
+    [InlineData("armourandweapons", SectionGroup.Other)]
     [InlineData("  TROOPS ", SectionGroup.Troops)]
     public void Group_names_read_back_case_insensitively(string key, SectionGroup expected)
     {
@@ -60,7 +60,7 @@ public class SectionSummaryTests
         Assert.StartsWith("no change " + UiFormat.Dot + " ", SectionSummary.Of(plan, SectionGroup.Food));
         Assert.EndsWith(" days", SectionSummary.Of(plan, SectionGroup.Food));
         Assert.Equal("no change", SectionSummary.Of(plan, SectionGroup.Mounts));
-        Assert.Equal("nothing sold", SectionSummary.Of(plan, SectionGroup.ArmourAndWeapons));
+        Assert.Equal("nothing sold", SectionSummary.Of(plan, SectionGroup.Other));
         Assert.Equal("nobody ransomed", SectionSummary.Of(plan, SectionGroup.Prisoners));
     }
 
@@ -126,7 +126,7 @@ public class SectionSummaryTests
             .Loot("spear", LootGroup.MeleeWeapons, held: 11, sell: 20, weight: 2);
         s.Settings.SellLoot = true;
         var plan = s.Plan();
-        Assert.Equal("41 sold +460 " + UiFormat.Dot + " " + M + "172 kg", SectionSummary.Of(plan, SectionGroup.ArmourAndWeapons));
+        Assert.Equal("41 sold +460 " + UiFormat.Dot + " " + M + "172 kg", SectionSummary.Of(plan, SectionGroup.Other));
     }
 
     [Fact]

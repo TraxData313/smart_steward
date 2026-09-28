@@ -17,11 +17,11 @@ public class LootPlannerTests
     public void SellLoot_is_opt_in()
     {
         var s = new Scenario().Loot("rags", LootGroup.Armour, held: 5, sell: 10);
-        Assert.Null(s.Plan().Section(PlanSectionKind.ArmourAndWeapons));
+        Assert.Null(s.Plan().Section(PlanSectionKind.Other));
 
         s.Settings.SellLoot = true;
         s.Settings.SellLootEquipment = false;
-        Assert.Null(s.Plan().Section(PlanSectionKind.ArmourAndWeapons));
+        Assert.Null(s.Plan().Section(PlanSectionKind.Other));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class LootPlannerTests
             .Loot("rags", LootGroup.Armour, held: 5, sell: 10, weight: 4)
             .Loot("bow", LootGroup.Ranged, held: 1, sell: 40)
             .Plan();
-        var rows = plan.Section(PlanSectionKind.ArmourAndWeapons)!.Rows;
+        var rows = plan.Section(PlanSectionKind.Other)!.Rows;
         Assert.Equal(new[] { "loot:Armour", "loot:MeleeWeapons", "loot:Ranged", "loot:Shields" }, rows.Select(r => r.Id));
         var armour = plan.Row("loot:Armour");
         Assert.Equal(RowType.Loot, armour.Type);
@@ -139,7 +139,7 @@ public class LootPlannerTests
     {
         var s = Selling().Loot("rags", LootGroup.Armour, held: 5, sell: 10);
         s.Snap.CanTrade = false;
-        Assert.Null(s.Plan().Section(PlanSectionKind.ArmourAndWeapons));
+        Assert.Null(s.Plan().Section(PlanSectionKind.Other));
     }
 
     [Fact]

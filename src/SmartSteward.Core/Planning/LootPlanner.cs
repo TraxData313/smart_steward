@@ -8,9 +8,11 @@ using SmartSteward.Core.Snapshot;
 namespace SmartSteward.Core.Planning
 {
     /// <summary>
-    /// Armour &amp; weapons (DESIGN §2.6): only ever SOLD, in bulk, one row per loot group — never bought, no
-    /// price book, no averages. Locked pieces and pieces above SellLootMaxItemValue are never sold and are not
-    /// in the row's Mine.
+    /// The Other section (DESIGN §2.6 — "Armour &amp; weapons" until round 4): only ever SOLD, in bulk, one row per loot group —
+    /// Armour, Melee weapons, Ranged, Shields (SellLootEquipment) and, since round 4, Other goods (SellLootOtherGoods: every
+    /// trade good that is not food, an animal or equipment — Anton 2026.09.28: "a line there that combines all other stuff that
+    /// I have not pinned, like coal, jewelry etc") — never bought, no price book, no averages. Locked pieces and pieces above
+    /// SellLootMaxItemValue are never sold and are not in the row's Mine.
     /// </summary>
     /// <remarks>
     /// Each group's pieces are ordered once by SellLootOrder, judged at the untouched market's price
@@ -54,21 +56,23 @@ namespace SmartSteward.Core.Planning
                 return price;
             });
 
-            if (!ctx.Snapshot.CanTrade || !settings.SellLoot || !settings.SellLootEquipment)
+            if (!ctx.Snapshot.CanTrade || !settings.SellLoot)
                 return;
 
             int cap = settings.SellLootMaxItemValue;
-            var equipment = ctx.Inventory(ItemKind.Equipment).ToList();
+            var sellable = ctx.Inventory(ItemKind.Equipment).Concat(ctx.Inventory(ItemKind.Goods)).ToList();
             foreach (var group in LootGroups.All)
             {
-                var held = equipment.Where(s => s.LootGroup == group).ToList();
-                var sellable = held.Where(s => !ctx.IsGuarded(s) && (cap <= 0 || s.UnitValue <= cap)).ToList();
-                if (sellable.Count == 0)
+                if (LootGroups.IsEquipment(group) ? !settings.SellLootEquipment : !settings.SellLootOtherGoods)
                     continue;
-                sellable.Sort(_order);
+                var held = sellable.Where(s => s.LootGroup == group).ToList();
+                var free = held.Where(s => !ctx.IsGuarded(s) && (cap <= 0 || s.UnitValue <= cap)).ToList();
+                if (free.Count == 0)
+                    continue;
+                free.Sort(_order);
                 var lane = new TradeLane(TradeDirection.Sell, LanePick.InOrder,
-                    sellable.Select(s => new LaneStack(s, s.Count, null)));
-                var row = new PlanRow("loot:" + group, PlanSectionKind.ArmourAndWeapons, RowType.Loot)
+                    free.Select(s => new LaneStack(s, s.Count, null)));
+                var row = new PlanRow("loot:" + group, PlanSectionKind.Other, RowType.Loot)
                 {
                     LootGroup = group,
                     Mine = lane.Capacity,
@@ -79,7 +83,7 @@ namespace SmartSteward.Core.Planning
                     MaxSell = lane.Capacity,
                     SellLane = lane,
                 };
-                _groups.Add(new Group(row, new WalkLine(row, lane, book: row.Book), sellable));
+                _groups.Add(new Group(row, new WalkLine(row, lane, book: row.Book), free));
             }
         }
 

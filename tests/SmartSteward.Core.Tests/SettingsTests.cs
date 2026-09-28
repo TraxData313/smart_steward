@@ -246,7 +246,7 @@ public class SettingsTests
     [InlineData("Musket", LootGroup.Ranged)]
     [InlineData("Shield", LootGroup.Shields)]
     [InlineData("Horse", LootGroup.None)]
-    [InlineData("Goods", LootGroup.None)]
+    [InlineData("Goods", LootGroup.OtherGoods)] // round 4: the Other goods line
     [InlineData("Banner", LootGroup.None)]
     [InlineData("Book", LootGroup.None)]
     [InlineData(null, LootGroup.None)]
@@ -259,7 +259,7 @@ public class SettingsTests
     public void The_loot_group_table_in_DESIGN_names_the_same_item_types()
     {
         var text = File.ReadAllText(Path.Combine(RepoRoot, "docs", "DESIGN.md"));
-        var named = Regex.Matches(text, @"\| (Armour|Melee weapons|Ranged \(Anton's ""firing""\)|Shields) \| ([^|]+) \|")
+        var named = Regex.Matches(text, @"\| (Armour|Melee weapons|Ranged \(Anton's ""firing""\)|Shields|Other goods) \| ([^|]+) \|")
             .SelectMany(m => Regex.Matches(m.Groups[2].Value, @"[A-Z][A-Za-z]+").Select(x => x.Value))
             .Distinct().ToList();
         Assert.True(named.Count >= 20, "the §2.6 table was not found");

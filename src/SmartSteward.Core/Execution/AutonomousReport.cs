@@ -12,7 +12,9 @@ namespace SmartSteward.Core.Execution
     {
         Food,
         Mounts,
-        ArmourAndWeapons,
+
+        /// <summary>The Other section (was "Armour &amp; weapons" until round 4): the loot groups and the other goods.</summary>
+        Other,
         Prisoners,
     }
 
@@ -51,7 +53,8 @@ namespace SmartSteward.Core.Execution
     {
         public string Food { get; set; } = "food";
         public string Mounts { get; set; } = "mounts";
-        public string ArmourAndWeapons { get; set; } = "armour & weapons";
+        /// <summary>The Other section's job (round 4: armour &amp; weapons and the other goods).</summary>
+        public string Other { get; set; } = "other";
         public string Prisoners { get; set; } = "prisoners";
         public string Kind { get; set; } = "kind";
         public string Kinds { get; set; } = "kinds";
@@ -71,7 +74,7 @@ namespace SmartSteward.Core.Execution
             {
                 case StewardJob.Food: return Food;
                 case StewardJob.Mounts: return Mounts;
-                case StewardJob.ArmourAndWeapons: return ArmourAndWeapons;
+                case StewardJob.Other: return Other;
                 default: return Prisoners;
             }
         }
@@ -175,7 +178,7 @@ namespace SmartSteward.Core.Execution
                 {
                     case PlanSectionKind.Food: return StewardJob.Food;
                     case PlanSectionKind.Mounts: return StewardJob.Mounts;
-                    case PlanSectionKind.ArmourAndWeapons: return StewardJob.ArmourAndWeapons;
+                    case PlanSectionKind.Other: return StewardJob.Other;
                     case PlanSectionKind.Prisoners: return StewardJob.Prisoners;
                     case PlanSectionKind.Tavern:
                     case PlanSectionKind.Recruits:

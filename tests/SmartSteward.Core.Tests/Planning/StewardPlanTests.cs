@@ -106,7 +106,7 @@ public class StewardPlanTests
         var plan = BusyTown().Plan();
         Assert.Equal(
             new[] { PlanSectionKind.Tavern, PlanSectionKind.Food, PlanSectionKind.Mounts,
-                PlanSectionKind.ArmourAndWeapons, PlanSectionKind.Prisoners },
+                PlanSectionKind.Other, PlanSectionKind.Prisoners },
             plan.Sections.Select(x => x.Kind));
         Assert.Equal(new[] { "mounts:pack", "mounts:riding", "mounts:war" },
             plan.Section(PlanSectionKind.Mounts)!.Rows.Select(r => r.Id));

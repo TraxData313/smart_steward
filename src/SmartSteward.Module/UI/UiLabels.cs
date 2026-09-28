@@ -37,7 +37,7 @@ namespace SmartSteward.UI
                 case PlanSectionKind.Troops: return UiText.S("ss_ui_sec_troops", "Your troops");
                 case PlanSectionKind.Food: return UiText.S("ss_ui_sec_food", "Food");
                 case PlanSectionKind.Mounts: return UiText.S("ss_ui_sec_mounts", "Mounts");
-                case PlanSectionKind.ArmourAndWeapons: return UiText.S("ss_ui_sec_loot", "Armour & weapons");
+                case PlanSectionKind.Other: return UiText.S("ss_ui_sec_other", "Other");
                 case PlanSectionKind.Prisoners: return UiText.S("ss_ui_sec_prisoners", "Prisoners");
                 default: return kind.ToString();
             }
@@ -67,6 +67,7 @@ namespace SmartSteward.UI
                     case LootGroup.MeleeWeapons: return UiText.S("ss_ui_loot_melee", "Melee weapons");
                     case LootGroup.Ranged: return UiText.S("ss_ui_loot_ranged", "Ranged");
                     case LootGroup.Shields: return UiText.S("ss_ui_loot_shields", "Shields");
+                    case LootGroup.OtherGoods: return UiText.S("ss_ui_loot_other_goods", "Other goods");
                 }
             }
             return row.Id;

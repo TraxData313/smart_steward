@@ -186,8 +186,11 @@ namespace SmartSteward.Core.Settings
 
         // ── Loot (DESIGN §2.6) ───────────────────────────────────────────────────────────────────
         public bool SellLoot { get; set; } = false;
-        /// <summary>Weapons, armour, shields, ammo — all four V1 loot groups.</summary>
+        /// <summary>Weapons, armour, shields, ammo — the four equipment groups.</summary>
         public bool SellLootEquipment { get; set; } = true;
+        /// <summary>The Other goods line (round 4): every unlocked trade good that is not food, an animal or equipment, sold in
+        /// bulk in SellLootOrder — under SellLoot.</summary>
+        public bool SellLootOtherGoods { get; set; } = true;
         /// <summary>Pieces worth more per unit are never sold (0 = no cap).</summary>
         public int SellLootMaxItemValue { get; set; } = 0;
         public SellLootOrder SellLootOrder { get; set; } = SellLootOrder.Cheapest;

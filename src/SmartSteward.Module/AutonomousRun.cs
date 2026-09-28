@@ -67,7 +67,7 @@ namespace SmartSteward
         {
             Food = UiText.S("ss_auto_food", "food"),
             Mounts = UiText.S("ss_auto_mounts", "mounts"),
-            ArmourAndWeapons = UiText.S("ss_auto_loot", "armour & weapons"),
+            Other = UiText.S("ss_auto_other", "other"),
             Prisoners = UiText.S("ss_auto_prisoners", "prisoners"),
             Kind = UiText.S("ss_auto_kind", "kind"),
             Kinds = UiText.S("ss_auto_kinds", "kinds"),

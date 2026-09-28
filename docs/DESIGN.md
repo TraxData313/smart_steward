@@ -70,9 +70,12 @@ reason above it. (Until step 16 a closed market hid every row at 0 — the taver
    **Recruits on offer** (the troop types the notables offer you here), then **Your troops** (the party's other regulars) (§2.8)
 3. **Food** — one row per food item (variety matters, so food stays itemised)
 4. **Mounts** — ROLE rows, not one row per horse type (§1.1.1)
-5. **Armour & weapons** — the loot group rows (§2.6)
+5. **Other** (was **Armour & weapons** until round 4 **[Anton 2026.09.28 — "Armour and Weapons can you make to Other and add a
+   line there that combines all other stuff that I have not pinned, like coal, jewery etc"]**) — the loot group rows and the
+   **Other goods** line (§2.6)
 6. **Prisoners** (§2.5) — last, with the other selling **[decided: Claude, 2026.09.27]**
-7. *(LATER — not V1)* **Others** — the trade goods the player ticked in the Prices tab (§1.3.1)
+7. *(LATER — not V1)* **Others** of the price book — trade goods bought and sold by price (§1.3.1); round 4's Other goods line
+   (§2.6) only SELLS them in bulk, without prices
 
 **Folded sections** **[Anton 2026.09.28 — PLAN step 18: "each section header expands/collapses; collapsed = ONE summary
 line … the state is REMEMBERED per section across windows, towns and game restarts (stays collapsed until Anton expands it)
@@ -86,7 +89,7 @@ line … the state is REMEMBERED per section across windows, towns and game rest
     own `[-] [+]` (§2.8)
   - Food — `+29 (5 kinds), 12 sold –510 · 64 » 71 days` / `no change · 64 days` (the days as the footer counts them)
   - Mounts — `+10 (2 kinds), 3 sold –1,200` / `no change`
-  - Armour & weapons — `41 sold +2,132 · –380 kg` / `nothing sold`
+  - Other (armour & weapons and the other goods, round 4) — `41 sold +2,132 · –380 kg` / `nothing sold`
   - Prisoners — `12 ransomed, 4 to the dungeon +980 +3.2 influence` / `nobody ransomed`
   The same shape as the autonomous steward's report (moves, then the gold); the words are TextObjects (`ss_ui_sum_*`).
 - **Remembered per section** until the player unfolds it — across windows, towns and game restarts — in
@@ -561,9 +564,15 @@ pure Core logic fed a snapshot of the party and the market (§5).
 ### 2.6 Loot — sold in groups, cheapest first
 
 - `SellLoot` default **off** (opt-in). When on, the groups allowed by `SellLootEquipment`
-  (weapons, armour, shields, ammo — default on) are proposed for sale.
-- **[Anton 2026.09.27]** Non-food trade goods are no longer a loot group. In V1 the steward
-  leaves them alone; LATER they become the *Others*
+  (weapons, armour, shields, ammo — default on) are proposed for sale, and — **[Anton 2026.09.28, round 4]** — the **Other
+  goods** line with `SellLootOtherGoods` (default **on**): every UNLOCKED good that is not food, not an animal and not
+  equipment (the game's item type `Goods` with `IsFood` false: wool, salt, pottery, jewelry, iron, wine, oil… — livestock,
+  banners, books, quest and non-transferable items excluded; Core `ItemKind.Goods`, `LootGroup.OtherGoods`), sold in bulk in
+  `SellLootOrder` like the loot groups (one row `loot:OtherGoods`, its ▸ per good), within the market's gold, over
+  `SellLootMaxItemValue` kept. No price book: the Others of §1.3.1 (buy below / sell above your price) stay LATER. The section
+  is called **Other** now.
+- ~~**[Anton 2026.09.27]** Non-food trade goods are no longer a loot group. In V1 the steward
+  leaves them alone~~ (round 4: the Other goods line above sells them in bulk); LATER they become the *Others*
   of the price book (§1.3) — sold item by item, only the ones Sell-ticked there, each at ≥ its
   final min sell price. `SellLootTradeGoods` is gone. Within Others, when the market's gold runs
   short, `SellLootOrder` decides which go first.
@@ -577,6 +586,7 @@ pure Core logic fed a snapshot of the party and the market (§5).
   | Melee weapons | OneHandedWeapon, TwoHandedWeapon, Polearm | `SellLootEquipment` |
   | Ranged (Anton's "firing") | Bow, Crossbow, Sling, Thrown, Arrows, Bolts, SlingStones (+ Pistol, Musket, Bullets — unused in vanilla) | `SellLootEquipment` |
   | Shields | Shield | `SellLootEquipment` |
+  | Other goods | Goods (every trade good that is not food) | `SellLootOtherGoods` |
 
 - Never sold: armour and weapons LOCKED in the inventory screen, food, animals (handled above), items above
   `SellLootMaxItemValue` per unit (default **0** = no cap).
@@ -991,8 +1001,9 @@ troop / hero, the count and the expected unit prices.
 | War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
 | Prisoners | LordPrisonerAction | Keep | Keep / Ransom / Donate | "Captured lords": what the steward does with captured lords in a town — Donate where the game forbids it (or the dungeon is full) keeps them **[Anton 2026.09.28, round 4]** |
 | Prisoners | PrisonerAction | Ransom | Keep / Ransom / Donate | "Other prisoners": every other prisoner — Donate fills the dungeon most valuable first, the rest (or all, where the game forbids it) ransomed; replaces `RansomPrisoners` (true), `RansomHeroPrisoners` (false) and `DonatePrisonersWhenPossible` (false) — an old file's values carry over once, logged **[Anton 2026.09.28, round 4]** |
-| Loot | SellLoot | false | — | sell other items |
+| Loot | SellLoot | false | — | sell loot and other goods (the Other section) |
 | Loot | SellLootEquipment | true | — | weapons, armour, shields, ammo |
+| Loot | SellLootOtherGoods | true | — | "Sell other goods": the Other goods line — every unlocked trade good that is not food, an animal or equipment, sold in bulk in SellLootOrder (§2.6) **[Anton 2026.09.28, round 4]** |
 | Loot | SellLootMaxItemValue | 0 | 0–1,000,000 | never auto-sell items worth more per unit (0 = no cap) |
 | Loot | SellLootOrder | Cheapest | Cheapest / LowestPricePerKg / MostExpensive | order within a loot group: Cheapest / LowestPricePerKg / MostExpensive — replaces `SellLootMassFirst` **[Anton 2026.09.27]** |
 | Tavern | ShowTavern | true | — | show the tavern section in towns |
@@ -1031,7 +1042,8 @@ float slider and the file agree on the same number). A value outside its range i
   first registration in MCM 5.12.3): MCM keeps and writes nothing, settings.json is the only store.
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
   - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; 51 since step 20's
-    four activation thresholds; the
+    four activation thresholds, the food multipliers, the prisoner actions and SellLootOtherGoods (53: 52 scalars + the price
+    book); the
     prisoner list is gone since step 12, the four upgrade-horse keys since step 17), `SettingsFile` (text in, text out),
     `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.

@@ -5,7 +5,7 @@ using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Planning
 {
-    /// <summary>The Suggestion tab's sections in DESIGN §1.1's order. (LATER, not V1: Others.)</summary>
+    /// <summary>The Suggestion tab's sections in DESIGN §1.1's order.</summary>
     public enum PlanSectionKind
     {
         Tavern,
@@ -19,7 +19,10 @@ namespace SmartSteward.Core.Planning
 
         Food,
         Mounts,
-        ArmourAndWeapons,
+
+        /// <summary>"Other" (was "Armour &amp; weapons" until round 4 — Anton 2026.09.28: "Armour and Weapons can you make to
+        /// Other and add a line there that combines all other stuff"): the loot groups and the Other goods line.</summary>
+        Other,
         Prisoners,
     }
 

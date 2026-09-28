@@ -55,10 +55,10 @@ public class AutonomousReportTests
         var lines = summary.Lines("Steward at Sargot:", "Steward:");
 
         Assert.Equal(
-            "Steward at Sargot: food +20 (2 kinds) –220 · mounts +4 –720 · armour & weapons 41 sold +2,132 · "
+            "Steward at Sargot: food +20 (2 kinds) –220 · mounts +4 –720 · other 41 sold +2,132 · "
             + "prisoners 12 ransomed +960 · gold 312,400 » 314,552",
             Assert.Single(lines));
-        Assert.Equal(new[] { StewardJob.Food, StewardJob.Mounts, StewardJob.ArmourAndWeapons, StewardJob.Prisoners },
+        Assert.Equal(new[] { StewardJob.Food, StewardJob.Mounts, StewardJob.Other, StewardJob.Prisoners },
             summary.Jobs.Select(j => j.Job));
         Assert.False(summary.IsEmpty);
     }
@@ -95,7 +95,7 @@ public class AutonomousReportTests
         var lines = summary.Lines("Steward at Sargot:", "Steward:");
 
         Assert.Equal(2, lines.Count);
-        Assert.Equal("Steward at Sargot: armour & weapons 30 sold +1,560 · prisoners 12 ransomed +960 · gold 312,400 » 314,920",
+        Assert.Equal("Steward at Sargot: other 30 sold +1,560 · prisoners 12 ransomed +960 · gold 312,400 » 314,920",
             lines[0]);
         int buys = plan.Transactions.Count(t => t.Kind == TransactionKind.Buy);
         Assert.Equal("Steward: 1 cut short, " + buys + " skipped — see smart_steward.log", lines[1]);
@@ -148,7 +148,7 @@ public class AutonomousReportTests
     [InlineData(StewardJob.Food, 0, 0, 12, 0, 96, "food 12 sold +96")]
     [InlineData(StewardJob.Mounts, 3, 1, 2, 0, -400, "mounts +3, 2 sold –400")]
     [InlineData(StewardJob.Mounts, 2, 1, 2, 0, 0, "mounts +2, 2 sold")]
-    [InlineData(StewardJob.ArmourAndWeapons, 0, 0, 1234, 0, 45678, "armour & weapons 1,234 sold +45,678")]
+    [InlineData(StewardJob.Other, 0, 0, 1234, 0, 45678, "other 1,234 sold +45,678")]
     public void A_job_reads_what_moved_and_its_net_gold(StewardJob job, int bought, int kinds, int sold, int ransomed,
         int gold, string expected)
     {
@@ -162,7 +162,7 @@ public class AutonomousReportTests
         var (plan, _) = Sargot();
         var words = new ReportWords
         {
-            Food = "Essen", Mounts = "Pferde", ArmourAndWeapons = "Beute", Prisoners = "Gefangene",
+            Food = "Essen", Mounts = "Pferde", Other = "Beute", Prisoners = "Gefangene",
             Kind = "Sorte", Kinds = "Sorten", Sold = "verkauft", Ransomed = "freigekauft", Gold = "Gold",
         };
 
