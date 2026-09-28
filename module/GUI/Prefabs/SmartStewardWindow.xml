@@ -53,6 +53,9 @@
                     <!-- The header line: the total money change of everything queued -->
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" VerticalAlignment="Top" Brush="Popup.Title.Text" Brush.FontSize="30" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeaderColor" Text="@HeaderText" />
 
+                    <!-- A closed market: the game's own reason, on the header line's right (round 1) -->
+                    <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="900" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Right" VerticalAlignment="Top" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@MarketClosedText" IsVisible="@HasMarketNotice" />
+
                     <!-- Column heads, the same fixed widths as the rows -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="46" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
@@ -67,11 +70,11 @@
                     </ListPanel>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" MarginTop="74" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.25" />
 
-                    <!-- Nothing to do -->
+                    <!-- Nothing to do - or, at a closed market with nothing to do, the game's reason -->
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" VerticalAlignment="Top" MarginTop="120" Brush="Popup.Description.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@MutedColor" Text="@EmptyText" IsVisible="@IsEmpty" />
 
                     <!-- The table -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="80" MarginBottom="122">
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="80" MarginBottom="122" IsVisible="@ShowTable">
                       <Children>
                         <ScrollablePanel Id="SuggestionScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="14" ClipRect="SuggestionClip" InnerPanel="SuggestionClip\SuggestionList" VerticalScrollbar="..\SuggestionScrollbar" AutoHideScrollBars="true">
                           <Children>

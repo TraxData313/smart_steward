@@ -20,13 +20,14 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
 - No arrival popup where you cannot trade or the steward has no rows
+- A closed market says why in the window ("Market closed: …", the game's own words) and in the log
 
 BUGS:
 - [ ] (R1) Prices tab: Item name must be the FIRST (leftmost) column
 - [ ] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
 - [ ] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
 - [x] (R1) Arrival popup opened at a village with NO TRADE and nothing to do (Hiblet) — must stay shut (the log: the popup stayed shut, the window came from the menu entry; now also never at a closed market)
-- [ ] (R1) Closed market (war, crime…) shows an empty table — say the game's reason in the window instead
+- [x] (R1) Closed market (war, crime…) shows an empty table — say the game's reason in the window instead
 - [x] (R1) TOP: after loading a save in the same game session, clicking towns/villages no longer entered them ("clan tier not high enough to request a meeting" shown) — a game RESTART cured it. Found: the game read Left Alt as HELD (Alt+Tab) → every click asked for a parley; not the mod — tap Left Alt (RESEARCH §17)
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):

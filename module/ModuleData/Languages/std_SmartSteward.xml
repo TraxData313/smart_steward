@@ -200,6 +200,7 @@
     <string id="ss_ui_loot_melee" text="Melee weapons" />
     <string id="ss_ui_loot_ranged" text="Ranged" />
     <string id="ss_ui_loot_shields" text="Shields" />
+    <string id="ss_ui_market_closed" text="Market closed: {REASON}" />
     <string id="ss_ui_mine_kept" text="(+{N} kept)" />
     <string id="ss_ui_mine_locked" text="(+{N} locked)" />
     <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
@@ -245,7 +246,10 @@
     <string id="ss_ui_warn_market_gold" text="The market cannot pay for all the sales." />
     <string id="ss_ui_warn_min_gold" text="Below the gold you always keep ({GOLD})." />
     <string id="ss_ui_warn_min_gold_horses" text="Below the gold you keep before buying animals ({GOLD})." />
+    <string id="ss_why_looted" text="This village has been looted." />
+    <string id="ss_why_market_closed" text="Trading is not possible here right now." />
     <string id="ss_why_no_settlement" text="not in a settlement" />
     <string id="ss_why_not_town_or_village" text="not a town or a village" />
+    <string id="ss_why_raided" text="The village is being raided." />
   </strings>
 </base>

@@ -123,3 +123,7 @@ Bannerlord\logs\rgl_log_*.txt` with any report.
    town where you cannot trade: no window pops up, even with "Only open with suggestions" unticked. The log says `no
    popup at … - the market is closed (arrival popup)`. A place with suggestions still pops up. Each `opened at …` line
    now ends with its door: `(arrival popup)`, `(the Party Steward menu entry)` or `(Review on the leave question)`.
+3. **Closed market says why.** In such a village or town open Party Steward from the menu: instead of an empty table
+   it says `Market closed: …` in the game's words (e.g. "There are no available products right now.", "You cannot
+   trade with a hostile village."). In a town where you cannot trade but hold prisoners to ransom, the line sits at the
+   top right and the table shows below it.

@@ -48,7 +48,8 @@ namespace SmartSteward.Adapter
             };
             var elements = new Dictionary<string, EquipmentElement>(StringComparer.Ordinal);
 
-            snap.CanTrade = CanTradeNow(settlement);
+            snap.CanTrade = CanTradeNow(settlement, out string? closedReason);
+            snap.TradeClosedReason = snap.CanTrade ? null : closedReason;
             ReadParty(snap, main);
             ReadItems(main.ItemRoster, snap.Inventory, elements, InventoryLocks());
             if (snap.CanTrade)
@@ -66,18 +67,36 @@ namespace SmartSteward.Adapter
         /// <summary>The game lets the player trade here right now: the town's "Trade" / the village's "Buy products"
         /// gate (<c>SettlementAccessModel.CanMainHeroDoSettlementAction(…, Trade, …)</c> — war, crime, a raid, a
         /// village with nothing to sell), and never in a looted village.</summary>
-        public static bool CanTradeNow(Settlement settlement)
+        public static bool CanTradeNow(Settlement settlement) => CanTradeNow(settlement, out _);
+
+        /// <summary><see cref="CanTradeNow(Settlement)"/>, and when closed, why: the game's own disabled text for the Trade
+        /// option (<c>DefaultSettlementAccessModel.CanMainHeroTrade</c>: "You cannot trade with a hostile village.",
+        /// "There are no available products right now.", "Village shop is not available right now.", the disguise
+        /// perk…) — or ours where the game gives none (looted, being raided, anything else).</summary>
+        public static bool CanTradeNow(Settlement settlement, out string? whyClosed)
         {
+            whyClosed = null;
             try
             {
                 if (settlement.IsVillage && settlement.Village.VillageState == Village.VillageStates.Looted)
+                {
+                    whyClosed = UI.UiText.S("ss_why_looted", "This village has been looted.");
                     return false;
-                return Campaign.Current.Models.SettlementAccessModel.CanMainHeroDoSettlementAction(settlement,
-                    SettlementAccessModel.SettlementAction.Trade, out _, out _);
+                }
+                if (Campaign.Current.Models.SettlementAccessModel.CanMainHeroDoSettlementAction(settlement,
+                        SettlementAccessModel.SettlementAction.Trade, out _, out var disabledText))
+                    return true;
+                string? text = disabledText?.ToString();
+                whyClosed = !string.IsNullOrWhiteSpace(text) ? text
+                    : settlement.IsVillage && settlement.Village.VillageState == Village.VillageStates.BeingRaided
+                        ? UI.UiText.S("ss_why_raided", "The village is being raided.")
+                        : UI.UiText.S("ss_why_market_closed", "Trading is not possible here right now.");
+                return false;
             }
             catch (Exception ex)
             {
                 ModLog.Error("snapshot", "reading trade access", ex);
+                whyClosed = UI.UiText.S("ss_why_market_closed", "Trading is not possible here right now.");
                 return false;
             }
         }
@@ -146,7 +165,8 @@ namespace SmartSteward.Adapter
             string Kinds(List<ItemStack> stacks) => string.Join(", ",
                 stacks.GroupBy(x => x.Kind).OrderBy(g => g.Key)
                     .Select(g => g.Key + " " + g.Count().ToString(inv) + "/" + g.Sum(x => x.Count).ToString(inv)));
-            return s.SettlementKind + (s.CanTrade ? "" : " (NO TRADE)") + ", gold " + s.PlayerGold.ToString("N0", inv)
+            return s.SettlementKind + (s.CanTrade ? "" : " (NO TRADE: " + (s.TradeClosedReason ?? "no reason given") + ")")
+                   + ", gold " + s.PlayerGold.ToString("N0", inv)
                    + ", market gold " + s.MarketGold.ToString("N0", inv) + "; party " + s.Party.Members.ToString(inv)
                    + " (footmen " + s.Party.Footmen.ToString(inv) + ", room " + s.Party.Room.ToString(inv)
                    + ", companion slots " + s.Party.CompanionSlotsFree.ToString(inv) + ", food/day "

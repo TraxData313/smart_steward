@@ -21,6 +21,11 @@ namespace SmartSteward.Core.Snapshot
         /// no market rows at all: no food, horses or loot (DESIGN §3.5).</summary>
         public bool CanTrade { get; set; } = true;
 
+        /// <summary>While <see cref="CanTrade"/> is false: why, in the game's own words (the disabled Trade option's text —
+        /// war, crime, a raid, nothing on offer…), or the Module's when the game gives none. Shown at the top of the
+        /// window and written to the log (playtest round 1).</summary>
+        public string? TradeClosedReason { get; set; }
+
         public int PlayerGold { get; set; }
 
         /// <summary>The settlement's purse — the most it can pay for what the party sells.</summary>

@@ -49,6 +49,12 @@ green-ish, sell = red-ish, untouched = grey). One row per item (or prisoner troo
 touches, plus rows for ticked item types the market has but the plan left at 0 (so the player
 can add by hand).
 
+**A closed market says why** **[decided: Claude, 2026.09.28 — step 12, playtest round 1]**: when the game does not let
+the player trade here, the tab shows `Market closed: <reason>` in the game's own words (the disabled Trade option's text:
+war, crime, a raid, nothing on offer, disguise — or ours where the game gives none: looted, being raided) — in place of
+the table when nothing can be done, else on the header line's right above it. The log's snapshot line carries the same
+reason (`Village (NO TRADE: …)`).
+
 **Section order** **[Anton 2026.09.27]** — each section under its own header row:
 1. **Tavern** — wanderers, then mercenaries (§2.7)
 2. **Food** — one row per food item (variety matters, so food stays itemised)

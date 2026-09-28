@@ -35,6 +35,10 @@ namespace SmartSteward.UI
         private bool _hasStatus;
         private bool _isEmpty;
         private bool _canResetAll;
+        private string _emptyText = "";
+        private string _marketClosedText = "";
+        private bool _hasMarketNotice;
+        private readonly string _nothingToDoText;
 
         internal SuggestionTabVM(Action onPlanChanged)
         {
@@ -46,18 +50,24 @@ namespace SmartSteward.UI
             ColMarket = UiText.S("ss_ui_col_market", "Market");
             ColItem = UiText.S("ss_ui_col_item", "Item");
             ColType = UiText.S("ss_ui_col_type", "Type");
-            EmptyText = UiText.S("ss_ui_empty", "Nothing for the steward to do here.");
+            _nothingToDoText = UiText.S("ss_ui_empty", "Nothing for the steward to do here.");
+            _emptyText = _nothingToDoText;
             ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             ResetAllText = UiText.S("ss_ui_reset_all", "Reset all");
         }
 
         internal StewardPlan? Plan => _plan;
 
-        /// <summary>Shows a (new) plan: the sections and rows are built afresh.</summary>
-        internal void SetPlan(StewardPlan plan, Settlement settlement)
+        /// <summary>Shows a (new) plan: the sections and rows are built afresh. A closed market (the snapshot's
+        /// <c>TradeClosedReason</c>, the game's own words) is said at the top — or, with nothing to do, instead of the
+        /// table (playtest round 1).</summary>
+        internal void SetPlan(StewardPlan plan, Adapter.GameVisit visit)
         {
             _plan = plan;
-            _settlement = settlement;
+            _settlement = visit.Settlement;
+            var snap = visit.Snapshot;
+            MarketClosedText = snap.CanTrade ? ""
+                : UiText.S1("ss_ui_market_closed", "Market closed: {REASON}", "REASON", snap.TradeClosedReason ?? "");
             var sections = new MBBindingList<SectionVM>();
             foreach (var section in plan.Sections)
                 sections.Add(new SectionVM(section, plan, this));
@@ -95,7 +105,10 @@ namespace SmartSteward.UI
             var warnings = PlanFooter.Warnings(t);
             WarningText = string.Join("   ", warnings.Select(w => UiLabels.Warning(w, floors.All, floors.Animals)));
             HasWarnings = warnings.Count > 0;
-            IsEmpty = plan.Sections.Count == 0;
+            bool closed = MarketClosedText.Length > 0;
+            IsEmpty = plan.Sections.Count == 0 || (closed && !plan.HasChanges);
+            EmptyText = closed ? MarketClosedText : _nothingToDoText;
+            HasMarketNotice = closed && !IsEmpty;
             CanResetAll = plan.IsEdited;
         }
 
@@ -166,7 +179,6 @@ namespace SmartSteward.UI
         [DataSourceProperty] public string ColMarket { get; }
         [DataSourceProperty] public string ColItem { get; }
         [DataSourceProperty] public string ColType { get; }
-        [DataSourceProperty] public string EmptyText { get; }
         [DataSourceProperty] public string ShortcutText { get; }
         [DataSourceProperty] public string ResetAllText { get; }
         [DataSourceProperty] public string WarningColor => UiColors.Warning;
@@ -247,7 +259,34 @@ namespace SmartSteward.UI
         public bool IsEmpty
         {
             get => _isEmpty;
-            set { if (value != _isEmpty) { _isEmpty = value; OnPropertyChangedWithValue(value, nameof(IsEmpty)); } }
+            set { if (value != _isEmpty) { _isEmpty = value; OnPropertyChangedWithValue(value, nameof(IsEmpty)); OnPropertyChanged(nameof(ShowTable)); } }
+        }
+
+        /// <summary>The table shows unless the tab is empty (nothing planned, or a closed market with nothing to do).</summary>
+        [DataSourceProperty] public bool ShowTable => !_isEmpty;
+
+        /// <summary>"Nothing for the steward to do here." — or, at a closed market, why it is closed.</summary>
+        [DataSourceProperty]
+        public string EmptyText
+        {
+            get => _emptyText;
+            set { if (value != _emptyText) { _emptyText = value; OnPropertyChangedWithValue(value, nameof(EmptyText)); } }
+        }
+
+        /// <summary>"Market closed: …" (empty while the market is open).</summary>
+        [DataSourceProperty]
+        public string MarketClosedText
+        {
+            get => _marketClosedText;
+            set { if (value != _marketClosedText) { _marketClosedText = value; OnPropertyChangedWithValue(value, nameof(MarketClosedText)); } }
+        }
+
+        /// <summary>The closed-market line shows at the top (the table shows too — there is something to do).</summary>
+        [DataSourceProperty]
+        public bool HasMarketNotice
+        {
+            get => _hasMarketNotice;
+            set { if (value != _hasMarketNotice) { _hasMarketNotice = value; OnPropertyChangedWithValue(value, nameof(HasMarketNotice)); } }
         }
 
         [DataSourceProperty]

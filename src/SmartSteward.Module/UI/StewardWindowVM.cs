@@ -46,7 +46,7 @@ namespace SmartSteward.UI
             DoItText = UiText.S("ss_ui_do_it", "Do it");
             DoItHint = new HintVM();
             Suggestion = new SuggestionTabVM(RefreshDoIt);
-            Suggestion.SetPlan(plan, settlement);
+            Suggestion.SetPlan(plan, visit);
             Prices = new PricesTabVM();
             Instructions = new InstructionsTabVM();
             RefreshDoIt();
@@ -155,7 +155,7 @@ namespace SmartSteward.UI
                 int applied = carry.ApplyTo(plan);
                 ModLog.Info("plan", "carried " + applied + " of " + carry.Edits.Count + " edited rows over");
             }
-            Suggestion.SetPlan(plan, _settlement);
+            Suggestion.SetPlan(plan, _visit);
             RefreshDoIt();
         }
 
@@ -224,7 +224,7 @@ namespace SmartSteward.UI
             }
             _visit = visit;
             _planStale = false;
-            Suggestion.SetPlan(PlanFor(visit, "after Do it"), _settlement);
+            Suggestion.SetPlan(PlanFor(visit, "after Do it"), visit);
             Suggestion.SetStatus(summary);
             RefreshDoIt();
         }

@@ -858,6 +858,12 @@ managed side only clears the layers' "last down keys" on a focus change — `Scr
 restart, frees it. The load was a coincidence: no map click to a settlement is in the log between the
 Alt+Tab and the load, so the stuck state may well predate it.
 
+**A closed market's words** (step 12, for the window): `CanMainHeroDoSettlementAction(…, Trade, out _, out disabledText)`
+→ `DefaultSettlementAccessModel.CanMainHeroTrade` gives, for a village: being raided → false with NO text; hostile →
+"You cannot trade with a hostile village."; nothing on offer but gold → "There are no available products right now.";
+no gold either → "Village shop is not available right now."; for a town: disguised without Smuggler Connections →
+"{PERK_NAME} perk required to trade while in disguise." A looted village is our own check (no market at all).
+
 **Not the steward**: the mod never writes input (`Input.PressKey` / `ClearKeys` unused; it only reads Shift / Ctrl /
 Escape on its own layer while its window is open — closed at 09:31:18), and no state of it survives a load (audit in
 TASKS_DONE step 12). Since step 12 `InputWatch` writes one log line when the map has read `MapFollowModifier` as held for
