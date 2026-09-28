@@ -50,6 +50,89 @@ One Gauntlet window, opened from the settlement menu (§6) or automatically on a
 
 ### 1.1 Suggestion tab — the table
 
+**THE GOAL (round 5) [Anton 2026.09.28, round 5 — docs/feedback/2026-09-28-round5.md]** — *"add a goal tab that I can directly
+edit here so that I can start controlling stuff directly from here with the goals right in this pannel"*. PLAN step 22 built the
+Core (settings, the planner, the editor, the sheet's data), step 23 builds the window. Where this block and the older text below
+disagree, this block wins.
+- **Columns** (step 23): Item · Market · **Goal** · Mine · Change · Result · Denari · Party · Prisoners · **Land weight** · **Sea
+  weight** — Item back at the far left (round 4's "Market far left" is replaced). **Weight, not kg** [Anton]: the game writes
+  weight with no unit (its Encyclopedia: "Weight rating"; the party screen shows bare numbers), so every "kg" of our player texts
+  goes — the column heads, the slowdown tooltip, "lowest price per weight" (the `SellLootOrder` value is renamed
+  `LowestPricePerWeight`; an old file's `LowestPricePerKg` is read as it and rewritten, silently — nothing is lost).
+- **The Goal = where the row should END** (the Result the steward aims for) [Claude's call, from Anton's words]. For food and the
+  pack / riding / war horse rows it is typed in (a **manual goal**); everywhere else it only shows where the steward's rules take
+  the line (`Planning\RowGoal`):
+  | Line | Goal | Editable |
+  |---|---|---|
+  | Troops title | the party size limit; **Mine** = members now, **red when over the limit** [Anton] | no |
+  | a wanderer, the mercenaries, Recruits, Your troops, a troop row | empty [Anton: "no goal changes here"] | no |
+  | a food row | yours, or the steward's: the row's planned Result — its share of the days goal (the days goal is a total, not per kind) [Claude's call] | **yes** |
+  | Food title | the sum of the rows' goals [Anton via the manager] | no |
+  | Pack animals · Riding horses · War horses | yours, or the steward's: `PackAnimalsTarget` · the riding target (T − the war, noble and lame horses kept, §2.3) · `WarMountsToKeep` | **yes** |
+  | Noble horses · Lame horses | 0 (they are only ever sold) | no |
+  | Horses title | the sum of the role rows' goals [Claude's call] | no |
+  | Lords / Others and each prisoner row | 0 on Ransom and Donate, = Mine on Keep [Anton: "prisoners course goal=0"] | no |
+  | Prisoners title | the sum of its two lines [Claude's call] | no |
+  | Other lines (the loot groups, Other goods) | 0 [Anton: "others goal=0"] (= Mine where the settings do not sell the line — such a line has no row today, so it never shows) | no |
+  | Other title | the sum (0) | no |
+  A title shows `–*` when every row under it is hands-off (below).
+- **A manual goal is a STANDING ORDER** [Anton: "if I change it add a reset button and it will reset to the one determined by my
+  policy in instructions"]: it holds in every town, across sessions and restarts, until its ⟲ gives the row back to the
+  Instructions policy. Kept in `settings.json` as the commented **`Goals`** object (§7 group "Goals you set by hand", §8) — global
+  like the price book, NEVER in the save. Keys are the rows' ids: `"food:grain"`, `"mounts:pack"`, `"mounts:riding"`,
+  `"mounts:war"`; values whole numbers 0–100,000. A goal for a food this town neither holds nor sells simply waits (no row). The
+  **Full-autonomous steward obeys the goals too** — but `AutonomousMinGold` always holds for them, whatever the switches say.
+- **How it plans — the live re-plan's pins** [Claude's call, 2026.09.28 — step 22] (Core `PlanContext.PinOf`): a manual goal IS a
+  touched row of the live re-plan (§1.1 below): its pin is `goal − Mine`, walked FIRST in its phase (the player's rows before the
+  steward's — `PlanPins` precedence), so it takes the market's stock, gold and price room before the steward's rows. For these
+  four row kinds "touched" now MEANS "has a manual goal" (the ⟲ shows exactly then); the goal, not the change, is what is kept —
+  `PlanCarryOver` no longer carries them (the settings do). A fresh plan with goals plans twice (the second time with the goals'
+  own gold known, so the steward's earlier phases leave it — `PlanPins.SellGoldAfter…/SpendAfter…`, as in a re-plan).
+- **The policy fills the rest** [Anton: "every food item that's goal is not manually set will be determined by those rules"]:
+  your food goals count toward the days goal FIRST (as the goal's Result), the steward's food rows share what is left — buy
+  up to the target, sell above target + tolerance down to it. [Claude's call] So goals that alone pass the target + tolerance
+  make the steward's own food rows surplus: they are sold like any surplus (most-held first, down to the target — or all of them).
+  A riding-horse goal is a plain number (it no longer follows the footmen until ⟲); a war-horse goal replaces `WarMountsToKeep`
+  here and counts toward T, so the steward's riding horses fill the rest around it; a pack goal replaces `PackAnimalsTarget`.
+- **A [–]/[+] click on a food or pack / riding / war row IS a goal edit** [Anton via the manager: "one concept per row, one ⟲"]:
+  the Result moves as a click always did (click 1, Shift 5, Ctrl all — Shift/Ctrl stop at Mine, a plain click crosses it) and the
+  new Result becomes the goal, saved at once; then the steward re-plans every row it owns around it (every goal edit re-plans —
+  the policy fills the rest). The click is judged as the goal will be: under the three switches (a [+] greys with **"keeps your
+  purse at 5,000 denari"** — `EditBlock.PurseFloor` — or **"waits for 20,000 denari"** — `EditBlock.WaitsForThreshold`), the
+  steward's rows giving way (they re-plan), your other goals and hand-edited rows not. A typed goal (step 23's box —
+  `StewardPlan.SetGoal`) is kept as typed even when the market cannot reach it. ⟲ = `StewardPlan.Reset` (the goal is removed).
+- **"Reset all" keeps the standing goals** [Claude's call]: it hands back the visit's edits (tavern, troops, prisoners, Other,
+  noble and lame horses) — a goal is a setting like a typed price, and one click must not wipe every standing order; each goes by
+  its own ⟲.
+- **Hands-off `–*`** [Claude's call — Anton suggested `0*`: a goal of 0 means "sell it all" on the Other and prisoner lines, and
+  below a threshold nothing is sold either, so a dash says "no goal yet" truer; a one-line flip if Anton prefers `0*`]: a row with
+  no manual goal whose job waits for its activation threshold (§3.4 — `PlanRow.StartsAtDenari`: food, pack, riding and war rows,
+  and the noble horses with the riding job) shows a grey `–*`; hover: *"Not managed yet: the steward starts on food at 2,000
+  denari – you have 1,450. Type a goal to order it anyway."* (the last sentence only where a goal can be typed).
+- **A Result short of its Goal says why** when the plan knows it (`PlanRow.GoalShort` → the Result cell's hover): the market has
+  no more on offer · another row took the rest · the next one costs more than your max price / would fetch less than your min
+  price · the market is out of denari · keeps your purse at N denari · waits for N denari · nothing on offer the steward may buy ·
+  nothing it may sell (locked or unticked) · selling the surplus is off (Instructions) · not possible here (a lord to donate where
+  the game forbids it, no ransom broker).
+- **"Goals you set by hand"** — the new Instructions group [Anton: "add apply money cap options in the Instructions for manually
+  set stuff"] (§7; Core `MoneyFloors.ForGoals`):
+  - `ManualGoalsWaitForThresholds` — default **off**: your goal acts even below the job's "Manage … from" denari (it is your order).
+    On: a goal waits like the steward (Result = Mine, "waits for …", its buttons grey; a typed goal is still kept).
+  - `ManualGoalsKeepPurseFloor` — default **on**: a goal's buys stop at the floors — food at `MinGoldAfterDeal`, animals at the
+    higher animal floor. **WHAT CHANGES**: until round 5 a touched row's buys ignored the floors ("the floors never block — only
+    an empty purse does", red flags); a goal row now stops at them and its [+] greys with `PurseFloor`. Off = the old way.
+  - `ManualGoalsObeyPriceCaps` — default **on**: a goal buys only up to the price book's max buy and the role caps, and sells only
+    at its min sell — as a touched row always did (no change). Off: a goal buys and sells at any price (its own "hand lanes",
+    `PlanRow.HandBuyLane`/`HandSellLane`, without limits; the steward's own rows keep theirs) — the ticks still hold: an item
+    unticked for buying is never bought.
+  - While autonomous, a goal's buys never take the purse below `AutonomousMinGold` — with the floor switch off that is its only
+    floor.
+  - Instructions (step 23): an info line on top of the Food group — *"A food whose goal you have not typed in the Suggestion tab
+    follows these rules."* — and the same on the horse groups.
+- **Saving without a double re-plan** [Claude's call]: the plan keeps its own copy of the goals, re-plans itself on every goal
+  edit and queues the edit (`StewardPlan.TakeGoalEdits`); the window saves them with `SettingsService.SaveQuietly`, which writes
+  settings.json WITHOUT raising `Changed` (the plan is already right — announcing would re-plan the window a second time).
+
 **THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
 standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,
 `Planning\Overburden` —, step 21 BUILT the window on it (2026.09.28, "As built" below); where this block and the older text
@@ -259,7 +342,9 @@ Buttons on Change:
     with every touched row pinned at its quantity. Every UNTOUCHED item row — food, pack animals, riding mounts, war, noble
     and lame horses, and armour & weapons (whose share of the market's gold moves with the food sales) — takes what the planners
     make of it now. Other edits do not re-plan (keeps a click fast and predictable). ⟲ and "Reset all" re-plan too: ⟲ hands one
-    row back, "Reset all" hands every row back — with nothing touched that is exactly the first plan.
+    row back, "Reset all" hands every row back — with nothing touched that is exactly the first plan. **[round 5]** A goal edit
+    (a click, a typed goal or ⟲ on a food or pack / riding / war row) re-plans too — the policy fills the rest around your goal;
+    "Reset all" keeps the standing goals (§1.1 "THE GOAL").
   - **The party after the deal.** Members = now + hires (+ recruits − dismissals). Eaters = members + half the prisoners who
     stay (the game's integer halves). Footmen = now + every man hired who is not mounted, by the game's own rule
     (`CharacterObject.IsMounted`: a troop by its default formation class, cavalry / horse archer; a hero by his battle
@@ -298,7 +383,8 @@ Buttons on Change:
     dungeon full, sell-only / hire-only. (~~party full~~ — gone since round 3: the party size limit never blocks, §2.7.)
   - **Shift and Ctrl stop at zero**: one click never flips a row from selling to buying; a plain click crosses
     zero where the row does both (food, the mount role rows). Loot and prisoners only sell; tavern rows only hire.
-  - The floors never block (red flags). An **empty purse does**: a buy or hire the purse cannot pay is refused
+  - The floors never block (red flags) — **[round 5]** except a goal row's buys with `ManualGoalsKeepPurseFloor` (default on:
+    `EditBlock.PurseFloor`, §1.1 "THE GOAL"). An **empty purse does**: a buy or hire the purse cannot pay is refused
     (a wanderer needs MORE gold than his price, like vanilla). Taking income back (a ransom, a sale) may still
     leave the deal unaffordable — the footer shows it (`CannotAfford`) and **Do it** is disabled then.
   - Rarely, lowering one row makes another impossible (a sale taken back raises a category's price past the
@@ -508,6 +594,9 @@ pure Core logic fed a snapshot of the party and the market (§5).
   this visit ransoms or donates are not fed. Two types held equally when selling → the dearer goes first.
 - **[step 15]** The eaters are the party AFTER the deal: the men the plan hires eat from today, and the target follows every
   hire and every prisoner kept or ransomed live (§1.1, the live re-plan).
+- **Manual goals [Anton 2026.09.28, round 5]** (§1.1 "THE GOAL"): a food with a goal typed (or clicked) in the Suggestion tab
+  keeps that goal in every town until its ⟲ — walked first, counted toward the target first; the steward's food rows share
+  what is left of the target. Below `FoodMinDenari` a goal still acts (unless `ManualGoalsWaitForThresholds`), the others show `–*`.
 - **Locked food is managed** **[Anton 2026.09.28, playtest round 2]**: food LOCKED in the inventory screen counts as held
   and is sold as surplus by the rules above like any other (most-held type first, down to the target) — unless
   `LocksProtectFoodAndHorses` (default **off**; on = locked food is counted but never sold, the old way). See §2.6.
@@ -526,6 +615,7 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **Lame pack animals** (a bad modifier, RESEARCH §22) are never bought; with `ReplaceLameHorses` (default **on**) they
   sit in the Lame horses row (sold) and do not count toward the target, so healthy ones replace them; one the market
   cannot take this visit (gold, min sell) still counts. Off: kept and counted, like any pack animal.
+- **A manual goal [round 5]** (`"mounts:pack"` in `Goals`) replaces the target for this row until its ⟲ (§1.1 "THE GOAL").
 - **Locked pack animals are managed** **[Anton 2026.09.28, playtest round 2]**: counted as held and sold as surplus, most
   expensive first, locked or not — unless `LocksProtectFoodAndHorses` (§2.6).
 
@@ -566,6 +656,9 @@ pure Core logic fed a snapshot of the party and the market (§5).
   war horses than the first (the riding sales' gold is the market's too), a footman may lack a horse until the next town.
   (The old rule "riding surplus is not sold in a visit that buys an upgrade horse" is gone: a riding and a war horse are
   different kinds now.) Never a riding horse bought in a visit that sells riding horses.
+- **Manual goals [round 5]** (§1.1 "THE GOAL"): a riding-horse goal (`"mounts:riding"`) is a plain number — the row no longer
+  follows the footmen until its ⟲; a war-horse goal (`"mounts:war"`) replaces W for the row and counts toward T, so the
+  steward's riding horses fill the rest around it (their surplus is sold against the war horses the goal buys).
 - **Locked mounts are managed** **[Anton 2026.09.28, playtest round 2]**: riding mounts and war horses LOCKED in the
   inventory count as held and their surplus is sold most expensive first, locked or not. With
   `LocksProtectFoodAndHorses` on, locked mounts are counted but never sold (§2.6). **A noble horse's lock always keeps it**
@@ -868,6 +961,9 @@ too); castles have no market and no steward. One row per troop type — never ev
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
      purse below this. Food only answers to `MinGoldAfterDeal` — food outranks horses.
    - While the Full-autonomous steward acts alone, both rise to `AutonomousMinGold` (default **100000**, §6).
+   - **[round 5, Anton 2026.09.28]** Your manual goals (§1.1 "THE GOAL") answer to the floors only with
+     `ManualGoalsKeepPurseFloor` (default on) — food goals at `MinGoldAfterDeal`, animal goals at the higher animal floor; while
+     autonomous never below `AutonomousMinGold`, whatever the switch says. They come first in their phase (the player's rows).
 4. **Activation thresholds** **[Anton 2026.09.28, playtest round 4 — "war hourses to keep, default set it to 10, add another
    option min denari to have to start keeping war hourses 20k by default · same for the mouts … 5k · same for food keeping,
    have at least 2k before start auto managing · pack animals - have min 2k … i want it in such a way that the players turn
@@ -883,7 +979,8 @@ too); castles have no market and no steward. One row per troop type — never ev
    autonomous) still CAP what an active job spends. So with 3,000 denari food acts and may spend down to 1,000, pack animals
    act but cannot buy (the 5,000 animal floor) — they still sell a surplus —, riding and war horses wait. The purse BEFORE the
    deal is the test: a ransom or a sale in the same visit never switches a job on halfway, and a live re-plan (same
-   snapshot) keeps the same jobs on. The Full-autonomous steward answers to them too.
+   snapshot) keeps the same jobs on. The Full-autonomous steward answers to them too. **[round 5]** A manual goal acts below its
+   job's threshold unless `ManualGoalsWaitForThresholds` (default off); the row of a waiting job with no goal shows `–*`.
 5. The market's own gold limits what the steward can sell there (villages especially) — the
    planner never proposes a sale the market cannot pay for.
    **[research 2026.09.27]** Vanilla would let the sale go through and simply pay no more than
@@ -1084,6 +1181,10 @@ troop / hero, the count and the expected unit prices.
 | Money | MinGoldAfterDeal | 1000 | 0–1,000,000 | purse floor for all purchases |
 | Money | MinGoldForHorses | 5000 | 0–1,000,000 | purse floor for animal purchases |
 | Money | AutonomousMinGold | 100000 | 0–10,000,000 | purse floor while autonomous: both floors above rise to it (§6) **[Anton 2026.09.27]** |
+| Goals | ManualGoalsWaitForThresholds | false | — | "Your goals wait for the thresholds": on = a manual goal acts only once the purse reaches its job's "Manage … from" denari, like the steward; off = your goal is your order (§1.1 "THE GOAL") **[Anton 2026.09.28, round 5]** |
+| Goals | ManualGoalsKeepPurseFloor | true | — | "Your goals keep the purse floors": a manual goal's buys stop at MinGoldAfterDeal (food) / the animal floor (horses); off = they may go below (red flags, the pre-round-5 way). AutonomousMinGold always holds **[Anton 2026.09.28, round 5]** |
+| Goals | ManualGoalsObeyPriceCaps | true | — | "Your goals obey the price limits": a manual goal buys and sells only within the price book (max buy / min sell) and the role caps; off = at any price (ticks still hold) **[Anton 2026.09.28, round 5]** |
+| Goals | Goals | {} | goals 0–100,000 | the standing goals by row id — `food:<item>`, `mounts:pack`, `mounts:riding`, `mounts:war` — typed or clicked in the Suggestion tab, gone with its ⟲ (file + Suggestion tab, not MCM) **[Anton 2026.09.28, round 5]** |
 | Food | FoodEnabled | true | — | manage food |
 | Food | FoodMinDenari | 2000 | 0–1,000,000 | "Manage food from (denari)": the purse before the deal food needs to be managed at all — below it the steward neither buys nor sells food (0 = always; §3 activation thresholds) **[Anton 2026.09.28, round 4]** |
 | Food | FoodDays | 40 | 1–365 | "Keep food for (days)": days of food kept for the party after the deal, at the game's own rate (≈ 2 per man at vanilla's) — replaces `FoodPerMan` (2.0, 0.1–10: food units per eater; an old file's value converts once, × 20) **[Anton 2026.09.28]** |
@@ -1122,7 +1223,7 @@ troop / hero, the count and the expected unit prices.
 | Loot | SellLootEquipment | true | — | weapons, armour, shields, ammo |
 | Loot | SellLootOtherGoods | true | — | "Sell other goods": the Other goods line — every unlocked trade good that is not food, an animal or equipment, sold in bulk in SellLootOrder (§2.6) **[Anton 2026.09.28, round 4]** |
 | Loot | SellLootMaxItemValue | 0 | 0–1,000,000 | never auto-sell items worth more per unit (0 = no cap) |
-| Loot | SellLootOrder | Cheapest | Cheapest / LowestPricePerKg / MostExpensive | order within a loot group: Cheapest / LowestPricePerKg / MostExpensive — replaces `SellLootMassFirst` **[Anton 2026.09.27]** |
+| Loot | SellLootOrder | Cheapest | Cheapest / LowestPricePerWeight / MostExpensive | order within a loot group: Cheapest / LowestPricePerWeight / MostExpensive — replaces `SellLootMassFirst` **[Anton 2026.09.27]**; `LowestPricePerKg` until round 5 ("weight, not kg" — an old file's value is read as it) |
 | Tavern | ShowTavern | true | — | show the tavern section in towns |
 | Tavern | ShowWanderers | true | — | list wanderers for hire |
 | Tavern | ShowMercenaries | true | — | list the tavern's mercenaries |
@@ -1160,7 +1261,7 @@ float slider and the file agree on the same number). A value outside its range i
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
   - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; 51 since step 20's
     four activation thresholds, the food multipliers, the prisoner actions and SellLootOtherGoods (53: 52 scalars + the price
-    book); the
+    book; 57 since step 22's "Goals you set by hand": 55 scalars + the price book + the goals); the
     prisoner list is gone since step 12, the four upgrade-horse keys since step 17), `SettingsFile` (text in, text out),
     `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.
@@ -1182,6 +1283,12 @@ float slider and the file agree on the same number). A value outside its range i
 - The **price book** (§1.3) lives in the same file as a `PriceBook` object keyed by item id,
   holding only what the player changed (ticks flipped, bases typed). It is edited in the Prices
   tab or by hand; MCM shows only the multipliers and the auto-fill switches.
+- The **goals** (§1.1 "THE GOAL", round 5) live in the same file as a `Goals` object keyed by row id (`"food:grain": 60`,
+  `"mounts:war": 15`), holding only the player's standing orders; its comment says what each key means. Read tolerantly: a key
+  that is no goal row (`"mounts:noble"`, `"grain"`) or a value that is not a whole number is dropped with a problem line (and the
+  `.bak`), a number outside 0–100,000 is clamped. Edited in the Suggestion tab (a click, a typed box, ⟲) or by hand; never in
+  MCM. The Suggestion tab saves with `SettingsService.SaveQuietly` — written at once, no `Changed` (the plan already re-planned
+  itself), so a goal click never re-plans the window twice.
 - A log at `Configs\SmartSteward\smart_steward.log` (what was planned, what was executed) for
   bug reports.
 - **The window's remembered state** **[decided: Claude, 2026.09.28 — PLAN step 18]**: which Suggestion sections are folded
