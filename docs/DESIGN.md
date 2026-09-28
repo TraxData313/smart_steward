@@ -561,7 +561,14 @@ expected unit prices.
 ## 6. When the window appears
 
 - **Settlement menu entry**: "Party Steward" in the town menu and the village menu — always
-  there when the mod is enabled.
+  there when the mod is enabled — and in War Sails' port menu (below).
+- **Docking into a port (War Sails)** **[Anton 2026.09.28, playtest round 3]**: a party that sails into a town lands in
+  War Sails' port menu, never the town menu (RESEARCH §18) — so the port counts as arriving: the arrival popup (or the
+  Full-autonomous run) comes on docking, once per visit, with the town's rules (`AutoPopupOnTownEnter`, the closed-market
+  and empty-plan rules); walking on into the town, or back to the port, is the same visit. The port menu gets the "Party
+  Steward" entry right after its Trade (the port trades with the town's own market and access — RESEARCH §18). The leave
+  warning already guards the port's "Set sail" — at sea the town menu has no Leave, so that is the only way out. Soft
+  dependency: the menu is looked up by id when it opens; without War Sails nothing of this runs.
 - `AutoPopupOnTownEnter` (default **on**), `AutoPopupOnVillageEnter` (default **on**): open the
   window on arrival — only when the plan is not empty (`PopupOnlyWithChanges`, default on).
 - `WarnIfNotReviewed` (default **on**): leaving a town/village where the steward had a

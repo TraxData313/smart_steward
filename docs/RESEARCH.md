@@ -413,7 +413,8 @@ Other executors: ransom §5, donate §5, wanderer and mercenary hire §7.
   (leave options `leave`, and at sea `leave_set_sail`, `leave_at_sea`); looted village
   `village_looted`; tavern district `town_backstreet`; keep `town_keep`; dungeon `town_keep_dungeon`;
   castles `castle` (non-goal). War Sails adds `town`/`port` → menu `port_menu` with `sail_option`
-  ("Set sail", isLeave) — reachable by id without referencing the DLC.
+  ("Set sail", isLeave) — reachable by id without referencing the DLC. A town reached by sea opens `port_menu`, never
+  `town` (§18).
 - **Add an option:** `CampaignGameStarter.AddGameMenuOption(string menuId, string optionId, string optionText,
   GameMenuOption.OnConditionDelegate condition, GameMenuOption.OnConsequenceDelegate consequence,
   bool isLeave = false, int index = -1, bool isRepeatable = false, object relatedObject = null)`.
@@ -766,7 +767,8 @@ Read in `game-decompiled-1.4.8` and War Sails' `NavalDLC.dll` (decompiled with i
 BEFORE `GameMenu.ActivateGameMenu(encounterMenu)` — also when the menu is `town_outside` (crime, war: the party is
 "in" but the town menu comes later). `MobileParty.CurrentSettlement`'s setter also sets `LastVisitedSettlement` — so
 while inside, LastVisitedSettlement IS the current settlement. `LeaveSettlementAction` fires `OnSettlementLeft`.
-War Sails' `NavalEncounterMenuModel` returns the base model's menu (`town`) for a normal arrival (its storyline aside).
+War Sails' `NavalEncounterMenuModel` returns the base model's menu for a normal arrival (its storyline aside): `town_outside`
+→ `town` by land, but **`naval_town_outside` → `port_menu` by sea** — the town menu never shows (§18, found in round 3).
 
 **`GameMenu.RunOnInit`** runs `OnInit(args)` FIRST — which may switch menus (the village menu's init switches a looted
 village to `village_looted`) — and THEN fires `GameMenuOpened` with the ORIGINAL menu's args. So a `village` event can
@@ -877,6 +879,52 @@ Escape on its own layer while its window is open — closed at 09:31:18), and no
 TASKS_DONE step 12). Since step 12 `InputWatch` writes one log line when the map has read `MapFollowModifier` as held for
 5 s with no menu up, and one when it lets go — the next report says at once whether this was it.
 
+## 18. War Sails' port — a town reached by sea (verified in step 14, 2026.09.28)
+
+Read in `game-decompiled-1.4.8\NavalDLC\` (NavalDLC.dll decompiled with ilspycmd for this step, `$env:DOTNET_ROLL_FORWARD=
+'LatestMajor'`) and the base game. Anton's round-3 finding: docking at a town never brought the steward — because a sea
+arrival never shows the `town` menu.
+
+**The sea arrival** (base game, not the DLC): `PlayerEncounter.Init` asks `EncounterGameMenuModel.GetEncounterMenu`;
+`DefaultEncounterGameMenuModel` returns **`naval_town_outside`** for a town when `MobileParty.MainParty.IsCurrentlyAtSea`
+(every branch — no siege, under siege without an active blockade, …), where a land arrival gets `town_outside`. War Sails'
+`NavalEncounterMenuModel` passes the base model's answer through (only its storyline swaps menus). As on land,
+`EnterSettlement()` — `SettlementEntered` — runs BEFORE the menu is activated (the settlement is not raided or besieged).
+`naval_town_outside`'s init (`EncounterGameMenuBehavior.naval_town_outside_on_init`) then: hostile → "you will not be allowed
+to dock" (stays); criminal (`game_menu_town_disguise_yourself_on_condition`) → "…not allowed to dock" (stays); under siege (not hostile,
+no active blockade) → `game_menu_naval_town_outside_enter_on_consequence` (EnterSettlement if needed, then `port_menu` or
+`join_siege_event`); otherwise **`GameMenu.SwitchToMenu("port_menu")`**. A village reached by sea is NOT special:
+`village_outside`'s init switches straight to `village` (whose `leave_set_sail` / `leave_at_sea` §15 covers).
+
+**`GameMenuOpened` on that path**: `MenuContext.SwitchToMenu` → `HandleStates` re-enters itself — the nested pass runs
+`port_menu`'s `PreInit` → `RunOnInit` (its OnInit, then `GameMenuOpened`) → `OnMenuCreate`; back in the outer pass
+`naval_town_outside`'s `GameMenuOpened` fires with args whose `MenuContext.GameMenu` is ALREADY `port_menu`. So a listener
+reading `args.MenuContext.GameMenu.StringId` sees `port_menu` twice; the town menu never opens until the player picks "Go
+to the town center" (`port_menu/leave_option` → `ActivateGameMenu("town")`). The steward's arrival was waiting for `town`.
+
+**The port menu** (`NavalDLC.CampaignBehaviors.NavalTransitionCampaignBehavior.AddGameMenus`, registered in
+`OnAfterSessionLaunched`): `port_menu` "You are at the port." with `leave_option` / `leave_option_isleave` ("Go to the town
+center" — the second is the isLeave variant shown while the fleet is not docked; both go to `town`, NOT a leave),
+`call_fleet`, `inspect_fleet`, `manage_fleet`, `repair_ships`, **`trade`**, `enter_port`, `port_wait`, **`sail_option`**
+("Set sail", isLeave: `SetSailAtPosition(PortPosition)` + `PlayerEncounter.Finish()`). The town menu gets `town/port` ("Go
+to the port", index 1; only for a town with `HasPort`).
+- **Trade at the port = the town's market**: `trade_on_condition` asks `SettlementAccessModel.CanMainHeroDoSettlementAction(
+  Settlement.CurrentSettlement, Trade, …)` — the very gate of the town's own Trade — and `trade_on_consequence` opens
+  `InventoryScreenHelper.OpenScreenAsTrade(Settlement.CurrentSettlement.ItemRoster, …Town)`: the same roster, the same
+  merchant. War Sails' `NavalDLCSettlementAccessModel.CanMainHeroDoSettlementAction` only adds "cannot WAIT in a village
+  at sea"; Trade goes to the base model. So the snapshot, prices and executor are exactly the town's.
+- The tavern, the ransom broker and the wanderers are the same settlement's (`Settlement.CurrentSettlement`; the party is
+  inside it — `MobileParty.CurrentSettlement` is the town); the steward reads their access the same way (`"tavern"`).
+- **Leaving at sea**: `town/town_leave`'s condition is `!MobileParty.MainParty.IsCurrentlyAtSea` — a party that came by sea
+  has NO Leave in the town menu; its only way out is the port's **`sail_option`** (wrapped by the leave guard since step 8).
+
+**Adding our entry**: `CampaignGameStarter` has a public constructor `(GameMenuManager, ConversationManager)` that only stores
+the two; its `AddGameMenuOption(menuId, …, index)` goes through `GetPresumedGameMenu` (finds the menu, or creates an empty
+placeholder that a later `AddGameMenu` initializes — so calling it for `port_menu` WITHOUT War Sails would leave an empty
+menu behind: never do it blind). `GameMenu.AddOption` is internal. So the entry is added the first time `port_menu` opens
+(`GameMenuOpened` comes before `OnMenuCreate`, so it shows on that very opening), after `trade`
+(`IndexAfter(menuId, "trade")`), by id — no NavalDLC reference.
+
 ---
 
 ## Gotchas (one line each)
@@ -950,6 +998,10 @@ TASKS_DONE step 12). Since step 12 `InputWatch` writes one log line when the map
     and villages cannot be entered" ("clan tier not high enough to request a meeting" on hostile towns); tap Left Alt.
 55. **`InventoryLogic` ignores inventory locks** — only the trade screen's "transfer all" honours them; a headless trade
     sells a locked stack like any other, so any lock rule is the mod's own check (§6).
+56. **A town reached by sea never shows the `town` menu** — `naval_town_outside` switches straight to War Sails' `port_menu`
+    (the town's own market); arrival logic keyed to `town` misses every docking (§18).
+57. **`CampaignGameStarter.AddGameMenuOption` creates a menu that does not exist** (`GetPresumedGameMenu`) — add to a DLC's
+    menu only when it is there (at its first opening), never blind (§18).
 
 ---
 

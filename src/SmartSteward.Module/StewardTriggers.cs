@@ -21,7 +21,10 @@ namespace SmartSteward
     /// frame (SubModule). Everything lives in memory — per visit, never in the save.
     /// <list type="bullet">
     /// <item><b>Arrival</b> = <c>SettlementEntered</c> for the main party, then the first <c>town</c> / <c>village</c>
-    ///   menu opening (it re-fires on every return to the menu — RESEARCH §10 — so the visit remembers it is done).
+    ///   menu opening (it re-fires on every return to the menu — RESEARCH §10 — so the visit remembers it is done) — or,
+    ///   docking at a town by sea under War Sails, the first <c>port_menu</c> opening (round 3, RESEARCH §18: the sea
+    ///   arrival goes <c>naval_town_outside</c> → <c>port_menu</c> and never shows the town menu until the player walks
+    ///   in). The port menu also gets the "Party Steward" entry (<see cref="StewardMenu.EnsurePortEntry"/>).</item>
     ///   Nothing happens inside the menu event itself: the action waits until the map screen is QUIET for a few
     ///   frames (<see cref="IsQuiet"/> — the menu up, no inquiry, conversation, incident, encyclopedia, escape menu,
     ///   management screen), then opens the window or, autonomous, plans and carries out.</item>
@@ -162,8 +165,8 @@ namespace SmartSteward
             _leaveRequest = null;
         }
 
-        /// <summary>Every menu (re)opening: guard its leave options (once), and mark the arrival as due when this is
-        /// the first town/village menu after walking in.</summary>
+        /// <summary>Every menu (re)opening: guard its leave options (once), give War Sails' port menu its entry (once),
+        /// and mark the arrival as due when this is the first town / village / port menu after coming in.</summary>
         public static void OnGameMenuOpened(MenuCallbackArgs args)
         {
             var menu = args?.MenuContext?.GameMenu;
@@ -174,9 +177,11 @@ namespace SmartSteward
             foreach (var (menuId, optionId) in LeaveOptions)
                 if (menuId == id)
                     LeaveGuard.Wrap(menu, optionId);
+            if (id == StewardMenu.PortMenuId)
+                StewardMenu.EnsurePortEntry(menu);
 
             var visit = _visit;
-            if (visit != null && visit.Arrived && !visit.ArrivalDone && !visit.ArrivalPending && (id == "town" || id == "village")
+            if (visit != null && visit.Arrived && !visit.ArrivalDone && !visit.ArrivalPending && IsArrivalMenu(id, visit.Settlement)
                 && MobileParty.MainParty?.CurrentSettlement == visit.Settlement)
             {
                 visit.ArrivalPending = true;
@@ -186,6 +191,12 @@ namespace SmartSteward
                                        + " - the arrival waits for a quiet map");
             }
         }
+
+        /// <summary>The menus an arrival shows in: the town's and the village's own, and — docked at a town by sea under War
+        /// Sails — the port's (RESEARCH §18). Once per visit whichever comes first: a town entered by land never shows the
+        /// port first, and walking from the port into the town (or back) is the same visit.</summary>
+        private static bool IsArrivalMenu(string? menuId, Settlement settlement) =>
+            menuId == "town" || menuId == "village" || (menuId == StewardMenu.PortMenuId && settlement.IsTown);
 
         /// <summary>The window opened at <paramref name="settlement"/> — the player has seen the suggestions.</summary>
         public static void MarkReviewed(Settlement? settlement)
@@ -232,7 +243,7 @@ namespace SmartSteward
             try
             {
                 var settlement = _openRequest ?? visit!.Settlement;
-                string? blocker = QuietBlocker(settlement, allowPort: _openRequest != null);
+                string? blocker = QuietBlocker(settlement);
                 if (blocker != null)
                 {
                     _quietFrames = 0;
@@ -269,12 +280,12 @@ namespace SmartSteward
             }
         }
 
-        /// <summary>Null when the map screen shows the town/village menu of <paramref name="settlement"/> (or, for a
-        /// Review asked from War Sails' port, the port menu) and nothing else asks for the player: no inquiry,
+        /// <summary>Null when the map screen shows the town/village menu of <paramref name="settlement"/> (or War Sails'
+        /// port menu there — an arrival by sea, or a Review asked at the port) and nothing else asks for the player: no inquiry,
         /// conversation, map incident (pending or open), encyclopedia, escape menu, army / town management, recruitment,
         /// options, cheats, marriage or heir popup — and our own window is closed. Otherwise what holds it up (for the
         /// log).</summary>
-        private static string? QuietBlocker(Settlement settlement, bool allowPort)
+        private static string? QuietBlocker(Settlement settlement)
         {
             if (Campaign.Current == null)
                 return "no campaign";
@@ -287,7 +298,7 @@ namespace SmartSteward
             if (mapState.NextIncident != null)
                 return "a map incident is pending";
             string? menuId = mapState.MenuContext?.GameMenu?.StringId;
-            if (menuId != "town" && menuId != "village" && !(allowPort && menuId == "port_menu"))
+            if (!IsArrivalMenu(menuId, settlement))
                 return "the menu is " + (menuId ?? "none");
             if (MobileParty.MainParty?.CurrentSettlement != settlement)
                 return "the party is at " + (MobileParty.MainParty?.CurrentSettlement?.Name?.ToString() ?? "no settlement");

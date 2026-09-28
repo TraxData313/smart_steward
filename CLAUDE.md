@@ -137,7 +137,8 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
                               command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids —
                               every English ONE literal per UiText call: StringsFileTests reads them from the source)
-  StewardMenu.cs              "Party Steward" in the town and village menus → opens the window
+  StewardMenu.cs              "Party Steward" in the town and village menus (+ War Sails' port menu, added by id at its first
+                              opening — step 14) → opens the window
   StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map, the leave warning (LeaveGuard wraps
                               the leave options lazily at their menu's first opening), the IsSettlementBusy veto
   AutonomousRun.cs            (step 8) the Full-autonomous steward: autonomous plan → executor → message-log report

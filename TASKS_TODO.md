@@ -32,10 +32,11 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Prices tab: the item name is the first column
 - Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
 - The party size limit never blocks a hire — the footer shows the party after the deal (Party 99/96), red when over
+- Docking at a port (War Sails) brings the steward too: the arrival popup / autonomous run on docking, "Party Steward" in the port menu
 
 BUGS:
 - [x] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
-- [ ] (R3) Docking into a port (War Sails) must trigger the steward too — popup + menu entry at the port, not only the town menu
+- [x] (R3) Docking into a port (War Sails) must trigger the steward too — popup + menu entry at the port, not only the town menu
 - [x] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)
 - [x] (R1) Prices tab: Item name must be the FIRST (leftmost) column
 - [x] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
