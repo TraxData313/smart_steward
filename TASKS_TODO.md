@@ -15,7 +15,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Playtest the review fixes: big clicks, ▸ breakdown, autonomous floor, log — checklist in docs/PLAYTEST.md "Step 9"
 - [x] 10. Packaging — package.ps1, Steam description + workshop files, README
 - [ ] 11. Anton's first playtest — round 1 done 2026.09.28 (findings under BUGS)
-- [ ] 12. Playtest round 1 fixes — the six BUGS lines marked (R1), the save-load bug first
+- [x] 12. Playtest round 1 fixes — the six BUGS lines marked (R1), the save-load bug first
+  - [ ] Deploy (the game was running at the end of step 12), then playtest the fixes — checklist in docs/PLAYTEST.md "Round 1 fixes"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
