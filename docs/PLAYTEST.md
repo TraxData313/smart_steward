@@ -269,3 +269,37 @@ war horses W`.
    **Replace lame horses** off: no row, it is kept and counted as a riding horse. A market with lame horses: never bought.
 8. **Do it and the log.** The executor sells the noble and lame horses by their own stacks (`Sell 1 x t3_…|` / `Sell 1 x
    …|lame_horse`); a noble horse locked after the window opened is skipped (the log: `stopped: Locked`).
+
+## Step 18 — folded sections, the land / sea lines, the herd line, troop tiers
+
+Anton 2026.09.28. **Not deployed at the end of step 18** (the game was running): run `tools\deploy.ps1` with the game closed
+first (the step-17 deploy line is still open too). Send `smart_steward.log` with any report — a fold logs `folded Food` /
+`unfolded Food`, the troops line `troops line [-] One: troops:… 0 -> -1`, the plan's footer line `horses H of R before the
+herd slows (herd … vs … men; …)`, the snapshot line `livestock N` and each offered troop's tier (`… T3 at 80`).
+
+1. **Fold a section.** Click a section's name (or its small ▸/▾ icon): the rows hide and ONE line says what the section
+   will do with its gold — e.g. Food `+29 (5 kinds) –510 · 64 » 71 days`, Armour & weapons `41 sold +2,132 · –380 kg`,
+   Prisoners `12 ransomed +980`; nothing queued → `no change · 64 days`, `nothing sold`, `nobody hired`… Click again: the
+   rows are back. The hover tooltip says it is remembered.
+2. **Live line.** Fold Food, then hire mercenaries (Tavern unfolded): the folded Food line changes at once (more eaters,
+   more food). Do it and Reset all keep the folds.
+3. **Remembered.** Fold Food and Mounts, close the window, open it in another town, then quit and restart the game: both
+   stay folded until you unfold them. `Configs\SmartSteward\window_state.json` lists them (`"CollapsedSections": ["Food",
+   "Mounts"]`); delete the file and every section unfolds. Nothing is in the save, nothing in Mod Options.
+4. **The troops fold together.** Fold "Recruits on offer" (or "Your troops"): both halves become one **Troops** line.
+5. **The weight on two lines.** The footer reads `Land:  weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900` — buy pack
+   animals or hire men and the capacity after moves; `+720 over` in red when the load after is over it. With ships (War
+   Sails) a second line `Sea:  weight … · capacity …` — pack animals bought raise the land capacity but add weight at sea.
+   No ships: no sea line (the warnings move up). Compare the numbers with the party screen's weight tooltip.
+6. **The herd line.** After the land line: `Horses 110 / 200 before the herd slows you` (100 footmen, 110 horses). Buy (or
+   add) horses and pack animals until the first number passes the second: the line turns red — and the party screen's speed
+   tooltip should show a "Herding" penalty then, and none while it is not red (equal is still fine). Cows or sheep in the
+   inventory take room too: `(20 livestock take room too)`. In an army, the whole army's men and animals count.
+7. **Tiers.** Every troop row reads `T1 Vlandian Recruit`: **Your troops** lowest tier on top, **Recruits on offer**
+   highest tier on top (say if you want them lowest first too). Compare a few tiers with the party screen's tier icons.
+8. **The folded Troops line's [-] [+].** Fold Troops: the line carries `[–] [+]`. `[–]` dismisses from the lowest tier up
+   (your own troops first, then the men of the types on offer), `[+]` recruits the highest tier on offer first; Shift = 5,
+   Ctrl = all. The line says what it does: `dismissing 1 T1 Imperial Peasant, 1 T1 Vlandian Recruit · recruiting 2 T3
+   Vlandian Footman –160`. Unfold: those rows carry the ⟲, and the food and horses followed. Do it: the same as dismissing
+   and recruiting row by row. With too little gold for a T3, `[+]` takes a cheaper tier; greyed buttons say why on hover.
+9. **Speed.** With several sections folded, clicks should feel at least as quick as before (folded rows are not refreshed).

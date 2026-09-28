@@ -30,7 +30,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   no plain-horse upgrade reserve); regular mounts fill the rest (e.g. 100 footmen at 110 + keep 10 war → 100 mounts + 10 war);
   noble horses never bought, sold unless locked; lame horses never bought, "Replace lame horses with healthy ones" (default ON)
   - [ ] Deploy (the game was running at the end of step 17), then playtest — checklist in docs/PLAYTEST.md "Horses simplified"
-- [ ] 18. Collapsible sections in the Suggestion tab (Anton 2026.09.28): each section header expands/collapses; collapsed = ONE summary
+- [x] 18. Collapsible sections in the Suggestion tab (Anton 2026.09.28): each section header expands/collapses; collapsed = ONE summary
   line (what the section will do + its gold, e.g. "Food  +29 (5 kinds) −510 · 64 → 71 days"); the state is REMEMBERED per section
   across windows, towns and game restarts (stays collapsed until Anton expands it) — kept in our settings folder, never in the save
   + FOOTER (same step, Anton 2026.09.28): the weight line splits in TWO — "Land: weight now +chg → after · capacity now → after"
@@ -39,6 +39,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + TROOPS (Anton 2026.09.28): tier before every troop name ("T1 Vlandian Recruit"); MY troops ordered by tier, LOWEST on top;
     the COLLAPSED Troops line carries [-] [+] of its own: [-] dismisses from the lowest tier up, [+] recruits the highest tier on
     offer first (shift/ctrl steps as usual), and the line says what it does ("dismissing 1 T1 Vlandian Recruit, 1 T1 Imperial Peasant")
+  - [ ] Deploy (the game was running at the end of step 18), then playtest — checklist in docs/PLAYTEST.md "Step 18"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -52,13 +53,16 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
 - The party size limit never blocks a hire — the footer shows the party after the deal (Party 99/96), red when over
 - Docking at a port (War Sails) brings the steward too: the arrival popup / autonomous run on docking, "Party Steward" in the port menu
-- Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000" — the capacity after the deal, the part over it in red
+- ~~Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000"~~ → two lines: "Land: weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900" and (with ships) "Sea: …", each with its overflow in red
 - The "Not now" button is "Close"
 - A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
 - Live re-plan: hires and prisoners kept or ransomed re-plan the food and horses at once — your own rows (⟲ shown) stay and go first
 - Food goal in days: "Keep food for [40] days (~2.0 per soul)" at your party's own rate, perks included; an old "Food per man" converts once (× 20)
 - Troops section right after the Tavern (towns and villages): the recruits the notables offer you, then your own troops — [+] recruits, [-] dismisses (the wounded first), past the party limit; food and horses follow
 - A closed market keeps the table for what you can still do there (troops, wanderers), the reason above it
+- Click a section's name to fold it to one line ("Food +29 (5 kinds) –510 · 64 » 71 days") — it stays folded across towns and restarts (window_state.json, never the save)
+- Herd line: "Horses 110 / 200 before the herd slows you" — the game's own rule, the party after the deal, red when over
+- Troops show their tier ("T1 Vlandian Recruit"): yours lowest tier first, recruits on offer highest first; the folded Troops line has its own [-] (lowest tier out) and [+] (best recruits in)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -85,6 +89,7 @@ NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — 
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
 
 NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
+- [ ] Recruits on offer: HIGHEST tier on top (what you take first; the folded [+] takes them first too) — or lowest first like your troops? (DESIGN §2.8, step 18)
 - [x] Food 2 per man = ~40 days of food — heavy on the cart; keep, or think in days? → Anton 2026.09.28: DAYS — "Keep food for [40] days (~2.0 per soul)" (DESIGN §2.1)
 - [x] Pack animals: fixed 10 by default — or scale with party size? → Anton 2026.09.28: fixed 10 now; "enough to carry my load + margin" goes to NEXT UPDATE
 - [x] Shift/Ctrl steps stop at zero — one click never flips a row from selling to buying (DESIGN §1.1) → Anton 2026.09.28: yes
@@ -127,3 +132,5 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 17: the Steam page still says "A row you edit stays as you set it — the steward does not re-balance the others around it" — stale since step 15's live re-plan
 - [ ] Step 17: War horses to keep defaults to 0 (Anton's number) — so every unlocked war horse a party holds is proposed for sale on the first visit after the update; say so in the release notes?
 - [ ] Step 17: a lame horse only counts for the game's speed from the next load (the roster's live counter skips modified animals, RESEARCH §22) — the steward counts it at once; harmless, but the party screen's speed may disagree until a reload
+- [ ] Step 18: the Steam page and README say nothing of folding sections, the herd line or tiers — add a line each at release (Steam page 6,066 of 8,000 bytes)
+- [ ] Step 18: the footer grew again (146 → 176 px, the land / sea / herd lines) — the table is one more row shorter; folding sections gives it back — check the look at 1080p
