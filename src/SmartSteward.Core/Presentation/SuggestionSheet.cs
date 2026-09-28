@@ -88,6 +88,54 @@ namespace SmartSteward.Core.Presentation
         public string Influence { get; set; } = "influence";
         public string NoSlowdown { get; set; } = "none";
         public string Speed { get; set; } = "speed";
+
+        // ── Step 21: the window's lines (names and the small grey words after them) ──
+
+        /// <summary>The troops section's two aggregate lines and the prisoners' two action lines.</summary>
+        public string RecruitsLine { get; set; } = "Recruits";
+        public string YourTroopsLine { get; set; } = "Your troops";
+        public string LordsLine { get; set; } = "Lords";
+        public string OthersLine { get; set; } = "Others";
+
+        /// <summary>The horse role rows.</summary>
+        public string PackAnimals { get; set; } = "Pack animals";
+        public string RidingHorses { get; set; } = "Riding horses";
+        public string WarHorses { get; set; } = "War horses";
+        public string NobleHorses { get; set; } = "Noble horses";
+        public string LameHorses { get; set; } = "Lame horses";
+
+        /// <summary>The Other section's rows.</summary>
+        public string Armour { get; set; } = "Armour";
+        public string MeleeWeapons { get; set; } = "Melee weapons";
+        public string Ranged { get; set; } = "Ranged";
+        public string Shields { get; set; } = "Shields";
+        public string OtherGoods { get; set; } = "Other goods";
+
+        /// <summary>After a unit price: <c>510 each</c>.</summary>
+        public string Each { get; set; } = "each";
+
+        /// <summary>A wanderer's price: <c>444 to hire</c>.</summary>
+        public string ToHire { get; set; } = "to hire";
+        public string Mercenaries { get; set; } = "mercenaries";
+
+        /// <summary>A role row's target: <c>keep 10</c>.</summary>
+        public string Keep { get; set; } = "keep";
+        public string SellOnly { get; set; } = "sell only";
+        public string ReplacedByHealthy { get; set; } = "replaced by healthy ones";
+
+        /// <summary>A troop type's wounded: <c>2 wounded - they go first</c>.</summary>
+        public string WoundedGoFirst { get; set; } = "wounded - they go first";
+
+        /// <summary>Loot the locks keep: <c>2 locked</c>.</summary>
+        public string Locked { get; set; } = "locked";
+
+        /// <summary>A prisoner's ransom: <c>ransom 24 each</c>, a lord's <c>lord · ransom 8,210</c>.</summary>
+        public string Ransom { get; set; } = "ransom";
+        public string OtherGoodsNote { get; set; } = "every unlocked good that is not food, animal or gear";
+
+        /// <summary>The Denari cell's tooltip: <c>8 × 30–33 = –252 · your max 60</c>.</summary>
+        public string YourMax { get; set; } = "your max";
+        public string YourMin { get; set; } = "your min";
     }
 
     /// <summary>One always-visible line of a section: a plan row shown on its own, or an aggregate line over detail rows.</summary>
@@ -237,6 +285,16 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The header's small influence: <c>+11.2 influence</c>; empty when none.</summary>
         public string InfluenceText { get; private set; } = "";
 
+        /// <summary>The header in its two colours (step 21): <c>69,358 » 89,189</c> (just <c>69,358</c> when the deal moves no
+        /// denari) …</summary>
+        public string DenariFlowText { get; private set; } = "";
+
+        /// <summary>… and <c>(+19,831)</c> — green in, red out (<see cref="DenariChange"/>); empty when even.</summary>
+        public string DenariChangeText { get; private set; } = "";
+
+        /// <summary>The deal's net denari: + earned, − spent.</summary>
+        public int DenariChange { get; private set; }
+
         /// <summary>The weight table: Land, then Sea with ships.</summary>
         public IReadOnlyList<WeightTableRow> Weights { get; private set; } = Array.Empty<WeightTableRow>();
 
@@ -285,6 +343,11 @@ namespace SmartSteward.Core.Presentation
                 : UiFormat.Money(t.GoldNow) + " " + UiFormat.Arrow + " " + UiFormat.Money(t.GoldAfter) + " ("
                   + UiFormat.SignedMoney(t.GoldChange) + ")";
             sheet.InfluenceText = Influence(t.InfluenceGained, words);
+            sheet.DenariChange = t.GoldChange;
+            sheet.DenariFlowText = t.GoldChange == 0
+                ? UiFormat.Money(t.GoldNow)
+                : UiFormat.Money(t.GoldNow) + " " + UiFormat.Arrow + " " + UiFormat.Money(t.GoldAfter);
+            sheet.DenariChangeText = t.GoldChange == 0 ? "" : "(" + UiFormat.SignedMoney(t.GoldChange) + ")";
             sheet.Weights = WeightTable(t.Carry, words);
             return sheet;
         }

@@ -17,7 +17,7 @@ public class SuggestionSheetTests
     private const string D = " · ";
 
     /// <summary>The mockup's deal at Lycaron (docs/mockups/README.md "The deal drawn"), as far as the Core decides it.</summary>
-    private static (Scenario S, StewardPlan Plan) Lycaron()
+    internal static (Scenario S, StewardPlan Plan) Lycaron()
     {
         var s = new Scenario().Party(103, footmen: 92).Gold(69_358, marketGold: 100_000)
             // Food: six kinds held (188), Meat on the market; Olives and Date Fruit bought by hand.

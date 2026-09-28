@@ -116,7 +116,7 @@ public class OtherGoodsTests
     {
         var state = WindowState.Parse("{ \"CollapsedSections\": [\"ArmourAndWeapons\"] }", out var problem);
         Assert.Null(problem);
-        Assert.True(state.IsCollapsed(SectionGroup.Other));
+        Assert.True(state.IsFolded(SheetFolds.Other));
         Assert.Contains("\"Other\"", state.Generate());
     }
 }

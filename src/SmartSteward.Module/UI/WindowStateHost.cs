@@ -6,11 +6,12 @@ using SmartSteward.Core.Presentation;
 namespace SmartSteward.UI
 {
     /// <summary>
-    /// The window's remembered state on the disk (PLAN step 18): <c>Configs\SmartSteward\window_state.json</c> beside the
-    /// settings — which Suggestion sections are folded (Core <see cref="WindowState"/> reads and writes the text; why it is
-    /// its own file is written there). Read at the first window of a session and again whenever the file changed on disk
-    /// (deleted by hand → every section unfolded); written on every fold / unfold. Never throws: a file it cannot read or
-    /// write is a log line, and the state still holds for this session. Nothing is ever stored in the save.
+    /// The window's remembered state on the disk (PLAN step 18; step 21: every fold of the spreadsheet):
+    /// <c>Configs\SmartSteward\window_state.json</c> beside the settings — which parts of the Suggestion tab are folded (Core
+    /// <see cref="WindowState"/> reads and writes the text; why it is its own file is written there). Read at the first window
+    /// of a session and again whenever the file changed on disk (deleted by hand → the everyday view); written on every fold.
+    /// Never throws: a file it cannot read or write is a log line, and the state still holds for this session. Nothing is ever
+    /// stored in the save.
     /// </summary>
     internal static class WindowStateHost
     {
@@ -47,13 +48,14 @@ namespace SmartSteward.UI
             }
         }
 
-        public static bool IsCollapsed(SectionGroup group) => Current.IsCollapsed(group);
+        /// <summary>A part of the spreadsheet is folded (<see cref="SheetFolds"/>; no file = the mockup's everyday view).</summary>
+        public static bool IsFolded(string key) => Current.IsFolded(key);
 
-        /// <summary>Folds or unfolds a section and writes the file at once (only when that changed something).</summary>
-        public static void SetCollapsed(SectionGroup group, bool collapsed)
+        /// <summary>Folds or unfolds a part and writes the file at once (only when that changed something).</summary>
+        public static void SetFolded(string key, bool folded)
         {
             var state = Current;
-            if (!state.SetCollapsed(group, collapsed))
+            if (!state.SetFolded(key, folded))
                 return;
             try
             {

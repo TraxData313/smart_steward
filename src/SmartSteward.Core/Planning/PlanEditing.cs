@@ -80,6 +80,13 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>The Recruits line's [−]: no recruit is queued to give back (step 20).</summary>
         NothingRecruited,
+
+        /// <summary>A troop row under the Recruits line: men of this type are being dismissed under Your troops — each line
+        /// moves only its own side of a row (step 21, the window's view of mockup choice 8).</summary>
+        DismissingThisType,
+
+        /// <summary>A troop row under the Your troops line: men of this type are being recruited under Recruits (step 21).</summary>
+        RecruitingThisType,
     }
 
     /// <summary>What one click did.</summary>

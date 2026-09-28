@@ -11,9 +11,10 @@ namespace SmartSteward.Core.Presentation
 {
     /// <summary>
     /// What the Party Steward window remembers between visits and game restarts (PLAN step 18 — Anton 2026.09.28: a folded
-    /// section "stays collapsed until I expand it"): which Suggestion-tab sections are folded. Kept in its own small file
-    /// beside the settings — <c>Configs\SmartSteward\window_state.json</c> (<see cref="ModInfo.WindowStateFileName"/>) —,
-    /// never in the save and never in MCM.
+    /// section "stays collapsed until I expand it"; step 21: every fold of the spreadsheet, <see cref="SheetFolds"/>): which
+    /// parts of the Suggestion tab are folded. Kept in its own small file beside the settings —
+    /// <c>Configs\SmartSteward\window_state.json</c> (<see cref="ModInfo.WindowStateFileName"/>) —, never in the save and never
+    /// in MCM.
     /// </summary>
     /// <remarks>
     /// Why its own file and not a key in settings.json [decided: Claude, 2026.09.28 — step 18]: settings.json is Anton's
@@ -21,30 +22,48 @@ namespace SmartSteward.Core.Presentation
     /// <c>Changed</c> (the window re-plans on it) and a key it does not know is logged and backed up as a problem. A fold is
     /// not a setting: it must not re-plan, must not show up in MCM or the Instructions tab, and writing it on every click
     /// must never touch (or risk) the settings file. Deleting settings.json to reset the settings keeps the folds; deleting
-    /// this file unfolds everything.
-    /// <para>Reading never fails: no file, an empty or broken one → every section unfolded (the default); unknown names are
-    /// dropped. <see cref="Generate"/> writes plain ASCII with comments, CRLF, in the table's order — deterministic.</para>
+    /// this file brings back the everyday view (<see cref="SheetFolds.FoldedByDefault"/>).
+    /// <para>The key is <c>"Folded"</c> (step 21). A step-18/20 file has only <c>"CollapsedSections"</c> (the old sections):
+    /// it is read once as the defaults with those sections folded and the rest of the old sections open; the next fold writes
+    /// the new key. Reading never fails: no file, an empty or broken one → the defaults; unknown names are dropped.
+    /// <see cref="Generate"/> writes plain ASCII with comments, CRLF, in the table's order — deterministic.</para>
     /// </remarks>
     public sealed class WindowState
     {
-        /// <summary>The one key of the file.</summary>
-        public const string CollapsedKey = "CollapsedSections";
+        /// <summary>The file's key (step 21).</summary>
+        public const string FoldedKey = "Folded";
 
-        private readonly HashSet<SectionGroup> _collapsed = new HashSet<SectionGroup>();
+        /// <summary>The step-18/20 key — read, never written.</summary>
+        public const string OldCollapsedKey = "CollapsedSections";
 
-        /// <summary>The folded sections, in the table's order.</summary>
-        public IReadOnlyList<SectionGroup> Collapsed => SectionGroups.All.Where(_collapsed.Contains).ToList();
+        private readonly HashSet<string> _folded = new HashSet<string>(StringComparer.Ordinal);
 
-        public bool IsCollapsed(SectionGroup group) => _collapsed.Contains(group);
+        /// <summary>The everyday view: <see cref="SheetFolds.FoldedByDefault"/>.</summary>
+        public WindowState()
+        {
+            foreach (var key in SheetFolds.FoldedByDefault)
+                _folded.Add(key);
+        }
 
-        /// <summary>Folds or unfolds a section; true when that changed anything (then the file should be written).</summary>
-        public bool SetCollapsed(SectionGroup group, bool collapsed) =>
-            collapsed ? _collapsed.Add(group) : _collapsed.Remove(group);
+        /// <summary>The folded parts, in the table's order.</summary>
+        public IReadOnlyList<string> Folded => SheetFolds.All.Where(_folded.Contains).ToList();
+
+        public bool IsFolded(string key) => key != null && _folded.Contains(key);
+
+        /// <summary>Folds or unfolds a part; true when that changed anything (then the file should be written). Unknown keys
+        /// are refused (false).</summary>
+        public bool SetFolded(string key, bool folded)
+        {
+            string? known = SheetFolds.Find(key);
+            if (known == null)
+                return false;
+            return folded ? _folded.Add(known) : _folded.Remove(known);
+        }
 
         /// <summary>
-        /// The state in a file's text. Null or blank = no file yet (all unfolded, no problem); anything it cannot read =
-        /// all unfolded and <paramref name="problem"/> says why (for the log); a name it does not know is dropped and named
-        /// there too. Never throws.
+        /// The state in a file's text. Null or blank = no file yet (the defaults, no problem); anything it cannot read = the
+        /// defaults and <paramref name="problem"/> says why (for the log); a name it does not know is dropped and named there
+        /// too. Never throws.
         /// </summary>
         public static WindowState Parse(string? text, out string? problem)
         {
@@ -55,36 +74,60 @@ namespace SmartSteward.Core.Presentation
             try
             {
                 var root = ReadObject(text!);
-                JToken? list = null;
+                JToken? list = null, old = null;
                 foreach (var property in root.Properties())
-                    if (string.Equals(property.Name, CollapsedKey, StringComparison.OrdinalIgnoreCase))
-                        list = property.Value;
-                if (list == null)
-                    return state;
-                if (!(list is JArray array))
                 {
-                    problem = CollapsedKey + " is not a list [ ... ] - every section unfolded";
-                    return state;
+                    if (string.Equals(property.Name, FoldedKey, StringComparison.OrdinalIgnoreCase))
+                        list = property.Value;
+                    else if (string.Equals(property.Name, OldCollapsedKey, StringComparison.OrdinalIgnoreCase))
+                        old = property.Value;
                 }
                 var unknown = new List<string>();
-                foreach (var item in array)
+                if (list != null)
                 {
-                    string name = item.Type == JTokenType.String ? (string)item! : item.ToString(Formatting.None);
-                    if (SectionGroups.TryParse(name, out var group))
-                        state._collapsed.Add(group);
-                    else
-                        unknown.Add(name);
+                    if (!(list is JArray array))
+                    {
+                        problem = FoldedKey + " is not a list [ ... ] - the everyday view";
+                        return new WindowState();
+                    }
+                    state._folded.Clear();
+                    foreach (var name in Names(array))
+                    {
+                        string? key = SheetFolds.Find(name);
+                        if (key != null) state._folded.Add(key);
+                        else unknown.Add(name);
+                    }
+                }
+                else if (old != null)
+                {
+                    if (!(old is JArray array))
+                    {
+                        problem = OldCollapsedKey + " is not a list [ ... ] - the everyday view";
+                        return new WindowState();
+                    }
+                    // The step-18/20 file: its sections as they were (named = folded, the others open); the rest default.
+                    foreach (var key in SheetFolds.OldSectionKeys)
+                        state._folded.Remove(key);
+                    foreach (var name in Names(array))
+                    {
+                        var keys = SheetFolds.FromOldSection(name);
+                        if (keys == null) unknown.Add(name);
+                        else foreach (var key in keys) state._folded.Add(key);
+                    }
                 }
                 if (unknown.Count > 0)
-                    problem = "unknown section name(s) ignored: " + string.Join(", ", unknown);
+                    problem = "unknown name(s) ignored: " + string.Join(", ", unknown);
                 return state;
             }
             catch (Exception ex) when (ex is JsonException || ex is FormatException || ex is InvalidCastException)
             {
-                problem = "unreadable (" + ex.Message + ") - every section unfolded";
+                problem = "unreadable (" + ex.Message + ") - the everyday view";
                 return new WindowState();
             }
         }
+
+        private static IEnumerable<string> Names(JArray array) =>
+            array.Select(item => item.Type == JTokenType.String ? (string)item! : item.ToString(Formatting.None));
 
         /// <summary>The file's text: a short header, then the one key with its comment.</summary>
         public string Generate()
@@ -93,12 +136,12 @@ namespace SmartSteward.Core.Presentation
             var sb = new StringBuilder();
             sb.Append("// Smart Steward - what the Party Steward window remembers between visits and game restarts.").Append(nl);
             sb.Append("// Not a setting (those are in settings.json): the window writes this file whenever you fold or").Append(nl);
-            sb.Append("// unfold a section of the Suggestion tab. Delete it to unfold every section. Never stored in a save.").Append(nl);
+            sb.Append("// unfold a part of the Suggestion tab. Delete it for the everyday view. Never stored in a save.").Append(nl);
             sb.Append('{').Append(nl);
-            sb.Append("  // The Suggestion tab's sections shown folded to one summary line. Names: ")
-                .Append(string.Join(", ", SectionGroups.All.Select(SectionGroups.Key))).Append('.').Append(nl);
-            sb.Append("  \"").Append(CollapsedKey).Append("\": [")
-                .Append(string.Join(", ", Collapsed.Select(g => "\"" + SectionGroups.Key(g) + "\"")))
+            sb.Append("  // The folded parts of the Suggestion tab. Names: ").Append(string.Join(", ", SheetFolds.All)).Append('.')
+                .Append(nl);
+            sb.Append("  \"").Append(FoldedKey).Append("\": [")
+                .Append(string.Join(", ", Folded.Select(k => "\"" + k + "\"")))
                 .Append(']').Append(nl);
             sb.Append('}').Append(nl);
             return sb.ToString();

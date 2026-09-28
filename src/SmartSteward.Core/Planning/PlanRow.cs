@@ -114,12 +114,25 @@ namespace SmartSteward.Core.Planning
             ItemId = stack.ItemId;
             Name = stack.Name;
             ModifierId = stack.ModifierId;
+            UnitWeight = stack.UnitWeight;
+            UnitWeightAtSea = stack.UnitWeightAtSea;
         }
 
         public string StackKey { get; }
         public string ItemId { get; }
         public string Name { get; }
         public string? ModifierId { get; }
+
+        /// <summary>One unit's weight on land (animals 0) and at sea (<see cref="ItemStack.UnitWeightAtSea"/>) — the
+        /// spreadsheet's Land kg / Sea kg of a breakdown line (step 21).</summary>
+        public double UnitWeight { get; }
+        public double UnitWeightAtSea { get; }
+
+        /// <summary>The line's change in load on land: + added, − freed.</summary>
+        public double LandKg => Change * UnitWeight;
+
+        /// <summary>The line's change in load at sea (0 without ships: the sea weights are not read then).</summary>
+        public double SeaKg => Change * UnitWeightAtSea;
 
         /// <summary>Units of this stack the row holds (for role rows: the units in this role).</summary>
         public int Mine { get; internal set; }

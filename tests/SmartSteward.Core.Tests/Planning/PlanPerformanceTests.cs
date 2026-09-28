@@ -63,19 +63,20 @@ public class PlanPerformanceTests
         return s;
     }
 
-    /// <summary>What the window does after every click (SuggestionTabVM.Refresh + RefreshDoIt): every row's cells
-    /// and both live blocks, the footer's warnings and Do it.</summary>
+    /// <summary>What the window does after every click (step 21: SuggestionTabVM.Refresh + RefreshDoIt): the spreadsheet's view
+    /// with EVERY part open — the worst case: every row's cells, notes and both live blocks, every breakdown line, the troop
+    /// lines' blocks —, the weight table, the footer's warnings and Do it. Folded parts cost less (their rows are not asked).</summary>
     internal static int RefreshLikeTheWindow(StewardPlan plan)
     {
         int n = 0;
-        foreach (var row in plan.Rows)
+        var view = SheetView.Build(plan);
+        foreach (var section in view.Sections)
         {
-            var cells = RowCells.Of(row);
-            n += cells.Price.Length;
-            n += (int)row.IncreaseBlock + (int)row.DecreaseBlock;
-            foreach (var line in row.Breakdown)
-                n += RowCells.Of(line).Price.Length;
+            n += section.Cells.Denari.Length;
+            foreach (var item in section.Items)
+                n += item.Note.Length + item.Cells.Denari.Length + (int)item.IncreaseBlock + (int)item.DecreaseBlock;
         }
+        n += view.Sheet.Weights.Count;
         n += PlanFooter.Warnings(plan.Totals).Count;
         n += PlanFooter.CanExecute(plan) ? 1 : 0;
         return n;

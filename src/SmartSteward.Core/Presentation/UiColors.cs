@@ -39,6 +39,13 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The header's gold line: green when the deal earns, red when it costs, grey when even.</summary>
         public static string ForGoldChange(int goldChange) => goldChange > 0 ? Buy : goldChange < 0 ? Warning : Muted;
 
+        /// <summary>Colours by meaning (round 4, mockup choice 6 — Anton 2026.09.28: "green for positive change, red for
+        /// negative/bad"): denari (and influence) coming in green, going out red; nothing grey.</summary>
+        public static string ForMoney(long denari) => denari > 0 ? Buy : denari < 0 ? Sell : Muted;
+
+        /// <summary>A number past a limit (the party over its size limit, a load over its capacity, a slowdown): red; else plain.</summary>
+        public static string ForLimit(bool over) => over ? Warning : Text;
+
         /// <summary>A row: its direction's colour, or grey when it moves nothing.</summary>
         public static string ForRow(PlanRow row) => ForChange(row?.Change ?? 0);
     }
