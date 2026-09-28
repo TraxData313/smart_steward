@@ -65,7 +65,29 @@ namespace SmartSteward.UI
             _emptyText = _nothingToDoText;
             ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             ResetAllText = UiText.S("ss_ui_reset_all", "Reset all");
+            Words = new SummaryWords
+            {
+                Kind = UiText.S("ss_ui_sum_kind", "kind"),
+                Kinds = UiText.S("ss_ui_sum_kinds", "kinds"),
+                Sold = UiText.S("ss_ui_sum_sold", "sold"),
+                Hired = UiText.S("ss_ui_sum_hired", "hired"),
+                Recruited = UiText.S("ss_ui_sum_recruited", "recruited"),
+                Dismissed = UiText.S("ss_ui_sum_dismissed", "dismissed"),
+                Ransomed = UiText.S("ss_ui_sum_ransomed", "ransomed"),
+                ToDungeon = UiText.S("ss_ui_sum_to_dungeon", "to the dungeon"),
+                Influence = UiText.S("ss_ui_sum_influence", "influence"),
+                Days = UiText.S("ss_ui_sum_days", "days"),
+                Kg = UiText.S("ss_ui_sum_kg", "kg"),
+                NoChange = UiText.S("ss_ui_sum_no_change", "no change"),
+                NobodyHired = UiText.S("ss_ui_sum_nobody_hired", "nobody hired"),
+                NoTroopChange = UiText.S("ss_ui_sum_no_troop_change", "nobody recruited or dismissed"),
+                NothingSold = UiText.S("ss_ui_sum_nothing_sold", "nothing sold"),
+                NobodyRansomed = UiText.S("ss_ui_sum_nobody_ransomed", "nobody ransomed"),
+            };
         }
+
+        /// <summary>The words of a folded section's line (step 18) — Core builds the line, the words come from TextObjects.</summary>
+        internal SummaryWords Words { get; }
 
         internal StewardPlan? Plan => _plan;
 
@@ -94,10 +116,26 @@ namespace SmartSteward.UI
                     if (row.IsExpanded)
                         open.Add(row.RowId);
             var sections = new MBBindingList<SectionVM>();
+            var heads = new HashSet<SectionGroup>();
             foreach (var section in plan.Sections)
-                sections.Add(new SectionVM(section, plan, this, open));
+                sections.Add(new SectionVM(section, plan, this, heads.Add(SectionGroups.Of(section.Kind)), open));
             Sections = sections;
             _layout = plan.Layout;
+        }
+
+        /// <summary>
+        /// A section header was clicked (step 18 — Anton 2026.09.28): its group folds to one summary line or unfolds, and the
+        /// window remembers it — across windows, towns and restarts (<see cref="WindowStateHost"/>, never the save). The troops
+        /// section's two halves fold together.
+        /// </summary>
+        internal void ToggleGroup(SectionVM clicked)
+        {
+            bool collapse = !clicked.IsCollapsed;
+            WindowStateHost.SetCollapsed(clicked.Group, collapse);
+            foreach (var section in Sections)
+                if (section.Group == clicked.Group)
+                    section.SetCollapsed(collapse);
+            ModLog.Info("window", (collapse ? "folded " : "unfolded ") + clicked.Group);
         }
 
         /// <summary>The window is on screen now (not an arrival popup that stayed shut): the player sees the tavern
@@ -420,25 +458,66 @@ namespace SmartSteward.UI
         }
     }
 
-    /// <summary>One section of the Suggestion table: its header row and its rows.</summary>
+    /// <summary>
+    /// One section of the Suggestion table: its header row and its rows. Step 18 (Anton 2026.09.28): a click on the header
+    /// folds the section to ONE line — the section's name and what it will do with its gold (Core <see cref="SectionSummary"/>)
+    /// — and unfolds it again; the fold is remembered per section (<see cref="WindowStateHost"/>). The troops section's two
+    /// halves are one group: folded, the first of them (the group's head) shows the line and the other hides.
+    /// </summary>
     public sealed class SectionVM : ViewModel
     {
         private readonly PlanSection _section;
         private readonly StewardPlan _plan;
+        private readonly SuggestionTabVM _tab;
+        private readonly string _sectionTitle;
+        private string _titleText;
         private string _detailText = "";
+        private string _summaryText = "";
+        private bool _isCollapsed;
 
-        internal SectionVM(PlanSection section, StewardPlan plan, SuggestionTabVM tab, ISet<string>? open = null)
+        internal SectionVM(PlanSection section, StewardPlan plan, SuggestionTabVM tab, bool isGroupHead, ISet<string>? open = null)
         {
             _section = section;
             _plan = plan;
-            TitleText = UiLabels.Section(section.Kind);
+            _tab = tab;
+            Group = SectionGroups.Of(section.Kind);
+            IsGroupHead = isGroupHead;
+            _sectionTitle = UiLabels.Section(section.Kind);
+            _titleText = _sectionTitle;
+            _isCollapsed = WindowStateHost.IsCollapsed(Group);
+            ToggleHint = new HintVM();
             Rows = new MBBindingList<SuggestionRowVM>();
             foreach (var row in section.Rows)
                 Rows.Add(new SuggestionRowVM(row, tab) { IsExpanded = open != null && open.Contains(row.Id) });
         }
 
+        /// <summary>The fold group (the troops' two halves share one).</summary>
+        internal SectionGroup Group { get; }
+
+        /// <summary>The first section of its group in the table — the one that shows the folded line.</summary>
+        internal bool IsGroupHead { get; }
+
+        internal void SetCollapsed(bool collapsed)
+        {
+            IsCollapsed = collapsed;
+            Refresh();
+        }
+
         internal void Refresh()
         {
+            ToggleHint.Text = _isCollapsed
+                ? UiText.S("ss_ui_unfold_hint", "Show this section's rows. The steward remembers it, even after a restart.")
+                : UiText.S("ss_ui_fold_hint", "Fold this section to one line. The steward remembers it, even after a restart.");
+            if (_isCollapsed)
+            {
+                // Folded: the rows are hidden and not refreshed (every row's live buttons cost a trial walk — step 9).
+                TitleText = Group == SectionGroup.Troops ? UiText.S("ss_ui_sec_troops_group", "Troops") : _sectionTitle;
+                SummaryText = IsGroupHead ? SectionSummary.Of(_plan, Group, _tab.Words) : "";
+                DetailText = "";
+                return;
+            }
+            TitleText = _sectionTitle;
+            SummaryText = "";
             foreach (var row in Rows)
                 row.Refresh();
             var facts = _plan.Facts;
@@ -465,9 +544,24 @@ namespace SmartSteward.UI
             }
         }
 
-        [DataSourceProperty] public string TitleText { get; }
+        // ── commands ─────────────────────────────────────────────────────────────────────────────────────
+
+        public void ExecuteToggle() => StewardWindowVM.Guard("fold " + Group, () => _tab.ToggleGroup(this));
+
+        // ── bound properties ─────────────────────────────────────────────────────────────────────────────
+
+        [DataSourceProperty]
+        public string TitleText
+        {
+            get => _titleText;
+            set { if (value != _titleText) { _titleText = value; OnPropertyChangedWithValue(value, nameof(TitleText)); } }
+        }
 
         [DataSourceProperty] public string HeadingColor => UiColors.Heading;
+
+        [DataSourceProperty] public string TextColor => UiColors.Text;
+
+        [DataSourceProperty] public HintVM ToggleHint { get; }
 
         [DataSourceProperty] public MBBindingList<SuggestionRowVM> Rows { get; }
 
@@ -477,6 +571,37 @@ namespace SmartSteward.UI
             get => _detailText;
             set { if (value != _detailText) { _detailText = value; OnPropertyChangedWithValue(value, nameof(DetailText)); } }
         }
+
+        /// <summary>The folded line: what the section will do and its gold (empty while unfolded).</summary>
+        [DataSourceProperty]
+        public string SummaryText
+        {
+            get => _summaryText;
+            set { if (value != _summaryText) { _summaryText = value; OnPropertyChangedWithValue(value, nameof(SummaryText)); } }
+        }
+
+        /// <summary>Folded to one line (remembered per section — step 18).</summary>
+        [DataSourceProperty]
+        public bool IsCollapsed
+        {
+            get => _isCollapsed;
+            set
+            {
+                if (value != _isCollapsed)
+                {
+                    _isCollapsed = value;
+                    OnPropertyChangedWithValue(value, nameof(IsCollapsed));
+                    OnPropertyChanged(nameof(IsExpanded));
+                    OnPropertyChanged(nameof(ShowSection));
+                }
+            }
+        }
+
+        /// <summary>Unfolded: the rows and the header's small print show.</summary>
+        [DataSourceProperty] public bool IsExpanded => !_isCollapsed;
+
+        /// <summary>A folded group shows only its head (the troops' second half hides).</summary>
+        [DataSourceProperty] public bool ShowSection => IsGroupHead || !_isCollapsed;
     }
 
     /// <summary>

@@ -82,22 +82,41 @@
                               <Children>
                                 <ListPanel Id="SuggestionList" DataSource="{Sections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Top" StackLayout.LayoutMethod="VerticalTopToBottom">
                                   <ItemTemplate>
-                                    <!-- ===== one section ===== -->
-                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                    <!-- ===== one section (step 18: a folded group shows only its head's one line) ===== -->
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@ShowSection">
                                       <Children>
-                                        <!-- section header row -->
+                                        <!-- section header row: [fold toggle + title] small print (unfolded) / the one line (folded) -->
                                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42">
                                           <Children>
                                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" VerticalAlignment="Bottom" MarginLeft="6" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Title.Text" Brush.FontSize="24" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@TitleText" />
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="18" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="#8E8A80FF" Text="@DetailText" />
+                                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Command.Click="ExecuteToggle">
+                                                  <Children>
+                                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="22" SuggestedHeight="22" VerticalAlignment="Center" MarginRight="8">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SPGeneral\SPOptions\collapser_indicator_closed" IsVisible="@IsCollapsed" />
+                                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="SPGeneral\SPOptions\collapser_indicator_open" IsVisible="@IsExpanded" />
+                                                          </Children>
+                                                        </Widget>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Title.Text" Brush.FontSize="24" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@TitleText" />
+                                                      </Children>
+                                                    </ListPanel>
+                                                    <HintWidget DataSource="{ToggleHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                                                  </Children>
+                                                </ButtonWidget>
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="18" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="#8E8A80FF" Text="@DetailText" IsVisible="@IsExpanded" />
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="18" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Brush.FontColor="@TextColor" Text="@SummaryText" IsVisible="@IsCollapsed" />
                                               </Children>
                                             </ListPanel>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Bottom" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.18" />
                                           </Children>
                                         </Widget>
-                                        <!-- the section's rows -->
+                                        <!-- the section's rows (hidden while folded; the wrapper carries the visibility - a list's own
+                                             IsVisible would bind to the list, RESEARCH §14) -->
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded">
+                                          <Children>
                                         <ListPanel DataSource="{Rows}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                           <ItemTemplate>
                                             <!-- ===== one row (+ its breakdown) ===== -->
@@ -208,6 +227,8 @@
                                             </ListPanel>
                                           </ItemTemplate>
                                         </ListPanel>
+                                          </Children>
+                                        </Widget>
                                       </Children>
                                     </ListPanel>
                                   </ItemTemplate>

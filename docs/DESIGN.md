@@ -74,6 +74,25 @@ reason above it. (Until step 16 a closed market hid every row at 0 — the taver
 6. **Prisoners** (§2.5) — last, with the other selling **[decided: Claude, 2026.09.27]**
 7. *(LATER — not V1)* **Others** — the trade goods the player ticked in the Prices tab (§1.3.1)
 
+**Folded sections** **[Anton 2026.09.28 — PLAN step 18: "each section header expands/collapses; collapsed = ONE summary
+line … the state is REMEMBERED per section across windows, towns and game restarts (stays collapsed until Anton expands it)
+— kept in our settings folder, never in the save"]** (Core `Presentation\SectionSummary`, `WindowState`):
+- A click on a section's header (its ▸/▾ collapser icon or its name) folds it: the rows hide and the header shows the
+  section's name and ONE line of what it will do with its gold, live with every click. The troops section's two halves fold
+  together as **Troops** (the folded line sits on the first of them). Lines, and the neutral line when nothing is queued:
+  - Tavern — `+3 hired –1,450` / `nobody hired`
+  - Troops — `+12 recruited –640 · 3 dismissed` / `nobody recruited or dismissed`
+  - Food — `+29 (5 kinds), 12 sold –510 · 64 » 71 days` / `no change · 64 days` (the days as the footer counts them)
+  - Mounts — `+10 (2 kinds), 3 sold –1,200` / `no change`
+  - Armour & weapons — `41 sold +2,132 · –380 kg` / `nothing sold`
+  - Prisoners — `12 ransomed, 4 to the dungeon +980 +3.2 influence` / `nobody ransomed`
+  The same shape as the autonomous steward's report (moves, then the gold); the words are TextObjects (`ss_ui_sum_*`).
+- **Remembered per section** until the player unfolds it — across windows, towns and game restarts — in
+  `Configs\SmartSteward\window_state.json` (§8), written on every fold; not in MCM, not in the Instructions tab, never in
+  the save. No file, or one that cannot be read → every section unfolded (the default).
+- A folded section's rows are not refreshed while folded (each row's live buttons cost a trial walk — a big plan clicks
+  faster with sections folded); unfolding refreshes them.
+
 #### 1.1.1 Mount rows are grouped by role **[Anton 2026.09.27 — "don't show each type of mount"]**
 
 One row per role, so a single `[+]` or `[-]` does the right thing without the player choosing
@@ -949,6 +968,16 @@ float slider and the file agree on the same number). A value outside its range i
   tab or by hand; MCM shows only the multipliers and the auto-fill switches.
 - A log at `Configs\SmartSteward\smart_steward.log` (what was planned, what was executed) for
   bug reports.
+- **The window's remembered state** **[decided: Claude, 2026.09.28 — PLAN step 18]**: which Suggestion sections are folded
+  (§1.1) lives in its OWN small file beside the settings, `Configs\SmartSteward\window_state.json` (Core `WindowState`,
+  Module `UI\WindowStateHost`) — `// comments` explaining it, then `"CollapsedSections": ["Food", "Mounts"]` (names: Tavern,
+  Troops, Food, Mounts, ArmourAndWeapons, Prisoners); written on every fold or unfold (beside and swapped in, like the
+  settings), read at the first window and again whenever it changed on disk. Why not a key in settings.json: a fold is not
+  a setting — settings.json is generated from the §7 registry, a change there raises the service's `Changed` and re-plans
+  the open window, shows in MCM and the Instructions tab, and an unknown key is a logged problem with a `.bak`; a fold must
+  do none of that, and writing it on every click must never put the settings file at risk. Deleting settings.json keeps the
+  folds; deleting window_state.json unfolds everything. Unreadable, a wrong shape or unknown names → every section unfolded
+  (unknown names dropped), one log line; never an exception. Never in the save, never in MCM.
 
 ---
 

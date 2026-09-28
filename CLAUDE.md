@@ -131,7 +131,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
-                              SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule).
+                              SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule); SectionSummary (step 18: the
+                              folded section's one line + SectionGroup), WindowState (step 18: window_state.json - the folds).
                               Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
@@ -148,7 +149,7 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               TavernKnowledge (step 14: the listed wanderers become known, as the tavern district does it)
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
-                              command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids —
+                              command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, WindowStateHost (step 18: the folds on disk), UiText/UiLabels (TextObject ids —
                               every English ONE literal per UiText call: StringsFileTests reads them from the source)
   StewardMenu.cs              "Party Steward" in the town and village menus (+ War Sails' port menu, added by id at its first
                               opening — step 14) → opens the window

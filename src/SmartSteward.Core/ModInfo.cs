@@ -28,5 +28,9 @@ namespace SmartSteward.Core
 
         /// <summary>The commented settings file beside the log (DESIGN §8).</summary>
         public const string SettingsFileName = "settings.json";
+
+        /// <summary>What the window remembers between visits and restarts — the folded Suggestion sections (step 18,
+        /// <see cref="Presentation.WindowState"/>): its own small file beside the settings, never the save.</summary>
+        public const string WindowStateFileName = "window_state.json";
     }
 }

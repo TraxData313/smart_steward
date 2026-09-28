@@ -195,6 +195,7 @@
     <string id="ss_ui_enum_hint" text="Click for the next choice" />
     <string id="ss_ui_expand_hint" text="Show the kinds of animal in this row" />
     <string id="ss_ui_failed" text="Smart Steward: something went wrong - the window closed. See smart_steward.log." />
+    <string id="ss_ui_fold_hint" text="Fold this section to one line. The steward remembers it, even after a restart." />
     <string id="ss_ui_food_days_note" text="days (~{PER} per soul)  ·  {RANGE}" />
     <string id="ss_ui_footer_capacity" text="capacity {LAND}" />
     <string id="ss_ui_footer_capacity_sea" text="capacity land {LAND} / sea {SEA}" />
@@ -251,7 +252,24 @@
     <string id="ss_ui_sec_tavern" text="Tavern" />
     <string id="ss_ui_sec_troops" text="Your troops" />
     <string id="ss_ui_sec_troops_detail" text="[–] dismisses, the wounded first" />
+    <string id="ss_ui_sec_troops_group" text="Troops" />
     <string id="ss_ui_shortcuts" text="Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia" />
+    <string id="ss_ui_sum_days" text="days" />
+    <string id="ss_ui_sum_dismissed" text="dismissed" />
+    <string id="ss_ui_sum_hired" text="hired" />
+    <string id="ss_ui_sum_influence" text="influence" />
+    <string id="ss_ui_sum_kg" text="kg" />
+    <string id="ss_ui_sum_kind" text="kind" />
+    <string id="ss_ui_sum_kinds" text="kinds" />
+    <string id="ss_ui_sum_no_change" text="no change" />
+    <string id="ss_ui_sum_no_troop_change" text="nobody recruited or dismissed" />
+    <string id="ss_ui_sum_nobody_hired" text="nobody hired" />
+    <string id="ss_ui_sum_nobody_ransomed" text="nobody ransomed" />
+    <string id="ss_ui_sum_nothing_sold" text="nothing sold" />
+    <string id="ss_ui_sum_ransomed" text="ransomed" />
+    <string id="ss_ui_sum_recruited" text="recruited" />
+    <string id="ss_ui_sum_sold" text="sold" />
+    <string id="ss_ui_sum_to_dungeon" text="to the dungeon" />
     <string id="ss_ui_tab_instructions" text="Instructions" />
     <string id="ss_ui_tab_prices" text="Prices" />
     <string id="ss_ui_tab_suggestion" text="Suggestion" />
@@ -264,6 +282,7 @@
     <string id="ss_ui_type_tavern" text="Tavern" />
     <string id="ss_ui_type_troop" text="Troop" />
     <string id="ss_ui_type_war_mount" text="War mount" />
+    <string id="ss_ui_unfold_hint" text="Show this section's rows. The steward remembers it, even after a restart." />
     <string id="ss_ui_warn_cannot_afford" text="You cannot afford this deal - take something back." />
     <string id="ss_ui_warn_market_gold" text="The market cannot pay for all the sales." />
     <string id="ss_ui_warn_min_gold" text="Below the gold you always keep ({GOLD})." />
