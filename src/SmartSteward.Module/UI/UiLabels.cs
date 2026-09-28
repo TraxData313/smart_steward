@@ -95,6 +95,28 @@ namespace SmartSteward.UI
             OtherGoodsNote = UiText.S("ss_ui_sheet_other_goods_note", "every unlocked good that is not food, animal or gear"),
             YourMax = UiText.S("ss_ui_sheet_your_max", "your max"),
             YourMin = UiText.S("ss_ui_sheet_your_min", "your min"),
+            // Round 5: the Goal column (the window binds it in step 23).
+            HandsOffMark = UiText.S("ss_ui_sheet_hands_off", "–*"),
+            NotManagedYet = UiText.S("ss_ui_sheet_not_managed", "Not managed yet: the steward starts on"),
+            FoodJob = UiText.S("ss_ui_sheet_job_food", "food"),
+            PackAnimalsJob = UiText.S("ss_ui_sheet_job_pack", "pack animals"),
+            RidingHorsesJob = UiText.S("ss_ui_sheet_job_riding", "riding horses"),
+            WarHorsesJob = UiText.S("ss_ui_sheet_job_war", "war horses"),
+            At = UiText.S("ss_ui_sheet_at", "at"),
+            YouHave = UiText.S("ss_ui_sheet_you_have", "you have"),
+            TypeGoalAnyway = UiText.S("ss_ui_sheet_type_goal", "Type a goal to order it anyway."),
+            ShortOfGoal = UiText.S("ss_ui_sheet_short", "Short of the goal:"),
+            ShortMarketStock = UiText.S("ss_ui_sheet_short_stock", "the market has no more on offer"),
+            ShortStockTaken = UiText.S("ss_ui_sheet_short_taken", "another row took the rest"),
+            ShortPriceCap = UiText.S("ss_ui_sheet_short_price", "the next one costs more than your max price"),
+            ShortMinSellPrice = UiText.S("ss_ui_sheet_short_min_sell", "the next one would fetch less than your min price"),
+            ShortMarketGold = UiText.S("ss_ui_sheet_short_market_gold", "the market is out of denari"),
+            ShortPurseFloor = UiText.S("ss_ui_sheet_short_floor", "keeps your purse at"),
+            ShortThreshold = UiText.S("ss_ui_sheet_short_threshold", "waits for"),
+            ShortNoneEligible = UiText.S("ss_ui_sheet_short_none_eligible", "nothing on offer the steward may buy"),
+            ShortNothingToSell = UiText.S("ss_ui_sheet_short_nothing_to_sell", "nothing more it may sell (locked or unticked)"),
+            ShortSurplusKept = UiText.S("ss_ui_sheet_short_surplus_kept", "selling the surplus is off in the Instructions"),
+            ShortNotPossibleHere = UiText.S("ss_ui_sheet_short_not_here", "not possible here"),
         };
 
         /// <summary>The tooltip of a greyed [+] / [−] (DESIGN §1.1: "the button greys with the reason").</summary>

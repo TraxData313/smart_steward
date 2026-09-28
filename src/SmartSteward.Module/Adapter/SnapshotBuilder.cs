@@ -280,7 +280,7 @@ namespace SmartSteward.Adapter
                          + " on foot), mounts " + s.Party.Attached.Mounts.ToString(inv) + ", pack " + s.Party.Attached.PackAnimals.ToString(inv)
                          + ", livestock " + s.Party.Attached.Livestock.ToString(inv)
                        : "")
-                   + "); load " + s.Carry.WeightNow.ToString("0", inv) + " kg, capacity land " + s.Carry.CapacityLandNow.ToString("0", inv)
+                   + "); load " + s.Carry.WeightNow.ToString("0", inv) + ", capacity land " + s.Carry.CapacityLandNow.ToString("0", inv)
                    + (s.Carry.HasShips ? ", at sea " + s.Carry.WeightAtSeaNow.ToString("0", inv) + " of " + s.Carry.CapacitySeaNow.ToString("0", inv) : "")
                    + " (per member " + s.Carry.LandPerMember.ToString("0.#", inv) + ", mount " + s.Carry.LandPerMount.ToString("0.#", inv)
                    + ", pack " + s.Carry.LandPerPackAnimal.ToString("0.#", inv) + ", prisoner " + s.Carry.LandPerPrisoner.ToString("0.#", inv)

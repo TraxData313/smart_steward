@@ -58,8 +58,10 @@ namespace SmartSteward.UI
             ColDenari = UiText.S("ss_ui_col_denari", "Denari");
             ColParty = UiText.S("ss_ui_col_party", "Party");
             ColPrisoners = UiText.S("ss_ui_col_prisoners", "Prisoners");
-            ColLand = UiText.S("ss_ui_col_land_kg", "Land kg");
-            ColSea = UiText.S("ss_ui_col_sea_kg", "Sea kg");
+            // "Weight, not kg" (Anton 2026.09.28, round 5): the game writes weight with no unit.
+            ColLand = UiText.S("ss_ui_col_land_weight", "Land weight");
+            ColSea = UiText.S("ss_ui_col_sea_weight", "Sea weight");
+            ColGoal = UiText.S("ss_ui_col_goal", "Goal"); // the Goal column — laid out in step 23
             HeaderLabel = UiText.S("ss_ui_header_denari", "Denari");
             _nothingToDoText = UiText.S("ss_ui_empty", "Nothing for the steward to do here.");
             _emptyText = _nothingToDoText;
@@ -336,6 +338,8 @@ namespace SmartSteward.UI
         [DataSourceProperty] public string ColPrisoners { get; }
         [DataSourceProperty] public string ColLand { get; }
         [DataSourceProperty] public string ColSea { get; }
+
+        [DataSourceProperty] public string ColGoal { get; }
         [DataSourceProperty] public string HeaderLabel { get; }
         [DataSourceProperty] public string ResetAllText { get; }
         [DataSourceProperty] public string WarningColor => UiColors.Warning;
@@ -1222,7 +1226,7 @@ namespace SmartSteward.UI
             SlowdownHint.Text = !row.Known ? ""
                 : slowed
                     ? UiText.S2("ss_ui_weight_slow_hint",
-                        "{SLOW}: the game's Overburdened - the load after the deal is {OVER} kg over the capacity.",
+                        "{SLOW}: the game's Overburdened - the load after the deal is {OVER} over the capacity.",
                         "SLOW", row.SlowdownText, "OVER", UiFormat.Kg(-row.Left))
                     : UiText.S("ss_ui_weight_fast_hint", "Within the capacity: the load after the deal does not slow the party.");
         }

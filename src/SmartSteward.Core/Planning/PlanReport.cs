@@ -147,7 +147,7 @@ namespace SmartSteward.Core.Planning
             sb.Append("Food ").Append(t.FoodUnitsNow.ToString(Inv)).Append(" -> ").Append(t.FoodUnitsAfter.ToString(Inv));
             if (t.FoodDaysAfter != null)
                 sb.Append(" (~").Append(Math.Floor(t.FoodDaysAfter.Value).ToString(Inv)).Append(" days)");
-            sb.Append(" | weight ").Append(t.WeightChange.ToString("+0.#;-0.#;0", Inv)).Append(" kg");
+            sb.Append(" | weight ").Append(t.WeightChange.ToString("+0.#;-0.#;0", Inv));
             var c = t.Carry;
             if (c.Known)
             {

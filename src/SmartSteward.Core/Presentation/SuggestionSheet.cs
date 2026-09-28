@@ -136,6 +136,41 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The Denari cell's tooltip: <c>8 × 30–33 = –252 · your max 60</c>.</summary>
         public string YourMax { get; set; } = "your max";
         public string YourMin { get; set; } = "your min";
+
+        // ── Round 5: the Goal column (DESIGN §1.1 "THE GOAL") ──
+
+        /// <summary>A row whose job waits for its threshold and has no goal of yours: "no goal yet" [Claude's call — Anton
+        /// suggested <c>0*</c>].</summary>
+        public string HandsOffMark { get; set; } = UiFormat.Minus + "*";
+
+        /// <summary>The hands-off hover: <c>Not managed yet: the steward starts on food at 2,000 denari – you have 1,450. Type a
+        /// goal to order it anyway.</c></summary>
+        public string NotManagedYet { get; set; } = "Not managed yet: the steward starts on";
+        public string FoodJob { get; set; } = "food";
+        public string PackAnimalsJob { get; set; } = "pack animals";
+        public string RidingHorsesJob { get; set; } = "riding horses";
+        public string WarHorsesJob { get; set; } = "war horses";
+        public string At { get; set; } = "at";
+        public string YouHave { get; set; } = "you have";
+        public string TypeGoalAnyway { get; set; } = "Type a goal to order it anyway.";
+
+        /// <summary>The Result's hover when it stops short of the Goal: <c>Short of the goal: the market has no more on offer.</c></summary>
+        public string ShortOfGoal { get; set; } = "Short of the goal:";
+        public string ShortMarketStock { get; set; } = "the market has no more on offer";
+        public string ShortStockTaken { get; set; } = "another row took the rest";
+        public string ShortPriceCap { get; set; } = "the next one costs more than your max price";
+        public string ShortMinSellPrice { get; set; } = "the next one would fetch less than your min price";
+        public string ShortMarketGold { get; set; } = "the market is out of denari";
+
+        /// <summary><c>keeps your purse at 1,000 denari</c>.</summary>
+        public string ShortPurseFloor { get; set; } = "keeps your purse at";
+
+        /// <summary><c>waits for 2,000 denari</c>.</summary>
+        public string ShortThreshold { get; set; } = "waits for";
+        public string ShortNoneEligible { get; set; } = "nothing on offer the steward may buy";
+        public string ShortNothingToSell { get; set; } = "nothing more it may sell (locked or unticked)";
+        public string ShortSurplusKept { get; set; } = "selling the surplus is off in the Instructions";
+        public string ShortNotPossibleHere { get; set; } = "not possible here";
     }
 
     /// <summary>One always-visible line of a section: a plan row shown on its own, or an aggregate line over detail rows.</summary>
@@ -267,9 +302,13 @@ namespace SmartSteward.Core.Presentation
     {
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
-        private SuggestionSheet()
+        private SuggestionSheet(StewardPlan plan)
         {
+            Plan = plan;
         }
+
+        /// <summary>The plan the sheet was built from.</summary>
+        public StewardPlan Plan { get; }
 
         public IReadOnlyList<SheetSection> Sections { get; private set; } = Array.Empty<SheetSection>();
 
@@ -316,7 +355,7 @@ namespace SmartSteward.Core.Presentation
             var snapshot = plan.Snapshot ?? new StewardSnapshot();
             var settings = plan.Settings ?? new StewardSettings();
             var t = plan.Totals;
-            var sheet = new SuggestionSheet
+            var sheet = new SuggestionSheet(plan)
             {
                 ShowSea = t.Carry.ShowSea,
                 RansomAllowedHere = snapshot.SettlementKind == SettlementKind.Town && (snapshot.Prison?.CanRansom ?? false),

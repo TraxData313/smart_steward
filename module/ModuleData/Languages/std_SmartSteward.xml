@@ -201,8 +201,9 @@
     <string id="ss_ui_col_buy" text="Buy" />
     <string id="ss_ui_col_change" text="Change" />
     <string id="ss_ui_col_denari" text="Denari" />
+    <string id="ss_ui_col_goal" text="Goal" />
     <string id="ss_ui_col_item" text="Item" />
-    <string id="ss_ui_col_land_kg" text="Land kg" />
+    <string id="ss_ui_col_land_weight" text="Land weight" />
     <string id="ss_ui_col_market" text="Market" />
     <string id="ss_ui_col_max_buy" text="Max buy price" />
     <string id="ss_ui_col_min_sell" text="Min sell price" />
@@ -210,7 +211,7 @@
     <string id="ss_ui_col_party" text="Party" />
     <string id="ss_ui_col_prisoners" text="Prisoners" />
     <string id="ss_ui_col_result" text="Result" />
-    <string id="ss_ui_col_sea_kg" text="Sea kg" />
+    <string id="ss_ui_col_sea_weight" text="Sea weight" />
     <string id="ss_ui_col_sell" text="Sell" />
     <string id="ss_ui_do_it" text="Do it" />
     <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
@@ -261,6 +262,7 @@
     <string id="ss_ui_sec_prisoners" text="Prisoners" />
     <string id="ss_ui_sec_troops_group" text="Troops" />
     <string id="ss_ui_sheet_about" text="~" />
+    <string id="ss_ui_sheet_at" text="at" />
     <string id="ss_ui_sheet_avg" text="avg" />
     <string id="ss_ui_sheet_before_herd" text="before the herd slows you" />
     <string id="ss_ui_sheet_best_tier_first" text="[+] takes the best tier first" />
@@ -272,8 +274,13 @@
     <string id="ss_ui_sheet_each" text="each" />
     <string id="ss_ui_sheet_full" text="full" />
     <string id="ss_ui_sheet_goods" text="goods" />
+    <string id="ss_ui_sheet_hands_off" text="–*" />
     <string id="ss_ui_sheet_horses_to_keep" text="horses to keep" />
     <string id="ss_ui_sheet_influence" text="influence" />
+    <string id="ss_ui_sheet_job_food" text="food" />
+    <string id="ss_ui_sheet_job_pack" text="pack animals" />
+    <string id="ss_ui_sheet_job_riding" text="riding horses" />
+    <string id="ss_ui_sheet_job_war" text="war horses" />
     <string id="ss_ui_sheet_keep" text="keep" />
     <string id="ss_ui_sheet_kept" text="kept" />
     <string id="ss_ui_sheet_kinds" text="kinds" />
@@ -287,6 +294,7 @@
     <string id="ss_ui_sheet_mercenaries" text="mercenaries" />
     <string id="ss_ui_sheet_min" text="min" />
     <string id="ss_ui_sheet_no_slowdown" text="none" />
+    <string id="ss_ui_sheet_not_managed" text="Not managed yet: the steward starts on" />
     <string id="ss_ui_sheet_nothing_sold" text="nothing sold" />
     <string id="ss_ui_sheet_on_foot" text="on foot" />
     <string id="ss_ui_sheet_on_offer" text="on offer" />
@@ -304,14 +312,28 @@
     <string id="ss_ui_sheet_replaced" text="replaced by healthy ones" />
     <string id="ss_ui_sheet_riding_start" text="riding horses start at" />
     <string id="ss_ui_sheet_sell_only" text="sell only" />
+    <string id="ss_ui_sheet_short" text="Short of the goal:" />
+    <string id="ss_ui_sheet_short_floor" text="keeps your purse at" />
+    <string id="ss_ui_sheet_short_market_gold" text="the market is out of denari" />
+    <string id="ss_ui_sheet_short_min_sell" text="the next one would fetch less than your min price" />
+    <string id="ss_ui_sheet_short_none_eligible" text="nothing on offer the steward may buy" />
+    <string id="ss_ui_sheet_short_not_here" text="not possible here" />
+    <string id="ss_ui_sheet_short_nothing_to_sell" text="nothing more it may sell (locked or unticked)" />
+    <string id="ss_ui_sheet_short_price" text="the next one costs more than your max price" />
+    <string id="ss_ui_sheet_short_stock" text="the market has no more on offer" />
+    <string id="ss_ui_sheet_short_surplus_kept" text="selling the surplus is off in the Instructions" />
+    <string id="ss_ui_sheet_short_taken" text="another row took the rest" />
+    <string id="ss_ui_sheet_short_threshold" text="waits for" />
     <string id="ss_ui_sheet_sold" text="sold" />
     <string id="ss_ui_sheet_speed" text="speed" />
     <string id="ss_ui_sheet_starts_at" text="starts at" />
     <string id="ss_ui_sheet_to_dungeon" text="to the dungeon" />
     <string id="ss_ui_sheet_to_hire" text="to hire" />
+    <string id="ss_ui_sheet_type_goal" text="Type a goal to order it anyway." />
     <string id="ss_ui_sheet_types" text="types" />
     <string id="ss_ui_sheet_war_start" text="war horses start at" />
     <string id="ss_ui_sheet_wounded" text="wounded - they go first" />
+    <string id="ss_ui_sheet_you_have" text="you have" />
     <string id="ss_ui_sheet_your_max" text="your max" />
     <string id="ss_ui_sheet_your_min" text="your min" />
     <string id="ss_ui_sheet_your_troops" text="Your troops" />
@@ -345,7 +367,7 @@
     <string id="ss_ui_weight_land" text="Land" />
     <string id="ss_ui_weight_left" text="left" />
     <string id="ss_ui_weight_sea" text="Sea" />
-    <string id="ss_ui_weight_slow_hint" text="{SLOW}: the game's Overburdened - the load after the deal is {OVER} kg over the capacity." />
+    <string id="ss_ui_weight_slow_hint" text="{SLOW}: the game's Overburdened - the load after the deal is {OVER} over the capacity." />
     <string id="ss_ui_weight_slowdown" text="slowdown" />
     <string id="ss_why_looted" text="This village has been looted." />
     <string id="ss_why_market_closed" text="Trading is not possible here right now." />

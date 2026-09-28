@@ -77,6 +77,41 @@ namespace SmartSteward.Core.Presentation
     }
 
     /// <summary>
+    /// The Goal cell of a line or a title line (DESIGN §1.1 "THE GOAL" — Anton 2026.09.28, round 5): where the line should END.
+    /// Empty on the troop lines, a typed box on the food and the pack / riding / war rows (<see cref="Editable"/>), the player's own
+    /// goal marked as his (<see cref="IsYours"/> — gold, with its ⟲), <c>–*</c> while the job waits for its threshold
+    /// (<see cref="HandsOff"/>, hover <see cref="Hint"/>), and a Result short of it says why (<see cref="ShortText"/>).
+    /// </summary>
+    public sealed class SheetGoalCell
+    {
+        public static readonly SheetGoalCell Empty = new SheetGoalCell();
+
+        /// <summary>The cell's text: the goal, <c>–*</c>, or empty.</summary>
+        public string Text { get; internal set; } = "";
+
+        /// <summary>The goal as a number (null: empty or hands-off).</summary>
+        public int? Value { get; internal set; }
+
+        /// <summary>A typed box: a goal may be typed here (and [–]/[+] edit it).</summary>
+        public bool Editable { get; internal set; }
+
+        /// <summary>The player's goal — gold, with its ⟲ (the row's <see cref="SheetItem.CanReset"/>).</summary>
+        public bool IsYours { get; internal set; }
+
+        /// <summary><c>–*</c>: not managed yet (the job waits for its threshold, no goal of yours).</summary>
+        public bool HandsOff { get; internal set; }
+
+        /// <summary>The hands-off hover: <c>Not managed yet: the steward starts on food at 2,000 denari – you have 1,450. …</c></summary>
+        public string Hint { get; internal set; } = "";
+
+        /// <summary>Why the Result stops short of the goal (<see cref="GoalShort.None"/> = it does not, or nobody knows).</summary>
+        public GoalShort Short { get; internal set; }
+
+        /// <summary>The Result's hover when short: <c>Short of the goal: keeps your purse at 1,000 denari.</c>; empty otherwise.</summary>
+        public string ShortText { get; internal set; } = "";
+    }
+
+    /// <summary>
     /// One line of the spreadsheet as the window binds it: its identity (<see cref="Key"/>), what it is, every cell as text and
     /// colour, its ▸ fold, and the live state of its buttons — [−] [+] with the editor's reasons, ⟲, or the Keep | Ransom |
     /// Donate toggle. Everything the window shows is decided here (pure, tested); the Module copies it.
@@ -125,6 +160,9 @@ namespace SmartSteward.Core.Presentation
         public string ChangeColor { get; internal set; } = UiColors.Muted;
         public string Result { get; internal set; } = "";
 
+        /// <summary>The Goal column (round 5).</summary>
+        public SheetGoalCell Goal { get; internal set; } = SheetGoalCell.Empty;
+
         /// <summary>The line's number columns.</summary>
         public PlanMetrics Metrics { get; internal set; }
         public SheetCellTexts Cells { get; internal set; } = SheetCellTexts.Of(new PlanMetrics());
@@ -164,6 +202,18 @@ namespace SmartSteward.Core.Presentation
 
         /// <summary>The title line's subtotal.</summary>
         public SheetCellTexts Cells { get; internal set; } = SheetCellTexts.Of(new PlanMetrics());
+
+        /// <summary>The title line's Goal (round 5): Troops the party size limit; Food, Horses, Prisoners and Other the sum of their
+        /// lines' goals (<c>–*</c> when every line is hands-off). Never editable.</summary>
+        public SheetGoalCell Goal { get; internal set; } = SheetGoalCell.Empty;
+
+        /// <summary>The title line's Mine and Result: Troops the members now and after the deal; the others the sums of their
+        /// lines.</summary>
+        public string Mine { get; internal set; } = "";
+        public string Result { get; internal set; } = "";
+
+        /// <summary>Mine is past a limit — the Troops title: more members now than the party size limit (red — Anton, round 5).</summary>
+        public bool MineWarning { get; internal set; }
 
         /// <summary>What a click on the title folds: the section's own key, or — Troops — both troop lines (mockup choice 8).</summary>
         public IReadOnlyList<string> FoldKeys { get; internal set; } = Array.Empty<string>();
@@ -263,7 +313,111 @@ namespace SmartSteward.Core.Presentation
             }
             view.FoldKeys = keys;
             view.Items = items;
+            TitleGoal(plan, section, view, words);
             return view;
+        }
+
+        /// <summary>The title line's Goal, Mine and Result (round 5).</summary>
+        private static void TitleGoal(StewardPlan plan, SheetSection section, SheetSectionView view, SheetWords words)
+        {
+            var t = plan.Totals;
+            if (section.Group == SheetGroup.Troops)
+            {
+                view.Mine = UiFormat.Money(t.MembersNow);
+                view.Result = UiFormat.Money(t.MembersAfter);
+                view.MineWarning = t.PartySizeLimit > 0 && t.MembersNow > t.PartySizeLimit;
+                if (t.PartySizeLimit > 0)
+                    view.Goal = new SheetGoalCell { Value = t.PartySizeLimit, Text = UiFormat.Money(t.PartySizeLimit) };
+                return;
+            }
+            var rows = section.Rows;
+            view.Mine = UiFormat.Money(rows.Sum(r => r.Mine));
+            view.Result = UiFormat.Money(rows.Sum(r => r.Result));
+            var cells = rows.Select(r => GoalCell(r, plan, words)).ToList();
+            var numbers = cells.Where(c => c.Value != null).ToList();
+            if (numbers.Count > 0)
+            {
+                int sum = numbers.Sum(c => c.Value!.Value);
+                view.Goal = new SheetGoalCell { Value = sum, Text = UiFormat.Money(sum) };
+            }
+            else if (cells.Count > 0 && cells.All(c => c.HandsOff))
+                view.Goal = new SheetGoalCell { Text = words.HandsOffMark, HandsOff = true, Hint = cells[0].Hint };
+        }
+
+        // ── The Goal of a line (round 5) ─────────────────────────────────────────────────────────────────
+
+        /// <summary>The Goal cell of a plan row (<see cref="RowGoal"/> in words): its text, the hands-off hover, the reason a
+        /// Result stops short.</summary>
+        public static SheetGoalCell GoalCell(PlanRow row, StewardPlan plan, SheetWords? words = null)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+            if (plan == null) throw new ArgumentNullException(nameof(plan));
+            words ??= new SheetWords();
+            var goal = RowGoal.Of(row);
+            var cell = new SheetGoalCell
+            {
+                Value = goal.Value,
+                Editable = goal.Editable,
+                IsYours = goal.IsYours,
+                HandsOff = goal.HandsOff,
+                Short = goal.Short,
+                Text = goal.HandsOff ? words.HandsOffMark : goal.Value == null ? "" : UiFormat.Money(goal.Value.Value),
+            };
+            if (goal.HandsOff && goal.StartsAt != null)
+                cell.Hint = words.NotManagedYet + " " + JobWord(row, words) + " " + words.At + " " + UiFormat.Money(goal.StartsAt.Value)
+                            + " " + words.Denari + " " + UiFormat.Minus + " " + words.YouHave + " "
+                            + UiFormat.Money(plan.Totals.GoldNow) + "." + (goal.Editable ? " " + words.TypeGoalAnyway : "");
+            if (goal.IsShort)
+                cell.ShortText = words.ShortOfGoal + " " + ShortWords(row, goal, plan, words) + ".";
+            return cell;
+        }
+
+        /// <summary>The job a row's threshold belongs to, in words (food, pack animals, riding horses — the noble horses go with
+        /// them —, war horses).</summary>
+        private static string JobWord(PlanRow row, SheetWords words)
+        {
+            if (row.Type == RowType.Food)
+                return words.FoodJob;
+            switch (row.Role)
+            {
+                case MountRole.Pack: return words.PackAnimalsJob;
+                case MountRole.War: return words.WarHorsesJob;
+                default: return words.RidingHorsesJob;
+            }
+        }
+
+        private static string ShortWords(PlanRow row, RowGoal goal, StewardPlan plan, SheetWords words)
+        {
+            switch (goal.Short)
+            {
+                case GoalShort.MarketStock: return words.ShortMarketStock;
+                case GoalShort.StockTaken: return words.ShortStockTaken;
+                case GoalShort.PriceCap: return words.ShortPriceCap;
+                case GoalShort.MinSellPrice: return words.ShortMinSellPrice;
+                case GoalShort.MarketGold: return words.ShortMarketGold;
+                case GoalShort.PurseFloor:
+                    return words.ShortPurseFloor + " " + UiFormat.Money(PurseFloorOf(row, goal, plan)) + " " + words.Denari;
+                case GoalShort.Threshold:
+                    return words.ShortThreshold + " " + UiFormat.Money(row.StartsAtDenari ?? 0) + " " + words.Denari;
+                case GoalShort.NoneEligible: return words.ShortNoneEligible;
+                case GoalShort.NothingToSell: return words.ShortNothingToSell;
+                case GoalShort.SurplusKept: return words.ShortSurplusKept;
+                case GoalShort.NotPossibleHere: return words.ShortNotPossibleHere;
+                default: return "";
+            }
+        }
+
+        /// <summary>The floor a row's buying stopped at: a goal of yours answers to the goals' floors, the steward's rows to the
+        /// plan's (food at MinGoldAfterDeal, animals at the higher animal floor).</summary>
+        private static int PurseFloorOf(PlanRow row, RowGoal goal, StewardPlan plan)
+        {
+            bool animal = row.Section == PlanSectionKind.Mounts;
+            if (goal.IsYours && plan.Settings != null)
+            {
+                var floors = MoneyFloors.ForGoals(plan.Settings, plan.Mode);
+                return (animal ? floors.Animals : floors.Food) ?? 0;
+            }
+            return animal ? Math.Max(plan.Floors.All, plan.Floors.Animals) : plan.Floors.All;
         }
 
         private static void AddRow(List<SheetItem> items, PlanRow row, SuggestionSheet sheet, SheetWords words, Func<string, bool> isFolded)
@@ -325,6 +479,23 @@ namespace SmartSteward.Core.Presentation
                 Cells = SheetCellTexts.Of(line.Metrics, words),
                 Choice = line.Action,
                 DonateAllowed = sheet.DonateAllowedHere,
+                Goal = LineGoal(line, sheet.Plan, words),
+            };
+        }
+
+        /// <summary>The Lords / Others lines' Goal: the sum of their rows' (0 on Ransom and Donate, Mine on Keep); short when one of
+        /// them is.</summary>
+        private static SheetGoalCell LineGoal(SheetLine line, StewardPlan plan, SheetWords words)
+        {
+            var cells = line.Details.Select(r => GoalCell(r, plan, words)).ToList();
+            int sum = cells.Sum(c => c.Value ?? 0);
+            var shortCell = cells.FirstOrDefault(c => c.Short != GoalShort.None);
+            return new SheetGoalCell
+            {
+                Value = sum,
+                Text = UiFormat.Money(sum),
+                Short = shortCell?.Short ?? GoalShort.None,
+                ShortText = shortCell?.ShortText ?? "",
             };
         }
 
@@ -355,6 +526,7 @@ namespace SmartSteward.Core.Presentation
                 DenariHint = shows ? Hint(row, words) : "",
                 HasSpinner = true,
                 CanReset = row.IsTouched,
+                Goal = GoalCell(row, sheet.Plan, words),
             };
             // Each line moves only its own side of a row (step 20's rule for the lines, step 21 for the rows under them).
             switch (side)
