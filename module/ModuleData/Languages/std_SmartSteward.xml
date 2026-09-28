@@ -213,19 +213,6 @@
     <string id="ss_ui_fold_hint" text="Fold this section to its line. The steward remembers it, even after a restart." />
     <string id="ss_ui_fold_line_hint" text="Fold these rows. The steward remembers it." />
     <string id="ss_ui_food_days_note" text="days (~{PER} per soul)  ·  {RANGE}" />
-    <string id="ss_ui_footer_cap" text="capacity {NOW}" />
-    <string id="ss_ui_footer_cap_change" text="capacity {NOW} » {AFTER}" />
-    <string id="ss_ui_footer_carry" text="weight {NOW} {CHANGE} » {AFTER} kg" />
-    <string id="ss_ui_footer_carry_change_only" text="weight {KG} kg" />
-    <string id="ss_ui_footer_carry_same" text="weight {NOW} kg" />
-    <string id="ss_ui_footer_food" text="Food {NOW} » {AFTER}  (~{DAYS} days)" />
-    <string id="ss_ui_footer_food_nodays" text="Food {NOW} » {AFTER}" />
-    <string id="ss_ui_footer_herd" text="Horses {HORSES} / {ROOM} before the herd slows you" />
-    <string id="ss_ui_footer_label_land" text="Land:" />
-    <string id="ss_ui_footer_label_sea" text="Sea:" />
-    <string id="ss_ui_footer_money" text="Spent {SPENT}  ·  earned {EARNED}" />
-    <string id="ss_ui_footer_over" text="{KG} over" />
-    <string id="ss_ui_footer_party" text="Party {AFTER}/{LIMIT}" />
     <string id="ss_ui_header_denari" text="Denari" />
     <string id="ss_ui_instructions_intro" text="Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does." />
     <string id="ss_ui_link_hint" text="Open in the Encyclopedia" />
@@ -330,6 +317,7 @@
     <string id="ss_ui_toggle_keep_hint" text="Keep them: the steward proposes nothing (you may still ransom by hand below). Your standing order - saved like the Instructions tab." />
     <string id="ss_ui_toggle_ransom" text="Ransom" />
     <string id="ss_ui_toggle_ransom_hint" text="Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab." />
+    <string id="ss_ui_total" text="Total" />
     <string id="ss_ui_troops_minus_hint" text="Dismiss from the lowest tier up, the wounded first. Shift 5, Ctrl all." />
     <string id="ss_ui_troops_plus_hint" text="Bring back the men you dropped, the last dropped first. Shift 5, Ctrl all." />
     <string id="ss_ui_unfold_hint" text="Show this section's rows. The steward remembers it, even after a restart." />
@@ -338,6 +326,16 @@
     <string id="ss_ui_warn_market_gold" text="The market cannot pay for all the sales." />
     <string id="ss_ui_warn_min_gold" text="Below the gold you always keep ({GOLD})." />
     <string id="ss_ui_warn_min_gold_horses" text="Below the gold you keep before buying animals ({GOLD})." />
+    <string id="ss_ui_weight_after" text="after" />
+    <string id="ss_ui_weight_before" text="before" />
+    <string id="ss_ui_weight_capacity" text="capacity" />
+    <string id="ss_ui_weight_change" text="change" />
+    <string id="ss_ui_weight_fast_hint" text="Within the capacity: the load after the deal does not slow the party." />
+    <string id="ss_ui_weight_land" text="Land" />
+    <string id="ss_ui_weight_left" text="left" />
+    <string id="ss_ui_weight_sea" text="Sea" />
+    <string id="ss_ui_weight_slow_hint" text="{SLOW}: the game's Overburdened - the load after the deal is {OVER} kg over the capacity." />
+    <string id="ss_ui_weight_slowdown" text="slowdown" />
     <string id="ss_why_looted" text="This village has been looted." />
     <string id="ss_why_market_closed" text="Trading is not possible here right now." />
     <string id="ss_why_no_settlement" text="not in a settlement" />

@@ -119,6 +119,32 @@ foreach ($module in "Native", "SandBoxCore", "SandBox") {
     }
 }
 
+# Official DLC modules (ModuleType OfficialOptional - War Sails' NavalDLC): their sprites are allowed ONLY when a vanilla
+# brush's own style names them (the Sea row's ship icon comes through SandBox's Map.Party.Speed.Indicator "Sailing" style -
+# step 21, mockup choice 10); a prefab never names a DLC sprite itself.
+$dlcSpriteCategory = @{} # sprite -> "category (Module)"
+$dlcAlwaysLoaded = @{}   # "category (Module)" -> always loaded
+Get-ChildItem (Join-Path $GameFolder "Modules") -Directory | ForEach-Object {
+    $moduleDir = $_
+    if (@("Native", "SandBoxCore", "SandBox") -contains $moduleDir.Name) { return }
+    $manifest = Join-Path $moduleDir.FullName "SubModule.xml"
+    if (-not (Test-Path $manifest)) { return }
+    $m = New-Object System.Xml.XmlDocument
+    try { $m.Load($manifest) } catch { return }
+    $type = $m.SelectSingleNode("/Module/ModuleType")
+    if ($type -eq $null -or @("Official", "OfficialOptional") -notcontains $type.GetAttribute("value")) { return }
+    foreach ($file in Get-ChildItem (Join-Path $moduleDir.FullName "GUI") -Filter "*SpriteData.xml" -ErrorAction SilentlyContinue) {
+        $xml = New-Object System.Xml.XmlDocument
+        $xml.Load($file.FullName)
+        foreach ($c in $xml.SelectNodes("//SpriteCategory")) {
+            $dlcAlwaysLoaded["$($c.SelectSingleNode("Name").InnerText) ($($moduleDir.Name))"] = ($c.SelectSingleNode("AlwaysLoad") -ne $null)
+        }
+        foreach ($p in $xml.SelectNodes("//SpritePart")) {
+            $dlcSpriteCategory[$p.SelectSingleNode("Name").InnerText] = "$($p.SelectSingleNode("CategoryName").InnerText) ($($moduleDir.Name))"
+        }
+    }
+}
+
 $brushes = @{}      # name -> @{ Module; Base; Sprites }
 foreach ($module in $brushModules) {
     foreach ($file in Get-ChildItem (Join-Path $GameFolder "Modules\$module\GUI\Brushes") -Filter *.xml -ErrorAction SilentlyContinue) {
@@ -137,8 +163,16 @@ $usedBrushes = @{}
 $usedSprites = @{}
 $bindingCount = 0
 
-function Test-Sprite([string]$sprite, [string]$where) {
-    if (-not $spriteCategory.ContainsKey($sprite)) { $problems.Add("$where : sprite '$sprite' does not exist"); return }
+function Test-Sprite([string]$sprite, [string]$where, [bool]$viaBrush = $false) {
+    if (-not $spriteCategory.ContainsKey($sprite)) {
+        if ($viaBrush -and $dlcSpriteCategory.ContainsKey($sprite)) {
+            $cat = $dlcSpriteCategory[$sprite]
+            if (-not $dlcAlwaysLoaded[$cat]) { $problems.Add("$where : DLC sprite '$sprite' is in category $cat, which is not always loaded"); return }
+            $script:usedSprites[$sprite] = "$cat - only through the game's own brush style (never named here)"
+            return
+        }
+        $problems.Add("$where : sprite '$sprite' does not exist"); return
+    }
     $cat = $spriteCategory[$sprite]
     $script:usedSprites[$sprite] = $cat
     if (-not $categories[$cat] -and $LoadedCategories -notcontains $cat) {
@@ -158,7 +192,7 @@ function Test-Brush([string]$brush, [string]$where) {
         }
         $b = $brushes[$name]
         $script:usedBrushes[$name] = "$($b.Module)\$($b.File)"
-        foreach ($s in $b.Sprites) { Test-Sprite $s "$where (brush $name)" }
+        foreach ($s in $b.Sprites) { Test-Sprite $s "$where (brush $name)" $true }
         $name = $b.Base
     }
 }

@@ -31,19 +31,7 @@ namespace SmartSteward.UI
         private string _headerChangeColor = UiColors.Muted;
         private string _headerInfluenceText = "";
         private bool _showSea;
-        private string _footerMoneyText = "";
-        private string _footerFoodText = "";
-        private string _footerLandText = "";
-        private string _footerLandOverText = "";
-        private bool _hasFooterLandOver;
-        private string _footerSeaText = "";
-        private string _footerSeaOverText = "";
-        private bool _hasFooterSeaOver;
-        private bool _hasSeaLine;
-        private string _footerHerdText = "";
-        private string _footerHerdColor = UiColors.Text;
-        private string _footerPartyText = "";
-        private string _footerPartyColor = UiColors.Text;
+        private bool _hasSeaRow;
         private string _warningText = "";
         private bool _hasWarnings;
         private string _statusText = "";
@@ -77,8 +65,15 @@ namespace SmartSteward.UI
             _emptyText = _nothingToDoText;
             ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             ResetAllText = UiText.S("ss_ui_reset_all", "Reset all");
-            LandLabel = UiText.S("ss_ui_footer_label_land", "Land:");
-            SeaLabel = UiText.S("ss_ui_footer_label_sea", "Sea:");
+            Total = new SheetTotalVM(UiText.S("ss_ui_total", "Total"));
+            LandRow = new WeightRowVM(UiText.S("ss_ui_weight_land", "Land"));
+            SeaRow = new WeightRowVM(UiText.S("ss_ui_weight_sea", "Sea"));
+            WeightBefore = UiText.S("ss_ui_weight_before", "before");
+            WeightChange = UiText.S("ss_ui_weight_change", "change");
+            WeightAfter = UiText.S("ss_ui_weight_after", "after");
+            WeightCapacity = UiText.S("ss_ui_weight_capacity", "capacity");
+            WeightLeft = UiText.S("ss_ui_weight_left", "left");
+            WeightSlowdown = UiText.S("ss_ui_weight_slowdown", "slowdown");
         }
 
         /// <summary>The spreadsheet's words (Core builds the texts, the words come from TextObjects).</summary>
@@ -123,23 +118,17 @@ namespace SmartSteward.UI
             ShowSea = sheet.ShowSea;
             SyncSections(view);
 
-            var t = plan.Totals;
-            string money = UiText.S2("ss_ui_footer_money", "Spent {SPENT}  ·  earned {EARNED}",
-                "SPENT", UiFormat.Money(t.Spent), "EARNED", UiFormat.Money(t.Earned));
-            FooterMoneyText = money;
-            FooterFoodText = t.FoodDaysAfter == null
-                ? UiText.S2("ss_ui_footer_food_nodays", "Food {NOW} » {AFTER}",
-                    "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter))
-                : UiText.S3("ss_ui_footer_food", "Food {NOW} » {AFTER}  (~{DAYS} days)",
-                    "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter), "DAYS", UiFormat.Days(t.FoodDaysAfter));
-            FooterPartyText = UiText.S2("ss_ui_footer_party", "Party {AFTER}/{LIMIT}",
-                "AFTER", UiFormat.Money(t.MembersAfter), "LIMIT", UiFormat.Money(t.PartySizeLimit));
-            FooterPartyColor = t.OverPartyLimit ? UiColors.Warning : UiColors.Text;
-            RefreshCarryLines(t);
-            FooterHerdText = UiText.S2("ss_ui_footer_herd", "Horses {HORSES} / {ROOM} before the herd slows you",
-                "HORSES", UiFormat.Money(t.Herd.Horses), "ROOM", UiFormat.Money(t.Herd.Room));
-            FooterHerdColor = t.Herd.SlowsParty ? UiColors.Warning : UiColors.Text;
+            // The pinned Total line and the footer's weight table (round 4: the spent / earned / influence / food / party / herd
+            // lines are gone from the footer - they live in the header and the sections now).
+            Total.Update(view, sheet.ShowSea);
+            var weights = sheet.Weights;
+            if (weights.Count > 0)
+                LandRow.Update(weights[0]);
+            HasSeaRow = weights.Count > 1;
+            if (weights.Count > 1)
+                SeaRow.Update(weights[1]);
 
+            var t = plan.Totals;
             var floors = plan.Floors; // the floors the flags were computed against
             var warnings = PlanFooter.Warnings(t);
             WarningText = string.Join("   ", warnings.Select(w => UiLabels.Warning(w, floors.All, floors.Animals)));
@@ -169,44 +158,6 @@ namespace SmartSteward.UI
                 fresh.Add(new SheetSectionVM(this, section));
             Sections = fresh;
         }
-
-        private void RefreshCarryLines(PlanTotals t)
-        {
-            var c = t.Carry;
-            if (!c.Known)
-            {
-                FooterLandText = UiText.S1("ss_ui_footer_carry_change_only", "weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
-                FooterLandOverText = "";
-                HasFooterLandOver = false;
-                HasSeaLine = false;
-                return;
-            }
-            FooterLandText = CarryLine(c.WeightNow, t.WeightChange, c.WeightAfter, c.CapacityLandNow, c.CapacityLandAfter);
-            FooterLandOverText = c.OverLand > 0 ? Over(c.OverLand) : "";
-            HasFooterLandOver = c.OverLand > 0;
-            HasSeaLine = c.ShowSea;
-            if (!c.ShowSea)
-                return;
-            FooterSeaText = CarryLine(c.WeightAtSeaNow, c.WeightAtSeaAfter - c.WeightAtSeaNow, c.WeightAtSeaAfter,
-                c.CapacitySeaNow, c.CapacitySeaAfter);
-            FooterSeaOverText = c.OverSea > 0 ? Over(c.OverSea) : "";
-            HasFooterSeaOver = c.OverSea > 0;
-        }
-
-        private static string CarryLine(double now, double change, double after, double capacityNow, double capacityAfter)
-        {
-            string weight = UiFormat.SignedWeight(change) == "0"
-                ? UiText.S1("ss_ui_footer_carry_same", "weight {NOW} kg", "NOW", UiFormat.Kg(now))
-                : UiText.S3("ss_ui_footer_carry", "weight {NOW} {CHANGE} » {AFTER} kg",
-                    "NOW", UiFormat.Kg(now), "CHANGE", UiFormat.SignedWeight(change), "AFTER", UiFormat.Kg(after));
-            string capacity = UiFormat.Kg(capacityNow) == UiFormat.Kg(capacityAfter)
-                ? UiText.S1("ss_ui_footer_cap", "capacity {NOW}", "NOW", UiFormat.Kg(capacityAfter))
-                : UiText.S2("ss_ui_footer_cap_change", "capacity {NOW} » {AFTER}",
-                    "NOW", UiFormat.Kg(capacityNow), "AFTER", UiFormat.Kg(capacityAfter));
-            return weight + "  " + UiFormat.Dot + "  " + capacity;
-        }
-
-        private static string Over(double kg) => UiText.S1("ss_ui_footer_over", "{KG} over", "KG", UiFormat.KgOver(kg));
 
         internal void SetStatus(string text)
         {
@@ -420,98 +371,25 @@ namespace SmartSteward.UI
             set { if (value != _showSea) { _showSea = value; OnPropertyChangedWithValue(value, nameof(ShowSea)); } }
         }
 
-        [DataSourceProperty]
-        public string FooterMoneyText
-        {
-            get => _footerMoneyText;
-            set { if (value != _footerMoneyText) { _footerMoneyText = value; OnPropertyChangedWithValue(value, nameof(FooterMoneyText)); } }
-        }
+        /// <summary>The pinned Total line (mockup choice 3): every row once, in every column.</summary>
+        [DataSourceProperty] public SheetTotalVM Total { get; }
+
+        /// <summary>The footer's weight table (round 4): Land, and Sea with ships.</summary>
+        [DataSourceProperty] public WeightRowVM LandRow { get; }
+        [DataSourceProperty] public WeightRowVM SeaRow { get; }
+        [DataSourceProperty] public string WeightBefore { get; }
+        [DataSourceProperty] public string WeightChange { get; }
+        [DataSourceProperty] public string WeightAfter { get; }
+        [DataSourceProperty] public string WeightCapacity { get; }
+        [DataSourceProperty] public string WeightLeft { get; }
+        [DataSourceProperty] public string WeightSlowdown { get; }
+        [DataSourceProperty] public string TextColor => UiColors.Text;
 
         [DataSourceProperty]
-        public string FooterFoodText
+        public bool HasSeaRow
         {
-            get => _footerFoodText;
-            set { if (value != _footerFoodText) { _footerFoodText = value; OnPropertyChangedWithValue(value, nameof(FooterFoodText)); } }
-        }
-
-        [DataSourceProperty] public string LandLabel { get; }
-        [DataSourceProperty] public string SeaLabel { get; }
-
-        [DataSourceProperty]
-        public string FooterLandText
-        {
-            get => _footerLandText;
-            set { if (value != _footerLandText) { _footerLandText = value; OnPropertyChangedWithValue(value, nameof(FooterLandText)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterLandOverText
-        {
-            get => _footerLandOverText;
-            set { if (value != _footerLandOverText) { _footerLandOverText = value; OnPropertyChangedWithValue(value, nameof(FooterLandOverText)); } }
-        }
-
-        [DataSourceProperty]
-        public bool HasFooterLandOver
-        {
-            get => _hasFooterLandOver;
-            set { if (value != _hasFooterLandOver) { _hasFooterLandOver = value; OnPropertyChangedWithValue(value, nameof(HasFooterLandOver)); } }
-        }
-
-        [DataSourceProperty]
-        public bool HasSeaLine
-        {
-            get => _hasSeaLine;
-            set { if (value != _hasSeaLine) { _hasSeaLine = value; OnPropertyChangedWithValue(value, nameof(HasSeaLine)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterSeaText
-        {
-            get => _footerSeaText;
-            set { if (value != _footerSeaText) { _footerSeaText = value; OnPropertyChangedWithValue(value, nameof(FooterSeaText)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterSeaOverText
-        {
-            get => _footerSeaOverText;
-            set { if (value != _footerSeaOverText) { _footerSeaOverText = value; OnPropertyChangedWithValue(value, nameof(FooterSeaOverText)); } }
-        }
-
-        [DataSourceProperty]
-        public bool HasFooterSeaOver
-        {
-            get => _hasFooterSeaOver;
-            set { if (value != _hasFooterSeaOver) { _hasFooterSeaOver = value; OnPropertyChangedWithValue(value, nameof(HasFooterSeaOver)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterHerdText
-        {
-            get => _footerHerdText;
-            set { if (value != _footerHerdText) { _footerHerdText = value; OnPropertyChangedWithValue(value, nameof(FooterHerdText)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterHerdColor
-        {
-            get => _footerHerdColor;
-            set { if (value != _footerHerdColor) { _footerHerdColor = value; OnPropertyChangedWithValue(value, nameof(FooterHerdColor)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterPartyText
-        {
-            get => _footerPartyText;
-            set { if (value != _footerPartyText) { _footerPartyText = value; OnPropertyChangedWithValue(value, nameof(FooterPartyText)); } }
-        }
-
-        [DataSourceProperty]
-        public string FooterPartyColor
-        {
-            get => _footerPartyColor;
-            set { if (value != _footerPartyColor) { _footerPartyColor = value; OnPropertyChangedWithValue(value, nameof(FooterPartyColor)); } }
+            get => _hasSeaRow;
+            set { if (value != _hasSeaRow) { _hasSeaRow = value; OnPropertyChangedWithValue(value, nameof(HasSeaRow)); } }
         }
 
         [DataSourceProperty]
@@ -1183,6 +1061,212 @@ namespace SmartSteward.UI
         {
             get => _canReset;
             set { if (value != _canReset) { _canReset = value; OnPropertyChangedWithValue(value, nameof(CanReset)); } }
+        }
+    }
+
+    /// <summary>The pinned Total line (mockup choice 3): "Total", the party and prisoners before » after, and every row once in
+    /// every number column — never scrolls.</summary>
+    public sealed class SheetTotalVM : ViewModel
+    {
+        private string _totalText = "";
+        private string _denariText = "";
+        private string _denariColor = UiColors.Muted;
+        private string _influenceText = "";
+        private string _partyText = "";
+        private string _prisonersText = "";
+        private string _landText = "";
+        private string _seaText = "";
+        private bool _showSea;
+
+        internal SheetTotalVM(string title)
+        {
+            TitleText = title;
+        }
+
+        internal void Update(SheetView view, bool showSea)
+        {
+            TotalText = view.Sheet.TotalText;
+            var c = view.Total;
+            DenariText = c.Denari;
+            DenariColor = c.DenariColor;
+            InfluenceText = c.Influence;
+            PartyText = c.Party;
+            PrisonersText = c.Prisoners;
+            LandText = c.Land;
+            SeaText = c.Sea;
+            ShowSea = showSea;
+        }
+
+        [DataSourceProperty] public string TitleText { get; }
+        [DataSourceProperty] public string HeadingColor => UiColors.Heading;
+        [DataSourceProperty] public string MutedColor => UiColors.Muted;
+        [DataSourceProperty] public string InfluenceColor => UiColors.Buy;
+
+        /// <summary><c>party 103 » 104 · prisoners 52 » 0</c>.</summary>
+        [DataSourceProperty]
+        public string TotalText
+        {
+            get => _totalText;
+            set { if (value != _totalText) { _totalText = value; OnPropertyChangedWithValue(value, nameof(TotalText)); } }
+        }
+
+        [DataSourceProperty]
+        public string DenariText
+        {
+            get => _denariText;
+            set { if (value != _denariText) { _denariText = value; OnPropertyChangedWithValue(value, nameof(DenariText)); } }
+        }
+
+        [DataSourceProperty]
+        public string DenariColor
+        {
+            get => _denariColor;
+            set { if (value != _denariColor) { _denariColor = value; OnPropertyChangedWithValue(value, nameof(DenariColor)); } }
+        }
+
+        [DataSourceProperty]
+        public string InfluenceText
+        {
+            get => _influenceText;
+            set { if (value != _influenceText) { _influenceText = value; OnPropertyChangedWithValue(value, nameof(InfluenceText)); } }
+        }
+
+        [DataSourceProperty]
+        public string PartyText
+        {
+            get => _partyText;
+            set { if (value != _partyText) { _partyText = value; OnPropertyChangedWithValue(value, nameof(PartyText)); } }
+        }
+
+        [DataSourceProperty]
+        public string PrisonersText
+        {
+            get => _prisonersText;
+            set { if (value != _prisonersText) { _prisonersText = value; OnPropertyChangedWithValue(value, nameof(PrisonersText)); } }
+        }
+
+        [DataSourceProperty]
+        public string LandText
+        {
+            get => _landText;
+            set { if (value != _landText) { _landText = value; OnPropertyChangedWithValue(value, nameof(LandText)); } }
+        }
+
+        [DataSourceProperty]
+        public string SeaText
+        {
+            get => _seaText;
+            set { if (value != _seaText) { _seaText = value; OnPropertyChangedWithValue(value, nameof(SeaText)); } }
+        }
+
+        [DataSourceProperty]
+        public bool ShowSea
+        {
+            get => _showSea;
+            set { if (value != _showSea) { _showSea = value; OnPropertyChangedWithValue(value, nameof(ShowSea)); } }
+        }
+    }
+
+    /// <summary>
+    /// One row of the footer's weight table (round 4 — Anton 2026.09.28: "in cols again, before, change, after, capacity,
+    /// capacity left, try adding a col slowdown … the vanilla icons that show the speed"): Core's <see cref="WeightTableRow"/>
+    /// as text; "left" red when the load is over, the slowdown red when there is one (the game's Overburdened, RESEARCH §25).
+    /// </summary>
+    public sealed class WeightRowVM : ViewModel
+    {
+        private string _beforeText = "";
+        private string _changeText = "";
+        private string _afterText = "";
+        private string _capacityText = "";
+        private string _leftText = "";
+        private string _leftColor = UiColors.Text;
+        private string _slowdownText = "";
+        private string _slowdownColor = UiColors.Text;
+
+        internal WeightRowVM(string label)
+        {
+            LabelText = label;
+            SlowdownHint = new HintVM();
+        }
+
+        internal void Update(WeightTableRow row)
+        {
+            BeforeText = row.BeforeText;
+            ChangeText = row.ChangeText;
+            AfterText = row.AfterText;
+            CapacityText = row.CapacityText;
+            LeftText = row.LeftText;
+            LeftColor = UiColors.ForLimit(row.Over);
+            SlowdownText = row.SlowdownText;
+            bool slowed = row.Known && row.SpeedLoss > 0;
+            SlowdownColor = UiColors.ForLimit(slowed);
+            SlowdownHint.Text = !row.Known ? ""
+                : slowed
+                    ? UiText.S2("ss_ui_weight_slow_hint",
+                        "{SLOW}: the game's Overburdened - the load after the deal is {OVER} kg over the capacity.",
+                        "SLOW", row.SlowdownText, "OVER", UiFormat.Kg(-row.Left))
+                    : UiText.S("ss_ui_weight_fast_hint", "Within the capacity: the load after the deal does not slow the party.");
+        }
+
+        [DataSourceProperty] public string LabelText { get; }
+        [DataSourceProperty] public HintVM SlowdownHint { get; }
+        [DataSourceProperty] public string MutedColor => UiColors.Muted;
+        [DataSourceProperty] public string TextColor => UiColors.Text;
+
+        [DataSourceProperty]
+        public string BeforeText
+        {
+            get => _beforeText;
+            set { if (value != _beforeText) { _beforeText = value; OnPropertyChangedWithValue(value, nameof(BeforeText)); } }
+        }
+
+        [DataSourceProperty]
+        public string ChangeText
+        {
+            get => _changeText;
+            set { if (value != _changeText) { _changeText = value; OnPropertyChangedWithValue(value, nameof(ChangeText)); } }
+        }
+
+        [DataSourceProperty]
+        public string AfterText
+        {
+            get => _afterText;
+            set { if (value != _afterText) { _afterText = value; OnPropertyChangedWithValue(value, nameof(AfterText)); } }
+        }
+
+        [DataSourceProperty]
+        public string CapacityText
+        {
+            get => _capacityText;
+            set { if (value != _capacityText) { _capacityText = value; OnPropertyChangedWithValue(value, nameof(CapacityText)); } }
+        }
+
+        [DataSourceProperty]
+        public string LeftText
+        {
+            get => _leftText;
+            set { if (value != _leftText) { _leftText = value; OnPropertyChangedWithValue(value, nameof(LeftText)); } }
+        }
+
+        [DataSourceProperty]
+        public string LeftColor
+        {
+            get => _leftColor;
+            set { if (value != _leftColor) { _leftColor = value; OnPropertyChangedWithValue(value, nameof(LeftColor)); } }
+        }
+
+        [DataSourceProperty]
+        public string SlowdownText
+        {
+            get => _slowdownText;
+            set { if (value != _slowdownText) { _slowdownText = value; OnPropertyChangedWithValue(value, nameof(SlowdownText)); } }
+        }
+
+        [DataSourceProperty]
+        public string SlowdownColor
+        {
+            get => _slowdownColor;
+            set { if (value != _slowdownColor) { _slowdownColor = value; OnPropertyChangedWithValue(value, nameof(SlowdownColor)); } }
         }
     }
 }
