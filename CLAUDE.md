@@ -190,7 +190,10 @@ tools/WORKSHOP-UPLOAD.md      (step 10) release day + the update loop + the uplo
                               Private) / WorkshopUpdate.xml (item id filled after the create); nothing uploads by itself
 tools/STEAM-DESCRIPTION.bbcode  the Workshop page (Steam BBCode, cap 8000 UTF-8 bytes - measure after edits)
 tools/preview_thumbnail.html  the Workshop preview; tools/render-preview.ps1 → Screenshots/preview_thumbnail.jpg (< 1 MB)
-docs/                         DESIGN.md, RESEARCH.md, PLAYTEST.md (Anton's checklists per step)
+tools/render-mockup.ps1       (step 19) docs/mockups/suggestion_v2.html → its two PNGs (the everyday view + everything open)
+docs/                         DESIGN.md, RESEARCH.md, PLAYTEST.md (Anton's checklists per step); feedback/ (playtest notes
+                              verbatim + screenshots); mockups/ (step 19: the round-4 Suggestion tab as one spreadsheet —
+                              README = the choices for Anton; gen_suggestion_v2.py writes the HTML from one asserted table)
 ```
 
 Log: `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log`; the
