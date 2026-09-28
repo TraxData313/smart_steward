@@ -108,6 +108,17 @@ namespace SmartSteward.Core.Snapshot
         /// at-sea state for that perk), else 0.</summary>
         public double SeaPerPrisoner { get; set; }
 
+        /// <summary>The overburden perks on land, their factors summed (RESEARCH §25): Athletics.Energetic (party leader) and
+        /// Scouting.Unburdened (scout), −0.2 each — so −0.4 at most; 0 without them.</summary>
+        public double OverburdenPerksLand { get; set; }
+
+        /// <summary>The overburden perk at sea (War Sails' Boatswain.VeteransWisdom, first mate: −0.2); 0 without it.</summary>
+        public double OverburdenPerksSea { get; set; }
+
+        /// <summary>The fleet's base speed at sea — War Sails' <c>(average ship speed + slowest ship speed) / 2</c> over every
+        /// ship of the party and its attached parties (<c>Ship.GetCampaignSpeed</c>); 0 = not read (no ships).</summary>
+        public double FleetBaseSpeed { get; set; }
+
         /// <summary>The model was read (a capacity above 0) — else the footer shows the weight change only.</summary>
         public bool Known => CapacityLandNow > 0;
     }
@@ -166,6 +177,12 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary><c>ItemRoster.NumberOfLivestockAnimals</c> summed.</summary>
         public int Livestock { get; set; }
+
+        /// <summary><c>MobileParty.TotalWeightCarried</c> summed — the speed model pools the army's loads (RESEARCH §25).</summary>
+        public double Weight { get; set; }
+
+        /// <summary><c>MobileParty.InventoryCapacity</c> summed — pooled on land (at sea only the leader's counts).</summary>
+        public double Capacity { get; set; }
     }
 
     public enum ItemKind

@@ -159,6 +159,13 @@ namespace SmartSteward.Core.Planning
                 sb.Append(')');
                 if (c.OverLand > 0) sb.Append(" OVER on land by ").Append(Kg(Math.Ceiling(c.OverLand)));
                 if (c.OverSea > 0) sb.Append(" OVER at sea by ").Append(Kg(Math.Ceiling(c.OverSea)));
+                // Step 20 (RESEARCH section 25): the overburden's speed, share of the base and the tooltip's points.
+                if (c.LandSpeedLoss > 0)
+                    sb.Append(" (land speed -").Append((c.LandSlowdown * 100).ToString("0.#", Inv)).Append("%, -")
+                        .Append(c.LandSpeedLoss.ToString("0.00", Inv)).Append(')');
+                if (c.SeaSpeedLoss > 0)
+                    sb.Append(" (sea speed ").Append(c.SeaSlowdownKnown ? "-" + (c.SeaSlowdown * 100).ToString("0.#", Inv) + "%, " : "")
+                        .Append('-').Append(c.SeaSpeedLoss.ToString("0.00", Inv)).Append(')');
             }
             if (t.InfluenceGained > 0)
                 sb.Append(" | influence +").Append(t.InfluenceGained.ToString("0.#", Inv));

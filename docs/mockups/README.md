@@ -1,5 +1,22 @@
 # Suggestion tab v2 — the round-4 mockup (PLAN step 19)
 
+## APPROVED by Anton 2026.09.28
+
+Anton approved the mockup on 2026.09.28 ("beautiful"): all ten choices below stand, with **two changes** (relayed by the manager,
+recorded here and in DESIGN §1.1; the PNGs are NOT re-rendered — step 21 builds from this file and DESIGN):
+
+1. **"Souls" → "Party", plus a new "Prisoners" column.** Party counts party MEMBERS only — prisoners do not change it; the
+   prisoner-count change has its own column, per row, section and Total. Ransoming 50 = Party 0 / Prisoners −50; recruiting 4 =
+   Party +4 / Prisoners 0. The Total line reads `party 103 » 104 · prisoners 52 » 0`. The food eaters are unchanged (prisoners
+   still eat half) — only the displayed metrics change. (Core: `PlanMetrics.Party` / `.Prisoners`, `SuggestionSheet.TotalText`.)
+2. **The Market column moves to the far LEFT** ("in the game the market is always on the left"): Market · Item · Mine · Change ·
+   Result · Denari · Party · Prisoners · Land kg · Sea kg. A window layout matter for step 21.
+
+Anton also said the final may differ a bit and more polish rounds will follow — the Core model (step 20) is built to be easy
+to adjust.
+
+---
+
 Anton: look at `suggestion_v2_folded.png` (the everyday view, the real window size) and `suggestion_v2_expanded.png`
 (everything open, the table unrolled), or open `suggestion_v2.html` in a browser and click the section lines. Then answer
 the list below in one reply — "all fine", or the numbers you want changed.
@@ -14,8 +31,9 @@ the list below in one reply — "all fine", or the numbers you want changed.
    the lines that always stay (the 4 troop lines, Lords, Others). Total + the weight table are pinned and never scroll.
 4. **Influence** = small green text left of the denari number (header, Prisoners, Others, dungeon rows, Total), so the
    numbers stay aligned.
-5. **Souls** = mouths (men + prisoners); lines show the change, Total says "souls 155 » 104". Souls and kg are plain white —
-   red only past a limit (104/101, the footer's left / slowdown).
+5. ~~**Souls** = mouths (men + prisoners); lines show the change, Total says "souls 155 » 104".~~ **Changed at the approval:
+   Party (members only) + Prisoners** — see above. Party, Prisoners and kg are plain white — red only past a limit (104/101, the
+   footer's left / slowdown).
 6. **Colours**: denari and influence green in, red out; Change green +, red –; zeros left blank in the number columns.
 7. **Keep | Ransom | Donate** = three small buttons in the Change column, the chosen one lit gold (the game's plain button,
    its Selected look). Donate greys out where the game forbids it.

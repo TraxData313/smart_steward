@@ -50,6 +50,54 @@ One Gauntlet window, opened from the settlement menu (§6) or automatically on a
 
 ### 1.1 Suggestion tab — the table
 
+**THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
+standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,
+`Planning\Overburden` —, step 21 builds the window on it; where this block and the older text below disagree, this block wins —
+the older text describes the window as built until step 21). Anton: *"why dont you add new cols Land Weight and Sea Weight,
+Denari and Souls, and have one most lower line type Total that aggregates the totals … Think about all our data we have and for a
+way to present it and expand it nicely, easyly trackable, this way I can see all metrics and expand to see where they come from"*.
+- **Columns**, left to right: **Market** · Item · Mine · Change `[-] n [+] [⟲]` · Result · **Denari** · **Party** · **Prisoners** ·
+  **Land kg** · **Sea kg**. **[Anton 2026.09.28, at the approval]**: the Market column sits at the far LEFT ("in the game the
+  market is always on the left"); "Souls" became **Party** — party MEMBERS only, prisoners do not change it — plus a
+  **Prisoners** column of its own (ransoming 50 = Party 0 / Prisoners −50; recruiting 4 = Party +4 / Prisoners 0). Every number
+  column is the CHANGE the deal makes (`PlanMetrics`: Denari net, Influence, Party, Prisoners, Land kg, Sea kg — at sea the
+  animals and every mounted troop's horse weigh, RESEARCH §19); zeros are blank (choice 6). The unit price is small grey text
+  after the name ("510 each"); the Denari cell's tooltip has the sum and the limit (choice 2). Influence is small green text left
+  of the denari number (choice 4). The food eaters are unchanged (prisoners still eat half) — the columns only show.
+- **Sections**, in order (`SheetGroup`): **Troops · Food · Horses · Prisoners · Other**, then the pinned **Total** line. A section's
+  TITLE LINE is its subtotal (choice 3): name, overview, and the sum of its rows in every column; folded = the title line plus the
+  lines that always stay:
+  - **Troops** `104/101` (members after the deal / party limit, red when over; small note "men after the deal / party limit") —
+    lines: each tavern wanderer, the mercenaries, **Recruits** (`18 on offer · [+] takes the best tier first`, or `recruiting 3 T2
+    Imperial Vigla Recruit`; Mine "–", Market = on offer; ▸ its rows highest tier first) and **Your troops** (`dropping 2 T0 Empire
+    Peasant, 1 T1 Imperial Recruit` or `[–] drops the lowest tier first`; ▸ its rows lowest tier first) — §2.8.
+  - **Food** `7/8 kinds · avg 29 ± 19 per kind · min 4 Date Fruit · 188 » 200 (+12) · ~32 » 42 days` — kinds held after / kinds
+    possible here (held + the market's), the mean ± POPULATION std over the kinds held after (one decimal below 10), the kind with
+    the fewest after, units now » after (change), days (`~`: the fonts have no ≈); a waiting job adds `starts at 2,000 denari`.
+    No ± buttons on it (Anton); details = the food rows.
+  - **Horses** `111 / 196 before the herd slows you · 92 on foot, 101 horses to keep` (red when the herd slows the party) + the
+    waiting horse jobs (`war horses start at 20,000 denari`); details = the role rows (their ▸ per type).
+  - **Prisoners** `52/60 · 2 lords · avg T2.0 ± 1.1 · T1–T5` (held now / the party's prisoner limit; the tiers of the non-lords,
+    weighted by men) — lines **Lords** and **Others**, each with the three-button toggle Keep | Ransom | Donate that IS its
+    setting (`LordPrisonerAction` / `PrisonerAction`, choice 7 — Donate greys where the game forbids it: `DonateAllowedHere`) and
+    its result (`2 lords · 2 ransomed`, `10 to the dungeon (full), 40 ransomed`, `kept`); details = the prisoner rows, lowest tier
+    first, lords last, names open the Encyclopedia.
+  - **Other** `49 sold: 36 pieces, 13 goods · cheapest first` (the SellLootOrder in words) — details: Armour, Melee weapons, Ranged,
+    Shields, **Other goods** (▸ per good).
+  - **Total** — the sum of every row in every column, and `party 103 » 104 · prisoners 52 » 0`.
+- **Header**: `Denari 69,358 » 89,189 (+19,831)` + small `+11.2 influence` (`SuggestionSheet.DenariText` / `InfluenceText`).
+- **Footer = only the weight table** (`SuggestionSheet.Weights`): rows **Land** / **Sea** (Sea only with ships), columns
+  before · change · after · capacity (before » after) · left · **slowdown** — the share of the party's speed the load after the
+  deal takes, the game's own "Overburdened" rule (RESEARCH §25: −0.4 land / −1.0 sea × over / capacity speed points added to the
+  base speed; `none` when within capacity; at sea without the fleet's speed the points), with the vanilla party-speed icon
+  (choice 10). The spent / earned / influence / food / party / horses / herd lines are GONE from the footer (they live in the
+  header and the sections). Warnings and the last result sit to the table's right.
+- **Colours by meaning** (choice 6): denari and influence green in, red out; Change green +, red –; Party / Prisoners / kg plain,
+  red only past a limit (the party limit, the footer's left / slowdown). (Round 4 bug: a gain shown red.)
+- The `Click ±1 · Shift ±5 · Ctrl all · names in gold open the Encyclopedia` hint moves to the top of the Instructions tab.
+  **"denari"** everywhere in the GUI, never "gold".
+- **Fit** (choice 10): the window stays 1580 × 960, rows 32 px; Total + the weight table pinned, the table scrolls.
+
 Built for glancing, not reading: fixed columns, aligned numbers, colour for direction (buy =
 green-ish, sell = red-ish, untouched = grey). One row per item (or prisoner troop) the steward
 touches, plus rows for ticked item types the market has but the plan left at 0 (so the player
@@ -93,7 +141,8 @@ line … the state is REMEMBERED per section across windows, towns and game rest
   - Prisoners — `12 ransomed, 4 to the dungeon +980 +3.2 influence` / `nobody ransomed`
   The same shape as the autonomous steward's report (moves, then the gold); the words are TextObjects (`ss_ui_sum_*`).
 - **Remembered per section** until the player unfolds it — across windows, towns and game restarts — in
-  `Configs\SmartSteward\window_state.json` (§8), written on every fold; not in MCM, not in the Instructions tab, never in
+  `Configs\SmartSteward\window_state.json` (§8; the Other section's name there was `ArmourAndWeapons` until round 4 — still
+  read), written on every fold; not in MCM, not in the Instructions tab, never in
   the save. No file, or one that cannot be read → every section unfolded (the default).
 - A folded section's rows are not refreshed while folded (each row's live buttons cost a trial walk — a big plan clicks
   faster with sections folded); unfolding refreshes them.
@@ -130,7 +179,7 @@ row: **Mine** = sellable pieces in the group, with the locked ones shown apart (
 locked)`); **Change** = `−N` with `[-] [+]` (click ±1, shift ±5, ctrl all); **Price** = what those
 N pieces fetch; the **weight they free** is shown on the row; Market = `—`; Item = the group name.
 
-**Header line, at the very top of the tab** (Anton, 2026.09.27): the **total money change** if
+**Header line, at the very top of the tab** (Anton, 2026.09.27 — round 4: `Denari …` and the influence, above): the **total money change** if
 every queued action is confirmed — e.g. `Gold 12,400 → 10,930  (−1,470)` — green when the deal
 earns, red when it costs; updates live with every click.
 
@@ -236,7 +285,7 @@ Buttons on Change:
   - Typed numbers (price bases, multipliers, settings) are saved on every key that leaves a valid number; anything
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
-Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
+Footer (until step 21 — round 4 leaves only the weight table, above): gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
 the weight lines and the herd line · buttons **Do it** and **Close** (Escape = Close; the button read "Not now" until
 **[Anton 2026.09.28, playtest round 3]**: "it is just Close").
 **The weight on two lines** **[Anton 2026.09.28 — PLAN step 18: "the weight line splits in TWO … (pack horses raise land
@@ -1091,7 +1140,8 @@ float slider and the file agree on the same number). A value outside its range i
 - **The window's remembered state** **[decided: Claude, 2026.09.28 — PLAN step 18]**: which Suggestion sections are folded
   (§1.1) lives in its OWN small file beside the settings, `Configs\SmartSteward\window_state.json` (Core `WindowState`,
   Module `UI\WindowStateHost`) — `// comments` explaining it, then `"CollapsedSections": ["Food", "Mounts"]` (names: Tavern,
-  Troops, Food, Mounts, ArmourAndWeapons, Prisoners); written on every fold or unfold (beside and swapped in, like the
+  Troops, Food, Mounts, Other, Prisoners — `Other` was `ArmourAndWeapons` until round 4, the old name still reads; step 21
+  may key the spreadsheet's folds its own way); written on every fold or unfold (beside and swapped in, like the
   settings), read at the first window and again whenever it changed on disk. Why not a key in settings.json: a fold is not
   a setting — settings.json is generated from the §7 registry, a change there raises the service's `Changed` and re-plans
   the open window, shows in MCM and the Instructions tab, and an unknown key is a logged problem with a `.bak`; a fold must

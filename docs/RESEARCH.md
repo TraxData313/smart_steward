@@ -1174,7 +1174,44 @@ For "T1 Vlandian Recruit" and the troops section's order (DESIGN §2.8). Read in
   icon_tier_{n}`, nothing for tier ≤ 0 or > 7); the steward writes `T{n}` — the fonts have the letters, and a text needs no
   sprite category. A T0 troop (looters, some bandits) reads `T0`.
 - The snapshot already carried it since step 16 (`TroopStack.Tier`, read in `SnapshotBuilder.ReadTroops`); step 18 puts it on
-  the row (`TroopRowInfo.Tier`) and in the log's offer list.
+  the row (`TroopRowInfo.Tier`) and in the log's offer list. **[step 20]** Prisoners too (`PrisonerStack.Tier` = the prison
+  roster's `CharacterObject.Tier`; a lord is 0) — the prisoner rows' order and the Prisoners overview (DESIGN §2.5).
+
+## 25. Overburdened — how much speed the load takes (verified in step 20, 2026.09.28)
+
+For the footer's weight table (Anton, round 4: "try adding a col slowdown, that shows the party speed slowdown from
+overburdened over land or sea"). Read in `game-decompiled-1.4.8`: `CS\...GameComponents\DefaultPartySpeedCalculatingModel.cs`
+(`CalculateLandBaseSpeed`, `GetOverburdenedEffect`, `GetCargoEffect`, `CalculateBaseSpeedForParty`), War Sails'
+`NavalDLC\NavalDLC.GameComponents\NavalDLCPartySpeedCalculationModel.cs` (`CalculateBaseSpeed`, `CalculateNavalBaseSpeed`,
+`GetOverburdenedEffect`), `CS\ExplainedNumber.cs`, `CS\Helpers\PerkHelper.cs`, `CS\...CharacterDevelopment\DefaultPerks.cs`,
+`NavalDLC\...\NavalPerks.cs`, `CS\...Naval\Ship.cs`.
+
+- **Land** (`CalculateLandBaseSpeed`): base `4 × (200 / (200 + men))^0.4` (`BaseSpeed` 4, `CalculateBaseSpeedForParty`; men =
+  `MemberRoster.TotalManCount` + every attached party's); capacity `num3 = (int)InventoryCapacityModel.CalculateInventoryCapacity(
+  party, IsCurrentlyAtSea)` + each attached party's `InventoryCapacity`; load = `TotalWeightCarried` + each attached party's. When
+  load > capacity: `GetOverburdenedEffect(party, load − capacity, capacity)` = `ExplainedNumber(−0.4 × over / capacity)` with, on
+  land only, `AddPerkBonusForParty(Athletics.Energetic, primary)` (party leader, −0.2, AddFactor) and `Scouting.Unburdened`
+  (scout, −0.2, AddFactor) — then `result.AddFromExplainedNumber(…)`.
+- **`AddFromExplainedNumber` ADDS to the base** (`BaseNumber += other.ResultNumber`), it is not a factor. The result is
+  `BaseNumber × (1 + Σ factors)`, so the overburden takes `0.4 × over / capacity × (1 + perks)` speed points off the base BEFORE
+  every factor (cavalry, footmen mounted, herd, morale, terrain…) multiplies it: the share of speed lost is exactly
+  `penalty / base`, whatever the factors — unless the game's `LimitMin(1)` bites. **No cap**: twice the capacity = −0.4, a
+  104-man party (base 3.38) about 12% slower.
+- **Cargo** (not the slowdown shown): `GetCargoEffect = −0.02 × min(load, capacity) / capacity` — a FACTOR of at most −2% at a
+  full load, whatever the overburden; the game's tooltip line "Cargo". The table's slowdown is the "Overburdened" line only.
+- **Sea** (War Sails, `CalculateBaseSpeed` → `CalculateNavalBaseSpeed` while `IsCurrentlyAtSea`): base = `(Σ ship speed / ships
+  + slowest ship speed) × 0.5` over the party's and attached parties' ships (`Ship.GetCampaignSpeed() = ShipHull.BaseSpeed × (1
+  + CampaignSpeedBonusFactor)` — the base game's `Ship`); load = `TotalWeightCarried` (at sea) + the attached parties'; capacity =
+  the LEADER's alone (`CalculateInventoryCapacity(party, IsCurrentlyAtSea)` — attached capacities are not added at sea); over →
+  `ExplainedNumber(−1 × over / capacity)` with `Boatswain.VeteransWisdom` (secondary, first mate, −0.2 AddFactor), added the same
+  way. No herd, no cargo factor at sea.
+- **How the steward uses it** (Core `Planning\Overburden` + `CarryTotals.ComputeSlowdown`, Module `SnapshotBuilder.ReadCarry` /
+  `ReadFleet` / `ReadAttached`): the load and capacity AFTER the deal (the footer's own, §19), men after the deal (+ attached);
+  `CarryInfo.OverburdenPerksLand` = the two land perks as the model reads them (`MobileParty.HasPerk`), `OverburdenPerksSea` =
+  Veteran's Wisdom looked up by id (`MBObjectManager.GetObject<PerkObject>("VeteransWisdom")` — without War Sails simply not
+  found), `FleetBaseSpeed` from the ships; `AttachedParties.Weight` / `.Capacity` pooled (land) as the game does. Shown as the
+  share lost (`–12%`), or — at sea without the fleet's speed — the points (`–0.40 speed`, the tooltip's number).
+- The capacity is cast to int by the model (`(int)…ResultNumber`), so the steward floors it too (`Overburden.Penalty`).
 
 ---
 
@@ -1274,6 +1311,8 @@ For "T1 Vlandian Recruit" and the troops section's order (DESIGN §2.8). Read in
     the plain `Item.Value`, and the price book's average is the plain item's — scale a modified stack's min sell (§22).
 67. **The herd may equal the men — only MORE slows** (`herdSize − men <= 0` → no factor); prisoners are not men to it, an
     army's attached parties pool in, and at sea (War Sails) there is no herd at all (§23).
+68. **Overburdened is ADDED to the base speed, not a factor** (`AddFromExplainedNumber` → `BaseNumber += …`): −0.4 (land) /
+    −1.0 (sea) × over / capacity speed points, uncapped, before the factors multiply — the share lost is penalty / base (§25).
 
 ---
 

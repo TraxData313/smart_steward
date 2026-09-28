@@ -345,6 +345,9 @@ namespace SmartSteward.Adapter
                     attached.Mounts += party.ItemRoster.NumberOfMounts;
                     attached.PackAnimals += party.ItemRoster.NumberOfPackAnimals;
                     attached.Livestock += party.ItemRoster.NumberOfLivestockAnimals;
+                    // the speed model pools the army's loads and (on land) capacities for the overburden (RESEARCH section 25)
+                    attached.Weight += party.TotalWeightCarried;
+                    attached.Capacity += party.InventoryCapacity;
                 }
             }
             catch (Exception ex)
@@ -452,16 +455,57 @@ namespace SmartSteward.Adapter
                 bool forcedLabor = !main.IsCurrentlyAtSea && main.HasPerk(DefaultPerks.Steward.ForcedLabor);
                 GameRules.SetCarryRates(carry, troops, pack, caravan, forcedLabor);
                 carry.HasShips = ships;
+                // The overburden perks, read the way the speed models read them (RESEARCH section 25): land -
+                // DefaultPartySpeedCalculatingModel.GetOverburdenedEffect's two primary bonuses.
+                carry.OverburdenPerksLand =
+                    (main.HasPerk(DefaultPerks.Athletics.Energetic) ? DefaultPerks.Athletics.Energetic.PrimaryBonus : 0f)
+                    + (main.HasPerk(DefaultPerks.Scouting.Unburdened) ? DefaultPerks.Scouting.Unburdened.PrimaryBonus : 0f);
                 if (ships)
                 {
                     carry.WeightAtSeaNow = model.CalculateTotalWeightCarried(main, true).ResultNumber;
                     carry.CapacitySeaNow = model.CalculateInventoryCapacity(main, true).ResultNumber;
+                    ReadFleet(carry, main);
                 }
             }
             catch (Exception ex)
             {
                 ModLog.Error("snapshot", "reading the carrying capacity", ex);
                 snap.Carry = new CarryInfo();
+            }
+        }
+
+        /// <summary>
+        /// The sea side of the overburden (RESEARCH section 25): War Sails' <c>CalculateNavalBaseSpeed</c> base =
+        /// (average + slowest <c>Ship.GetCampaignSpeed()</c>) / 2 over the party's and its attached parties' ships (the base game's
+        /// <c>Ship</c>, no DLC type named), and its perk Boatswain.VeteransWisdom — looked up by id, so without War Sails it is
+        /// simply not found.
+        /// </summary>
+        private static void ReadFleet(CarryInfo carry, MobileParty main)
+        {
+            try
+            {
+                double sum = 0, slowest = double.MaxValue;
+                int count = 0;
+                var parties = new List<MobileParty> { main };
+                if (main.AttachedParties != null)
+                    parties.AddRange(main.AttachedParties.Where(p => p != null && p != main));
+                foreach (var party in parties)
+                    foreach (var ship in party.Ships)
+                    {
+                        double speed = ship.GetCampaignSpeed();
+                        sum += speed;
+                        slowest = Math.Min(slowest, speed);
+                        count++;
+                    }
+                carry.FleetBaseSpeed = count > 0 ? (sum / count + slowest) * 0.5 : 0;
+                var wisdom = TaleWorlds.ObjectSystem.MBObjectManager.Instance?.GetObject<PerkObject>("VeteransWisdom");
+                carry.OverburdenPerksSea = wisdom != null && main.HasPerk(wisdom, true) ? wisdom.SecondaryBonus : 0;
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading the fleet's speed", ex);
+                carry.FleetBaseSpeed = 0;
+                carry.OverburdenPerksSea = 0;
             }
         }
 

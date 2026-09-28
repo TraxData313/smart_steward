@@ -23,6 +23,9 @@ namespace SmartSteward.Core.Presentation
         public const string Times = "×";
         public const string Dot = "·";
 
+        /// <summary>Plus-minus for a spread (<c>29 ± 19</c>) — the game's fonts carry it (step 19's mockup).</summary>
+        public const string PlusMinus = "±";
+
         /// <summary>"Becomes": <c>12,400 » 10,930</c> (the fonts have no →).</summary>
         public const string Arrow = "»";
 

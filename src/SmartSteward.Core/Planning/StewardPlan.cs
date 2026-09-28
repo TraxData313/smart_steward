@@ -107,6 +107,12 @@ namespace SmartSteward.Core.Planning
 
         public int PrisonersAfter { get; internal set; }
 
+        /// <summary>Party members now (the Total line's "party 104 » 105", step 20).</summary>
+        public int MembersNow { get; internal set; }
+
+        /// <summary>Prisoners now (the Total line's "prisoners 52 » 0").</summary>
+        public int PrisonersNow { get; internal set; }
+
         /// <summary>Something is bought or hired and the purse ends below MinGoldAfterDeal — the plan's
         /// <see cref="MoneyFloors.All"/> (shown red).</summary>
         public bool BelowMinGoldAfterDeal { get; internal set; }
@@ -191,6 +197,9 @@ namespace SmartSteward.Core.Planning
             totals.PrisonersAfter = prisonersNow - prisonersMoved;
             totals.Carry = CarryTotals.Compute(rows, snapshot.Carry, totals.WeightChange, prisonersNow, totals.PrisonersAfter);
             totals.Herd = HerdTotals.Compute(rows, snapshot);
+            totals.Carry.ComputeSlowdown(totals.Herd.Men, snapshot.Carry, snapshot.Party.Attached);
+            totals.MembersNow = Math.Max(0, snapshot.Party.Members);
+            totals.PrisonersNow = prisonersNow;
             totals.BelowMinGoldAfterDeal = bought && totals.GoldAfter < floors.All;
             totals.BelowMinGoldForHorses = animalBought && totals.GoldAfter < floors.Animals;
 
@@ -245,6 +254,16 @@ namespace SmartSteward.Core.Planning
         /// <summary>What the steward derived when planning (targets, needs) — for the party after the deal: a party-changing
         /// edit re-plans and replaces them (step 15).</summary>
         public PlanFacts Facts { get; private set; }
+
+        /// <summary>The snapshot the plan was made from (the spreadsheet's overviews read the party and the market) — null for
+        /// a plan made without inputs.</summary>
+        internal Snapshot.StewardSnapshot? Snapshot => _inputs?.Snapshot;
+
+        /// <summary>The settings the plan was made with.</summary>
+        internal StewardSettings? Settings => _inputs?.Settings;
+
+        /// <summary>The dungeon's room here in men (donations).</summary>
+        internal int DungeonRoom => _inputs?.DungeonRoom ?? 0;
 
         /// <summary>Who the plan was made for (the window, or the autonomous steward).</summary>
         public PlanMode Mode => _inputs?.Mode ?? PlanMode.Window;
