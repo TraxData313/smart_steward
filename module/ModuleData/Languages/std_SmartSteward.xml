@@ -53,7 +53,6 @@
     <string id="ss_hint_AutoPopupOnVillageEnter" text="Open the Party Steward window when your party enters a village. Default: on." />
     <string id="ss_hint_AutonomousMinGold" text="While the full-autonomous steward is on, it never takes your purse below this - both floors above rise to it when they are lower. Raise the price limits to let it spend more freely, never this. Default: 100,000. Range: 0 to 10,000,000." />
     <string id="ss_hint_AutonomousSteward" text="For when you are rich and done with micromanaging: on arriving at a town or village the steward carries out its plan at once - no window, no questions, no warning - and sums it up in the message log. It never hires in the tavern and never takes your purse below Keep while autonomous. The Party Steward menu entry stays, to look or adjust. When off, the steward only proposes and you click. Default: off." />
-    <string id="ss_hint_DonatePrisonersWhenPossible" text="In a town of your kingdom that is not your clan's, send prisoners to its dungeon for influence instead of gold. Those that do not fit are ransomed. Default: off." />
     <string id="ss_hint_FoodBuyPriceMultiplier" text="Max buy price of a food = its base price (Prices tab) times this. 2.0 pays up to twice the average - grain at 10 is bought up to 20. Food is cheap and keeps the party alive, so this is generous. Default: 2.0. Range: 0.1 to 10.0." />
     <string id="ss_hint_FoodCountPrisoners" text="Count your prisoners when working out the food target - half a man each, as the game feeds them. Default: on." />
     <string id="ss_hint_FoodDays" text="How many days of food the steward keeps for your party as it will be after the deal - at the game's own rate, perks included (a man eats one food in about 20 days, a prisoner half as much), so 40 days is about 2 food per man. The Instructions tab shows what your days mean per man right now. Default: 40. Range: 1 to 365." />
@@ -65,6 +64,7 @@
     <string id="ss_hint_HorseBuyPriceMultiplier" text="Max buy price of a horse, mule or camel = its base price (Prices tab) times this. 1.2 pays up to 20% over the average. Richer now? Raise it. Default: 1.2. Range: 0.1 to 10.0." />
     <string id="ss_hint_HorseSellPriceMultiplier" text="Min sell price of a horse, mule or camel = its base price (Prices tab) times this. 0.8 sells at 80% of the average sell price or better; 0 sells at any price. Default: 0.8. Range: 0.0 to 10.0." />
     <string id="ss_hint_LocksProtectFoodAndHorses" text="Off: the steward manages food and horses even when you locked them in the inventory - your locks keep guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons. Default: off." />
+    <string id="ss_hint_LordPrisonerAction" text="What the steward does with captured lords in a town: keep them, ransom them for denari (a ransomed lord goes free), or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence. A lord to donate is kept where the game does not allow it or the dungeon is full. Default: Keep." />
     <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denari. Default: 1,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_ModEnabled" text="Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, nothing done on its own. Default: on." />
@@ -77,8 +77,7 @@
     <string id="ss_hint_PackAnimalsMinDenari" text="The steward starts managing pack animals once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
-    <string id="ss_hint_RansomHeroPrisoners" text="Also ransom (or donate) captured lords. A ransomed lord goes free. Default: off." />
-    <string id="ss_hint_RansomPrisoners" text="Offer your prisoners to the town's ransom broker. Default: on." />
+    <string id="ss_hint_PrisonerAction" text="What the steward does with every other prisoner in a town: keep them, ransom them for denari, or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence - the most valuable first; those that do not fit, or all of them where the game does not allow it, are ransomed. Default: Ransom for denari." />
     <string id="ss_hint_ReplaceLameHorses" text="Sell the party's lame and old horses and pack animals and buy healthy ones in their place. When off they are kept - a lame horse still carries a footman. The steward never buys one either way. Default: on." />
     <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
     <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields). Default: off." />
@@ -107,6 +106,12 @@
     <string id="ss_menu" text="Party Steward" />
     <string id="ss_opt_FoodStrategy_Balanced" text="Balanced (variety first)" />
     <string id="ss_opt_FoodStrategy_Cheapest" text="Cheapest" />
+    <string id="ss_opt_LordPrisonerAction_Donate" text="Donate for influence" />
+    <string id="ss_opt_LordPrisonerAction_Keep" text="Keep" />
+    <string id="ss_opt_LordPrisonerAction_Ransom" text="Ransom for denari" />
+    <string id="ss_opt_PrisonerAction_Donate" text="Donate for influence" />
+    <string id="ss_opt_PrisonerAction_Keep" text="Keep" />
+    <string id="ss_opt_PrisonerAction_Ransom" text="Ransom for denari" />
     <string id="ss_opt_SellLootOrder_Cheapest" text="Cheapest first" />
     <string id="ss_opt_SellLootOrder_LowestPricePerKg" text="Lowest price per kg" />
     <string id="ss_opt_SellLootOrder_MostExpensive" text="Most expensive first" />
@@ -117,7 +122,6 @@
     <string id="ss_set_AutoPopupOnVillageEnter" text="Open on entering a village" />
     <string id="ss_set_AutonomousMinGold" text="Keep while autonomous (denari)" />
     <string id="ss_set_AutonomousSteward" text="Full-autonomous steward" />
-    <string id="ss_set_DonatePrisonersWhenPossible" text="Donate when possible" />
     <string id="ss_set_FoodBuyPriceMultiplier" text="Food buy price multiplier" />
     <string id="ss_set_FoodCountPrisoners" text="Feed prisoners too" />
     <string id="ss_set_FoodDays" text="Keep food for (days)" />
@@ -129,6 +133,7 @@
     <string id="ss_set_HorseBuyPriceMultiplier" text="Horse buy price multiplier" />
     <string id="ss_set_HorseSellPriceMultiplier" text="Horse sell price multiplier" />
     <string id="ss_set_LocksProtectFoodAndHorses" text="Locks protect food &amp; horses" />
+    <string id="ss_set_LordPrisonerAction" text="Captured lords" />
     <string id="ss_set_MinGoldAfterDeal" text="Always keep (denari)" />
     <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (denari)" />
     <string id="ss_set_ModEnabled" text="Steward on" />
@@ -141,8 +146,7 @@
     <string id="ss_set_PackAnimalsMinDenari" text="Manage pack animals from (denari)" />
     <string id="ss_set_PackAnimalsTarget" text="Pack animals to keep" />
     <string id="ss_set_PopupOnlyWithChanges" text="Only open with suggestions" />
-    <string id="ss_set_RansomHeroPrisoners" text="Include lords" />
-    <string id="ss_set_RansomPrisoners" text="Ransom prisoners" />
+    <string id="ss_set_PrisonerAction" text="Other prisoners" />
     <string id="ss_set_ReplaceLameHorses" text="Replace lame horses" />
     <string id="ss_set_SellFoodSurplus" text="Sell surplus food" />
     <string id="ss_set_SellLoot" text="Sell loot" />

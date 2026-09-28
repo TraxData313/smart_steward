@@ -123,9 +123,26 @@ namespace SmartSteward.Core.Settings
                 ["WarMountsCountAsMounts"] = "the war horses kept always count among the horses for the footmen now ("
                                              + nameof(StewardSettings.MountsPer100Footmen) + ")",
                 // The "Prisoners to ransom" tick-list: ransom is all or none now, "Include lords" the one choice left.
-                ["PrisonersExcluded"] = "every prisoner may be ransomed now; " + nameof(StewardSettings.RansomHeroPrisoners)
-                                        + " still decides the lords",
+                ["PrisonersExcluded"] = "every prisoner may be ransomed now; " + nameof(StewardSettings.LordPrisonerAction)
+                                        + " decides the lords",
             };
+
+        /// <summary>The three prisoner switches of V1 that became two actions in round 4 (Anton 2026.09.28): LordPrisonerAction and
+        /// PrisonerAction (Keep | Ransom | Donate). A file that still has any of them gets the actions they meant, once —
+        /// logged, not a problem — unless the new key is written too (it wins). Old names case-insensitive.</summary>
+        public static readonly IReadOnlyList<string> OldPrisonerKeys = new[]
+        {
+            "RansomPrisoners", "RansomHeroPrisoners", "DonatePrisonersWhenPossible",
+        };
+
+        /// <summary>What the old switches meant, as the two actions: others — donate when asked (the rest ransomed), else ransom
+        /// when asked, else keep; lords — kept unless "include lords", then the same way. The old defaults (ransom on, lords off,
+        /// donate off) give exactly the new defaults (Ransom, Keep).</summary>
+        public static (PrisonerChoice Others, PrisonerChoice Lords) PrisonerActionsOf(bool ransom, bool includeLords, bool donate)
+        {
+            var others = donate ? PrisonerChoice.Donate : ransom ? PrisonerChoice.Ransom : PrisonerChoice.Keep;
+            return (others, includeLords ? others : PrisonerChoice.Keep);
+        }
 
         private const string WarHorsesNow = "the steward no longer counts troop upgrades - war horses are one plain number to "
                                             + "keep now (" + nameof(StewardSettings.WarMountsToKeep) + ", default 10), and "
@@ -285,6 +302,7 @@ namespace SmartSteward.Core.Settings
             }
 
             var seen = new HashSet<string>(StringComparer.Ordinal);
+            var oldPrisoner = new List<JProperty>();
             var renamed = new List<(JProperty Old, SettingDefinition New)>();
             var converted = new List<(JProperty Old, SettingDefinition New, KeyConversion How)>();
             foreach (var property in root.Properties())
@@ -297,6 +315,8 @@ namespace SmartSteward.Core.Settings
                     else if (ConvertedKeys.TryGetValue(property.Name.Trim(), out var conversion)
                              && SettingsRegistry.Find(conversion.NewKey) is { } convertedTo)
                         converted.Add((property, convertedTo, conversion));
+                    else if (OldPrisonerKeys.Contains(property.Name.Trim(), StringComparer.OrdinalIgnoreCase))
+                        oldPrisoner.Add(property);
                     else if (RetiredKeys.TryGetValue(property.Name.Trim(), out var instead))
                         result.Retired.Add(At(property) + "\"" + property.Name.Trim() + "\" (" + Describe(property.Value)
                             + ") is retired and ignored - " + instead);
@@ -347,10 +367,50 @@ namespace SmartSteward.Core.Settings
                     result.Renamed.Add(At(old) + "\"" + old.Name + "\" (" + Describe(old.Value) + ") is now " + def.Key + " = "
                         + ValueText(def, result.Settings) + " (" + how.How + ")");
             }
+            if (oldPrisoner.Count > 0)
+                MigratePrisoners(oldPrisoner, seen, result);
             foreach (var def in SettingsRegistry.All)
                 if (!seen.Contains(def.Key))
                     result.MissingKeys.Add(def.Key);
             return result;
+        }
+
+        /// <summary>The V1 prisoner switches → the two actions (<see cref="OldPrisonerKeys"/>); a switch of the wrong type counts
+        /// as its old default (a problem line).</summary>
+        private static void MigratePrisoners(List<JProperty> old, HashSet<string> seen, SettingsParseResult result)
+        {
+            bool Old(string key, bool fallback)
+            {
+                var property = old.LastOrDefault(p => string.Equals(p.Name.Trim(), key, StringComparison.OrdinalIgnoreCase));
+                if (property == null)
+                    return fallback;
+                if (property.Value.Type == JTokenType.Boolean)
+                    return (bool)property.Value;
+                result.Problems.Add(At(property) + "\"" + property.Name.Trim() + "\" (" + Describe(property.Value)
+                    + ") is not true or false - read as its old default " + (fallback ? "true" : "false"));
+                return fallback;
+            }
+
+            var (others, lords) = PrisonerActionsOf(Old("RansomPrisoners", true), Old("RansomHeroPrisoners", false),
+                Old("DonatePrisonersWhenPossible", false));
+            string from = string.Join(", ", old.Select(p => "\"" + p.Name.Trim() + "\" (" + Describe(p.Value) + ")"));
+            foreach (var (key, value) in new[]
+                     {
+                         (nameof(StewardSettings.PrisonerAction), others),
+                         (nameof(StewardSettings.LordPrisonerAction), lords),
+                     })
+            {
+                var def = (EnumSetting)SettingsRegistry.Find(key)!;
+                if (seen.Contains(key))
+                {
+                    result.Problems.Add(At(old[0]) + from + " (the old prisoner switches) ignored for " + key + " - " + key
+                        + " is set");
+                    continue;
+                }
+                seen.Add(key);
+                def.SetIndex(result.Settings, def.IndexOf(value.ToString()));
+                result.Renamed.Add(At(old[0]) + from + " - now " + key + " = " + ValueText(def, result.Settings));
+            }
         }
 
         private static JObject ReadObject(string text)

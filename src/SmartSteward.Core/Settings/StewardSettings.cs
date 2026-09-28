@@ -27,6 +27,21 @@ namespace SmartSteward.Core.Settings
         MostExpensive,
     }
 
+    /// <summary>What the steward does with prisoners (DESIGN §2.5 — Anton 2026.09.28, playtest round 4: "A toggle ransom/donate
+    /// lords. Then a toggle to offload them to ransom for money or to dungeon for Influence").</summary>
+    public enum PrisonerChoice
+    {
+        /// <summary>Keep them — the steward proposes nothing (the player may still ransom by hand).</summary>
+        Keep,
+
+        /// <summary>Ransom them for denari at the town's ransom broker.</summary>
+        Ransom,
+
+        /// <summary>Donate them to a friendly town's dungeon for influence (where the game allows it; else the others are
+        /// ransomed and the lords kept).</summary>
+        Donate,
+    }
+
     /// <summary>
     /// One item's row of the price book as the PLAYER changed it (DESIGN §1.3). Only overrides are
     /// stored: a null field means "the default" — ticks default to on, bases to the auto-filled
@@ -160,11 +175,14 @@ namespace SmartSteward.Core.Settings
         public bool SellWarMountSurplus { get; set; } = true;
 
         // ── Prisoners (DESIGN §2.5) ──────────────────────────────────────────────────────────────
-        public bool RansomPrisoners { get; set; } = true;
-        /// <summary>Heroes (lords) are proposed at all — ransom or donation.</summary>
-        public bool RansomHeroPrisoners { get; set; } = false;
-        public bool DonatePrisonersWhenPossible { get; set; } = false;
-        // (PrisonersExcluded is retired — ransom is all or none, RansomHeroPrisoners decides the lords: step 12.)
+        /// <summary>Captured lords: Keep (default), Ransom, or Donate — a lord is never ransomed when Donate is chosen: where the
+        /// game forbids donating, or the dungeon is full, he is kept (round 4).</summary>
+        public PrisonerChoice LordPrisonerAction { get; set; } = PrisonerChoice.Keep;
+        /// <summary>Every other prisoner: Keep, Ransom (default) or Donate — where the game forbids donating, or the dungeon is
+        /// full, the rest are ransomed (round 4). Replaces RansomPrisoners, RansomHeroPrisoners and DonatePrisonersWhenPossible
+        /// (an old settings file's values carry over once).</summary>
+        public PrisonerChoice PrisonerAction { get; set; } = PrisonerChoice.Ransom;
+        // (PrisonersExcluded is retired — ransom is all or none: step 12.)
 
         // ── Loot (DESIGN §2.6) ───────────────────────────────────────────────────────────────────
         public bool SellLoot { get; set; } = false;

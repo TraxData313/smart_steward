@@ -1,3 +1,4 @@
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Snapshot;
 
@@ -71,7 +72,7 @@ public class PlanReportTests
         Assert.StartsWith("Sell " + sell.Count + " x " + sell.StackKey + " [" + sell.RowId + "] = ", text);
         var donateScenario = new Scenario().Prisoner("looter", 3, 20, influence: 1.5);
         donateScenario.Snap.Prison = new PrisonInfo { DonateAllowed = true, DungeonRoom = 10 };
-        donateScenario.Settings.DonatePrisonersWhenPossible = true;
+        donateScenario.Settings.PrisonerAction = PrisonerChoice.Donate;
         var donate = donateScenario.Plan().Transactions.Single();
         Assert.Equal("Donate 3 x looter [prisoner:looter] = +4.5 influence", PlanReport.DescribeTransaction(donate));
     }

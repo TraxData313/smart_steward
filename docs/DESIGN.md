@@ -277,7 +277,7 @@ after their box what they mean for this party right now — `(110 horses = 100 r
 party before the deal; Core `Planning\MountGoal`) — in place of the range, which stays in the tooltip (the note fills the
 line's room).
 - ~~**Prisoners to ransom**: a tick-list of troop types~~ — **REMOVED [Anton 2026.09.28, playtest round 1: "ransom all
-  or none"]**. The `RansomPrisoners` switch and `RansomHeroPrisoners` (lords) are the whole choice; an old settings
+  or none"]**. ~~The `RansomPrisoners` switch and `RansomHeroPrisoners` (lords) are the whole choice~~ (round 4: the two actions `LordPrisonerAction` / `PrisonerAction`, §2.5); an old settings
   file's `PrisonersExcluded` is ignored (logged once).
 
 (The old *Food to keep* list moved into the Prices tab as the food rows' Buy ticks.)
@@ -518,14 +518,31 @@ pure Core logic fed a snapshot of the party and the market (§5).
   **cheapest** animal of the category first and locked ones only last (kept for the record — the steward no longer
   reserves any).
 
-### 2.5 Prisoners — ransom or donate
+### 2.5 Prisoners — keep, ransom or donate
 
-- Only in towns (villages have no ransom broker). `RansomPrisoners` default on.
-- Every prisoner is proposed for ransom — all or none **[Anton 2026.09.28, playtest round 1]**, no per-troop list;
-  heroes (lords) never unless `RansomHeroPrisoners` (default off). Locked prisoners are skipped, as vanilla does.
-- `DonatePrisonersWhenPossible` (default off): when the settlement belongs to the player's
-  faction and the game allows donating there, prisoners go to the garrison prison (influence)
-  instead of being ransomed (gold). Rules of "allowed" per RESEARCH (mercenary case included).
+- Only in towns (villages have no ransom broker).
+- **Two actions** **[Anton 2026.09.28, playtest round 4 — "A toggle ransom/donate lords. Then a toggle to offload them to ransom
+  for money or to dungeon for Influence … maybe two lines - one for the lords if any one for the others"]** (they replace
+  `RansomPrisoners`, `RansomHeroPrisoners` and `DonatePrisonersWhenPossible`): `LordPrisonerAction` (lords, default **Keep**)
+  and `PrisonerAction` (every other prisoner, default **Ransom**), each **Keep | Ransom | Donate** — all or none, no
+  per-troop list **[Anton 2026.09.28, playtest round 1]**. Locked prisoners are skipped, as vanilla does. The window's Lords
+  and Others lines carry the toggles (step 21 — they ARE these settings).
+  - **Keep**: the steward proposes nothing; the rows stay at 0, and a click ransoms by hand.
+  - **Ransom**: every one to the ransom broker (the tavern district) for denari.
+  - **Donate**: to the dungeon of a town of the player's kingdom that is not his clan's, for influence — the dungeon's room
+    filled most valuable first; **where the game forbids it (or the room runs out), the others are ransomed and the lords
+    kept** (Anton). Rules of "allowed" per RESEARCH (mercenary case included).
+  - An old settings file's switches carry over once (logged): others = Donate if `DonatePrisonersWhenPossible`, else Ransom if
+    `RansomPrisoners`, else Keep; lords = the same when `RansomHeroPrisoners`, else Keep (the old defaults give the new ones).
+    (`SettingsFile.OldPrisonerKeys` / `PrisonerActionsOf`.) Round 4 also stops a "no" from hiding the rows: Keep shows them
+    at 0 where the old `RansomPrisoners` off had no section.
+- **Tiers** **[Anton 2026.09.28, round 4 — "add the Tier to the prisoners too and make them sorted like the troops
+  lower->higher tier"]**: each row carries the game's tier (`CharacterObject.Tier`, RESEARCH §24; a lord's is 0); the rows are
+  ordered lowest tier first, the lords last (ties by name, then id). The dungeon is still filled by VALUE, whatever the
+  table's order (`PrisonerPlanner.Split`).
+- **Where a row's prisoners go** — the steward's and the player's alike (`PrisonerRowInfo.ToDungeonFirst` / `MayRansom`): a
+  Donate row where donating is allowed goes to the dungeon first (room, most valuable first across the rows), its overflow to
+  the broker unless it is a lord; every other row goes to the broker. A row with nowhere to go shows `MaxSell` 0.
 - **[research 2026.09.27]** (RESEARCH §5)
   - **Ransom** = the tavern district's ransom broker (`town_backstreet`); needs access to the
     tavern. Vanilla's "Ransom your prisoners" skips prisoners **locked** in the party screen. A
@@ -537,9 +554,9 @@ pure Core logic fed a snapshot of the party and the market (§5).
   - Influence per donated prisoner = `0.2 × ransomValue^0.4` (≈1 for a recruit), ×1.2 under
     Military Coronae. Castles also take donations but are a non-goal (§9).
 - **[decided: Claude, 2026.09.27 — step 4]** Donations fill the room most valuable first (influence
-  grows with the ransom value; the room is what runs out), the rest is ransomed. Heroes are not donated
-  either unless `RansomHeroPrisoners`. Heroes keep a row at 0 (the player may add them by hand); locked prisoners get
-  no row.
+  grows with the ransom value; the room is what runs out), the rest is ransomed. ~~Heroes are not donated
+  either unless `RansomHeroPrisoners`.~~ (round 4: `LordPrisonerAction` decides.) Kept rows stay at 0 (the player may add them
+  by hand); locked prisoners get no row.
 
 ### 2.6 Loot — sold in groups, cheapest first
 
@@ -972,9 +989,8 @@ troop / hero, the count and the expected unit prices.
 | War mounts | WarMountsToKeep | 10 | 0–500 | "War horses to keep" (default 0 until round 4 — **[Anton 2026.09.28]**: 10): a plain number of `war_horse` mounts, bought up to it and sold above it; they count toward the horses per 100 footmen — replaces WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts (retired, logged once) **[Anton 2026.09.28, step 17]** |
 | War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per war horse (0 = none; not scaled) |
 | War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
-| Prisoners | RansomPrisoners | true | — | ransom prisoners in towns |
-| Prisoners | RansomHeroPrisoners | false | — | include lords |
-| Prisoners | DonatePrisonersWhenPossible | false | — | donate to own garrison (influence) instead |
+| Prisoners | LordPrisonerAction | Keep | Keep / Ransom / Donate | "Captured lords": what the steward does with captured lords in a town — Donate where the game forbids it (or the dungeon is full) keeps them **[Anton 2026.09.28, round 4]** |
+| Prisoners | PrisonerAction | Ransom | Keep / Ransom / Donate | "Other prisoners": every other prisoner — Donate fills the dungeon most valuable first, the rest (or all, where the game forbids it) ransomed; replaces `RansomPrisoners` (true), `RansomHeroPrisoners` (false) and `DonatePrisonersWhenPossible` (false) — an old file's values carry over once, logged **[Anton 2026.09.28, round 4]** |
 | Loot | SellLoot | false | — | sell other items |
 | Loot | SellLootEquipment | true | — | weapons, armour, shields, ammo |
 | Loot | SellLootMaxItemValue | 0 | 0–1,000,000 | never auto-sell items worth more per unit (0 = no cap) |

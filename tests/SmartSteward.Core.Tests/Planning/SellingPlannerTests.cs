@@ -184,12 +184,13 @@ public class PrisonerPlannerTests
         Assert.Null(s.Plan().Section(PlanSectionKind.Prisoners));
 
         s = new Scenario().Prisoner("looter", 10, 20);
-        s.Settings.RansomPrisoners = false;
-        Assert.Null(s.Plan().Section(PlanSectionKind.Prisoners));
+        s.Settings.PrisonerAction = PrisonerChoice.Keep; // round 4: kept - the row stays at 0 for a manual click
+        Assert.Equal(0, s.Plan().Row("prisoner:looter").Change);
+        Assert.Equal(10, s.Plan().Row("prisoner:looter").MaxSell);
     }
 
     [Fact]
-    public void Heroes_only_with_RansomHeroPrisoners_but_their_row_stays_for_a_manual_click()
+    public void Lords_are_kept_by_default_but_their_row_stays_for_a_manual_click()
     {
         var s = new Scenario().Prisoner("lord_vlandia", 1, 4000, hero: true);
         var row = s.Plan().Row("prisoner:lord_vlandia");
@@ -197,7 +198,7 @@ public class PrisonerPlannerTests
         Assert.Equal(1, row.MaxSell);
         Assert.True(row.Prisoner!.IsHero);
 
-        s.Settings.RansomHeroPrisoners = true;
+        s.Settings.LordPrisonerAction = PrisonerChoice.Ransom;
         Assert.Equal(4000, s.Plan().Row("prisoner:lord_vlandia").GoldDelta);
     }
 
@@ -211,8 +212,8 @@ public class PrisonerPlannerTests
         Assert.Equal(-10, plan.Row("prisoner:looter").Change);
         Assert.Equal(0, plan.Totals.PrisonersAfter);
 
-        s.Settings.RansomPrisoners = false; // none
-        Assert.DoesNotContain(s.Plan().Rows, r => r.Type == RowType.Prisoner);
+        s.Settings.PrisonerAction = PrisonerChoice.Keep; // none - the rows stay at 0 (round 4)
+        Assert.All(s.Plan().Rows.Where(r => r.Type == RowType.Prisoner), r => Assert.Equal(0, r.Change));
     }
 
     [Fact]
@@ -227,7 +228,7 @@ public class PrisonerPlannerTests
     public void Donation_fills_the_dungeon_most_valuable_first_and_ransoms_the_rest()
     {
         var s = new Scenario().Prisoner("infantry", 3, 100, influence: 1.5).Prisoner("looter", 4, 50, influence: 1.0);
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Snap.Prison.DonateAllowed = true;
         s.Snap.Prison.DungeonRoom = 5;
         var plan = s.Plan();
@@ -250,17 +251,18 @@ public class PrisonerPlannerTests
         s.Snap.Prison.DonateAllowed = true;
         Assert.Equal(4, s.Plan().Row("prisoner:looter").Prisoner!.RansomCount); // setting off
 
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Snap.Prison.DonateAllowed = false; // e.g. the player's own fief
         Assert.Equal(0, s.Plan().Row("prisoner:looter").Prisoner!.DonateCount);
+        Assert.Equal(4, s.Plan().Row("prisoner:looter").Prisoner!.RansomCount); // the others are ransomed instead
     }
 
     [Fact]
     public void Without_ransom_only_the_dungeon_room_is_used()
     {
         var s = new Scenario().Prisoner("looter", 8, 50);
-        s.Settings.RansomPrisoners = false;
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Snap.Prison.CanRansom = false; // no ransom broker open to the player here
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Snap.Prison.DonateAllowed = true;
         s.Snap.Prison.DungeonRoom = 5;
         var plan = s.Plan();

@@ -1,3 +1,4 @@
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Snapshot;
@@ -135,7 +136,7 @@ public class SectionSummaryTests
         Assert.Equal("8 ransomed +160", SectionSummary.Of(plan, SectionGroup.Prisoners));
 
         var s = new Scenario().Prisoner("infantry", 3, 100, influence: 1.5).Prisoner("looter", 4, 50, influence: 1.0);
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Snap.Prison.DonateAllowed = true;
         s.Snap.Prison.DungeonRoom = 5;
         Assert.Equal("2 ransomed, 5 to the dungeon +100 +6.5 influence", SectionSummary.Of(s.Plan(), SectionGroup.Prisoners));

@@ -308,6 +308,7 @@ namespace SmartSteward.Adapter
             // The speed model's footmen: every member (heroes and wounded too) without a horse (RESEARCH §3).
             snap.Party.Footmen = main.Party.NumberOfMenWithoutHorse;
             snap.Party.PartySizeLimit = main.Party.PartySizeLimit;
+            snap.Party.PrisonerSizeLimit = main.Party.PrisonerSizeLimit;
             snap.Party.CompanionSlotsFree = CompanionSlotsFree();
             snap.Party.DailyFoodUse = Math.Max(0, -main.FoodChange);
             int livestockMeat = 0, livestock = 0;
@@ -564,6 +565,8 @@ namespace SmartSteward.Adapter
                     RansomValue = models.RansomValueCalculationModel.PrisonerRansomValue(c, hero),
                     InfluencePerMan = GameRules.DonationInfluence(influence, kingdom != null, coronae),
                     IsHero = c.IsHero,
+                    // CharacterObject.Tier: 0-6 for a troop, 0 for a hero (RESEARCH section 24) - the rows' order (round 4)
+                    Tier = c.Tier,
                     IsLocked = locks.Contains(c.StringId),
                 });
             }

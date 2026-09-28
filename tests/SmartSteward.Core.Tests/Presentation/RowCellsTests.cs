@@ -1,3 +1,4 @@
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Snapshot;
@@ -69,7 +70,7 @@ public class RowCellsTests
     {
         var s = new Scenario().Prisoner("looter", 8, 20);
         s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 3 };
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         var plan = s.Plan();
         var cells = RowCells.Of(plan.Row("prisoner:looter"));
         Assert.Equal(M + "8", cells.Change);

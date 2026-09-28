@@ -126,7 +126,7 @@ namespace SmartSteward.Core.Planning
             // 1. Prisoners — ransom gold (paid by the game) and donations.
             var prisoners = Of(RowType.Prisoner);
             var moves = PrisonerPlanner.Split(prisoners.Select(p => -p.Requested).ToList(),
-                inputs.Ransom, inputs.Donate, inputs.DungeonRoom);
+                prisoners.Select(p => p.Row.Prisoner!).ToList(), inputs.DungeonRoom);
             for (int i = 0; i < prisoners.Count; i++)
             {
                 var p = prisoners[i];

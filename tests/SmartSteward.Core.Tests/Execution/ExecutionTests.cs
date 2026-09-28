@@ -1,3 +1,4 @@
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Execution;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Pricing;
@@ -129,7 +130,7 @@ public class ExecutionTests
     {
         var s = new Scenario().Prisoner("looter", 8, 20).Prisoner("bandit", 4, 30);
         s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 4 };
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         var plan = s.Plan();
         var donate = plan.Transactions.Single(t => t.Kind == TransactionKind.Donate);
         var ransom = plan.Transactions.Single(t => t.Kind == TransactionKind.Ransom);

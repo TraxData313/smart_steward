@@ -1,3 +1,4 @@
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Execution;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Snapshot;
@@ -129,7 +130,7 @@ public class AutonomousReportTests
     {
         var s = new Scenario().Prisoner("looter", 8, 20).Prisoner("bandit", 4, 30, influence: 0.8);
         s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 4 };
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Settings.AutonomousMinGold = 0;
         var plan = StewardPlanner.Plan(s.Snap, s.Settings, s.Oracle, PlanMode.Autonomous);
 

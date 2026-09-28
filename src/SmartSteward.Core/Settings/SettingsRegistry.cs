@@ -270,16 +270,18 @@ namespace SmartSteward.Core.Settings
                 s => s.SellWarMountSurplus, (s, v) => s.SellWarMountSurplus = v),
 
             // ── Prisoners ────────────────────────────────────────────────────────────────────────
-            new BoolSetting(nameof(StewardSettings.RansomPrisoners), Prisoners, "Ransom prisoners",
-                "Offer your prisoners to the town's ransom broker.",
-                s => s.RansomPrisoners, (s, v) => s.RansomPrisoners = v),
-            new BoolSetting(nameof(StewardSettings.RansomHeroPrisoners), Prisoners, "Include lords",
-                "Also ransom (or donate) captured lords. A ransomed lord goes free.",
-                s => s.RansomHeroPrisoners, (s, v) => s.RansomHeroPrisoners = v),
-            new BoolSetting(nameof(StewardSettings.DonatePrisonersWhenPossible), Prisoners, "Donate when possible",
-                "In a town of your kingdom that is not your clan's, send prisoners to its dungeon for influence "
-                + "instead of gold. Those that do not fit are ransomed.",
-                s => s.DonatePrisonersWhenPossible, (s, v) => s.DonatePrisonersWhenPossible = v),
+            new EnumSetting<PrisonerChoice>(nameof(StewardSettings.LordPrisonerAction), Prisoners, "Captured lords",
+                "What the steward does with captured lords in a town: keep them, ransom them for denari (a ransomed lord goes "
+                + "free), or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence. "
+                + "A lord to donate is kept where the game does not allow it or the dungeon is full.",
+                new[] { "Keep", "Ransom for denari", "Donate for influence" },
+                s => s.LordPrisonerAction, (s, v) => s.LordPrisonerAction = v),
+            new EnumSetting<PrisonerChoice>(nameof(StewardSettings.PrisonerAction), Prisoners, "Other prisoners",
+                "What the steward does with every other prisoner in a town: keep them, ransom them for denari, or donate "
+                + "them to the dungeon of a town of your kingdom that is not your clan's, for influence - the most valuable "
+                + "first; those that do not fit, or all of them where the game does not allow it, are ransomed.",
+                new[] { "Keep", "Ransom for denari", "Donate for influence" },
+                s => s.PrisonerAction, (s, v) => s.PrisonerAction = v),
 
             // ── Loot ─────────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.SellLoot), Loot, "Sell loot",

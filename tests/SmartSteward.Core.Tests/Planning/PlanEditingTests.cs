@@ -451,7 +451,7 @@ public class PlanEditingTests
     public void The_dungeon_room_is_re_split_after_every_edit()
     {
         var s = new Scenario().Party(10).Prisoner("looter", 8, 20, influence: 1).Prisoner("bandit", 4, 50, influence: 2);
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 5 };
         var plan = s.Plan();
         var looter = plan.Row("prisoner:looter");
@@ -475,9 +475,8 @@ public class PlanEditingTests
     public void Without_ransom_the_dungeon_room_caps_the_prisoner_rows()
     {
         var s = new Scenario().Party(10).Prisoner("looter", 8, 20).Prisoner("bandit", 4, 50);
-        s.Settings.RansomPrisoners = false;
-        s.Settings.DonatePrisonersWhenPossible = true;
-        s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 5 };
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
+        s.Snap.Prison = new PrisonInfo { CanRansom = false, DonateAllowed = true, DungeonRoom = 5 }; // no broker here
         var plan = s.Plan();
         Assert.Equal(-1, plan.Row("prisoner:looter").Change);   // the bandits took 4 of the 5 places
         Assert.Equal(EditBlock.DungeonFull, plan.Decrease("prisoner:looter").Block);
@@ -523,7 +522,7 @@ public class PlanEditingTests
             .Loot("rags", LootGroup.Armour, held: 10, sell: 8)
             .Pack("mule", market: 20, buy: 150);
         s.Settings.SellLoot = true;
-        s.Settings.DonatePrisonersWhenPossible = true;
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
         s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 3 };
         var plan = s.Plan();
         plan.Increase("tavern:wanderer:w1");
@@ -704,8 +703,8 @@ public class PlanEditingTests
             {
                 var s = new Scenario().Party(10).Prisoner("looter", 8, 20).Prisoner("bandit", 4, 50)
                     .Prisoner("lord", 1, 2000, hero: true).Food("grain", market: 100, buy: 10);
-                s.Settings.DonatePrisonersWhenPossible = true;
-                s.Settings.RansomHeroPrisoners = true;
+                s.Settings.PrisonerAction = PrisonerChoice.Donate;
+                s.Settings.LordPrisonerAction = PrisonerChoice.Donate;
                 s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 6 };
                 return s;
             }

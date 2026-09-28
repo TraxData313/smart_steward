@@ -421,8 +421,8 @@ public class SettingsFileTests
         // Step 12 (round 1): ransom is all or none - an old file's tick-list is simply ignored.
         foreach (var json in new[] { "[ \"looter\", \"sea_raiders_boss\" ]", "\"looter\"", "[]" })
         {
-            var parsed = SettingsFile.Parse(Defaults.Replace("  \"DonatePrisonersWhenPossible\": false,",
-                "  \"DonatePrisonersWhenPossible\": false," + SettingsFile.NewLine + "  \"PrisonersExcluded\": " + json + ","));
+            var parsed = SettingsFile.Parse(Defaults.Replace("  \"PrisonerAction\": \"Ransom\",",
+                "  \"PrisonerAction\": \"Ransom\"," + SettingsFile.NewLine + "  \"PrisonersExcluded\": " + json + ","));
             Assert.Empty(parsed.Problems);
             Assert.False(parsed.LosesSomething);
             Assert.Contains("\"PrisonersExcluded\"", Assert.Single(parsed.Retired));

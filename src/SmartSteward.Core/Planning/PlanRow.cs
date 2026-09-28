@@ -129,12 +129,29 @@ namespace SmartSteward.Core.Planning
         public int? Market { get; internal set; }
     }
 
-    /// <summary>Prisoner row facts: ransom gold and donation influence per man, and the split.</summary>
+    /// <summary>Prisoner row facts: ransom gold and donation influence per man, the tier, the action and the split.</summary>
     public sealed class PrisonerRowInfo
     {
         public int RansomValue { get; internal set; }
         public double InfluencePerMan { get; internal set; }
         public bool IsHero { get; internal set; }
+
+        /// <summary>The game's tier (<c>CharacterObject.Tier</c>, 0 for a lord — RESEARCH §24) — shown before the name and the
+        /// order of the rows, lowest first (round 4).</summary>
+        public int Tier { get; internal set; }
+
+        /// <summary>The setting that decides this row: LordPrisonerAction for a lord, PrisonerAction for the others.</summary>
+        public Settings.PrisonerChoice Action { get; internal set; }
+
+        /// <summary>This row's prisoners go to the dungeon first (its action is Donate and the game allows it here) — the most
+        /// valuable rows take the room first.</summary>
+        public bool ToDungeonFirst { get; internal set; }
+
+        /// <summary>What does not go to the dungeon may be ransomed here (the broker is open; never a lord whose action is Donate).</summary>
+        public bool MayRansom { get; internal set; }
+
+        /// <summary>The troop (for the split's tie-break).</summary>
+        internal string? TroopId { get; set; }
         public int RansomCount { get; internal set; }
         public int DonateCount { get; internal set; }
     }

@@ -125,6 +125,9 @@ namespace SmartSteward.Core.Snapshot
         /// shows the party after the deal against it, red when over.</summary>
         public int PartySizeLimit { get; set; }
 
+        /// <summary><c>PartyBase.PrisonerSizeLimit</c> — the Prisoners overview's "52/60" (round 4); information only.</summary>
+        public int PrisonerSizeLimit { get; set; }
+
         /// <summary><c>Clan.CompanionLimit</c> minus the clan's companions.</summary>
         public int CompanionSlotsFree { get; set; }
 
@@ -285,6 +288,10 @@ namespace SmartSteward.Core.Snapshot
         public double InfluencePerMan { get; set; }
 
         public bool IsHero { get; set; }
+
+        /// <summary><c>CharacterObject.Tier</c> — 0–6 for a troop, 0 for a lord (RESEARCH §24); the prisoner rows' order and
+        /// the Prisoners overview's tiers (round 4).</summary>
+        public int Tier { get; set; }
 
         /// <summary>Locked in the party screen — never ransomed nor donated, like vanilla (RESEARCH §5).</summary>
         public bool IsLocked { get; set; }
