@@ -228,6 +228,45 @@
                                                                 </Widget>
                                                               </Children>
                                                             </ListPanel>
+                                                            <!-- the Lords / Others toggle: Keep | Ransom | Donate = the setting (mockup choice 7) - the chosen one lit gold, Donate greyed
+                                                                 where the game forbids it -->
+                                                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasToggle">
+                                                              <Children>
+                                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="64" SuggestedHeight="24" VerticalAlignment="Center" MarginLeft="8">
+                                                                  <Children>
+                                                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="ExecuteKeep" IsEnabled="@CanKeep" UpdateChildrenStates="true">
+                                                                      <Children>
+                                                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#B8893EFF" IsVisible="@IsKeep" DoNotAcceptEvents="true" />
+                                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="16" Text="@KeepText" />
+                                                                      </Children>
+                                                                    </ButtonWidget>
+                                                                    <HintWidget DataSource="{KeepHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                                  </Children>
+                                                                </Widget>
+                                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="64" SuggestedHeight="24" VerticalAlignment="Center" MarginLeft="2">
+                                                                  <Children>
+                                                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="ExecuteRansom" IsEnabled="@CanRansom" UpdateChildrenStates="true">
+                                                                      <Children>
+                                                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#B8893EFF" IsVisible="@IsRansom" DoNotAcceptEvents="true" />
+                                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="16" Text="@RansomText" />
+                                                                      </Children>
+                                                                    </ButtonWidget>
+                                                                    <HintWidget DataSource="{RansomHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                                  </Children>
+                                                                </Widget>
+                                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="64" SuggestedHeight="24" VerticalAlignment="Center" MarginLeft="2">
+                                                                  <Children>
+                                                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="ExecuteDonate" IsEnabled="@CanDonate" UpdateChildrenStates="true">
+                                                                      <Children>
+                                                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#B8893EFF" IsVisible="@IsDonate" DoNotAcceptEvents="true" />
+                                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="16" Text="@DonateText" />
+                                                                      </Children>
+                                                                    </ButtonWidget>
+                                                                    <HintWidget DataSource="{DonateHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                                  </Children>
+                                                                </Widget>
+                                                              </Children>
+                                                            </ListPanel>
                                                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@ChangeColor" Text="@ChangeText" IsVisible="@HasChangeOnly" HorizontalAlignment="Center" />
                                                           </Children>
                                                         </Widget>

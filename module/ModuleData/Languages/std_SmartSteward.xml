@@ -323,6 +323,13 @@
     <string id="ss_ui_tab_suggestion" text="Suggestion" />
     <string id="ss_ui_tier_prefix" text="T" />
     <string id="ss_ui_title" text="Party Steward — {SETTLEMENT}" />
+    <string id="ss_ui_toggle_donate" text="Donate" />
+    <string id="ss_ui_toggle_donate_hint" text="Donate them to this town's dungeon for influence, the most valuable first - what does not fit is ransomed (lords kept). Your standing order - saved like the Instructions tab." />
+    <string id="ss_ui_toggle_donate_off" text="The game does not let you donate prisoners here." />
+    <string id="ss_ui_toggle_keep" text="Keep" />
+    <string id="ss_ui_toggle_keep_hint" text="Keep them: the steward proposes nothing (you may still ransom by hand below). Your standing order - saved like the Instructions tab." />
+    <string id="ss_ui_toggle_ransom" text="Ransom" />
+    <string id="ss_ui_toggle_ransom_hint" text="Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab." />
     <string id="ss_ui_troops_minus_hint" text="Dismiss from the lowest tier up, the wounded first. Shift 5, Ctrl all." />
     <string id="ss_ui_troops_plus_hint" text="Bring back the men you dropped, the last dropped first. Shift 5, Ctrl all." />
     <string id="ss_ui_unfold_hint" text="Show this section's rows. The steward remembers it, even after a restart." />

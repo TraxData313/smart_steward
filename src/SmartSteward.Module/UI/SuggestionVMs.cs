@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
+using SmartSteward.Core.Settings;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
@@ -290,6 +291,24 @@ namespace SmartSteward.UI
             ModLog.Info("window", "reset all");
             AfterEdit(facts);
         });
+
+        /// <summary>
+        /// The Lords / Others toggle (mockup choice 7): Keep | Ransom | Donate IS the setting (<c>LordPrisonerAction</c> /
+        /// <c>PrisonerAction</c>) — saved to settings.json like the Instructions tab, MCM shows it too. The settings service
+        /// announces the change and the window re-plans at once, the player's touched rows carried over (step 7's rule).
+        /// </summary>
+        internal void SetPrisonerAction(SheetItem item, PrisonerChoice choice)
+        {
+            if (item.Choice == null || item.Choice == choice)
+                return;
+            if (choice == PrisonerChoice.Donate && !item.DonateAllowed)
+                return; // greyed: the game does not allow donating here
+            string key = item.Kind == SheetItemKind.Lords ? nameof(StewardSettings.LordPrisonerAction) : nameof(StewardSettings.PrisonerAction);
+            if (!(SettingsRegistry.Find(key) is EnumSetting def))
+                return;
+            ModLog.Info("window", "prisoner toggle: " + key + " " + item.Choice + " -> " + choice);
+            SettingsHost.Service.Set(def, choice); // Changed → StewardWindowVM re-plans the tab on show
+        }
 
         /// <summary>A ▸ or a section title: fold or open it, remembered across windows, towns and restarts (window_state.json,
         /// never the save — step 18, every fold since step 21).</summary>
@@ -807,6 +826,9 @@ namespace SmartSteward.UI
         private bool _canIncrease;
         private bool _canDecrease;
         private bool _canReset;
+        private bool _hasToggle;
+        private PrisonerChoice _choice;
+        private bool _canDonate;
 
         internal SheetItemVM(SuggestionTabVM tab, SheetItem item)
         {
@@ -823,6 +845,14 @@ namespace SmartSteward.UI
                 ? UiText.S("ss_ui_reset_line_hint", "Hand the rows you moved on this line back to the steward.")
                 : UiText.S("ss_ui_reset_hint", "Your number - the steward plans around it. Click to hand the row back to the steward."));
             LinkHint = new HintVM(UiText.S("ss_ui_link_hint", "Open in the Encyclopedia"));
+            KeepText = UiText.S("ss_ui_toggle_keep", "Keep");
+            RansomText = UiText.S("ss_ui_toggle_ransom", "Ransom");
+            DonateText = UiText.S("ss_ui_toggle_donate", "Donate");
+            KeepHint = new HintVM(UiText.S("ss_ui_toggle_keep_hint",
+                "Keep them: the steward proposes nothing (you may still ransom by hand below). Your standing order - saved like the Instructions tab."));
+            RansomHint = new HintVM(UiText.S("ss_ui_toggle_ransom_hint",
+                "Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab."));
+            DonateHint = new HintVM();
             Update(item);
         }
 
@@ -870,6 +900,16 @@ namespace SmartSteward.UI
                     ? UiText.S("ss_ui_recruits_minus_hint", "Give back the last recruits. Shift 5, Ctrl all.")
                     : UiLabels.Block(item.DecreaseBlock);
             CanReset = item.CanReset;
+            HasToggle = item.Choice != null;
+            if (item.Choice != null)
+            {
+                Choice = item.Choice.Value;
+                CanDonate = item.DonateAllowed;
+                DonateHint.Text = item.DonateAllowed
+                    ? UiText.S("ss_ui_toggle_donate_hint",
+                        "Donate them to this town's dungeon for influence, the most valuable first - what does not fit is ransomed (lords kept). Your standing order - saved like the Instructions tab.")
+                    : UiText.S("ss_ui_toggle_donate_off", "The game does not let you donate prisoners here.");
+            }
         }
 
         // ── commands ─────────────────────────────────────────────────────────────────────────────────────
@@ -891,6 +931,12 @@ namespace SmartSteward.UI
             if (_item.IsLink && _item.Row != null)
                 _tab.OpenLink(_item.Row);
         });
+
+        public void ExecuteKeep() => StewardWindowVM.Guard("keep " + Key, () => _tab.SetPrisonerAction(_item, PrisonerChoice.Keep));
+
+        public void ExecuteRansom() => StewardWindowVM.Guard("ransom " + Key, () => _tab.SetPrisonerAction(_item, PrisonerChoice.Ransom));
+
+        public void ExecuteDonate() => StewardWindowVM.Guard("donate " + Key, () => _tab.SetPrisonerAction(_item, PrisonerChoice.Donate));
 
         // ── bound properties ─────────────────────────────────────────────────────────────────────────────
 
@@ -1061,8 +1107,62 @@ namespace SmartSteward.UI
             set { if (value != _hasSpinner) { _hasSpinner = value; OnPropertyChangedWithValue(value, nameof(HasSpinner)); OnPropertyChanged(nameof(HasChangeOnly)); } }
         }
 
-        /// <summary>The Change column as text only (a main line without buttons).</summary>
-        [DataSourceProperty] public bool HasChangeOnly => !_hasSpinner && !IsSubLine;
+        /// <summary>The Change column as text only (a main line without buttons or toggle).</summary>
+        [DataSourceProperty] public bool HasChangeOnly => !_hasSpinner && !_hasToggle && !IsSubLine;
+
+        /// <summary>The Lords / Others line: Keep | Ransom | Donate in the Change column (mockup choice 7).</summary>
+        [DataSourceProperty]
+        public bool HasToggle
+        {
+            get => _hasToggle;
+            set
+            {
+                if (value == _hasToggle) return;
+                _hasToggle = value;
+                OnPropertyChangedWithValue(value, nameof(HasToggle));
+                OnPropertyChanged(nameof(HasChangeOnly));
+                OnPropertyChanged(nameof(IsKeep));
+                OnPropertyChanged(nameof(IsRansom));
+                OnPropertyChanged(nameof(IsDonate));
+            }
+        }
+
+        private PrisonerChoice Choice
+        {
+            get => _choice;
+            set
+            {
+                if (value == _choice) return;
+                _choice = value;
+                OnPropertyChanged(nameof(IsKeep));
+                OnPropertyChanged(nameof(IsRansom));
+                OnPropertyChanged(nameof(IsDonate));
+            }
+        }
+
+        /// <summary>The chosen button is lit gold.</summary>
+        [DataSourceProperty] public bool IsKeep => _hasToggle && _choice == PrisonerChoice.Keep;
+        [DataSourceProperty] public bool IsRansom => _hasToggle && _choice == PrisonerChoice.Ransom;
+        [DataSourceProperty] public bool IsDonate => _hasToggle && _choice == PrisonerChoice.Donate;
+
+        /// <summary>Keep and Ransom are always there to choose (the order stands for the towns ahead).</summary>
+        [DataSourceProperty] public bool CanKeep => true;
+        [DataSourceProperty] public bool CanRansom => true;
+
+        /// <summary>Donate greys where the game forbids it here (mockup choice 7).</summary>
+        [DataSourceProperty]
+        public bool CanDonate
+        {
+            get => _canDonate;
+            set { if (value != _canDonate) { _canDonate = value; OnPropertyChangedWithValue(value, nameof(CanDonate)); } }
+        }
+
+        [DataSourceProperty] public string KeepText { get; }
+        [DataSourceProperty] public string RansomText { get; }
+        [DataSourceProperty] public string DonateText { get; }
+        [DataSourceProperty] public HintVM KeepHint { get; }
+        [DataSourceProperty] public HintVM RansomHint { get; }
+        [DataSourceProperty] public HintVM DonateHint { get; }
 
         [DataSourceProperty]
         public bool CanIncrease

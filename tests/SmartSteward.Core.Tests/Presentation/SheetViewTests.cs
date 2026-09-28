@@ -157,6 +157,18 @@ public class SheetViewTests
     }
 
     [Fact]
+    public void Donate_greys_where_the_game_forbids_it_and_the_lines_keep_their_choice()
+    {
+        var (s, _) = SuggestionSheetTests.Lycaron();
+        s.Snap.Prison!.DonateAllowed = false;
+        var prisoners = Open(s.Plan()).Section(SheetGroup.Prisoners)!;
+        var others = prisoners.Items.Single(i => i.Kind == SheetItemKind.OtherPrisoners);
+        Assert.False(others.DonateAllowed);
+        Assert.Equal(PrisonerChoice.Donate, others.Choice);                  // the order stands; here the others are ransomed
+        Assert.Equal("50 ransomed", others.Note);
+    }
+
+    [Fact]
     public void A_bought_food_says_its_price_and_the_tooltip_its_limit()
     {
         var food = Open(SuggestionSheetTests.Lycaron().Plan).Section(SheetGroup.Food)!;
