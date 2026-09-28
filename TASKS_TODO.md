@@ -17,6 +17,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [ ] 11. Anton's first playtest — round 1 done 2026.09.28 (findings under BUGS)
 - [x] 12. Playtest round 1 fixes — the six BUGS lines marked (R1), the save-load bug first
   - [ ] Deploy (the game was running at the end of step 12), then playtest the fixes — checklist in docs/PLAYTEST.md "Round 1 fixes"
+- [ ] 13. Playtest round 2 fixes — the BUGS lines marked (R2)
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -27,6 +28,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Prices tab: the item name is the first column
 
 BUGS:
+- [ ] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)
 - [x] (R1) Prices tab: Item name must be the FIRST (leftmost) column
 - [x] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
 - [x] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
