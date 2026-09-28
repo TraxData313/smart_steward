@@ -46,7 +46,7 @@
 
             <!-- ============================ Suggestion tab (DESIGN §1.1) ============================ -->
             <!-- Round 4 (PLAN step 21): ONE spreadsheet - the mockup Anton approved on 2026.09.28 (docs/mockups). Every width below
-                 comes from one table (the step-21 generator), so the heads, the title lines, the lines and the breakdown lines align. -->
+                 comes from one table (tools/gen-suggestion-tab.py), so the heads, the title lines, the lines and the breakdown lines align. -->
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="132" MarginBottom="84" IsVisible="@IsSuggestionSelected">
               <Children>
                 <Widget DataSource="{Suggestion}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
@@ -393,7 +393,7 @@
                     <!-- The footer (round 4): ONLY the weight table - rows Land / Sea, columns before, change, after, capacity,
                          left, slowdown with the game's own speed icon -, the warnings and the last result beside it. The spent /
                          earned / influence / food / party / herd lines are gone (the header and the sections carry them). -->
-                    <ListPanel WidthSizePolicy="Fixed" SuggestedWidth="880" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Bottom" MarginBottom="4" StackLayout.LayoutMethod="VerticalTopToBottom">
+                    <ListPanel WidthSizePolicy="Fixed" SuggestedWidth="900" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Bottom" MarginBottom="4" StackLayout.LayoutMethod="VerticalTopToBottom">
                       <Children>
                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="24" StackLayout.LayoutMethod="HorizontalLeftToRight">
                           <Children>
@@ -464,7 +464,7 @@
                     </ListPanel>
 
                     <!-- The warnings (red) and the last result, in their own box right of the weight table -->
-                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="600" HeightSizePolicy="Fixed" SuggestedHeight="90" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginBottom="4" MarginRight="14" ClipContents="true">
+                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="580" HeightSizePolicy="Fixed" SuggestedHeight="90" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginBottom="4" MarginRight="14" ClipContents="true">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.04" />
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.18" />
