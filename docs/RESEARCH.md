@@ -124,10 +124,10 @@ trade penalty of 0.06 (§8).
   Trade.CaravanMaster on the total). Over capacity → up to −0.4 ("Overburdened"). The full formula, at sea too: §19.
 - **Animals weigh 0** in carried weight (`GetItemEffectiveWeight` returns 0 for any
   `HasHorseComponent`) — selling a horse frees no weight.
-- **Quirk:** the incremental counters skip animals with an `ItemModifier` (lame, spirited…) —
+- **Quirk:** the incremental counters skip animals with an `ItemModifier` (lame, old…) —
   `OnRosterUpdated` counts pack/mount only when `ItemModifier == null`; a full recount
   (`CalculateCachedStats`, on load / `Clear()`) counts them. In-session the speed readout can be
-  off by the modified animals.
+  off by the modified animals. **[step 17]** Which modifiers exist and what the steward does with them: §22.
 
 ---
 
@@ -154,6 +154,9 @@ trade penalty of 0.06 (§8).
   takes **the cheapest animals of that category first, LOCKED ones last** (`orderby Value` then
   `orderby locked`) — locked horses are *not* safe from upgrades.
 - The main party is never auto-upgraded (`PartyUpgraderCampaignBehavior` skips `PartyBase.MainParty`).
+- **[step 17 — Anton 2026.09.28]** The steward no longer reads any of this: no ready counts, no reservation. War horses are
+  a plain number to keep (DESIGN §2.4); the facts above stay for the record (the snapshot's upgrade stacks, `ReadUpgrades`
+  and `GameRules.UpgradeReadyCount` are gone).
 
 ---
 
@@ -1074,6 +1077,59 @@ on (the window's summary names the gold too); the slots are taken in the recruit
 
 ---
 
+## 22. Horse modifiers — lame, old, and the speed model (verified in step 17, 2026.09.28)
+
+Anton 2026.09.28: "if a lame horse gives the bonus — keep it; never buy them as they don't look good; add a button to sell
+and replace them with healthy ones". Read in `game-decompiled-1.4.8` and the installed game's data.
+
+**Which horse modifiers exist** (`Modules\Native\ModuleData\item_modifiers.xml`, group `horse` in
+`item_modifiers_groups.xml` — `no_modifier_loot_score="1"`, `no_modifier_production_score="1"`): only TWO are active in
+v1.4.8, both BAD:
+
+| Modifier id | Name | Group | price_factor | quality | horse_speed / maneuver / charge / hp | Where it comes from |
+|---|---|---|---|---|---|---|
+| `lame_horse` | "Lame {ITEMNAME}" | horse | **0.1** | poor | ×0.7 / ×0.9 / ×0.6 / ×0.8 | the MAIN HERO's horse badly hurt in a battle (`SandBox.Missions.MissionLogics.MountAgentLogic.OnAgentRemoved`: 20% when his mount dies, Riding.WellStraped raises it; a lame horse that "dies" again is lost); `loot_drop_score`/`production_drop_score` 0 — never looted or produced |
+| `companion_horse` | "Old {ITEMNAME}" | companion | **0.2** | poor | ×0.8 / ×0.95 / ×0.8 / ×0.9 | a wanderer's own horse (`CompanionsCampaignBehavior.AdjustEquipmentModifiers` marks every wanderer's gear "Rusty"/"Worn"/"Old") — in the roster once the player strips it |
+
+Every other horse modifier (Purebred ×4, Healthy ×3, Strong ×3, Lean ×2, Good Natured ×1.2, Badly Tempered ×0.8,
+Stubborn ×0.7, Anaemic ×0.35) is COMMENTED OUT of the XML — a mod could bring them back. `CampaignData.LameHorseModifier
+= "lame_horse"`. A lame horse heals: `CampaignBattleRecoveryBehavior.DailyTickParty` turns one lame horse of the roster into
+a plain one per day with the Medicine.Veterinarian perk (a chance roll, not at sea).
+
+**What "negative" means — the game's own test**: `ItemModifier.PriceMultiplier < 1f` (`BattleCampaignBehavior.
+OnCollectLootItems`: the Engineering.Metallurgy perk strips exactly such modifiers from loot; `DefaultBattleRewardModel`
+uses the same test). `ItemModifier.IsBeneficial()` is useless for horses (it reads only Damage/Speed/MissileSpeed/Armor/
+HitPoints/StackCount — all 0 on a horse modifier); `ItemModifier.ItemQuality` (Poor/Inferior) agrees for the two active
+ones but a mod's modifier may leave `quality` out. So the steward's rule is `PriceMultiplier < 1`
+(`GameRules.IsBadModifier`, `ItemStack.ModifierPriceFactor` read by `SnapshotBuilder` from `el.ItemModifier.PriceMultiplier`).
+
+**Price**: `EquipmentElement.ItemValue = round(Item.Value × ItemModifier.PriceMultiplier)` and
+`DefaultTradeItemPriceFactorModel.GetPrice(EquipmentElement …)` = `ItemValue × priceFactor` — a lame horse trades at a
+TENTH of a plain one, an old one at a fifth. The price walk of a town still moves the category's in-store value by
+`Item.Value` (the plain item's, §8). The price book's average is per ITEM (the plain one), so the steward scales a
+modified stack's min sell by its factor (`PriceBook.MinSellOf`) — else a lame horse could never be sold.
+
+**Does a modified horse still carry a footman? Yes — by the game's rule, with an in-session quirk.** The speed model's
+mounted footmen are `min(footmen, ItemRoster.NumberOfMounts)` (`DefaultPartySpeedCalculatingModel.AddCargoStats`), and
+`NumberOfMounts` counts every `HorseComponent.IsMount` element in the FULL recount (`ItemRoster.CalculateCachedStats`: on
+load via `Campaign.CalculateCachedStatsOnLoad` → `ItemRoster.CalculateCachedStatsOnLoad`, on `Clear()`, in the copy
+constructor) — modifier or not. But the INCREMENTAL counter (`ItemRoster.OnRosterUpdated`, every `AddToCounts`) skips
+any element with an `ItemModifier` (pack animals and mounts alike, §3's quirk): a lame horse added in-session does not
+count until the next load, and one counted at load that leaves in-session is not subtracted (the count stays one too high
+until the next load). The same counter feeds the capacity model (20 per mount) and the herd. So: a lame horse does give
+the footman bonus, reliably from the next load on — Anton's "keep it if it gives the bonus" holds; the steward counts it
+toward the horses to keep whenever it keeps one.
+
+**Upgrades take any horse of the category**: `PartyScreenLogic.RemoveItemFromItemRoster(category, n)` — `where
+Item.ItemCategory == category orderby Item.Value` (the PLAIN item's value) then locked last — a lame war horse is used
+for an upgrade like a healthy one.
+
+**The steward** (DESIGN §2.2–§2.4, step 17): never buys a modified animal (lame and old ones by Anton's rule; any other
+modifier as since step 4); with `ReplaceLameHorses` (default on) the bad ones sit in the Lame horses row and are sold, and
+their role rows buy healthy ones; off, they are kept and counted.
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -1162,6 +1218,12 @@ on (the window's summary names the gold too); the slots are taken in the recruit
     goes to nobody (§21).
 63. **Vanilla's party screen dismisses the WOUNDED first** (`TransferHealthiesGetWoundedsFirst` false) — no gold, no event;
     the stack's XP stays with the men who remain (§21).
+64. **Only two horse modifiers are live in v1.4.8, both bad**: `lame_horse` (×0.1, the hero's horse hurt in battle)
+    and `companion_horse` "Old" (×0.2, a wanderer's horse); the rest are commented out of `item_modifiers.xml` (§22).
+65. **"Bad modifier" = `ItemModifier.PriceMultiplier < 1`** — the game's own test (Metallurgy); `IsBeneficial()` reads
+    weapon stats only and says nothing about a horse (§22).
+66. **A modified horse trades at `Item.Value × PriceMultiplier`** (a lame one at a tenth) but a town's price walk moves by
+    the plain `Item.Value`, and the price book's average is the plain item's — scale a modified stack's min sell (§22).
 
 ---
 

@@ -32,7 +32,7 @@ public class PlanReportTests
         var plan = Scenario.BusyTown().Plan();
         Assert.Equal("Pack animals", PlanReport.RowLabel(plan.FindRow("mounts:pack")!));
         Assert.Equal("Riding mounts", PlanReport.RowLabel(plan.FindRow("mounts:riding")!));
-        Assert.Equal("Upgrade horses (war_horse)", PlanReport.RowLabel(plan.FindRow("mounts:upgrade:war_horse")!));
+        Assert.Equal("War horses", PlanReport.RowLabel(plan.FindRow("mounts:war")!));
         Assert.Equal("Armour", PlanReport.RowLabel(plan.FindRow("loot:Armour")!));
         Assert.Equal("grain", PlanReport.RowLabel(plan.FindRow("food:grain")!));
     }

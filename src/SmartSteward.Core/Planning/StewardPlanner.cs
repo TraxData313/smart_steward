@@ -17,14 +17,19 @@ namespace SmartSteward.Core.Planning
     /// same picking rules (<see cref="PlanWalk"/>) — change one, change both:
     /// <list type="number">
     /// <item>Prisoners — ransom gold (paid by the game, not the market) and donations.</item>
-    /// <item>SELL: food surplus (most-held type first), pack surplus, riding surplus, loot (all groups
-    ///   interleaved by SellLootOrder) — each unit only if the market can still pay for it.</item>
-    /// <item>BUY in priority order: food (under MinGoldAfterDeal), pack animals, riding mounts, upgrade horses
-    ///   (under both floors). No kind is both sold and bought in one visit.</item>
+    /// <item>SELL: food surplus (most-held type first), the animals (lame horses, pack surplus, noble horses, war surplus,
+    ///   riding surplus — <see cref="PlanReplay.AnimalSellRank"/>), loot (all groups interleaved by SellLootOrder) — each unit
+    ///   only if the market can still pay for it.</item>
+    /// <item>BUY in priority order: food (under MinGoldAfterDeal), pack animals, riding mounts, war horses
+    ///   (under both floors). No kind is both sold and bought in one visit — except the lame horses the healthy ones
+    ///   replace (step 17, ReplaceLameHorses).</item>
     /// <item>Tavern — rows at 0, outside the chain; never in an autonomous plan (DESIGN §6).</item>
     /// <item>Troops (step 16) — recruit and dismiss rows at 0, outside the chain like the tavern; never autonomous.</item>
     /// </list>
     /// <see cref="PlanMode.Autonomous"/> raises the floors to AutonomousMinGold (<see cref="MoneyFloors"/>).
+    /// <para>Step 17: when the steward buys war horses while the riding row has a surplus, the plan is made ONCE MORE with
+    /// those war horses pledged (<see cref="MountPlanner.PledgeHint"/>), so the riding surplus is sold against the war horses
+    /// the party will have after the deal — Anton's "100 riding + 10 war", reached in one visit.</para>
     /// <para>The live re-plan (step 15, DESIGN §1.1): <see cref="StewardPlan"/> plans again with the rows the player's hand
     /// is on PINNED (<see cref="PlanPins"/>) — the hires and prisoners define the party after the deal
     /// (<see cref="PartyAfter"/>), and in every phase above the pinned rows walk first, then the steward plans its own rows
@@ -48,7 +53,15 @@ namespace SmartSteward.Core.Planning
             // not free — the same quotes come up again and again (PLAN step 9, review area 5). A re-plan reuses the
             // plan's own cache.
             var cache = oracle as CachingPriceOracle ?? new CachingPriceOracle(oracle);
-            var ctx = new PlanContext(snapshot, settings, cache, mode, pins);
+            var plan = PlanOnce(snapshot, settings, cache, mode, pins, 0, out int pledge);
+            return pledge > 0 ? PlanOnce(snapshot, settings, cache, mode, pins, pledge, out _) : plan;
+        }
+
+        private static StewardPlan PlanOnce(StewardSnapshot snapshot, StewardSettings settings, CachingPriceOracle cache,
+            PlanMode mode, PlanPins pins, int warPledge, out int pledgeHint)
+        {
+            pledgeHint = 0;
+            var ctx = new PlanContext(snapshot, settings, cache, mode, pins, warPledge);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
                 return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0);
@@ -65,14 +78,18 @@ namespace SmartSteward.Core.Planning
             var prisonerRows = PrisonerPlanner.Plan(ctx, out int prisonersAfter);
 
             var food = new FoodPlanner(ctx, prisonersAfter);
-            var pack = new PackAnimalPlanner(ctx);
-            var mounts = new MountPlanner(ctx);
+            var lame = new LameHorsePlanner(ctx);
+            var pack = new PackAnimalPlanner(ctx, lame);
+            var mounts = new MountPlanner(ctx, lame);
             var loot = new LootPlanner(ctx);
 
-            // 2. Sell first — the proceeds fund the buys. In every phase the player's pinned rows go first.
+            // 2. Sell first — the proceeds fund the buys. In every phase the player's pinned rows go first; the animals in
+            //    the rank order lame · pack · noble · war · riding (PlanReplay.AnimalSellRank).
             food.PlanSells();
+            lame.PlanPinnedSells();
             pack.PlanPinnedSells();
             mounts.PlanPinnedSells();
+            lame.PlanSells();
             pack.PlanSells();
             mounts.PlanSells();
             loot.PlanSells();
@@ -85,20 +102,20 @@ namespace SmartSteward.Core.Planning
             mounts.PlanBuys();
 
             food.Finish();
+            lame.Finish();
             pack.Finish();
             mounts.Finish();
             loot.Finish();
+            pledgeHint = mounts.PledgeHint;
 
             facts.FoodEaters = food.Eaters;
             facts.FoodTarget = food.Target;
             facts.FoodSellAbove = food.SellAbove;
             facts.PackTarget = pack.Target;
             facts.Footmen = mounts.Footmen;
+            facts.MountTarget = mounts.MountTarget;
             facts.RidingTarget = mounts.RidingTarget;
-            facts.RidingCounted = mounts.RidingCounted;
-            facts.UpgradeReady = mounts.UpgradeReady;
-            facts.UpgradeNeed = mounts.UpgradeNeed;
-            facts.UpgradeReserved = mounts.UpgradeReserved;
+            facts.WarTarget = mounts.WarTarget;
 
             var rows = new List<PlanRow>();
             rows.AddRange(tavernRows);
@@ -106,6 +123,7 @@ namespace SmartSteward.Core.Planning
             rows.AddRange(food.Rows);
             if (pack.Row != null) rows.Add(pack.Row);
             rows.AddRange(mounts.Rows);
+            if (lame.Row != null) rows.Add(lame.Row);
             rows.AddRange(loot.Rows);
             rows.AddRange(prisonerRows);
             return Assemble(ctx, facts, rows, loot.SellOrder);

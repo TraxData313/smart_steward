@@ -494,8 +494,9 @@ namespace SmartSteward.Core.Planning
             _blocks.Clear();
         }
 
-        /// <summary>The row's static range: food and the mount role rows buy and sell; loot and prisoners only
-        /// sell; tavern rows only hire; troop rows recruit (up to what is on offer) and dismiss (down to the men held).</summary>
+        /// <summary>The row's static range: food and the mount role rows buy and sell (the noble and lame horse rows only sell —
+        /// they have nothing to buy, MaxBuy 0); loot and prisoners only sell; tavern rows only hire; troop rows recruit (up to
+        /// what is on offer) and dismiss (down to the men held).</summary>
         private static (int Min, int Max) Bounds(PlanRow row)
         {
             switch (row.Type)
@@ -527,6 +528,9 @@ namespace SmartSteward.Core.Planning
                     case RowType.Troop:
                         return row.MaxBuy == 0 ? EditBlock.NotOnOfferHere : EditBlock.AllOnOffer;
                     default:
+                        // Noble and lame horses are only ever sold (step 17).
+                        if (row.Role == MountRole.Noble || row.Role == MountRole.Lame)
+                            return EditBlock.SellOnly;
                         return row.MaxBuy == 0 ? EditBlock.NoneEligible : EditBlock.AllOnOffer;
                 }
             }

@@ -8,8 +8,10 @@ namespace SmartSteward.UI
 {
     /// <summary>
     /// The Instructions tab (DESIGN §1.2): every setting of the registry grouped as §7 — a checkbox, a number box
-    /// (with its range) or a button that cycles an enum — plus the live "troops ready to upgrade" line in the War mounts
-    /// group (step 12; the old "Prisoners to ransom" tick-list is gone — ransom is all or none). Labels and tooltips are MCM's (the same <c>ss_set_</c> / <c>ss_hint_</c> ids). Every change goes through the
+    /// (with its range) or a button that cycles an enum — with live notes after two kinds of box: the food goal's per-soul
+    /// figure, and the horses for this party beside "Horses per 100 footmen" and "War horses to keep" (step 17; the old
+    /// "troops ready to upgrade" line went with the upgrade counting, the "Prisoners to ransom" tick-list in step 12).
+    /// Labels and tooltips are MCM's (the same <c>ss_set_</c> / <c>ss_hint_</c> ids). Every change goes through the
     /// settings service at once (clamped, saved, MCM shows the same value); the plan is re-made when the Suggestion
     /// tab shows again.
     /// </summary>
@@ -24,7 +26,7 @@ namespace SmartSteward.UI
                 "Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does.");
         }
 
-        /// <summary>Builds the groups (again after Do it: the troops ready to upgrade may have changed).</summary>
+        /// <summary>Builds the groups (again after Do it: the party — its footmen, its food rate — may have changed).</summary>
         internal void EnsureBuilt(GameVisit visit)
         {
             if (_visit == visit && _groups.Count > 0)
@@ -36,28 +38,31 @@ namespace SmartSteward.UI
                 var vm = new SettingGroupVM(UiText.S("ss_grp_" + group.Key.Replace(" ", ""), SettingsRegistry.GroupLabel(group.Key)));
                 foreach (var def in group.Value)
                 {
-                    // The food goal in days shows what it means per man for this party, live (Anton 2026.09.28).
-                    vm.Settings.Add(new SettingLineVM(def, this,
-                        def.Key == nameof(StewardSettings.FoodDays) ? settings => FoodDaysNote(def, settings, visit) : null));
-                    if (def.Key == nameof(StewardSettings.WarMountsWarHorseTarget))
-                        vm.Settings.Add(ReadyToUpgradeLine(visit)); // the live need beside the two targets (round 1)
+                    // The food goal in days shows what it means per man for this party, live (Anton 2026.09.28); the horses
+                    // per 100 footmen and the war horses to keep show the horses they mean for it (step 17).
+                    System.Func<StewardSettings, string>? note = null;
+                    if (def.Key == nameof(StewardSettings.FoodDays))
+                        note = settings => FoodDaysNote(def, settings, visit);
+                    else if (def.Key == nameof(StewardSettings.MountsPer100Footmen) || def.Key == nameof(StewardSettings.WarMountsToKeep))
+                        note = settings => MountsNote(settings, visit);
+                    vm.Settings.Add(new SettingLineVM(def, this, note));
                 }
                 groups.Add(vm);
             }
             Groups = groups;
         }
 
-        /// <summary>"Troops ready to upgrade now: 4 for a horse, 10 for a war horse" — what "automatic" (-1) keeps, before
-        /// the spares.</summary>
-        private static SettingLineVM ReadyToUpgradeLine(GameVisit visit)
+        /// <summary>After the box: "(110 horses = 100 riding + 10 war, for 100 footmen)" — what the two numbers mean for this
+        /// party's footmen right now (before the deal), <see cref="MountGoal"/> (Anton 2026.09.28, step 17). The range stays in
+        /// the tooltip: the note alone fills the line's room (~400 px at the notes' font).</summary>
+        private static string MountsNote(StewardSettings settings, GameVisit visit)
         {
-            var needs = UpgradeNeeds.Of(visit.Snapshot);
-            return SettingLineVM.Heading(
-                UiText.S2("ss_ui_ready_to_upgrade", "Troops ready to upgrade now: {HORSES} for a horse, {WAR_HORSES} for a war horse",
-                    "HORSES", UiFormat.Money(needs.ReadyFor(UpgradeNeeds.Horse)),
-                    "WAR_HORSES", UiFormat.Money(needs.ReadyFor(UpgradeNeeds.WarHorse))),
-                UiText.S("ss_ui_ready_to_upgrade_hint",
-                    "What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen."));
+            int footmen = System.Math.Max(0, visit.Snapshot.Party?.Footmen ?? 0);
+            int war = MountGoal.War(settings);
+            int riding = MountGoal.Riding(settings, footmen);
+            return UiText.S4("ss_ui_mounts_note", "({TOTAL} horses = {RIDING} riding + {WAR} war, for {FOOTMEN} footmen)",
+                       "TOTAL", UiFormat.Money(riding + war), "RIDING", UiFormat.Money(riding), "WAR", UiFormat.Money(war),
+                       "FOOTMEN", UiFormat.Money(footmen));
         }
 
         /// <summary>After the days box: "days (~2.0 per soul)  ·  1–365" — the food units the goal keeps per man for this

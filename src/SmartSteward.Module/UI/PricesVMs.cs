@@ -10,7 +10,8 @@ namespace SmartSteward.UI
 {
     /// <summary>
     /// The Prices tab (DESIGN §1.3): the two multipliers at the top, then the price book in collapsible groups — Food,
-    /// and Horses with its sub-headers Pack animals · Mounts · War mounts. Per item: Buy tick, max-buy base × the buy
+    /// and Horses with its sub-headers Pack animals · Mounts · War mounts · Noble horses — sell only (step 17: no buy
+    /// column there, the sell placeholder always filled). Per item: Buy tick, max-buy base × the buy
     /// multiplier » final, Sell tick, min-sell base × the sell multiplier » final, ⟲. Every change goes through the
     /// settings service at once (saved to settings.json, Changed raised — the plan is re-made when the Suggestion tab
     /// shows again). A typed box keeps what the player typed; the rest of the row refreshes around it.
@@ -71,6 +72,7 @@ namespace SmartSteward.UI
             AddSubGroup(horses, items, PriceBookGroup.PackAnimals, UiText.S("ss_ui_prices_pack", "Pack animals"));
             AddSubGroup(horses, items, PriceBookGroup.Mounts, UiText.S("ss_ui_prices_mounts", "Mounts"));
             AddSubGroup(horses, items, PriceBookGroup.WarMounts, UiText.S("ss_ui_prices_war_mounts", "War mounts"));
+            AddSubGroup(horses, items, PriceBookGroup.NobleHorses, UiText.S("ss_ui_prices_noble", "Noble horses — sell only"));
             if (horses.Lines.Count > 0)
                 groups.Add(horses);
 
@@ -257,7 +259,7 @@ namespace SmartSteward.UI
         [DataSourceProperty] public bool IsCollapsed => !_isExpanded;
     }
 
-    /// <summary>One line of a price group: a sub-header (Pack animals · Mounts · War mounts) or an item row.</summary>
+    /// <summary>One line of a price group: a sub-header (Pack animals · Mounts · War mounts · Noble horses) or an item row.</summary>
     public sealed class PriceLineVM : ViewModel
     {
         private readonly PriceBookItem? _item;
@@ -291,6 +293,7 @@ namespace SmartSteward.UI
             _item = item;
             _tab = tab;
             IsItem = true;
+            HasBuy = item.Group != PriceBookGroup.NobleHorses; // noble horses are never bought (step 17)
             SubHeaderText = "";
             NameText = item.Name;
             ItemId = item.ItemId;
@@ -356,6 +359,9 @@ namespace SmartSteward.UI
 
         [DataSourceProperty] public bool IsSubHeader { get; }
         [DataSourceProperty] public bool IsItem { get; }
+
+        /// <summary>The buy half of the row shows (every group but the noble horses — sell only, step 17).</summary>
+        [DataSourceProperty] public bool HasBuy { get; }
         [DataSourceProperty] public string SubHeaderText { get; }
         [DataSourceProperty] public string NameText { get; }
         [DataSourceProperty] public HintVM ResetHint { get; }

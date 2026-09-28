@@ -61,7 +61,6 @@ namespace SmartSteward.Adapter
                 snap.MarketGold = 0; // no access, no market rows (DESIGN §3.5)
             ReadCarry(snap, main, ships);
             ReadAverages(snap, settlement, elements, main);
-            ReadUpgrades(snap, main);
             ReadPrisoners(snap, settlement, main, hero);
             if (isTown)
                 ReadTavern(snap, settlement, main, hero);
@@ -141,7 +140,6 @@ namespace SmartSteward.Adapter
                             PricePerMan = wages.GetTroopRecruitmentCost(troop, hero).RoundedResultNumber,
                             WagePerMan = troop.TroopWage,
                             IsMounted = troop.IsMounted,
-                            UpgradeCategories = UpgradeCategoriesOf(troop),
                             SeaWeightPerMan = SeaWeightPerMan(snap, main, troop),
                         };
                         byId[troop.StringId] = stack;
@@ -281,16 +279,16 @@ namespace SmartSteward.Adapter
                    + " (per member " + s.Carry.LandPerMember.ToString("0.#", inv) + ", mount " + s.Carry.LandPerMount.ToString("0.#", inv)
                    + ", pack " + s.Carry.LandPerPackAnimal.ToString("0.#", inv) + ", prisoner " + s.Carry.LandPerPrisoner.ToString("0.#", inv)
                    + "); inventory stacks/units [" + Kinds(s.Inventory) + "]; market [" + Kinds(s.Market) + "]; averages "
-                   + s.AveragePrices.Count.ToString(inv) + "; upgrade stacks " + s.Upgrades.Count.ToString(inv)
+                   + s.AveragePrices.Count.ToString(inv) + "; lame/old horses held "
+                   + s.Inventory.Where(x => (x.Kind == ItemKind.Mount || x.Kind == ItemKind.PackAnimal) && x.HasBadModifier)
+                       .Sum(x => x.Count).ToString(inv)
                    + "; prisoners " + s.Prisoners.Sum(p => p.Count).ToString(inv) + " in " + s.Prisoners.Count.ToString(inv)
                    + " stacks (ransom " + (s.Prison.CanRansom ? "yes" : "no") + ", donate "
                    + (s.Prison.DonateAllowed ? "yes, room " + s.Prison.DungeonRoom.ToString(inv) : "no") + "); tavern "
                    + (s.Tavern == null ? "none"
                        : s.Tavern.Wanderers.Count.ToString(inv) + " wanderers, "
                          + (s.Tavern.Mercenaries == null ? "no band" : s.Tavern.Mercenaries.Available.ToString(inv) + " " + s.Tavern.Mercenaries.Name
-                             + (s.Tavern.Mercenaries.IsMounted ? " (mounted" : " (on foot")
-                             + (s.Tavern.Mercenaries.UpgradeCategories.Count > 0
-                                 ? ", upgrades need " + string.Join("/", s.Tavern.Mercenaries.UpgradeCategories) : "") + ")"))
+                             + (s.Tavern.Mercenaries.IsMounted ? " (mounted)" : " (on foot)")))
                    + "; troops " + s.Troops.Count.ToString(inv) + " types, on offer ["
                    + string.Join(", ", s.Troops.Where(t => t.OnOffer > 0).Select(t => t.OnOffer.ToString(inv) + " " + t.TroopId
                        + " at " + t.PricePerMan.ToString(inv) + (t.IsMounted ? " (mounted)" : "")))
@@ -352,6 +350,9 @@ namespace SmartSteward.Adapter
                     UnitWeight = EffectiveWeight(capacity, el, main, false),
                     UnitWeightAtSea = ships ? EffectiveWeight(capacity, el, main, true) : 0,
                     UnitValue = el.ItemValue,
+                    // What the modifier does to the item's worth (ItemValue = Value x this): below 1 = a bad one - a lame or
+                    // old horse (RESEARCH section 22); the steward never buys one and scales its min sell price by it.
+                    ModifierPriceFactor = el.ItemModifier?.PriceMultiplier ?? 1f,
                     // TownMarketData.OnTownInventoryUpdated moves InStoreValue by Item.Value per unit
                     StoreValueStep = item.Value,
                 });
@@ -502,41 +503,6 @@ namespace SmartSteward.Adapter
                 GameRules.AverageSellPrice(item.Value, factor, sellPenalty));
         }
 
-        /// <summary>Every troop stack with upgrade targets, with the party screen's ready count per target
-        /// (RESEARCH §4) — the requirement sits on the TARGET troop.</summary>
-        private static void ReadUpgrades(StewardSnapshot snap, MobileParty main)
-        {
-            var model = Campaign.Current.Models.PartyTroopUpgradeModel;
-            foreach (var element in main.MemberRoster.GetTroopRoster())
-            {
-                var troop = element.Character;
-                if (troop == null || troop.IsHero || element.Number <= 0)
-                    continue;
-                var targets = troop.UpgradeTargets;
-                if (targets == null || targets.Length == 0)
-                    continue;
-                var stack = new UpgradeStack { TroopId = troop.StringId, Count = element.Number };
-                for (int i = 0; i < targets.Length; i++)
-                {
-                    var target = targets[i];
-                    if (target == null)
-                        continue;
-                    bool allowed = model.DoesPartyHaveRequiredPerksForUpgrade(main.Party, troop, target, out _);
-                    if (allowed && troop.Culture != null && troop.Culture.IsBandit)
-                        allowed = model.CanPartyUpgradeTroopToTarget(main.Party, troop, target);
-                    int cost = troop.GetUpgradeXpCost(main.Party, i);
-                    stack.Targets.Add(new UpgradeTarget
-                    {
-                        TroopId = target.StringId,
-                        RequiredCategoryId = target.UpgradeRequiresItemFromCategory?.StringId,
-                        ReadyCount = GameRules.UpgradeReadyCount(target.Level, troop.Level, element.Xp, cost,
-                            element.Number, allowed),
-                    });
-                }
-                snap.Upgrades.Add(stack);
-            }
-        }
-
         private static void ReadPrisoners(StewardSnapshot snap, Settlement settlement, MobileParty main, Hero hero)
         {
             bool isTown = settlement.IsTown;
@@ -608,30 +574,9 @@ namespace SmartSteward.Adapter
                     InParty = main.MemberRoster.GetTroopCount(troop),
                     SeaWeightPerMan = SeaWeightPerMan(snap, main, troop),
                     IsMounted = troop.IsMounted,
-                    UpgradeCategories = UpgradeCategoriesOf(troop),
                 };
             }
             snap.Tavern = tavern;
-        }
-
-        /// <summary>
-        /// The kinds of upgrade horse a troop type's upgrades need — <c>UpgradeRequiresItemFromCategory</c> of each upgrade
-        /// TARGET (RESEARCH §4). The live re-plan (step 15) puts them in play when such men are hired (never ready: new men
-        /// have no XP); step 16's recruits use the same.
-        /// </summary>
-        internal static List<string> UpgradeCategoriesOf(CharacterObject troop)
-        {
-            var categories = new List<string>();
-            var targets = troop.UpgradeTargets;
-            if (targets == null)
-                return categories;
-            foreach (var target in targets)
-            {
-                string? id = target?.UpgradeRequiresItemFromCategory?.StringId;
-                if (!string.IsNullOrEmpty(id) && !categories.Contains(id!))
-                    categories.Add(id!);
-            }
-            return categories;
         }
 
         private static string? SkillTag(Hero hero)

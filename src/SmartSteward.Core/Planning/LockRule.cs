@@ -34,8 +34,10 @@ namespace SmartSteward.Core.Planning
         public static bool Guards(ItemKind kind, StewardSettings settings) =>
             Guards(kind, settings == null || settings.LocksProtectFoodAndHorses);
 
-        /// <summary>The stack is locked AND its lock guards it — the steward never sells it.</summary>
+        /// <summary>The stack is locked AND its lock guards it — the steward never sells it. A NOBLE horse's lock always
+        /// guards it, whatever <see cref="StewardSettings.LocksProtectFoodAndHorses"/> says (Anton 2026.09.28, step 17: "we are
+        /// selling them if the player didn't lock them") — the lock is how the player keeps his own horse.</summary>
         public static bool IsGuarded(ItemStack stack, StewardSettings settings) =>
-            stack != null && stack.IsLocked && Guards(stack.Kind, settings);
+            stack != null && stack.IsLocked && (Guards(stack.Kind, settings) || MountGoal.IsNoble(stack));
     }
 }

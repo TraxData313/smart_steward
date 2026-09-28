@@ -138,7 +138,8 @@ namespace SmartSteward.Core.Planning
                 walk.Gold += p.Ransomed * p.Row.Prisoner!.RansomValue;
             }
 
-            // 2. Sell: food (most held first), pack, riding, upgrade horses, loot (in SellLootOrder across groups).
+            // 2. Sell: food (most held first), the animals in their rank order (lame, pack, noble, war, riding), loot (in
+            //    SellLootOrder across groups).
             var lines = new Dictionary<RowWalk, WalkLine>();
             WalkLine Line(RowWalk o, TradeLane lane, int quota)
             {
@@ -159,7 +160,8 @@ namespace SmartSteward.Core.Planning
                         .Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
                     () => true);
             foreach (bool player in passes)
-                foreach (var o in Pass(sells.Where(o => o.Row.Section == PlanSectionKind.Mounts), player))
+                foreach (var o in Pass(sells.Where(o => o.Row.Section == PlanSectionKind.Mounts), player)
+                             .OrderBy(o => AnimalSellRank(o.Row)))
                     PlanWalk.WalkLane(walk, Line(o, o.Row.SellLane!, -o.Requested), int.MaxValue, goldLeft);
             foreach (bool player in passes)
                 PlanWalk.SellInOrder(walk,
@@ -167,7 +169,7 @@ namespace SmartSteward.Core.Planning
                         .Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
                     inputs.LootOrder);
 
-            // 3. Buy: food, pack, riding, upgrade horses (the cheapest next across categories).
+            // 3. Buy: food, pack, riding, war horses (noble and lame horses are never bought).
             foreach (bool player in passes)
                 PlanWalk.BuyFood(walk,
                     Pass(buys.Where(o => o.Row.Type == RowType.Food), player)
@@ -257,6 +259,25 @@ namespace SmartSteward.Core.Planning
             }
 
             return new WalkOutcome(all, log, walk.Gold);
+        }
+
+        /// <summary>
+        /// The order the animal rows SELL in — the planner's (<see cref="StewardPlanner"/>) and the replay's alike (step 17): the
+        /// lame horses first (they are replaced, and fetch little), then pack animals, noble horses, war horses above the number
+        /// to keep, and last the riding horses — whose surplus is counted after every other kept horse is known. The table
+        /// shows them Pack · Riding · War · Noble · Lame.
+        /// </summary>
+        public static int AnimalSellRank(PlanRow row)
+        {
+            switch (row.Role)
+            {
+                case MountRole.Lame: return 0;
+                case MountRole.Pack: return 1;
+                case MountRole.Noble: return 2;
+                case MountRole.War: return 3;
+                case MountRole.Riding: return 4;
+                default: return 5;
+            }
         }
 
         /// <summary>A lane's stop, in the words of the row's buttons.</summary>

@@ -44,9 +44,6 @@ namespace SmartSteward.Core.Snapshot
         public Dictionary<string, AveragePrices> AveragePrices { get; set; } =
             new Dictionary<string, AveragePrices>(StringComparer.Ordinal);
 
-        /// <summary>Every party stack that has an upgrade target (ready or not) — the war-mount need.</summary>
-        public List<UpgradeStack> Upgrades { get; set; } = new List<UpgradeStack>();
-
         public List<PrisonerStack> Prisoners { get; set; } = new List<PrisonerStack>();
 
         public PrisonInfo Prison { get; set; } = new PrisonInfo();
@@ -181,9 +178,15 @@ namespace SmartSteward.Core.Snapshot
         public string ItemId { get; set; } = "";
         public string Name { get; set; } = "";
 
-        /// <summary>Null or empty = a plain item. Modified animals (lame, spirited…) count as held, but are
-        /// never bought.</summary>
+        /// <summary>Null or empty = a plain item. Modified animals (lame, old…) count as held, but are never bought
+        /// (DESIGN §2.2–§2.4, step 17).</summary>
         public string? ModifierId { get; set; }
+
+        /// <summary>The modifier's <c>ItemModifier.PriceMultiplier</c> — what the modifier does to the item's worth
+        /// (<c>EquipmentElement.ItemValue</c> = value × this); 1 for a plain item. Below 1 = a BAD modifier, the game's own
+        /// test (<c>BattleCampaignBehavior</c>'s Metallurgy perk, RESEARCH §22): vanilla's lame horse 0.1, old horse 0.2.
+        /// A stack's min sell price is scaled by it, so a lame horse is judged against a lame horse's worth.</summary>
+        public double ModifierPriceFactor { get; set; } = 1.0;
 
         public ItemKind Kind { get; set; }
 
@@ -214,6 +217,10 @@ namespace SmartSteward.Core.Snapshot
         public int StoreValueStep { get; set; }
 
         public bool IsModified => !string.IsNullOrEmpty(ModifierId);
+
+        /// <summary>A modifier that makes the item worth less than a plain one (<see cref="GameRules.IsBadModifier"/>) — for a
+        /// horse: lame or old (step 17: never bought; with ReplaceLameHorses sold and replaced by a healthy one).</summary>
+        public bool HasBadModifier => IsModified && GameRules.IsBadModifier(ModifierPriceFactor);
         public int LockedCount => IsLocked ? Count : 0;
         public int UnlockedCount => IsLocked ? 0 : Count;
     }
@@ -234,27 +241,6 @@ namespace SmartSteward.Core.Snapshot
 
         public int Buy { get; set; }
         public int Sell { get; set; }
-    }
-
-    /// <summary>A party troop stack with its upgrade targets. Both targets share the stack's XP pool, so a
-    /// stack is counted once (RESEARCH §4).</summary>
-    public sealed class UpgradeStack
-    {
-        public string TroopId { get; set; } = "";
-        public int Count { get; set; }
-        public List<UpgradeTarget> Targets { get; set; } = new List<UpgradeTarget>();
-    }
-
-    public sealed class UpgradeTarget
-    {
-        public string TroopId { get; set; } = "";
-
-        /// <summary><c>UpgradeRequiresItemFromCategory</c> of the TARGET troop; null/empty = needs no animal.</summary>
-        public string? RequiredCategoryId { get; set; }
-
-        /// <summary>The party screen's count: <c>min(floor(stackXp / xpCost), stack size)</c> when the target's
-        /// level ≥ the troop's — NOT capped by the animals held (those are what the steward fills).</summary>
-        public int ReadyCount { get; set; }
     }
 
     public sealed class PrisonerStack
@@ -330,11 +316,6 @@ namespace SmartSteward.Core.Snapshot
         /// <c>default_group</c>), RESEARCH §3. Not mounted = every man hired is one more footman who needs a riding mount (the
         /// live re-plan, step 15). The same field for the recruits of step 16.</summary>
         public bool IsMounted { get; set; }
-
-        /// <summary>The item categories the troop's upgrade targets require (<c>UpgradeRequiresItemFromCategory</c> — horse,
-        /// war_horse…). New men are never ready to upgrade; these only put a kind of upgrade horse "in play" (DESIGN §2.4). The
-        /// same field for the recruits of step 16.</summary>
-        public List<string> UpgradeCategories { get; set; } = new List<string>();
     }
 
     /// <summary>
@@ -374,9 +355,6 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary><c>CharacterObject.IsMounted</c> — the game's "man with a horse" (RESEARCH §3); not mounted = a footman.</summary>
         public bool IsMounted { get; set; }
-
-        /// <summary>The kinds of upgrade horse the type's upgrades need (a recruit puts them in play, never ready).</summary>
-        public List<string> UpgradeCategories { get; set; } = new List<string>();
 
         /// <summary>What one man adds to the load at sea — his horse, when the type rides (War Sails); 0 on foot or without ships.</summary>
         public double SeaWeightPerMan { get; set; }

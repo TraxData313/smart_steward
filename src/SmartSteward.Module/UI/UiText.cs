@@ -27,5 +27,10 @@ namespace SmartSteward.UI
             string name3, string value3) =>
             T(id, english).SetTextVariable(name1, value1).SetTextVariable(name2, value2).SetTextVariable(name3, value3)
                 .ToString();
+
+        public static string S4(string id, string english, string name1, string value1, string name2, string value2,
+            string name3, string value3, string name4, string value4) =>
+            T(id, english).SetTextVariable(name1, value1).SetTextVariable(name2, value2).SetTextVariable(name3, value3)
+                .SetTextVariable(name4, value4).ToString();
     }
 }

@@ -24,13 +24,17 @@ public class SettingEditTests
         var s = new StewardSettings();
         var gold = (IntSetting)SettingsRegistry.Find("MinGoldAfterDeal")!;
         var food = (FloatSetting)SettingsRegistry.Find("BuyPriceMultiplier")!;
-        var manual = (IntSetting)SettingsRegistry.Find("WarMountsHorseTarget")!;
+        var manual = (IntSetting)SettingsRegistry.Find("FoodSurplusTolerancePercent")!;
+        var negative = new IntSetting("Negative", SettingsRegistry.General, "Negative", "A range below zero.", -1, 500,
+            _ => -1, (_, _) => { });
         Assert.Equal("1000", SettingEdit.Text(gold, s));
         Assert.Equal("1.2", SettingEdit.Text(food, s));
-        Assert.Equal("-1", SettingEdit.Text(manual, s));
+        Assert.Equal("25", SettingEdit.Text(manual, s));
+        Assert.Equal("-1", SettingEdit.Text(negative, s));
         Assert.Equal("0–1,000,000", SettingEdit.Range(gold));
         Assert.Equal("0.1–10", SettingEdit.Range(food));
-        Assert.Equal("–1–500", SettingEdit.Range(manual));
+        Assert.Equal("0–500", SettingEdit.Range(manual));
+        Assert.Equal("–1–500", SettingEdit.Range(negative));
         Assert.Equal("", SettingEdit.Range(SettingsRegistry.Find("ModEnabled")!));
     }
 

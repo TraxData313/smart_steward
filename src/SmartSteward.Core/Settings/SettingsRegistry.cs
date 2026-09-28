@@ -176,8 +176,9 @@ namespace SmartSteward.Core.Settings
                 "Pack animals and riding horses you gave no price use their average price as the base.",
                 s => s.AutoFillPackAndMountPrices, (s, v) => s.AutoFillPackAndMountPrices = v),
             new BoolSetting(nameof(StewardSettings.AutoFillWarMountPrices), Prices, "Average prices for war horses",
-                "War and noble horses you gave no price use their average price as the base. When off, they are bought "
-                + "only under the upgrade horse price cap until you type a price.",
+                "War horses you gave no price use their average price as the base. When off, they are bought only under "
+                + "the war horse price cap until you type a price. (Noble horses always show their average sell price - "
+                + "they are only ever sold.)",
                 s => s.AutoFillWarMountPrices, (s, v) => s.AutoFillWarMountPrices = v),
             new PriceBookSetting(nameof(StewardSettings.PriceBook), Prices, "Price book",
                 "Your own prices and ticks from the Prices tab, by item id - only what you changed. Each item may have "
@@ -203,46 +204,45 @@ namespace SmartSteward.Core.Settings
 
             // ── Mounts ───────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.MountsEnabled), Mounts, "Manage riding horses",
-                "Buy horses for the men who walk, so the party moves faster.",
+                "Keep horses for the men who walk, so the party moves faster.",
                 s => s.MountsEnabled, (s, v) => s.MountsEnabled = v),
             new IntSetting(nameof(StewardSettings.MountsPer100Footmen), Mounts, "Horses per 100 footmen",
-                "Riding horses kept for every 100 men on foot: 110 is one each plus 10% spare.",
+                "Horses kept for every 100 men on foot: 110 is one each plus 10% spare. The war horses you keep count "
+                + "among them; riding horses fill the rest.",
                 0, 300, s => s.MountsPer100Footmen, (s, v) => s.MountsPer100Footmen = v),
             new IntSetting(nameof(StewardSettings.MountMaxPrice), Mounts, "Max price per riding horse",
                 "Never pay more than this for a footman's horse, whatever the price book says. 0 = no cap. "
                 + "Not scaled by the buy multiplier.",
                 0, MaxAnimalPrice, s => s.MountMaxPrice, (s, v) => s.MountMaxPrice = v),
-            new BoolSetting(nameof(StewardSettings.WarMountsCountAsMounts), Mounts, "Upgrade horses carry footmen",
-                "Horses kept for troop upgrades also count as riding horses for the footmen until the upgrade takes them.",
-                s => s.WarMountsCountAsMounts, (s, v) => s.WarMountsCountAsMounts = v),
             new BoolSetting(nameof(StewardSettings.SellMountSurplus), Mounts, "Sell surplus riding horses",
                 "Sell riding horses above the target, the dearest first.",
                 s => s.SellMountSurplus, (s, v) => s.SellMountSurplus = v),
+            new BoolSetting(nameof(StewardSettings.SellNobleHorses), Mounts, "Sell noble horses",
+                "Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and "
+                + "sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you "
+                + "lock in the inventory is always kept, and a kept one carries a footman.",
+                s => s.SellNobleHorses, (s, v) => s.SellNobleHorses = v),
+            new BoolSetting(nameof(StewardSettings.ReplaceLameHorses), Mounts, "Replace lame horses",
+                "Sell the party's lame and old horses and pack animals and buy healthy ones in their place. When off they "
+                + "are kept - a lame horse still carries a footman. The steward never buys one either way.",
+                s => s.ReplaceLameHorses, (s, v) => s.ReplaceLameHorses = v),
 
             // ── War mounts ───────────────────────────────────────────────────────────────────────
-            new BoolSetting(nameof(StewardSettings.WarMountsEnabled), WarMounts, "Manage upgrade horses",
-                "Keep the horses your troops need to upgrade into cavalry.",
+            new BoolSetting(nameof(StewardSettings.WarMountsEnabled), WarMounts, "Manage war horses",
+                "Keep a set number of war horses for upgrading your troops into cavalry. When off, a war horse is just "
+                + "another riding horse to the steward.",
                 s => s.WarMountsEnabled, (s, v) => s.WarMountsEnabled = v),
-            new IntSetting(nameof(StewardSettings.WarMountsHorseTarget), WarMounts, "Horses for upgrades",
-                "Horses kept for troops whose upgrade needs a plain horse (the party screen's upgrade tooltip says "
-                + "\"Required: Horse\"). -1 = automatic: as many as your troops ready to upgrade need right now, plus the "
-                + "spares below. 0 or more = keep exactly that many.",
-                -1, 500, s => s.WarMountsHorseTarget, (s, v) => s.WarMountsHorseTarget = v),
-            new IntSetting(nameof(StewardSettings.WarMountsWarHorseTarget), WarMounts, "War horses for upgrades",
-                "War horses kept for troops whose upgrade needs one (the tooltip says \"Required: War Horse\"). "
-                + "-1 = automatic: as many as your troops ready to upgrade need right now, plus the spares below. "
-                + "0 or more = keep exactly that many.",
-                -1, 500, s => s.WarMountsWarHorseTarget, (s, v) => s.WarMountsWarHorseTarget = v),
-            new IntSetting(nameof(StewardSettings.WarMountsExtra), WarMounts, "Spare upgrade horses (each kind)",
-                "Extra horses kept on top of the automatic count - this many horses AND this many war horses, for "
-                + "the kinds your troops upgrade into. Not added to a kind you gave a fixed number above.",
-                0, 100, s => s.WarMountsExtra, (s, v) => s.WarMountsExtra = v),
-            new IntSetting(nameof(StewardSettings.WarMountMaxPrice), WarMounts, "Max price per upgrade horse",
-                "Never pay more than this for one upgrade horse, whatever the price book says. 0 = no cap. "
+            new IntSetting(nameof(StewardSettings.WarMountsToKeep), WarMounts, "War horses to keep",
+                "How many war horses the party keeps - bought up to it, sold above it. They carry footmen until you "
+                + "upgrade men with them (who then ride as cavalry), so they count among the horses per 100 footmen. "
+                + "0 = none kept: spare war horses are sold.",
+                0, 500, s => s.WarMountsToKeep, (s, v) => s.WarMountsToKeep = v),
+            new IntSetting(nameof(StewardSettings.WarMountMaxPrice), WarMounts, "Max price per war horse",
+                "Never pay more than this for one war horse, whatever the price book says. 0 = no cap. "
                 + "Not scaled by the buy multiplier.",
                 0, MaxAnimalPrice, s => s.WarMountMaxPrice, (s, v) => s.WarMountMaxPrice = v),
-            new BoolSetting(nameof(StewardSettings.SellWarMountSurplus), WarMounts, "Sell surplus upgrade horses",
-                "Sell upgrade horses above what your troops need, the dearest first.",
+            new BoolSetting(nameof(StewardSettings.SellWarMountSurplus), WarMounts, "Sell surplus war horses",
+                "Sell war horses above the number to keep, the dearest first.",
                 s => s.SellWarMountSurplus, (s, v) => s.SellWarMountSurplus = v),
 
             // ── Prisoners ────────────────────────────────────────────────────────────────────────

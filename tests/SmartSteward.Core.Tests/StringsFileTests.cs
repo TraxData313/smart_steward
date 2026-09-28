@@ -30,10 +30,10 @@ public class StringsFileTests
 
     // UiText.S("ss_x", "English" …  (the English must be ONE literal, then ',' or ')')
     private static readonly Regex UiTextCall = new Regex(
-        @"UiText\.(?:S|S1|S2|S3|T)\(\s*""(ss_[A-Za-z0-9_]+)""\s*,\s*" + Literal + @"\s*[,)]", RegexOptions.Compiled);
+        @"UiText\.(?:S|S1|S2|S3|S4|T)\(\s*""(ss_[A-Za-z0-9_]+)""\s*,\s*" + Literal + @"\s*[,)]", RegexOptions.Compiled);
 
     // Any UiText call whose id is a whole literal (not "ss_family_" + …) — each must match UiTextCall.
-    private static readonly Regex UiTextAnyLiteralId = new Regex(@"UiText\.(?:S|S1|S2|S3|T)\(\s*""(ss_[A-Za-z0-9_]+)""(?!\s*\+)",
+    private static readonly Regex UiTextAnyLiteralId = new Regex(@"UiText\.(?:S|S1|S2|S3|S4|T)\(\s*""(ss_[A-Za-z0-9_]+)""(?!\s*\+)",
         RegexOptions.Compiled);
 
     // Any other place an id is built the same way (McmBridge.Text("ss_set_" + …)).

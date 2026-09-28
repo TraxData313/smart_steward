@@ -48,7 +48,7 @@
     <string id="ss_grp_Warmounts" text="War mounts" />
     <string id="ss_hint_AutoFillFoodPrices" text="Food you gave no price in the Prices tab uses its average price as the base. Default: on." />
     <string id="ss_hint_AutoFillPackAndMountPrices" text="Pack animals and riding horses you gave no price use their average price as the base. Default: on." />
-    <string id="ss_hint_AutoFillWarMountPrices" text="War and noble horses you gave no price use their average price as the base. When off, they are bought only under the upgrade horse price cap until you type a price. Default: off." />
+    <string id="ss_hint_AutoFillWarMountPrices" text="War horses you gave no price use their average price as the base. When off, they are bought only under the war horse price cap until you type a price. (Noble horses always show their average sell price - they are only ever sold.) Default: off." />
     <string id="ss_hint_AutoPopupOnTownEnter" text="Open the Party Steward window when your party enters a town. Default: on." />
     <string id="ss_hint_AutoPopupOnVillageEnter" text="Open the Party Steward window when your party enters a village. Default: on." />
     <string id="ss_hint_AutonomousMinGold" text="While the full-autonomous steward is on, it never takes your purse below this - both floors above rise to it when they are lower. Raise the price limits to let it spend more freely, never this. Default: 100,000. Range: 0 to 10,000,000." />
@@ -65,33 +65,32 @@
     <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_ModEnabled" text="Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, nothing done on its own. Default: on." />
     <string id="ss_hint_MountMaxPrice" text="Never pay more than this for a footman's horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 500. Range: 0 to 100,000." />
-    <string id="ss_hint_MountsEnabled" text="Buy horses for the men who walk, so the party moves faster. Default: on." />
-    <string id="ss_hint_MountsPer100Footmen" text="Riding horses kept for every 100 men on foot: 110 is one each plus 10% spare. Default: 110. Range: 0 to 300." />
+    <string id="ss_hint_MountsEnabled" text="Keep horses for the men who walk, so the party moves faster. Default: on." />
+    <string id="ss_hint_MountsPer100Footmen" text="Horses kept for every 100 men on foot: 110 is one each plus 10% spare. The war horses you keep count among them; riding horses fill the rest. Default: 110. Range: 0 to 300." />
     <string id="ss_hint_PackAnimalMaxPrice" text="Never pay more than this for one pack animal, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 300. Range: 0 to 100,000." />
     <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
     <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
     <string id="ss_hint_RansomHeroPrisoners" text="Also ransom (or donate) captured lords. A ransomed lord goes free. Default: off." />
     <string id="ss_hint_RansomPrisoners" text="Offer your prisoners to the town's ransom broker. Default: on." />
+    <string id="ss_hint_ReplaceLameHorses" text="Sell the party's lame and old horses and pack animals and buy healthy ones in their place. When off they are kept - a lame horse still carries a footman. The steward never buys one either way. Default: on." />
     <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
     <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields). Default: off." />
     <string id="ss_hint_SellLootEquipment" text="Include weapons, armour, shields and ammunition in the loot sale. Default: on." />
     <string id="ss_hint_SellLootMaxItemValue" text="Never sell a piece worth more than this many denars. 0 = no cap. Pieces you locked in the inventory are never sold anyway. Default: 0. Range: 0 to 1,000,000." />
     <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the gold), the lowest price per kg, or the most expensive (the game's own habit). Default: Cheapest first." />
     <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
+    <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
     <string id="ss_hint_SellPackAnimalSurplus" text="Sell pack animals above the target, the dearest first. Default: on." />
     <string id="ss_hint_SellPriceMultiplier" text="Min sell price = the item's base price (Prices tab) times this. 0.8 sells at 80% of the average sell price or better; 0 sells at any price. Default: 0.8. Range: 0.0 to 10.0." />
-    <string id="ss_hint_SellWarMountSurplus" text="Sell upgrade horses above what your troops need, the dearest first. Default: on." />
+    <string id="ss_hint_SellWarMountSurplus" text="Sell war horses above the number to keep, the dearest first. Default: on." />
     <string id="ss_hint_ShowMercenaries" text="List the mercenary band in the town's tavern. Default: on." />
     <string id="ss_hint_ShowTavern" text="Show the tavern section in towns: wanderers and mercenaries to hire with a click. Default: on." />
     <string id="ss_hint_ShowTroops" text="Show the troops section in towns and villages: the recruits the notables offer you, then your own troops, to recruit or dismiss with a click. Nothing is ever recruited or dismissed unless you click. Default: on." />
     <string id="ss_hint_ShowWanderers" text="List the wanderers for hire in the town's tavern. Default: on." />
-    <string id="ss_hint_WarMountMaxPrice" text="Never pay more than this for one upgrade horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 2,000. Range: 0 to 100,000." />
-    <string id="ss_hint_WarMountsCountAsMounts" text="Horses kept for troop upgrades also count as riding horses for the footmen until the upgrade takes them. Default: on." />
-    <string id="ss_hint_WarMountsEnabled" text="Keep the horses your troops need to upgrade into cavalry. Default: on." />
-    <string id="ss_hint_WarMountsExtra" text="Extra horses kept on top of the automatic count - this many horses AND this many war horses, for the kinds your troops upgrade into. Not added to a kind you gave a fixed number above. Default: 0. Range: 0 to 100." />
-    <string id="ss_hint_WarMountsHorseTarget" text="Horses kept for troops whose upgrade needs a plain horse (the party screen's upgrade tooltip says &quot;Required: Horse&quot;). -1 = automatic: as many as your troops ready to upgrade need right now, plus the spares below. 0 or more = keep exactly that many. Default: -1. Range: -1 to 500." />
-    <string id="ss_hint_WarMountsWarHorseTarget" text="War horses kept for troops whose upgrade needs one (the tooltip says &quot;Required: War Horse&quot;). -1 = automatic: as many as your troops ready to upgrade need right now, plus the spares below. 0 or more = keep exactly that many. Default: -1. Range: -1 to 500." />
+    <string id="ss_hint_WarMountMaxPrice" text="Never pay more than this for one war horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 2,000. Range: 0 to 100,000." />
+    <string id="ss_hint_WarMountsEnabled" text="Keep a set number of war horses for upgrading your troops into cavalry. When off, a war horse is just another riding horse to the steward. Default: on." />
+    <string id="ss_hint_WarMountsToKeep" text="How many war horses the party keeps - bought up to it, sold above it. They carry footmen until you upgrade men with them (who then ride as cavalry), so they count among the horses per 100 footmen. 0 = none kept: spare war horses are sold. Default: 0. Range: 0 to 500." />
     <string id="ss_hint_WarnIfNotReviewed" text="Ask before you leave a town or village whose suggestions you never looked at. Default: on." />
     <string id="ss_leave_anyway" text="Leave anyway" />
     <string id="ss_leave_review" text="Review" />
@@ -132,25 +131,24 @@
     <string id="ss_set_PopupOnlyWithChanges" text="Only open with suggestions" />
     <string id="ss_set_RansomHeroPrisoners" text="Include lords" />
     <string id="ss_set_RansomPrisoners" text="Ransom prisoners" />
+    <string id="ss_set_ReplaceLameHorses" text="Replace lame horses" />
     <string id="ss_set_SellFoodSurplus" text="Sell surplus food" />
     <string id="ss_set_SellLoot" text="Sell loot" />
     <string id="ss_set_SellLootEquipment" text="Sell weapons and armour" />
     <string id="ss_set_SellLootMaxItemValue" text="Keep pieces worth more than" />
     <string id="ss_set_SellLootOrder" text="Loot selling order" />
     <string id="ss_set_SellMountSurplus" text="Sell surplus riding horses" />
+    <string id="ss_set_SellNobleHorses" text="Sell noble horses" />
     <string id="ss_set_SellPackAnimalSurplus" text="Sell surplus pack animals" />
     <string id="ss_set_SellPriceMultiplier" text="Sell price multiplier" />
-    <string id="ss_set_SellWarMountSurplus" text="Sell surplus upgrade horses" />
+    <string id="ss_set_SellWarMountSurplus" text="Sell surplus war horses" />
     <string id="ss_set_ShowMercenaries" text="Show mercenaries" />
     <string id="ss_set_ShowTavern" text="Show the tavern" />
     <string id="ss_set_ShowTroops" text="Show the troops" />
     <string id="ss_set_ShowWanderers" text="Show wanderers" />
-    <string id="ss_set_WarMountMaxPrice" text="Max price per upgrade horse" />
-    <string id="ss_set_WarMountsCountAsMounts" text="Upgrade horses carry footmen" />
-    <string id="ss_set_WarMountsEnabled" text="Manage upgrade horses" />
-    <string id="ss_set_WarMountsExtra" text="Spare upgrade horses (each kind)" />
-    <string id="ss_set_WarMountsHorseTarget" text="Horses for upgrades" />
-    <string id="ss_set_WarMountsWarHorseTarget" text="War horses for upgrades" />
+    <string id="ss_set_WarMountMaxPrice" text="Max price per war horse" />
+    <string id="ss_set_WarMountsEnabled" text="Manage war horses" />
+    <string id="ss_set_WarMountsToKeep" text="War horses to keep" />
     <string id="ss_set_WarnIfNotReviewed" text="Warn before leaving" />
     <string id="ss_ui_block_all_dismissed" text="All of them are already dismissed in the plan." />
     <string id="ss_ui_block_all_on_offer" text="Everything on offer is already in the plan." />
@@ -182,8 +180,9 @@
     <string id="ss_ui_col_type" text="Type" />
     <string id="ss_ui_detail_donated" text="{N} to the dungeon" />
     <string id="ss_ui_detail_frees" text="{KG} kg" />
+    <string id="ss_ui_detail_lame" text="sold - healthy ones take their place" />
     <string id="ss_ui_detail_lord" text="lord" />
-    <string id="ss_ui_detail_need" text="needed for upgrades {N}" />
+    <string id="ss_ui_detail_noble" text="yours and your companions' - sold unless locked" />
     <string id="ss_ui_detail_target" text="target {N}" />
     <string id="ss_ui_detail_wage" text="{WAGE} a day" />
     <string id="ss_ui_detail_wage_each" text="{WAGE} a day each" />
@@ -221,6 +220,7 @@
     <string id="ss_ui_market_closed" text="Market closed: {REASON}" />
     <string id="ss_ui_mine_kept" text="(+{N} kept)" />
     <string id="ss_ui_mine_locked" text="(+{N} locked)" />
+    <string id="ss_ui_mounts_note" text="({TOTAL} horses = {RIDING} riding + {WAR} war, for {FOOTMEN} footmen)" />
     <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
     <string id="ss_ui_nothing_to_do" text="Nothing to do." />
     <string id="ss_ui_open_failed" text="Smart Steward: the window could not open - see smart_steward.log." />
@@ -229,21 +229,22 @@
     <string id="ss_ui_prices_horses" text="Horses" />
     <string id="ss_ui_prices_intro" text="Final = your base price × the multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold." />
     <string id="ss_ui_prices_mounts" text="Mounts" />
+    <string id="ss_ui_prices_noble" text="Noble horses — sell only" />
     <string id="ss_ui_prices_pack" text="Pack animals" />
     <string id="ss_ui_prices_reset_hint" text="Clear your prices - the grey average applies again" />
     <string id="ss_ui_prices_war_mounts" text="War mounts" />
-    <string id="ss_ui_ready_to_upgrade" text="Troops ready to upgrade now: {HORSES} for a horse, {WAR_HORSES} for a war horse" />
-    <string id="ss_ui_ready_to_upgrade_hint" text="What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen." />
     <string id="ss_ui_reset_all" text="Reset all" />
     <string id="ss_ui_reset_hint" text="Your number - the steward plans around it. Click to hand the row back to the steward." />
+    <string id="ss_ui_role_lame" text="Lame horses" />
+    <string id="ss_ui_role_noble" text="Noble horses" />
     <string id="ss_ui_role_pack" text="Pack animals" />
     <string id="ss_ui_role_riding" text="Riding mounts" />
-    <string id="ss_ui_role_upgrade" text="Upgrade horses ({CATEGORY})" />
+    <string id="ss_ui_role_war" text="War horses" />
     <string id="ss_ui_sec_food" text="Food" />
     <string id="ss_ui_sec_food_detail" text="target {TARGET} for {EATERS} eaters" />
     <string id="ss_ui_sec_loot" text="Armour &amp; weapons" />
     <string id="ss_ui_sec_mounts" text="Mounts" />
-    <string id="ss_ui_sec_mounts_detail" text="{FOOTMEN} men on foot  ·  riding target {TARGET}" />
+    <string id="ss_ui_sec_mounts_detail" text="{FOOTMEN} men on foot  ·  {TOTAL} horses to keep" />
     <string id="ss_ui_sec_prisoners" text="Prisoners" />
     <string id="ss_ui_sec_recruits" text="Recruits on offer" />
     <string id="ss_ui_sec_recruits_detail" text="[+] recruits  ·  [–] dismisses yours" />

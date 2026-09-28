@@ -91,22 +91,40 @@ internal sealed class Scenario
         return this;
     }
 
+    /// <summary>A pack animal. <paramref name="modifier"/> with its <paramref name="priceFactor"/> (the game's
+    /// <c>ItemModifier.PriceMultiplier</c>): vanilla's lame horse is 0.1 — pass <see cref="Lame"/>; a modifier without a factor
+    /// is a neutral one (1.0).</summary>
     public Scenario Pack(string id, int held = 0, int market = 0, int buy = 150, int sell = 70,
-        string? modifier = null, bool locked = false, bool noAverage = false)
+        string? modifier = null, bool locked = false, bool noAverage = false, double priceFactor = 1.0)
     {
-        Item(id, id, modifier, ItemKind.PackAnimal, "sumpter_horse", held, market, buy, sell, 0, locked);
-        if (!noAverage) Snap.AveragePrices[id] = new AveragePrices(buy, sell);
+        Item(id, id, modifier, ItemKind.PackAnimal, "sumpter_horse", held, market, buy, sell, 0, locked, priceFactor: priceFactor);
+        Average(id, modifier, buy, sell, noAverage, priceFactor);
         return this;
     }
+
+    /// <summary>The price factor of vanilla's "Lame" horse modifier (<c>lame_horse</c>, RESEARCH §22).</summary>
+    public const double Lame = 0.1;
 
     /// <summary>A riding animal of a category (horse, war_horse, noble_horse…). War-horse-group items get no
     /// average unless asked (AutoFillWarMountPrices is off by default anyway).</summary>
     public Scenario Mount(string id, string category, int held = 0, int market = 0, int buy = 300, int sell = 150,
-        string? modifier = null, bool locked = false, bool noAverage = false)
+        string? modifier = null, bool locked = false, bool noAverage = false, double priceFactor = 1.0)
     {
-        Item(id, id, modifier, ItemKind.Mount, category, held, market, buy, sell, 0, locked);
-        if (!noAverage) Snap.AveragePrices[id] = new AveragePrices(buy, sell);
+        Item(id, id, modifier, ItemKind.Mount, category, held, market, buy, sell, 0, locked, priceFactor: priceFactor);
+        Average(id, modifier, buy, sell, noAverage, priceFactor);
         return this;
+    }
+
+    /// <summary>The price book's placeholder is the PLAIN item's average (the game's, per item): a modified stack sets it
+    /// only when the plain one did not, as the plain equivalent of its own prices; a plain stack always sets it.</summary>
+    private void Average(string id, string? modifier, int buy, int sell, bool noAverage, double priceFactor)
+    {
+        if (noAverage)
+            return;
+        if (modifier == null)
+            Snap.AveragePrices[id] = new AveragePrices(buy, sell);
+        else if (!Snap.AveragePrices.ContainsKey(id))
+            Snap.AveragePrices[id] = new AveragePrices((int)Math.Round(buy / priceFactor), (int)Math.Round(sell / priceFactor));
     }
 
     public Scenario Loot(string id, LootGroup group, int held, int sell, int? value = null, double weight = 5,
@@ -115,22 +133,6 @@ internal sealed class Scenario
         Item(id, id, null, ItemKind.Equipment, category ?? group.ToString(), held, 0, sell * 3, sell, weight, locked,
             value ?? sell * 3);
         Snap.Inventory[^1].LootGroup = group;
-        return this;
-    }
-
-    public Scenario Upgrade(string troop, int count, params (string? Category, int Ready)[] targets)
-    {
-        Snap.Upgrades.Add(new UpgradeStack
-        {
-            TroopId = troop,
-            Count = count,
-            Targets = targets.Select((t, i) => new UpgradeTarget
-            {
-                TroopId = troop + "_up" + i,
-                RequiredCategoryId = t.Category,
-                ReadyCount = t.Ready,
-            }).ToList(),
-        });
         return this;
     }
 
@@ -154,7 +156,7 @@ internal sealed class Scenario
     /// <summary>A troop type of the troops section (step 16): <paramref name="inParty"/> men in the party (dismissable unless
     /// said), <paramref name="onOffer"/> volunteers the notables offer the player at <paramref name="price"/> a man.</summary>
     public Scenario Troop(string id, int inParty = 0, int onOffer = 0, int price = 20, bool mounted = false, int wounded = 0,
-        bool canDismiss = true, int wage = 2, string? upgrade = null, double seaWeight = 0)
+        bool canDismiss = true, int wage = 2, double seaWeight = 0)
     {
         Snap.Troops.Add(new TroopStack
         {
@@ -167,7 +169,6 @@ internal sealed class Scenario
             PricePerMan = price,
             WagePerMan = wage,
             IsMounted = mounted,
-            UpgradeCategories = upgrade == null ? new List<string>() : new List<string> { upgrade },
             SeaWeightPerMan = seaWeight,
         });
         return this;
@@ -177,7 +178,6 @@ internal sealed class Scenario
     public static Scenario BusyTown()
     {
         var s = new Scenario().Party(20, footmen: 10).Gold(30_000, marketGold: 5_000)
-            .Upgrade("recruit", 10, (null, 4), ("war_horse", 4))
             .Food("grain", held: 5, market: 100, buy: 10)
             .Food("fish", market: 50, buy: 14)
             .Food("cheese", held: 2, market: 10, buy: 25)
@@ -192,6 +192,7 @@ internal sealed class Scenario
             .Prisoner("looter", 8, 20)
             .Prisoner("lord_x", 1, 3000, hero: true);
         s.Settings.SellLoot = true;
+        s.Settings.WarMountsToKeep = 4;
         s.Oracle.Slope = 0.0001;
         s.Snap.Tavern = new TavernInfo
         {
@@ -206,7 +207,7 @@ internal sealed class Scenario
     }
 
     private void Item(string key, string id, string? modifier, ItemKind kind, string category, int held, int market,
-        int buy, int sell, double weight, bool locked, int? value = null)
+        int buy, int sell, double weight, bool locked, int? value = null, double priceFactor = 1.0)
     {
         string stackKey = key + (modifier ?? "");
         Oracle.Set(stackKey, buy, sell);
@@ -216,13 +217,15 @@ internal sealed class Scenario
             ItemId = id,
             Name = id,
             ModifierId = modifier,
+            ModifierPriceFactor = modifier == null ? 1.0 : priceFactor,
             Kind = kind,
             CategoryId = category,
             Count = count,
             IsLocked = isLocked,
             UnitWeight = weight,
             UnitValue = value ?? buy,
-            StoreValueStep = value ?? buy,
+            // The game walks a town's prices by ItemObject.Value — the PLAIN item's worth, whatever the modifier.
+            StoreValueStep = value ?? (modifier == null ? buy : (int)Math.Round(buy / priceFactor)),
         };
         if (held > 0) Snap.Inventory.Add(Stack(held, locked));
         if (market > 0) Snap.Market.Add(Stack(market, false));

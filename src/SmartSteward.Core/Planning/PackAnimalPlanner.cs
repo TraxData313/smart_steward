@@ -10,29 +10,33 @@ namespace SmartSteward.Core.Planning
     /// Pack animals (DESIGN §2.2): keep PackAnimalsTarget. One role row. Buys the cheapest eligible (Buy-ticked,
     /// unmodified, within its price-book max AND PackAnimalMaxPrice); sells the surplus most expensive first.
     /// Modified (lame…) and locked animals count as held; a locked one is sold like any other unless
-    /// LocksProtectFoodAndHorses (<see cref="LockRule"/>).
+    /// LocksProtectFoodAndHorses (<see cref="LockRule"/>). With ReplaceLameHorses (step 17) the lame ones sit in the Lame
+    /// horses row instead (<see cref="LameHorsePlanner"/>, sold first) and this row buys healthy ones in their place — a lame
+    /// one the market could not take still counts.
     /// </summary>
     internal sealed class PackAnimalPlanner
     {
         private readonly PlanContext _ctx;
+        private readonly LameHorsePlanner _lame;
         private readonly List<ItemStack> _held;
         private readonly WalkLine? _buy;
         private readonly WalkLine? _sell;
         private int _heldCount;
 
-        public PackAnimalPlanner(PlanContext ctx)
+        public PackAnimalPlanner(PlanContext ctx, LameHorsePlanner lame)
         {
             _ctx = ctx;
+            _lame = lame;
             var settings = ctx.Settings;
             Target = Math.Max(0, settings.PackAnimalsTarget);
-            _held = ctx.Inventory(ItemKind.PackAnimal).ToList();
+            _held = ctx.Inventory(ItemKind.PackAnimal).Where(s => !lame.Holds(s)).ToList();
             _heldCount = _held.Sum(s => s.Count);
             if (!settings.PackAnimalsEnabled || !ctx.Snapshot.CanTrade)
                 return;
 
             var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
                 _held.Where(s => !ctx.IsGuarded(s) && ctx.Book(s)!.SellTicked)
-                    .Select(s => new LaneStack(s, s.Count, ctx.Book(s)!.FinalMinSell)));
+                    .Select(s => new LaneStack(s, s.Count, ctx.MinSellOf(s))));
             var buyLane = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
                 ctx.MarketStacks(ItemKind.PackAnimal)
                     .Where(s => !s.IsModified && ctx.Book(s)!.BuyTicked)
@@ -68,6 +72,10 @@ namespace SmartSteward.Core.Planning
         public int Target { get; }
         public PlanRow? Row { get; }
 
+        /// <summary>The pack animals counting toward the target: this row's, plus the lame ones the Lame horses row has not sold
+        /// (it sells first).</summary>
+        private int Counted => _heldCount + _lame.LeftOf(ItemKind.PackAnimal);
+
         /// <summary>The player's sale of pack animals (a touched row) — first among the animal sales (<see cref="PlanPins"/>).</summary>
         public void PlanPinnedSells()
         {
@@ -89,7 +97,7 @@ namespace SmartSteward.Core.Planning
         {
             if (Row == null || _sell == null || _pinned != null || !_ctx.Settings.SellPackAnimalSurplus)
                 return;
-            _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, _heldCount - Target, _ctx.AnimalSellCeiling);
+            _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, Counted - Target, _ctx.AnimalSellCeiling);
         }
 
         /// <summary>Up to the target, the cheapest eligible first, never below the animal floor.</summary>
@@ -98,7 +106,7 @@ namespace SmartSteward.Core.Planning
             if (Row == null || _buy == null || _pinned != null)
                 return;
             var walk = _ctx.Walk;
-            _heldCount += PlanWalk.WalkLane(walk, _buy, Target - _heldCount, () => _ctx.AnimalBuyCeiling(walk));
+            _heldCount += PlanWalk.WalkLane(walk, _buy, Target - Counted, () => _ctx.AnimalBuyCeiling(walk));
         }
 
         public void Finish()

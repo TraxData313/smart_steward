@@ -39,17 +39,23 @@ namespace SmartSteward.Core.Planning
         Prisoner,
     }
 
-    /// <summary>The mount role rows of DESIGN §1.1.1.</summary>
+    /// <summary>The mount role rows of DESIGN §1.1.1 (step 17: no upgrade rows — Anton 2026.09.28).</summary>
     public enum MountRole
     {
         /// <summary>Pack animals.</summary>
         Pack,
 
-        /// <summary>Riding mounts — every mount not reserved for an upgrade.</summary>
+        /// <summary>Riding mounts — the horses (not war, not noble) that carry the footmen.</summary>
         Riding,
 
-        /// <summary>Mounts of one upgrade category (<see cref="PlanRow.CategoryId"/>) reserved for upgrades.</summary>
-        Upgrade,
+        /// <summary>War horses — the war_horse category, kept to a plain number (WarMountsToKeep); they carry footmen too.</summary>
+        War,
+
+        /// <summary>Noble horses — sell only: never bought, sold unless locked (SellNobleHorses).</summary>
+        Noble,
+
+        /// <summary>Lame and old horses and pack animals — sell only: sold so healthy ones replace them (ReplaceLameHorses).</summary>
+        Lame,
     }
 
     public enum TavernRowKind
@@ -150,9 +156,6 @@ namespace SmartSteward.Core.Planning
         /// <summary>The man hired rides a horse of his own (<c>CharacterObject.IsMounted</c>) — else he is one more footman
         /// the steward mounts (the live re-plan, step 15).</summary>
         public bool IsMounted { get; internal set; }
-
-        /// <summary>Mercenaries: the kinds of upgrade horse the troop's upgrades need (never ready now — new men).</summary>
-        public IReadOnlyList<string> UpgradeCategories { get; internal set; } = Array.Empty<string>();
     }
 
     /// <summary>Troop row facts (step 16, DESIGN §2.8): a positive change recruits volunteers, a negative one dismisses men.</summary>
@@ -171,9 +174,6 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>The game's "man with a horse" (<c>CharacterObject.IsMounted</c>) — else each man is a footman.</summary>
         public bool IsMounted { get; internal set; }
-
-        /// <summary>The kinds of upgrade horse the type's upgrades need (recruits put them in play, never ready).</summary>
-        public IReadOnlyList<string> UpgradeCategories { get; internal set; } = Array.Empty<string>();
 
         /// <summary>What one man adds to the load at sea (his horse, when the type rides — War Sails).</summary>
         public double SeaWeightPerMan { get; internal set; }
@@ -196,7 +196,7 @@ namespace SmartSteward.Core.Planning
             Type = type;
         }
 
-        /// <summary>Stable id, e.g. <c>food:grain</c>, <c>mounts:riding</c>, <c>mounts:upgrade:war_horse</c>,
+        /// <summary>Stable id, e.g. <c>food:grain</c>, <c>mounts:riding</c>, <c>mounts:war</c>, <c>mounts:noble</c>,
         /// <c>loot:Armour</c>, <c>prisoner:looter</c>, <c>tavern:wanderer:&lt;hero&gt;</c>, <c>tavern:mercenaries</c>.</summary>
         public string Id { get; }
         public PlanSectionKind Section { get; }
@@ -281,11 +281,9 @@ namespace SmartSteward.Core.Planning
         /// <summary>Influence the row gains (prisoner donations).</summary>
         public double InfluenceDelta { get; internal set; }
 
-        /// <summary>Pack / riding rows: the role's target (riding counts as DESIGN §2.3 says).</summary>
+        /// <summary>Pack / riding / war rows: the role's target (riding: the horses for the footmen minus the other horses
+        /// kept after the deal — DESIGN §2.3; war: WarMountsToKeep).</summary>
         public int? Target { get; internal set; }
-
-        /// <summary>Upgrade rows: the units needed for upgrades.</summary>
-        public int? Need { get; internal set; }
 
         /// <summary>Food rows: the item's resolved price book row.</summary>
         public PriceBookPrices? PriceBook { get; internal set; }
@@ -352,7 +350,6 @@ namespace SmartSteward.Core.Planning
             WeightDelta = planned.WeightDelta;
             InfluenceDelta = planned.InfluenceDelta;
             Target = planned.Target;
-            Need = planned.Need;
             PriceBook = planned.PriceBook;
             Prisoner = planned.Prisoner;
             Tavern = planned.Tavern;

@@ -67,8 +67,6 @@ namespace SmartSteward.Core.Planning
                         DailyWage = mercenaries.WagePerMan,
                         SeaWeightPerMan = Math.Max(0, mercenaries.SeaWeightPerMan),
                         IsMounted = mercenaries.IsMounted,
-                        UpgradeCategories = (mercenaries.UpgradeCategories ?? new List<string>())
-                            .Where(c => !string.IsNullOrEmpty(c)).Distinct(StringComparer.Ordinal).ToList(),
                     },
                 }));
             }

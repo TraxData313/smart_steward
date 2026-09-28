@@ -209,7 +209,8 @@ public class SettingsTests
     [InlineData(ItemKind.PackAnimal, "sumpter_horse", PriceBookGroup.PackAnimals)]
     [InlineData(ItemKind.Mount, "horse", PriceBookGroup.Mounts)]
     [InlineData(ItemKind.Mount, "war_horse", PriceBookGroup.WarMounts)]
-    [InlineData(ItemKind.Mount, "noble_horse", PriceBookGroup.WarMounts)]
+    [InlineData(ItemKind.Mount, "noble_horse", PriceBookGroup.NobleHorses)]
+    [InlineData(ItemKind.Mount, "war_camel", PriceBookGroup.Mounts)] // a mod's category: a riding horse since step 17
     public void Price_book_groups(ItemKind kind, string category, PriceBookGroup expected)
     {
         Assert.Equal(expected, PriceBook.GroupOf(kind, category));

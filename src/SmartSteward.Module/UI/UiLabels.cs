@@ -2,8 +2,6 @@ using System;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Snapshot;
-using TaleWorlds.Core;
-using TaleWorlds.ObjectSystem;
 
 namespace SmartSteward.UI
 {
@@ -56,9 +54,9 @@ namespace SmartSteward.UI
                 {
                     case MountRole.Pack: return UiText.S("ss_ui_role_pack", "Pack animals");
                     case MountRole.Riding: return UiText.S("ss_ui_role_riding", "Riding mounts");
-                    case MountRole.Upgrade:
-                        return UiText.S1("ss_ui_role_upgrade", "Upgrade horses ({CATEGORY})", "CATEGORY",
-                            CategoryName(row.CategoryId));
+                    case MountRole.War: return UiText.S("ss_ui_role_war", "War horses");
+                    case MountRole.Noble: return UiText.S("ss_ui_role_noble", "Noble horses");
+                    case MountRole.Lame: return UiText.S("ss_ui_role_lame", "Lame horses");
                 }
             }
             if (row.Type == RowType.Loot)
@@ -72,23 +70,6 @@ namespace SmartSteward.UI
                 }
             }
             return row.Id;
-        }
-
-        /// <summary>The game's name of an item category (war_horse → "War Horse"); the id when unknown.</summary>
-        public static string CategoryName(string? categoryId)
-        {
-            if (string.IsNullOrEmpty(categoryId))
-                return "";
-            try
-            {
-                var category = MBObjectManager.Instance?.GetObject<ItemCategory>(categoryId);
-                var name = category?.GetName()?.ToString();
-                return string.IsNullOrEmpty(name) ? categoryId! : name!;
-            }
-            catch
-            {
-                return categoryId!;
-            }
         }
 
         /// <summary>The tooltip of a greyed [+] / [−] (DESIGN §1.1: "the button greys with the reason").</summary>

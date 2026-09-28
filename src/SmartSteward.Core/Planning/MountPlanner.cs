@@ -7,283 +7,286 @@ using SmartSteward.Core.Snapshot;
 namespace SmartSteward.Core.Planning
 {
     /// <summary>
-    /// Riding mounts for the footmen (DESIGN §2.3) and upgrade horses (§2.4), as the ROLE rows of §1.1.1.
+    /// The horses for the footmen (DESIGN §2.3–§2.4) as the role rows of §1.1.1: Riding mounts, War horses, Noble horses —
+    /// the model of <see cref="MountGoal"/> (Anton 2026.09.28, step 17: no upgrade is counted any more).
     /// </summary>
     /// <remarks>
-    /// How a held mount gets its role:
-    /// 1. Need per upgrade category (only categories the party's troops upgrade into — <see cref="UpgradeNeeds"/>):
-    ///    the ready troops (a stack counted once, at its best horse-needing target — foot-or-horse recruits count as
-    ///    needing the horse) + WarMountsExtra, or that kind's own fixed number (WarMountsHorseTarget /
-    ///    WarMountsWarHorseTarget) when ≥ 0.
-    /// 2. Reserved = the first `need` held mounts of the category in the order the game's upgrade consumes
-    ///    them: unlocked before locked, cheapest base value first (PartyScreenLogic.RemoveItemFromItemRoster).
-    /// 3. Every other mount — war and noble horses and camels too — is a riding mount; its surplus is sold
-    ///    most expensive first (a horse of an upgrade category only with SellWarMountSurplus).
-    /// Locked mounts count and are sold like any other unless LocksProtectFoodAndHorses (<see cref="LockRule"/>); the
-    /// reservation still takes unlocked horses first, since that is the order the game's upgrade consumes them in.
-    /// The riding target counts the riding mounts plus, with WarMountsCountAsMounts, the reserved ones and
-    /// the upgrade horses about to be bought (the man upgraded takes his horse: counting them twice buys a
-    /// horse too many per upgrade).
+    /// <list type="bullet">
+    /// <item>Horses to keep T = ceil(footmen after the deal × MountsPer100Footmen / 100). EVERY mount kept counts toward it —
+    ///   riding horses, war horses, noble horses kept (locked, or SellNobleHorses off) and lame ones kept (ReplaceLameHorses
+    ///   off, a guarding lock, or unsold) — because the game lets a footman ride any of them (RESEARCH §3).</item>
+    /// <item>War horses (war_horse): a plain number W = WarMountsToKeep — the cheapest eligible bought up to it (under
+    ///   WarMountMaxPrice), the dearest sold above it (SellWarMountSurplus).</item>
+    /// <item>Riding horses fill the rest: bought (cheapest eligible, under MountMaxPrice) while the horses kept after the deal
+    ///   are short of T, sold (dearest first, SellMountSurplus) while above it. Riding mounts outrank war horses for the purse
+    ///   (DESIGN §3): when the purse cannot pay for every war horse short, riding horses fill the gap first (the pledge
+    ///   simulation). The riding surplus is sold against the war horses the party will HAVE — those it buys in this visit
+    ///   too, as the planner's first pass found them (<see cref="PlanContext.WarPledge"/>, <see cref="PledgeHint"/>).</item>
+    /// <item>Noble horses (noble_horse): never bought; every one NOT locked is sold (a lock always keeps a noble horse —
+    ///   <see cref="LockRule"/>), each at no less than its min sell price.</item>
+    /// </list>
+    /// Modified horses are never bought (lame and old ones by Anton's rule; any other modifier as since step 4). A lame one held
+    /// sits in the Lame horses row while ReplaceLameHorses is on (<see cref="LameHorsePlanner"/>) and is counted here only
+    /// when that row could not sell it. The sale order among the animal rows is <see cref="PlanReplay.AnimalSellRank"/>: lame,
+    /// pack, noble, war, riding — each sees what the ones before it left.
     /// </remarks>
     internal sealed class MountPlanner
     {
-        private sealed class UpgradeLine
-        {
-            public UpgradeLine(string category, int need, int reserved, PlanRow row, LaneCursor buy, int? pinned)
-            {
-                Category = category;
-                Need = need;
-                Reserved = reserved;
-                Row = row;
-                Buy = buy;
-                Pinned = pinned;
-            }
-
-            public string Category { get; }
-            public int Need { get; }
-            public int Reserved { get; }
-            public int Short => Math.Max(0, Need - Reserved);
-            public PlanRow Row { get; }
-            public LaneCursor Buy { get; }
-
-            /// <summary>The player's own quantity (a touched row in a live re-plan) — walked first, never re-planned.</summary>
-            public int? Pinned { get; }
-        }
-
-        private const string UpgradeRowPrefix = "mounts:upgrade:";
+        public const string RidingId = "mounts:riding";
+        public const string WarId = "mounts:war";
+        public const string NobleId = "mounts:noble";
 
         private readonly PlanContext _ctx;
-        private readonly List<ItemStack> _held;
-        private readonly Dictionary<string, int> _reservedByKey = new Dictionary<string, int>(StringComparer.Ordinal);
-        private readonly List<UpgradeLine> _upgrades = new List<UpgradeLine>();
+        private readonly LameHorsePlanner _lame;
+        private readonly List<ItemStack> _riding;
+        private readonly List<ItemStack> _war;
+        private readonly List<ItemStack> _noble;
+        private readonly int _ridingHeld;
+        private readonly int _warHeld;
+        private readonly int _nobleHeld;
         private readonly LaneCursor? _ridingBuy;
+        private readonly LaneCursor? _warBuy;
         private readonly WalkLine? _ridingSell;
+        private readonly WalkLine? _warSell;
+        private readonly WalkLine? _nobleSell;
 
-        /// <summary>The player's own riding quantity (a touched row in a live re-plan) — walked first, never re-planned.</summary>
+        /// <summary>The player's own quantities (touched rows in a live re-plan) — walked first, never re-planned.</summary>
         private readonly int? _ridingPinned;
+        private readonly int? _warPinned;
+        private readonly int? _noblePinned;
         private bool _soldRiding;
 
-        public MountPlanner(PlanContext ctx)
+        public MountPlanner(PlanContext ctx, LameHorsePlanner lame)
         {
             _ctx = ctx;
+            _lame = lame;
             var settings = ctx.Settings;
-            _held = ctx.Inventory(ItemKind.Mount).ToList();
+            var held = ctx.Inventory(ItemKind.Mount).Where(s => !lame.Holds(s)).ToList();
+            _noble = held.Where(MountGoal.IsNoble).ToList();
+            _war = held.Where(s => MountGoal.IsWar(s, settings)).ToList();
+            _riding = held.Where(s => MountGoal.IsRiding(s, settings)).ToList();
+            _ridingHeld = _riding.Sum(s => s.Count);
+            _warHeld = _war.Sum(s => s.Count);
+            _nobleHeld = _noble.Sum(s => s.Count);
 
-            // 1. What the upgrades need, per category in play (each kind its own fixed number or automatic) — for the party
-            //    after the deal: hired men are never ready, but their troop's kinds of upgrade horse come into play.
-            var upgrades = ctx.Party.Upgrades;
-            var inPlay = upgrades.InPlay;
-            var need = upgrades.Need(settings);
-            var readyNow = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (var category in inPlay)
-                readyNow[category] = upgrades.ReadyFor(category);
-            UpgradeReady = readyNow;
-
-            // 2. Reserve the held horses the upgrades will take.
-            var reserved = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (var pair in need)
-            {
-                int left = pair.Value;
-                foreach (var stack in _held.Where(s => s.CategoryId == pair.Key)
-                             .OrderBy(s => s.IsLocked).ThenBy(s => s.StoreValueStep)
-                             .ThenBy(s => s.Key, StringComparer.Ordinal))
-                {
-                    if (left <= 0) break;
-                    int take = Math.Min(left, stack.Count);
-                    _reservedByKey[stack.Key] = take;
-                    left -= take;
-                }
-                reserved[pair.Key] = pair.Value - left;
-            }
-            UpgradeNeed = need;
-            UpgradeReserved = reserved;
-
-            // 3. The riding pool and its target — the footmen of the party after the deal (the men hired on foot too).
-            int pool = _held.Sum(s => s.Count - ReservedOf(s));
-            int reservedTotal = reserved.Values.Sum();
+            // The footmen of the party after the deal (the men hired on foot too — the live re-plan).
             Footmen = Math.Max(0, ctx.Party.Footmen);
-            RidingTarget = settings.MountsEnabled
-                ? PlanMath.Ceiling(Footmen * (double)Math.Max(0, settings.MountsPer100Footmen) / 100.0)
-                : 0;
-            RidingCounted = pool + (settings.WarMountsCountAsMounts ? reservedTotal : 0);
+            MountTarget = MountGoal.Total(settings, Footmen);
+            WarTarget = MountGoal.War(settings);
+            RidingTarget = settings.MountsEnabled ? MountGoal.Riding(settings, Footmen) : 0;
 
             if (!ctx.Snapshot.CanTrade)
                 return;
 
             if (settings.MountsEnabled)
             {
-                // With war mounts managed and SellWarMountSurplus off, a horse of a category the party upgrades
-                // into is never sold — it is kept for the upgrades to come. (War mounts not managed at all →
-                // such horses are plain riding mounts.)
-                bool sellWarSurplus = !settings.WarMountsEnabled || settings.SellWarMountSurplus;
-                var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                    _held.Where(s => !ctx.IsGuarded(s) && s.Count - ReservedOf(s) > 0 && ctx.Book(s)!.SellTicked
-                                     && (sellWarSurplus || !inPlay.Contains(s.CategoryId)))
-                        .Select(s => new LaneStack(s, s.Count - ReservedOf(s), ctx.Book(s)!.FinalMinSell)));
-                var buyLane = AnimalBuyLane(ctx, s => true, settings.MountMaxPrice);
-                RidingRow = new PlanRow("mounts:riding", PlanSectionKind.Mounts, RowType.Mount)
-                {
-                    Role = MountRole.Riding,
-                    Mine = pool,
-                    Locked = _held.Where(ctx.IsGuarded).Sum(s => s.Count - ReservedOf(s)),
-                    LocksGuard = ctx.LockGuards(ItemKind.Mount),
-                    Target = RidingTarget,
-                    Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
-                    MaxSell = sellLane.Capacity,
-                    BuyLane = buyLane,
-                    SellLane = sellLane,
-                };
-                RidingRow.MaxBuy = RidingRow.Market ?? 0;
+                var sellLane = SellLane(_riding);
+                var buyLane = BuyLane(s => MountGoal.IsRiding(s, settings), settings.MountMaxPrice);
+                RidingRow = RoleRow(RidingId, RowType.Mount, MountRole.Riding, null, _riding, sellLane, buyLane);
                 _ridingBuy = new LaneCursor(buyLane);
                 _ridingSell = new WalkLine(RidingRow, sellLane, book: RidingRow.Book);
-                if (ctx.Pins.TryGet(RidingRow.Id, out int pin))
-                    _ridingPinned = pin;
+                _ridingPinned = Pin(RidingRow);
             }
 
-            // One row per kind that needs upgrade horses — and any kind the player has his hand on, kept even when the
-            // party after the deal no longer needs it (step 16's dismissals), while war mounts are managed at all.
-            var categories = need.Where(p => p.Value > 0).Select(p => p.Key);
-            if (settings.WarMountsEnabled)
-                categories = categories.Concat(ctx.Pins.Ids.Where(id => id.StartsWith(UpgradeRowPrefix, StringComparison.Ordinal))
-                    .Select(id => id.Substring(UpgradeRowPrefix.Length)));
-            foreach (var category in categories.Distinct(StringComparer.Ordinal).OrderBy(c => c, StringComparer.Ordinal))
+            if (settings.WarMountsEnabled && (_warHeld > 0 || WarTarget > 0 || ctx.Pins.Contains(WarId)))
             {
-                int needed = need.TryGetValue(category, out var n) ? n : 0;
-                int reservedHere = reserved.TryGetValue(category, out var r) ? r : 0;
-                var mine = _held.Where(s => s.CategoryId == category && ReservedOf(s) > 0).ToList();
-                var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                    mine.Where(s => !ctx.IsGuarded(s) && ctx.Book(s)!.SellTicked)
-                        .Select(s => new LaneStack(s, ReservedOf(s), ctx.Book(s)!.FinalMinSell)));
-                var buyLane = AnimalBuyLane(ctx, s => s.CategoryId == category, settings.WarMountMaxPrice);
-                var row = new PlanRow(UpgradeRowPrefix + category, PlanSectionKind.Mounts, RowType.WarMount)
-                {
-                    Role = MountRole.Upgrade,
-                    CategoryId = category,
-                    Mine = reservedHere,
-                    Locked = mine.Where(ctx.IsGuarded).Sum(ReservedOf),
-                    LocksGuard = ctx.LockGuards(ItemKind.Mount),
-                    Need = needed,
-                    Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
-                    MaxSell = sellLane.Capacity,
-                    BuyLane = buyLane,
-                    SellLane = sellLane,
-                };
-                row.MaxBuy = row.Market ?? 0;
-                int? pinned = ctx.Pins.TryGet(row.Id, out int upgradePin) ? upgradePin : (int?)null;
-                _upgrades.Add(new UpgradeLine(category, needed, reservedHere, row, new LaneCursor(buyLane), pinned));
+                var sellLane = SellLane(_war);
+                var buyLane = BuyLane(s => MountGoal.IsWar(s, settings), settings.WarMountMaxPrice);
+                WarRow = RoleRow(WarId, RowType.WarMount, MountRole.War, MountGoal.WarHorse, _war, sellLane, buyLane);
+                WarRow.Target = WarTarget;
+                _warBuy = new LaneCursor(buyLane);
+                _warSell = new WalkLine(WarRow, sellLane, book: WarRow.Book);
+                _warPinned = Pin(WarRow);
+            }
+
+            if (settings.SellNobleHorses && _nobleHeld > 0)
+            {
+                var sellLane = SellLane(_noble);
+                NobleRow = RoleRow(NobleId, RowType.Mount, MountRole.Noble, MountGoal.NobleHorse, _noble, sellLane, null);
+                NobleRow.LocksGuard = true; // a lock always keeps a noble horse — one locked after the plan too, at the click
+                _nobleSell = new WalkLine(NobleRow, sellLane, book: NobleRow.Book);
+                _noblePinned = Pin(NobleRow);
             }
         }
 
         public int Footmen { get; }
-        public int RidingTarget { get; }
-        public int RidingCounted { get; }
-        public IReadOnlyDictionary<string, int> UpgradeReady { get; }
-        public IReadOnlyDictionary<string, int> UpgradeNeed { get; }
-        public IReadOnlyDictionary<string, int> UpgradeReserved { get; }
+
+        /// <summary>T: the horses kept for the footmen after the deal (war, noble and lame ones kept count toward it).</summary>
+        public int MountTarget { get; }
+
+        /// <summary>W: the war horses to keep.</summary>
+        public int WarTarget { get; }
+
+        /// <summary>The riding horses the plan aims for: T minus the war, noble and lame horses kept after the deal (set in
+        /// <see cref="Finish"/>; before that <c>max(0, T − W)</c>).</summary>
+        public int RidingTarget { get; private set; }
+
         public PlanRow? RidingRow { get; }
+        public PlanRow? WarRow { get; }
+        public PlanRow? NobleRow { get; }
 
         public IEnumerable<PlanRow> Rows
         {
             get
             {
                 if (RidingRow != null) yield return RidingRow;
-                foreach (var line in _upgrades) yield return line.Row;
+                if (WarRow != null) yield return WarRow;
+                if (NobleRow != null) yield return NobleRow;
             }
         }
 
-        /// <summary>The upgrade rows the steward plans (the player's own are pinned).</summary>
-        private List<UpgradeLine> StewardUpgrades => _upgrades.Where(u => u.Pinned == null).ToList();
+        /// <summary>
+        /// After this pass: the war horses the steward bought while the riding row still had a surplus it could sell against
+        /// them — the planner then plans once more with them pledged (<see cref="PlanContext.WarPledge"/>), so the fresh plan
+        /// after Do it has nothing left to sell. 0 = no second pass needed.
+        /// </summary>
+        public int PledgeHint
+        {
+            get
+            {
+                if (_ctx.WarPledge > 0 || WarRow == null || _warPinned != null || RidingRow == null || _ridingPinned != null
+                    || !_ctx.Settings.SellMountSurplus)
+                    return 0;
+                int bought = Bought(WarRow);
+                bool sellableLeft = RidingRow.MaxSell - Sold(RidingRow) > 0;
+                return bought > 0 && sellableLeft && Counted() > MountTarget ? bought : 0;
+            }
+        }
 
-        /// <summary>The mounts counting toward the riding target once the player's upgrade rows are done: with
-        /// WarMountsCountAsMounts the horses the player buys (or sells) for upgrades count, like the steward's own.</summary>
-        private int CountedWithPlayers =>
-            RidingCounted + (_ctx.Settings.WarMountsCountAsMounts ? _upgrades.Sum(u => u.Pinned ?? 0) : 0);
+        private int? Pin(PlanRow row) => _ctx.Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
 
-        private int ReservedOf(ItemStack stack) =>
-            _reservedByKey.TryGetValue(stack.Key, out var n) ? n : 0;
+        private PlanRow RoleRow(string id, RowType type, MountRole role, string? category, List<ItemStack> stacks,
+            TradeLane sellLane, TradeLane? buyLane)
+        {
+            var row = new PlanRow(id, PlanSectionKind.Mounts, type)
+            {
+                Role = role,
+                CategoryId = category,
+                Mine = stacks.Sum(s => s.Count),
+                Locked = stacks.Where(_ctx.IsGuarded).Sum(s => s.Count),
+                LocksGuard = _ctx.LockGuards(ItemKind.Mount),
+                Market = buyLane == null ? (int?)null : PlanMath.EligibleOnOffer(buyLane, _ctx.Market),
+                MaxSell = sellLane.Capacity,
+                BuyLane = buyLane,
+                SellLane = sellLane,
+            };
+            row.MaxBuy = row.Market ?? 0;
+            return row;
+        }
 
-        private static TradeLane AnimalBuyLane(PlanContext ctx, Func<ItemStack, bool> filter, int roleCap) =>
+        /// <summary>What a row may sell: its stacks not guarded by a lock and Sell-ticked, each at its own min sell price.</summary>
+        private TradeLane SellLane(IEnumerable<ItemStack> stacks) =>
+            new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
+                stacks.Where(s => !_ctx.IsGuarded(s) && _ctx.Book(s)!.SellTicked)
+                    .Select(s => new LaneStack(s, s.Count, _ctx.MinSellOf(s))));
+
+        /// <summary>What a row may buy: plain (unmodified) horses of its kind, Buy-ticked, under the price book AND the role cap.</summary>
+        private TradeLane BuyLane(Func<ItemStack, bool> kind, int roleCap) =>
             new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
-                ctx.MarketStacks(ItemKind.Mount)
-                    .Where(s => !s.IsModified && filter(s) && ctx.Book(s)!.BuyTicked)
-                    .Select(s => new { Stack = s, Limit = PriceBook.AnimalBuyLimit(ctx.Book(s)!.FinalMaxBuy, roleCap) })
+                _ctx.MarketStacks(ItemKind.Mount)
+                    .Where(s => !s.IsModified && kind(s) && _ctx.Book(s)!.BuyTicked)
+                    .Select(s => new { Stack = s, Limit = PriceBook.AnimalBuyLimit(_ctx.Book(s)!.FinalMaxBuy, roleCap) })
                     .Where(x => x.Limit != null)
                     .Select(x => new LaneStack(x.Stack, x.Stack.Count, x.Limit)));
 
-        /// <summary>The player's own mount sales (touched riding / upgrade rows) — first among the animal sales, in row order
+        private static int Sold(PlanRow? row) =>
+            row == null ? 0 : row.Tallies.Where(t => t.Direction == TradeDirection.Sell).Sum(t => t.Count);
+
+        private static int Bought(PlanRow? row) =>
+            row == null ? 0 : row.Tallies.Where(t => t.Direction == TradeDirection.Buy).Sum(t => t.Count);
+
+        private int RidingNow => _ridingHeld - Sold(RidingRow) + Bought(RidingRow);
+        private int WarNow => _warHeld - Sold(WarRow) + Bought(WarRow);
+        private int NobleNow => _nobleHeld - Sold(NobleRow);
+
+        /// <summary>Every mount counting toward T as the walk stands: riding, war, noble kept, and the lame ones not sold.</summary>
+        private int Counted() => RidingNow + WarNow + NobleNow + _lame.LeftOf(ItemKind.Mount);
+
+        /// <summary>The war horses still to come in the buy phase, as the riding sale sees them: the player's own (a touched
+        /// war row), or the steward's as its first pass found them (<see cref="PlanContext.WarPledge"/>).</summary>
+        private int WarToBuy()
+        {
+            if (WarRow == null)
+                return 0;
+            if (_warPinned != null)
+                return Math.Max(0, _warPinned.Value);
+            return Math.Min(_ctx.WarPledge, Math.Max(0, WarTarget - WarNow));
+        }
+
+        /// <summary>The player's own mount sales (touched rows) — first among the animal sales, noble, war, riding
         /// (<see cref="PlanPins"/>).</summary>
         public void PlanPinnedSells()
         {
-            var walk = _ctx.Walk;
-            if (RidingRow != null && _ridingPinned < 0)
-                PlanWalk.WalkLane(walk, new WalkLine(RidingRow, RidingRow.SellLane!, RidingRow.Mine, -_ridingPinned.Value,
-                    RidingRow.Book), int.MaxValue, () => walk.Market.MarketGoldLeft);
-            foreach (var line in _upgrades.Where(u => u.Pinned < 0))
-                PlanWalk.WalkLane(walk, new WalkLine(line.Row, line.Row.SellLane!, line.Row.Mine, -line.Pinned!.Value,
-                    line.Row.Book), int.MaxValue, () => walk.Market.MarketGoldLeft);
+            PinnedSell(NobleRow, _noblePinned);
+            PinnedSell(WarRow, _warPinned);
+            PinnedSell(RidingRow, _ridingPinned);
         }
 
-        /// <summary>The player's own mount buys — riding first, then the upgrade rows the cheapest next across them, before
-        /// any of the steward's.</summary>
+        private void PinnedSell(PlanRow? row, int? pinned)
+        {
+            var walk = _ctx.Walk;
+            if (row != null && pinned < 0)
+                PlanWalk.WalkLane(walk, new WalkLine(row, row.SellLane!, row.Mine, -pinned.Value, row.Book), int.MaxValue,
+                    () => walk.Market.MarketGoldLeft);
+        }
+
+        /// <summary>The player's own mount buys — riding, then war — before any of the steward's.</summary>
         public void PlanPinnedBuys()
         {
             var walk = _ctx.Walk;
             if (RidingRow != null && _ridingPinned > 0)
                 PlanWalk.WalkLane(walk, new WalkLine(RidingRow, RidingRow.BuyLane!, RidingRow.Mine, _ridingPinned.Value,
                     RidingRow.Book), int.MaxValue, () => null);
-            var mine = _upgrades.Where(u => u.Pinned > 0)
-                .Select(u => new WalkLine(u.Row, u.Row.BuyLane!, u.Row.Mine, u.Pinned!.Value, u.Row.Book)).ToList();
-            if (mine.Count > 0)
-                PlanWalk.BuyCheapestAcross(walk, mine, () => null);
-        }
-
-        /// <summary>Riding surplus, most expensive first — but never in a visit that buys mounts: selling a
-        /// horse fetches about half its price (DESIGN §2.2), so when an upgrade horse is on offer (or the player buys one)
-        /// the surplus waits (after the upgrade it is surplus for real).</summary>
-        public void PlanSells()
-        {
-            if (RidingRow == null || _ridingSell == null || _ridingPinned != null || !_ctx.Settings.SellMountSurplus)
-                return;
-            int surplus = CountedWithPlayers - RidingTarget;
-            if (surplus <= 0)
-                return;
-            var market = _ctx.Market;
-            foreach (var line in StewardUpgrades)
-                if (line.Short > 0 && line.Buy.Peek(market) != null)
-                    return;
-            if (_upgrades.Any(u => u.Pinned > 0))
-                return;
-            _soldRiding = PlanWalk.WalkLane(_ctx.Walk, _ridingSell, surplus, _ctx.AnimalSellCeiling) > 0;
+            if (WarRow != null && _warPinned > 0)
+                PlanWalk.BuyCheapestAcross(walk,
+                    new[] { new WalkLine(WarRow, WarRow.BuyLane!, WarRow.Mine, _warPinned.Value, WarRow.Book) }, () => null);
         }
 
         /// <summary>
-        /// Riding mounts first, then upgrade horses (DESIGN §3), both under MinGoldForHorses. With
-        /// WarMountsCountAsMounts the upgrade horses about to be bought count toward the riding target; how many
-        /// that will be depends on the money the riding buys leave, so it is found by simulation: pledge all,
-        /// and while fewer upgrade horses are affordable, buy more riding mounts instead. The player's own rows are
-        /// already walked (<see cref="PlanPinnedBuys"/>) and counted; the steward plans only its own.
+        /// The steward's sales, in the rank order: every noble horse that may go; war horses above W; riding horses above
+        /// what the footmen need once the war, noble and lame horses kept after the deal are counted.
         /// </summary>
-        public void PlanBuys()
+        public void PlanSells()
         {
             var settings = _ctx.Settings;
             var walk = _ctx.Walk;
-            var stewardUpgrades = StewardUpgrades;
-            bool stewardRides = RidingRow != null && _ridingBuy != null && _ridingPinned == null;
-            int ridingNeed = stewardRides && !_soldRiding
-                ? Math.Max(0, RidingTarget - CountedWithPlayers)
-                : 0;
-            int shortTotal = stewardUpgrades.Sum(u => u.Short);
+            if (NobleRow != null && _nobleSell != null && _noblePinned == null)
+                PlanWalk.WalkLane(walk, _nobleSell, int.MaxValue, _ctx.AnimalSellCeiling);
+            if (WarRow != null && _warSell != null && _warPinned == null && settings.SellWarMountSurplus)
+                PlanWalk.WalkLane(walk, _warSell, WarNow - WarTarget, _ctx.AnimalSellCeiling);
+            if (RidingRow != null && _ridingSell != null && _ridingPinned == null && settings.SellMountSurplus)
+            {
+                int surplus = Counted() + WarToBuy() - MountTarget;
+                if (surplus > 0)
+                    _soldRiding = PlanWalk.WalkLane(walk, _ridingSell, surplus, _ctx.AnimalSellCeiling) > 0;
+            }
+        }
+
+        /// <summary>
+        /// Riding mounts first, then war horses (DESIGN §3), both under the animal floor. The war horses about to be bought
+        /// count toward T, and how many that will be depends on the money the riding buys leave — so it is found by
+        /// simulation: pledge them all, and while fewer war horses are affordable (or on offer), buy more riding horses
+        /// instead. Never a riding horse in a visit that sells riding horses (a horse fetches about half its price — DESIGN
+        /// §2.2); the player's own rows are already walked and counted.
+        /// </summary>
+        public void PlanBuys()
+        {
+            var walk = _ctx.Walk;
+            bool stewardRides = RidingRow != null && _ridingBuy != null && _ridingPinned == null && !_soldRiding;
+            bool stewardWar = WarRow != null && _warBuy != null && _warPinned == null;
+            int warShort = stewardWar ? Math.Max(0, WarTarget - WarNow) : 0;
+            int ridingNeed = stewardRides ? Math.Max(0, MountTarget - Counted()) : 0;
 
             int ridingCap = ridingNeed;
-            if (settings.WarMountsCountAsMounts && ridingNeed > 0 && shortTotal > 0)
+            if (ridingNeed > 0 && warShort > 0)
             {
-                int pledged = shortTotal;
+                int pledged = warShort;
                 while (true)
                 {
                     ridingCap = Math.Max(0, ridingNeed - pledged);
                     var whatIf = walk.Simulation();
                     BuyRiding(whatIf, new WalkLine(null, _ridingBuy!.Clone()), ridingCap);
-                    int got = BuyUpgrades(whatIf, stewardUpgrades.Select(u => new WalkLine(null, u.Buy.Clone(), quota: u.Short)));
+                    int got = BuyWar(whatIf, new WalkLine(null, _warBuy!.Clone(), quota: warShort));
                     if (got >= pledged)
                         break;
                     pledged = got;
@@ -292,25 +295,28 @@ namespace SmartSteward.Core.Planning
 
             if (stewardRides)
                 BuyRiding(walk, new WalkLine(RidingRow, _ridingBuy!, book: RidingRow!.Book), ridingCap);
-            BuyUpgrades(walk, stewardUpgrades.Select(u => new WalkLine(u.Row, u.Buy, quota: u.Short, book: u.Row.Book)));
+            if (stewardWar && warShort > 0)
+                BuyWar(walk, new WalkLine(WarRow, _warBuy!, quota: warShort, book: WarRow!.Book));
         }
 
         private int BuyRiding(WalkState walk, WalkLine line, int cap) =>
             PlanWalk.WalkLane(walk, line, cap, () => _ctx.AnimalBuyCeiling(walk));
 
-        /// <summary>The cheapest next upgrade horse across the categories still short; ties → category order.</summary>
-        private int BuyUpgrades(WalkState walk, IEnumerable<WalkLine> lines) =>
-            PlanWalk.BuyCheapestAcross(walk, lines.ToList(), () => _ctx.AnimalBuyCeiling(walk));
+        private int BuyWar(WalkState walk, WalkLine line) =>
+            PlanWalk.BuyCheapestAcross(walk, new[] { line }, () => _ctx.AnimalBuyCeiling(walk));
 
         public void Finish()
         {
+            RidingTarget = RidingRow == null ? 0 : Math.Max(0, MountTarget - WarNow - NobleNow - _lame.LeftOf(ItemKind.Mount));
             if (RidingRow != null)
-                PlanMath.FinishItemRow(RidingRow,
-                    _held.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count - ReservedOf(s))));
-            foreach (var line in _upgrades)
-                PlanMath.FinishItemRow(line.Row,
-                    _held.Where(s => s.CategoryId == line.Category)
-                        .Select(s => new KeyValuePair<ItemStack, int>(s, ReservedOf(s))));
+            {
+                RidingRow.Target = RidingTarget;
+                PlanMath.FinishItemRow(RidingRow, _riding.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+            }
+            if (WarRow != null)
+                PlanMath.FinishItemRow(WarRow, _war.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+            if (NobleRow != null)
+                PlanMath.FinishItemRow(NobleRow, _noble.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
         }
     }
 }

@@ -93,21 +93,21 @@ public class PlanEditingTests
     }
 
     [Fact]
-    public void Mount_role_rows_buy_the_cheapest_eligible_and_sell_the_dearest_unreserved()
+    public void Mount_role_rows_buy_the_cheapest_eligible_and_sell_the_dearest()
     {
         var plan = new Scenario().Village().Party(10, footmen: 5)
             .Mount("hunter", "horse", held: 5, market: 10, buy: 200, sell: 100)
-            .Mount("charger", "war_horse", held: 1, sell: 800)
+            .Mount("steppe", "horse", held: 1, sell: 140)
             .Mount("aserai_horse", "horse", market: 10, buy: 260)
             .Plan();
         var riding = plan.Row("mounts:riding");
         Assert.Equal(0, riding.Change);                    // 6 held = ceil(5 × 1.1)
 
         plan.Decrease(riding.Id);
-        Assert.Equal(-1, riding.Moved("charger"));         // the dearest goes first
+        Assert.Equal(-1, riding.Moved("steppe"));          // the dearest goes first
         plan.Decrease(riding.Id);
         Assert.Equal(-1, riding.Moved("hunter"));
-        Assert.Equal(900, riding.GoldDelta);
+        Assert.Equal(240, riding.GoldDelta);
 
         plan.Increase(riding.Id, EditSize.All);            // back to zero
         plan.Increase(riding.Id, EditSize.Five);
@@ -180,17 +180,18 @@ public class PlanEditingTests
     [Fact]
     public void Reset_takes_back_only_what_no_other_row_took_since_and_ResetAll_restores_everything()
     {
-        var plan = SharedStock().Plan();
+        var plan = MarketGold400().Plan();
         string suggestion = plan.Describe();
-        plan.Decrease("mounts:upgrade:horse", EditSize.All);   // 2 → 0
-        plan.Increase("mounts:riding", EditSize.All);          // 1 → all 3 on offer
-        Assert.Equal(3, plan.Row("mounts:riding").Change);
+        Assert.Equal(-40, plan.Row("food:grain").Change);      // 320 of the market's 400
+        Assert.Equal(-10, plan.Row("loot:Armour").Change);     // the other 80
+        plan.Increase("food:grain", EditSize.All);             // the food sale taken back: −40 → 0
+        Assert.Equal(-50, plan.Decrease("loot:Armour", EditSize.All).After); // the loot takes the whole 400
 
-        var reset = plan.Reset("mounts:upgrade:horse");
-        Assert.Equal(0, reset.After);                            // the player's riding row walks first and took all 3
-        Assert.Equal(EditBlock.NeededByAnotherRow, reset.Block);
-        Assert.False(plan.Row("mounts:upgrade:horse").IsTouched); // ⟲ handed it back to the steward
-        Assert.True(plan.Row("mounts:riding").IsTouched);
+        var reset = plan.Reset("food:grain");
+        Assert.Equal(0, reset.After);                            // the player's loot sale has the market's gold
+        Assert.Equal(EditBlock.MarketOutOfGold, reset.Block);
+        Assert.False(plan.Row("food:grain").IsTouched);          // ⟲ handed it back to the steward
+        Assert.True(plan.Row("loot:Armour").IsTouched);
 
         plan.ResetAll();
         Assert.False(plan.IsEdited);
@@ -202,25 +203,23 @@ public class PlanEditingTests
     [Fact]
     public void In_a_town_editing_one_row_re_prices_another_row_of_the_same_category()
     {
-        var s = new Scenario().Party(10, footmen: 10).Upgrade("recruit", 10, ("horse", 2))
-            .Mount("hunter", "horse", market: 20, buy: 200);
-        s.Oracle.Slope = 0.00005; // +1% per horse bought (store value 200)
+        // The lame hunters (step 17) are sold into the town's horse category before the riding row buys healthy ones:
+        // one lame horse kept makes every hunter dearer.
+        var s = new Scenario().Party(10, footmen: 10)
+            .Mount("hunter", "horse", held: 4, buy: 30, sell: 20, modifier: "lame_horse", priceFactor: Scenario.Lame)
+            .Mount("hunter", "horse", market: 20, buy: 200, sell: 100);
+        s.Oracle.Slope = 0.00005; // +1% per horse bought (store value 200), −1.5% per lame one sold (its item is worth 300)
         var plan = s.Plan();
         var riding = plan.Row("mounts:riding");
-        var upgrade = plan.Row("mounts:upgrade:horse");
-        Assert.Equal(9, riding.Change);                      // 11 − 2 pledged
-        Assert.Equal(2, upgrade.Change);
-        Assert.Equal(218, upgrade.UnitPriceMin);              // after the 9 riding horses: 200 + 2 × 9
-        Assert.Equal(-(218 + 220), upgrade.GoldDelta);
+        var lame = plan.Row("mounts:lame");
+        Assert.Equal(-4, lame.Change);
+        Assert.Equal(11, riding.Change);                      // the 4 lame ones replaced
+        Assert.Equal(-Enumerable.Range(0, 11).Sum(k => 188 + 2 * k), riding.GoldDelta); // 200 × (1 − 0.06 + 0.01k)
 
-        plan.Decrease("mounts:riding");
-        Assert.Equal(2, upgrade.Change);                      // not re-planned…
-        Assert.Equal(-(216 + 218), upgrade.GoldDelta);        // …but re-priced
-        Assert.Equal(-Enumerable.Range(0, 8).Sum(k => 200 + 2 * k), riding.GoldDelta);
-
-        plan.Increase("mounts:riding", EditSize.Five);
-        Assert.Equal(-(226 + 228), upgrade.GoldDelta);
-        Assert.Equal(100_000 + riding.GoldDelta + upgrade.GoldDelta, plan.Totals.GoldAfter);
+        plan.Increase("mounts:lame");                         // one lame horse kept
+        Assert.Equal(11, riding.Change);                      // not re-planned…
+        Assert.Equal(-Enumerable.Range(0, 11).Sum(k => 191 + 2 * k), riding.GoldDelta); // …but re-priced
+        Assert.Equal(100_000 + riding.GoldDelta + lame.GoldDelta, plan.Totals.GoldAfter);
     }
 
     [Fact]
@@ -272,36 +271,35 @@ public class PlanEditingTests
     }
 
     [Fact]
-    public void An_edit_never_takes_stock_another_row_has()
+    public void An_edit_never_takes_the_market_gold_another_row_has()
     {
-        var plan = SharedStock().Plan();
-        var riding = plan.Row("mounts:riding");
-        Assert.Equal(1, riding.Change);
-        Assert.Equal(3, riding.MaxBuy);
-        Assert.Equal(EditBlock.NeededByAnotherRow, riding.IncreaseBlock);
-        var result = plan.Increase("mounts:riding", EditSize.All);
+        var plan = MarketGold400().Plan();
+        var loot = plan.Row("loot:Armour");
+        Assert.Equal(-10, loot.Change);
+        Assert.Equal(EditBlock.MarketOutOfGold, loot.DecreaseBlock);
+        var result = plan.Decrease("loot:Armour", EditSize.All);
         Assert.False(result.Moved);
-        Assert.Equal(EditBlock.NeededByAnotherRow, result.Block);
-        Assert.Equal(2, plan.Row("mounts:upgrade:horse").Change);
+        Assert.Equal(EditBlock.MarketOutOfGold, result.Block);
+        Assert.Equal(-40, plan.Row("food:grain").Change);
     }
 
     [Fact]
     public void Lowering_a_sale_can_cut_a_buy_that_only_its_lower_price_allowed()
     {
-        // Selling 3 hunters lowers the town's horse prices; the player then buys upgrade horses up to the max
-        // buy (240). Taking the sale back raises the prices again, so the buy is cut to what still fits.
-        var s = new Scenario().Party(10).Upgrade("recruit", 10, ("horse", 5))
-            .Mount("hunter", "horse", held: 8, market: 10, buy: 200, sell: 100);
-        s.Oracle.Slope = 0.0002;
+        // Selling 8 lame hunters lowers the town's horse prices; the player then buys riding horses up to the max buy
+        // (240). Taking the sale back raises the prices again, so the buy is cut to what still fits.
+        var s = new Scenario().Party(10)
+            .Mount("hunter", "horse", held: 8, buy: 30, sell: 20, modifier: "lame_horse", priceFactor: Scenario.Lame)
+            .Mount("hunter", "horse", market: 20, buy: 200, sell: 100);
+        s.Oracle.Slope = 0.0001;
         var plan = s.Plan();
-        Assert.Equal(-3, plan.Row("mounts:riding").Change);   // 8 held, 5 reserved, footmen 0
-        var more = plan.Increase("mounts:upgrade:horse", EditSize.All);
-        Assert.Equal(9, more.After);                          // 176 … 240
-        Assert.Equal(EditBlock.PriceLimit, more.Block);
+        Assert.Equal(-8, plan.Row("mounts:lame").Change);      // no footmen: nothing replaces them
+        var more = plan.Increase("mounts:riding", EditSize.All);
+        Assert.Equal(20, more.After);                          // 152 … 228 after the lame sales
 
-        plan.Increase("mounts:riding", EditSize.All);         // the sale taken back
-        Assert.Equal(0, plan.Row("mounts:riding").Change);
-        Assert.Equal(6, plan.Row("mounts:upgrade:horse").Change); // 200 … 240
+        plan.Increase("mounts:lame", EditSize.All);            // the sale taken back
+        Assert.Equal(0, plan.Row("mounts:lame").Change);
+        Assert.Equal(11, plan.Row("mounts:riding").Change);    // 200 … 240
         Assert.True(plan.Transactions.All(t => t.UnitPrices.All(p => p <= 240)));
     }
 
@@ -576,7 +574,7 @@ public class PlanEditingTests
     public static TheoryData<string> Scenarios => new()
     {
         "busy town", "busy village", "poor village loot", "cheapest food", "pledge shrinks", "donations",
-        "market gold", "price limit", "surplus sales",
+        "market gold", "price limit", "surplus sales", "war horses over a riding surplus",
     };
 
     [Theory]
@@ -631,10 +629,15 @@ public class PlanEditingTests
 
     // ── Scenarios ────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Three hunters on offer, a riding row that needs one and an upgrade row that needs two.</summary>
-    private static Scenario SharedStock() =>
-        new Scenario().Village().Party(10, footmen: 2).Upgrade("recruit", 10, ("horse", 2))
-            .Mount("hunter", "horse", market: 3, buy: 200);
+    /// <summary>A village whose market holds 400 gold: 40 surplus grain (320) and armour loot (8 a piece) compete for it.</summary>
+    private static Scenario MarketGold400()
+    {
+        var s = new Scenario().Village().Party(10).Gold(100_000, marketGold: 400)
+            .Food("grain", held: 60, sell: 8)
+            .Loot("rags", LootGroup.Armour, held: 100, sell: 8);
+        s.Settings.SellLoot = true;
+        return s;
+    }
 
     /// <summary>Two wanderers (700, 800), a band of 20 mercenaries at 120; room 5, one companion slot.</summary>
     private static Scenario Tavern()
@@ -690,9 +693,13 @@ public class PlanEditingTests
                 return s;
             }
             case "pledge shrinks":
-                return new Scenario().Party(10, footmen: 10).Gold(10_000).Upgrade("recruit", 10, ("war_horse", 5))
+            {
+                var s = new Scenario().Party(10, footmen: 10).Gold(10_000)
                     .Mount("hunter", "horse", market: 50, buy: 200)
                     .Mount("charger", "war_horse", market: 10, buy: 1500);
+                s.Settings.WarMountsToKeep = 5;
+                return s;
+            }
             case "donations":
             {
                 var s = new Scenario().Party(10).Prisoner("looter", 8, 20).Prisoner("bandit", 4, 50)
@@ -714,9 +721,11 @@ public class PlanEditingTests
             }
             case "price limit":
             {
-                var s = new Scenario().Party(10, footmen: 6).Upgrade("recruit", 6, ("horse", 3))
+                var s = new Scenario().Party(10, footmen: 6)
                     .Mount("hunter", "horse", market: 20, buy: 200).Mount("steppe", "horse", market: 5, buy: 230)
+                    .Mount("charger", "war_horse", market: 6, buy: 1500)
                     .Food("grain", market: 100, buy: 100);
+                s.Settings.WarMountsToKeep = 3;
                 s.Oracle.Slope = 0.0003;
                 return s;
             }
@@ -725,8 +734,21 @@ public class PlanEditingTests
                 var s = new Scenario().Party(5, footmen: 2)
                     .Food("grain", held: 40, sell: 8).Food("fish", held: 25, sell: 11)
                     .Pack("mule", held: 13, sell: 60).Pack("camel", held: 2, sell: 90)
-                    .Mount("hunter", "horse", held: 6, sell: 100).Mount("charger", "war_horse", held: 1, sell: 800);
+                    .Mount("hunter", "horse", held: 6, sell: 100).Mount("charger", "war_horse", held: 1, sell: 800)
+                    .Mount("noble_a", "noble_horse", held: 1, sell: 2000)
+                    .Mount("hunter", "horse", held: 2, buy: 30, sell: 12, modifier: "lame_horse", priceFactor: Scenario.Lame)
+                    .Pack("mule", held: 1, buy: 20, sell: 7, modifier: "lame_horse", priceFactor: Scenario.Lame);
                 s.Oracle.Slope = 0.0004;
+                return s;
+            }
+            case "war horses over a riding surplus":
+            {
+                // Step 17's second pass: the riding surplus is sold against the war horses bought in the same visit.
+                var s = new Scenario().Party(100, footmen: 100)
+                    .Mount("hunter", "horse", held: 110, market: 50, buy: 200, sell: 100)
+                    .Mount("charger", "war_horse", market: 20, buy: 1500);
+                s.Settings.WarMountsToKeep = 10;
+                s.Oracle.Slope = 0.00001;
                 return s;
             }
             default:

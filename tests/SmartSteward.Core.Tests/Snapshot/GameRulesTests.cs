@@ -39,17 +39,18 @@ public class GameRulesTests
     }
 
     [Theory]
-    [InlineData(21, 16, 500, 300, 10, true, 1)]   // floor(500 / 300)
-    [InlineData(21, 16, 3000, 300, 4, true, 4)]   // clamped to the stack
-    [InlineData(21, 16, 299, 300, 10, true, 0)]   // not enough XP for one
-    [InlineData(11, 16, 3000, 300, 10, true, 0)]  // target below the troop's level
-    [InlineData(21, 16, 3000, 300, 10, false, 0)] // perk missing / bandit rule
-    [InlineData(21, 16, 50, 0, 7, true, 7)]       // a free upgrade: the whole stack
-    [InlineData(21, 16, 900, 300, 0, true, 0)]    // empty stack
-    public void Upgrade_ready_count_matches_the_party_screen(int targetLevel, int troopLevel, int xp, int cost,
-        int count, bool allowed, int expected)
+    [InlineData(0.1, true)]    // vanilla's lame_horse
+    [InlineData(0.2, true)]    // vanilla's companion_horse ("Old")
+    [InlineData(0.8, true)]    // a mod's "Badly Tempered" (commented out in vanilla's data)
+    [InlineData(1.0, false)]   // plain
+    [InlineData(1.2, false)]   // a better one
+    public void A_bad_modifier_is_one_worth_less_than_the_plain_item(double priceFactor, bool bad)
     {
-        Assert.Equal(expected, GameRules.UpgradeReadyCount(targetLevel, troopLevel, xp, cost, count, allowed));
+        // The game's own test (BattleCampaignBehavior, the Metallurgy perk): ItemModifier.PriceMultiplier < 1.
+        Assert.Equal(bad, GameRules.IsBadModifier(priceFactor));
+        var stack = new ItemStack { ModifierId = "m", ModifierPriceFactor = priceFactor };
+        Assert.Equal(bad, stack.HasBadModifier);
+        Assert.False(new ItemStack { ModifierPriceFactor = priceFactor }.HasBadModifier); // no modifier, never bad
     }
 
     [Fact]

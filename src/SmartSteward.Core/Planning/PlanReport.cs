@@ -27,9 +27,9 @@ namespace SmartSteward.Core.Planning
             var f = plan.Facts;
             yield return "facts: eaters " + f.FoodEaters.ToString(Inv) + ", food target " + f.FoodTarget.ToString(Inv)
                          + " (sell above " + f.FoodSellAbove.ToString("0.##", Inv) + "), pack target "
-                         + f.PackTarget.ToString(Inv) + ", footmen " + f.Footmen.ToString(Inv) + ", riding target "
-                         + f.RidingTarget.ToString(Inv) + " (counted " + f.RidingCounted.ToString(Inv) + "), upgrade ready "
-                         + Dict(f.UpgradeReady) + ", need " + Dict(f.UpgradeNeed) + ", reserved " + Dict(f.UpgradeReserved);
+                         + f.PackTarget.ToString(Inv) + ", footmen " + f.Footmen.ToString(Inv) + ", horses to keep "
+                         + f.MountTarget.ToString(Inv) + " (riding target " + f.RidingTarget.ToString(Inv) + ", war horses "
+                         + f.WarTarget.ToString(Inv) + ")";
             foreach (var section in plan.Sections)
             {
                 yield return "[" + section.Kind + "]";
@@ -66,7 +66,9 @@ namespace SmartSteward.Core.Planning
                 {
                     case MountRole.Pack: return "Pack animals";
                     case MountRole.Riding: return "Riding mounts";
-                    case MountRole.Upgrade: return "Upgrade horses (" + row.CategoryId + ")";
+                    case MountRole.War: return "War horses";
+                    case MountRole.Noble: return "Noble horses";
+                    case MountRole.Lame: return "Lame horses";
                 }
             }
             if (row.Type == RowType.Loot)
@@ -117,7 +119,6 @@ namespace SmartSteward.Core.Planning
             if (Math.Abs(row.WeightDelta) > 0.0001) sb.Append(", weight ").Append(row.WeightDelta.ToString("+0.#;-0.#", Inv));
             if (row.InfluenceDelta > 0) sb.Append(", influence +").Append(row.InfluenceDelta.ToString("0.##", Inv));
             if (row.Target != null) sb.Append(", target ").Append(row.Target.Value.ToString(Inv));
-            if (row.Need != null) sb.Append(", need ").Append(row.Need.Value.ToString(Inv));
             if (row.PriceBook != null)
                 sb.Append(", book buy ").Append(row.PriceBook.BuyTicked ? Limit(row.PriceBook.FinalMaxBuy) : "off")
                     .Append(" / sell ").Append(row.PriceBook.SellTicked ? Limit(row.PriceBook.FinalMinSell) : "off");
@@ -134,8 +135,7 @@ namespace SmartSteward.Core.Planning
                 sb.Append(row.Troop.OnOffer > 0 ? ", on offer " + row.Troop.OnOffer.ToString(Inv) + " at " + row.Troop.UnitPrice.ToString(Inv) : ", not on offer")
                     .Append(", wage ").Append(row.Troop.DailyWage.ToString(Inv))
                     .Append(row.Troop.Wounded > 0 ? ", " + row.Troop.Wounded.ToString(Inv) + " wounded" : "")
-                    .Append(row.Troop.IsMounted ? ", mounted" : ", on foot")
-                    .Append(row.Troop.UpgradeCategories.Count > 0 ? ", upgrades need " + string.Join("/", row.Troop.UpgradeCategories) : "");
+                    .Append(row.Troop.IsMounted ? ", mounted" : ", on foot");
             return sb.ToString();
         }
 
@@ -176,9 +176,6 @@ namespace SmartSteward.Core.Planning
             if (t.ExceedsMarketGold) flags.Add("the market cannot pay for all the sales");
             return flags;
         }
-
-        private static string Dict(IReadOnlyDictionary<string, int> map) =>
-            map.Count == 0 ? "-" : string.Join(", ", map.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Key + " " + p.Value.ToString(Inv)));
 
         private static string Limit(int? value) => value == null ? "any" : value.Value.ToString(Inv);
 

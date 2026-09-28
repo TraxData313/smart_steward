@@ -236,9 +236,9 @@ namespace SmartSteward.UI
             {
                 var f = plan.Facts;
                 ModLog.Info("window", "re-planned for the party after the deal: food target " + f.FoodTarget + " for " + f.FoodEaters
-                                      + " eaters (was " + factsBefore.FoodTarget + "), " + f.Footmen + " footmen, riding target "
-                                      + f.RidingTarget + " (was " + factsBefore.RidingTarget + "), upgrade need "
-                                      + string.Join(", ", f.UpgradeNeed.Select(p => p.Key + " " + p.Value)));
+                                      + " eaters (was " + factsBefore.FoodTarget + "), " + f.Footmen + " footmen, horses to keep "
+                                      + f.MountTarget + " (was " + factsBefore.MountTarget + "), riding target " + f.RidingTarget
+                                      + ", war horses " + f.WarTarget);
             }
             if (plan != null && plan.Layout != _layout)
                 BuildSections(plan);
@@ -449,8 +449,9 @@ namespace SmartSteward.UI
                         "TARGET", UiFormat.Money(facts.FoodTarget), "EATERS", UiFormat.Money(facts.FoodEaters));
                     break;
                 case PlanSectionKind.Mounts:
-                    DetailText = UiText.S2("ss_ui_sec_mounts_detail", "{FOOTMEN} men on foot  ·  riding target {TARGET}",
-                        "FOOTMEN", UiFormat.Money(facts.Footmen), "TARGET", UiFormat.Money(facts.RidingTarget));
+                    // Step 17: every horse kept counts for the footmen - war, noble and lame ones kept too (Anton 2026.09.28).
+                    DetailText = UiText.S2("ss_ui_sec_mounts_detail", "{FOOTMEN} men on foot  ·  {TOTAL} horses to keep",
+                        "FOOTMEN", UiFormat.Money(facts.Footmen), "TOTAL", UiFormat.Money(facts.MountTarget));
                     break;
                 case PlanSectionKind.Recruits:
                     DetailText = UiText.S("ss_ui_sec_recruits_detail", "[+] recruits  ·  [–] dismisses yours");
@@ -570,8 +571,10 @@ namespace SmartSteward.UI
             var parts = new List<string>();
             if (_row.Target != null)
                 parts.Add(UiText.S1("ss_ui_detail_target", "target {N}", "N", UiFormat.Money(_row.Target.Value)));
-            if (_row.Need != null)
-                parts.Add(UiText.S1("ss_ui_detail_need", "needed for upgrades {N}", "N", UiFormat.Money(_row.Need.Value)));
+            if (_row.Role == MountRole.Noble)
+                parts.Add(UiText.S("ss_ui_detail_noble", "yours and your companions' - sold unless locked"));
+            if (_row.Role == MountRole.Lame)
+                parts.Add(UiText.S("ss_ui_detail_lame", "sold - healthy ones take their place"));
             if (cells.WeightFreed != null)
                 parts.Add(UiText.S1("ss_ui_detail_frees", "{KG} kg", "KG", cells.WeightFreed));
             var p = _row.Prisoner;

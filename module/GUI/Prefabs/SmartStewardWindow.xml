@@ -338,7 +338,7 @@
                                               <ItemTemplate>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36">
                                                   <Children>
-                                                    <!-- sub-header (Pack animals / Mounts / War mounts) -->
+                                                    <!-- sub-header (Pack animals / Mounts / War mounts / Noble horses) -->
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="40" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Bottom" Brush.FontColor="@HeadingColor" Text="@SubHeaderText" IsVisible="@IsSubHeader" />
                                                     <!-- item row -->
                                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@IsItem">
@@ -351,27 +351,31 @@
                                                             <!-- Buy tick -->
                                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent">
                                                               <Children>
-                                                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteToggleBuy">
+                                                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteToggleBuy" IsVisible="@HasBuy">
                                                                   <Children>
                                                                     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Checkbox.Full.Button" IsVisible="@BuyTicked" DoNotAcceptEvents="true" />
                                                                   </Children>
                                                                 </ButtonWidget>
                                                               </Children>
                                                             </Widget>
-                                                            <!-- Max buy: [base] × mult » final -->
-                                                            <ListPanel WidthSizePolicy="Fixed" SuggestedWidth="300" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                                            <!-- Max buy: [base] × mult » final (hidden for the noble horses - sell only; the cell keeps its width) -->
+                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="300" HeightSizePolicy="StretchToParent">
                                                               <Children>
-                                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="110" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Center" MarginLeft="10">
+                                                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasBuy">
                                                                   <Children>
-                                                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
-                                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@PlaceholderColor" Text="@BuyPlaceholderText" IsVisible="@ShowBuyPlaceholder" DoNotAcceptEvents="true" />
-                                                                    <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@BuyBaseColor" RealText="@BuyBaseText" MaxLength="7" />
+                                                                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="110" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Center" MarginLeft="10">
+                                                                      <Children>
+                                                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+                                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@PlaceholderColor" Text="@BuyPlaceholderText" IsVisible="@ShowBuyPlaceholder" DoNotAcceptEvents="true" />
+                                                                        <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@BuyBaseColor" RealText="@BuyBaseText" MaxLength="7" />
+                                                                      </Children>
+                                                                    </Widget>
+                                                                    <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@BuyMultiplierText" />
+                                                                    <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Text="@BuyFinalText" />
                                                                   </Children>
-                                                                </Widget>
-                                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@BuyMultiplierText" />
-                                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Text="@BuyFinalText" />
+                                                                </ListPanel>
                                                               </Children>
-                                                            </ListPanel>
+                                                            </Widget>
                                                             <!-- Sell tick -->
                                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" MarginLeft="30">
                                                               <Children>

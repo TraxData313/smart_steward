@@ -45,21 +45,12 @@ namespace SmartSteward.Core.Snapshot
         }
 
         /// <summary>
-        /// The party screen's "can upgrade now" count for one stack and target, NOT capped by gold or by the
-        /// animals held (those are what the steward fills) — <c>PartyCharacterVM.InitializeUpgrades</c>:
-        /// ready when the target's level ≥ the troop's and the stack's pooled XP ≥ one upgrade's cost, then
-        /// <c>clamp(floor(xp / cost), 0, number)</c>; zero when the party lacks the required perk (and, for
-        /// bandits, when <c>CanPartyUpgradeTroopToTarget</c> says no — the button is disabled then).
+        /// A modifier worth less than the plain item — the game's own test for a BAD modifier: <c>ItemModifier.PriceMultiplier
+        /// &lt; 1</c> (<c>BattleCampaignBehavior.OnCollectLootItems</c>: the Metallurgy perk strips exactly those). For horses in
+        /// v1.4.8 that is "Lame" (<c>lame_horse</c>, 0.1 — a horse badly hurt in battle) and "Old" (<c>companion_horse</c>, 0.2 —
+        /// a wanderer's own horse); no horse modifier worth more is active (RESEARCH §22).
         /// </summary>
-        public static int UpgradeReadyCount(int targetLevel, int troopLevel, int stackXp, int xpCost, int stackCount,
-            bool allowed)
-        {
-            if (!allowed || stackCount <= 0 || targetLevel < troopLevel || stackXp < xpCost)
-                return 0;
-            if (xpCost <= 0)
-                return stackCount;
-            return Math.Max(0, Math.Min(stackCount, stackXp / xpCost));
-        }
+        public static bool IsBadModifier(double priceFactor) => priceFactor < 1.0;
 
         /// <summary>The mean of the category's price factor over the other towns (the inventory's own average,
         /// <c>InventoryLogic.InitializeCategoryAverages</c>); 1 when there are none. Vanilla divides by the town

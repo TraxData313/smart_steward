@@ -60,8 +60,6 @@ namespace SmartSteward.Core.Planning
                         OnOffer = Math.Max(0, t.OnOffer),
                         Wounded = Math.Max(0, Math.Min(t.Wounded, t.InParty)),
                         IsMounted = t.IsMounted,
-                        UpgradeCategories = (t.UpgradeCategories ?? new List<string>())
-                            .Where(c => !string.IsNullOrEmpty(c)).Distinct(StringComparer.Ordinal).ToList(),
                         SeaWeightPerMan = Math.Max(0, t.SeaWeightPerMan),
                     },
                 }));
@@ -88,7 +86,6 @@ namespace SmartSteward.Core.Planning
                 PricePerMan = list.Max(t => t.PricePerMan),
                 WagePerMan = first.WagePerMan,
                 IsMounted = first.IsMounted,
-                UpgradeCategories = first.UpgradeCategories,
                 SeaWeightPerMan = first.SeaWeightPerMan,
             };
         }

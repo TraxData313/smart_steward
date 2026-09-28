@@ -10,7 +10,8 @@ open questions for Anton are listed on the board under NOT FULLY DECIDED.
 settings, and exactly five jobs:
 1. **Tavern** — wanderers and mercenaries (§2.7)
 2. **Food** (§2.1)
-3. **Horses** — pack animals, riding mounts, upgrade and war horses (§2.2–2.4)
+3. **Horses** — pack animals, riding mounts and war horses; noble horses sold, lame ones replaced (§2.2–2.4; simplified
+   in step 17 **[Anton 2026.09.28]**: no troop upgrade is counted any more)
 4. **Armour & weapons selling** — in bulk groups (§2.6)
 5. **Prisoners** — ransom, or send to a friendly jail (§2.5) (Anton re-added them the same day)
 6. **Troops** — the recruits on offer and your own troops: recruit and dismiss by hand (§2.8) **[Anton 2026.09.28, playtest
@@ -22,8 +23,10 @@ settings, and exactly five jobs:
 
 Terms: **food** = any item the game treats as food; **pack animal** = a pack-animal horse item
 (sumpter horse, mule…); **mount** = a riding animal that is not a pack animal; **war mount** = a
-mount of the category a troop upgrade requires (war horse, noble horse, war camel… — exact
-categories per `RESEARCH.md`); **loot** = everything else in the party inventory.
+mount of the `war_horse` category, kept to a plain number (step 17 — ~~a mount of the category a troop upgrade requires~~);
+**noble horse** = a `noble_horse` mount — the player's and his companions' own, never bought, sold unless locked (step 17);
+**lame horse** = any horse or pack animal with a BAD modifier (worth less than a plain one: lame, old — RESEARCH §22);
+**loot** = everything else in the party inventory.
 
 **[research 2026.09.27]** The exact game definitions (RESEARCH §1):
 - **food** = `ItemObject.IsFood` — vanilla has 9: grain, meat, fish, cheese, butter, grape, date
@@ -35,7 +38,8 @@ categories per `RESEARCH.md`); **loot** = everything else in the party inventory
   `war_horse`, `noble_horse` (camels included — there is no camel category).
 - **war mount** = a mount whose category an upgrade target requires. Vanilla requires only
   **`horse`** (21 troops) and **`war_horse`** (23 troops); `noble_horse` is never required. So a
-  plain `horse` can be both a footman's mount and an upgrade horse (see §2.4).
+  plain `horse` can be both a footman's mount and an upgrade horse (see §2.4). **[step 17]** The steward no longer counts
+  upgrades: a plain-horse upgrade draws on the riding horses, a war-horse one on the war horses kept (§2.3–§2.4).
 
 ---
 
@@ -78,12 +82,20 @@ horse types:
 | Role row | Holds | `[+]` buys | `[-]` sells |
 |---|---|---|---|
 | Pack animals | pack animals | the CHEAPEST eligible pack animal on the market | the MOST EXPENSIVE surplus one |
-| Riding mounts | mounts not reserved for upgrades | the cheapest eligible mount | the most expensive unreserved one |
-| Upgrade horses (`horse`) | `horse`-category mounts reserved for upgrades | the cheapest eligible `horse` | the most expensive surplus one |
-| War horses (`war_horse`) | `war_horse` mounts reserved for upgrades | the cheapest eligible `war_horse` | the most expensive surplus one |
+| Riding mounts | the riding horses: every mount that is not a war or a noble horse (`horse`, camels, a mod's categories) | the cheapest eligible riding horse | the most expensive one |
+| War horses | `war_horse` mounts — kept to `WarMountsToKeep` | the cheapest eligible `war_horse` | the most expensive one |
+| Noble horses | `noble_horse` mounts — **sell only** (`SellNobleHorses`) | never (grey: sell only) | the most expensive one not LOCKED |
+| Lame horses | lame and old horses and pack animals — **sell only** (`ReplaceLameHorses`) | never (grey: sell only) | the most expensive one |
+
+**[Anton 2026.09.28, step 17 — "make it simpler for now"]** The two upgrade rows (`horse` / `war_horse` "reserved for
+upgrades") are gone: war horses are one plain number, noble horses and lame horses got their own sell-only rows. The
+table shows Pack · Riding · War · Noble · Lame; the rows SELL in the order lame · pack · noble · war · riding (the riding
+surplus is counted once every other kept horse is known — `PlanReplay.AnimalSellRank`, the planner and the editor alike).
+Ids: `mounts:pack`, `mounts:riding`, `mounts:war`, `mounts:noble`, `mounts:lame`.
 
 "Eligible" = buy-ticked in the Prices tab, priced within its own max (§1.3) AND within the role cap
-(`PackAnimalMaxPrice`, `MountMaxPrice`, `WarMountMaxPrice`). Each step re-walks the marginal
+(`PackAnimalMaxPrice`, `MountMaxPrice`, `WarMountMaxPrice`) AND plain — a modified animal is never bought (lame and old
+ones by Anton's rule, step 17; any other modifier since step 4). Each step re-walks the marginal
 prices (§4.1), so the next `[+]` picks the next cheapest. The row shows the total and the unit
 range (`3 × 180–240 = 630`); Market = eligible units on offer. A small `▸` expands the row into its
 per-type breakdown for the curious — collapsed by default. The shift/ctrl steps work as everywhere.
@@ -133,18 +145,18 @@ Buttons on Change:
     ransomed or donated stops eating, one kept eats half a ration), and the troops section's recruit and dismiss rows (§2.8,
     step 16) — re-derives the
     party after the deal and runs the SAME planners in the SAME walk, order, money chain and floors on the same snapshot,
-    with every touched row pinned at its quantity. Every UNTOUCHED item row — food, pack animals, riding mounts, upgrade and
-    war horses, and armour & weapons (whose share of the market's gold moves with the food sales) — takes what the planners
+    with every touched row pinned at its quantity. Every UNTOUCHED item row — food, pack animals, riding mounts, war, noble
+    and lame horses, and armour & weapons (whose share of the market's gold moves with the food sales) — takes what the planners
     make of it now. Other edits do not re-plan (keeps a click fast and predictable). ⟲ and "Reset all" re-plan too: ⟲ hands one
     row back, "Reset all" hands every row back — with nothing touched that is exactly the first plan.
   - **The party after the deal.** Members = now + hires (+ recruits − dismissals). Eaters = members + half the prisoners who
     stay (the game's integer halves). Footmen = now + every man hired who is not mounted, by the game's own rule
     (`CharacterObject.IsMounted`: a troop by its default formation class, cavalry / horse archer; a hero by his battle
     equipment's horse slot — RESEARCH §3), carried per troop type in the snapshot (the mercenary band, each wanderer, every
-    troop type of §2.8). New men are never ready to upgrade (no XP yet), but a troop whose upgrade needs a kind of
-    horse puts that kind in play (a fixed "horses for upgrades" number or the spares then apply); men who leave a stack take
-    its ready count down with them (dismissing upgrade-ready men lowers the upgrade-horse need). The footer's facts (food
-    target and eaters, footmen, riding target), the party line and the capacity follow.
+    troop type of §2.8). ~~New men are never ready to upgrade (no XP yet), but a troop whose upgrade needs a kind of
+    horse puts that kind in play …; men who leave a stack take its ready count down with them~~ — **[step 17]** nothing
+    counts upgrades any more: the horses to keep follow the footmen only (§2.3). The footer's facts (food target and
+    eaters, footmen, horses to keep), the party line and the capacity follow.
   - **Precedence** (`PlanPins`): in every phase of the walk — food sales · animal sales · loot sales · food buys · animal
     buys — the player's touched rows go FIRST, then the steward's; so the player's rows take the market's stock, its gold and
     a category's price room before the steward's. And because a phase only sees what came before it, the steward's rows
@@ -154,13 +166,13 @@ Buttons on Change:
     buys giving way; if the re-planned deal still cannot pay — a bigger party leaves less food surplus to sell — the click
     steps back to the most hires it pays). The plan editor's walk (`PlanReplay`) uses the same precedence, so every edit
     prices the player's rows first too; with no row touched it is the planner's own order.
-  - **Rows may come and go.** A kind of upgrade horse that comes into play brings its row; an untouched upgrade row nobody
-    needs any more goes (a touched one stays). The window keeps its row objects and rebuilds its table only then
-    (`StewardPlan.Layout`).
+  - **Rows may come and go.** ~~A kind of upgrade horse that comes into play brings its row~~ (step 17: the horse rows no
+    longer depend on the troops); an untouched row the re-plan no longer has goes (a touched one stays). The window keeps
+    its row objects and rebuilds its table only then (`StewardPlan.Layout`).
   - **A settings change** (Prices/Instructions tab, MCM, the file) re-plans as before and puts the player's touched rows back
     in one re-plan (`PlanCarryOver` → `StewardPlan.Restore`): the steward plans its rows around them — the hires included.
   - **The promise, as a test** (`LivePlanTests`): plan → edit the party → Do it → a fresh plan of the resulting party proposes
-    nothing new for food, pack animals, riding mounts or upgrade horses (food within its surplus tolerance).
+    nothing new for food, pack animals, riding mounts, war, noble or lame horses (food within its surplus tolerance).
   - **Speed**: only a party-changing click (or ⟲ / Reset all) re-plans; on the late-game benchmark a re-planning click costs
     15–26 ms (the re-plan itself 1–6 ms, the rest the window's usual refresh), ordinary clicks 14–19 ms (step 9: ≤ ~20 ms).
 - **How an edit behaves** **[decided: Claude, 2026.09.27 — step 4b]** (Core: `StewardPlan.Increase` /
@@ -195,7 +207,8 @@ Buttons on Change:
     0 shows the price to hire. The game's UI fonts have no → − ≈ ⟲ ▸ (RESEARCH §14): the header reads
     `Gold 12,400 » 10,930 (–1,470)`, the minus is an en dash, ⟲ and ▸ are the game's refresh and collapser icons.
   - A **Reset all** button sits bottom left of the Suggestion tab. The small grey words after a name carry the
-    role's target, the upgrade need, the weight a loot sale frees, a wanderer's skills and wage.
+    role's target, what a noble or lame row does, the weight a loot sale frees, a wanderer's skills and wage. The Mounts
+    section's header line reads `100 men on foot · 110 horses to keep` (step 17).
   - Typed numbers (price bases, multipliers, settings) are saved on every key that leaves a valid number; anything
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
@@ -219,9 +232,12 @@ the footer shows it in red, but **Do it** still works — the player's hand over
 
 ### 1.2 Instructions tab — the settings
 
-Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). The War
+Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). ~~The War
 mounts group also shows the live count "Troops ready to upgrade now: N for a horse, M for a war horse" beside its two
-targets (§2.4, step 12).
+targets (§2.4, step 12).~~ **[Anton 2026.09.28, step 17]** "Horses per 100 footmen" and "War horses to keep" each show
+after their box what they mean for this party right now — `(110 horses = 100 riding + 10 war, for 100 footmen)` (the
+party before the deal; Core `Planning\MountGoal`) — in place of the range, which stays in the tooltip (the note fills the
+line's room).
 - ~~**Prisoners to ransom**: a tick-list of troop types~~ — **REMOVED [Anton 2026.09.28, playtest round 1: "ransom all
   or none"]**. The `RansomPrisoners` switch and `RansomHeroPrisoners` (lords) are the whole choice; an old settings
   file's `PrisonersExcluded` is ignored (logged once).
@@ -236,7 +252,8 @@ Anton: *"as I get richer I will stop caring for the price — I don't want to ra
 for each item, give me a multiplier."* So every item has its own base prices, and two global
 multipliers scale them all.
 
-Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts).
+Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts · **Noble horses — sell
+only**, step 17: no buy column there, the sell placeholder always filled).
 V1 has only these two **[Anton 2026.09.27]** — every other trade good (wood, jewelry, metal,
 livestock, …) is left alone by the steward in V1; the *Others* group is designed below (§1.3.1)
 for a later update. **Armour and weapons are
@@ -263,13 +280,21 @@ One row per item:
 - **Auto-fill** — showing the average price of EVERY item would be a trader's cheat sheet, so
   auto-fill is per group: `AutoFillFoodPrices` (on), `AutoFillPackAndMountPrices` (on),
   `AutoFillWarMountPrices` (**off**) — and later `AutoFillOtherPrices` (**off**). With auto-fill off, the
-  base stays empty until the player types one.
+  base stays empty until the player types one. **Noble horses always auto-fill** **[decided: Claude, 2026.09.28 — step
+  17]**: they are only ever sold, so their average SELL price is no trader's cheat sheet — and without it a noble horse
+  would go at any price, a pittance in a village (Anton: "sold at ≥ their min sell price like any horse").
+- **A modified stack's min sell** **[decided: Claude, 2026.09.28 — step 17]** = its item's final min sell × the modifier's
+  price factor (`ItemModifier.PriceMultiplier`: lame 0.1, old 0.2 — the game prices a lame horse at a tenth of a plain one):
+  a lame horse is judged against a lame horse's worth, so the Lame horses row can sell it at all (`PriceBook.MinSellOf`).
 - **Defaults of the ticks**: food — Buy ☑ Sell ☑; pack animals and mounts — Buy ☑ Sell ☑;
-  war mounts — Buy ☑ Sell ☑.
-- **Which horses sit under "War mounts"** **[decided: Claude, 2026.09.27 — step 4]**: the Mounts
+  war mounts — Buy ☑ Sell ☑; noble horses — Sell ☑ (no buy tick shown: never bought).
+- **Which horses sit under "War mounts"** ~~**[decided: Claude, 2026.09.27 — step 4]**: the Mounts
   sub-header holds the `horse` category (plain riding horses and camels); `war_horse`, `noble_horse`
-  and any category a mod adds sit under War mounts — no auto-filled price by default. A final price
-  is rounded to the nearest denar, halves up (`[11] × 1.2 → 13`).
+  and any category a mod adds sit under War mounts — no auto-filled price by default.~~ **[Anton 2026.09.28 — step 17:
+  "noble horses are never used to upgrade troops; exclusively for you and your companions"]**: War mounts = `war_horse`
+  only; `noble_horse` has its own sub-header (Noble horses — sell only); Mounts = `horse` and any category a mod adds (to
+  the steward they are riding horses — nothing counts upgrades any more; `PriceBook.GroupOf`). A final price is rounded to
+  the nearest denar, halves up (`[11] × 1.2 → 13`).
 - Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
 - **Which items the tab lists** **[decided: Claude, 2026.09.27 — step 7]**: every food, pack animal and riding animal
   of the game that is merchandise (livestock, quest and non-transferable items left out, as the steward classifies
@@ -352,10 +377,19 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **[research 2026.09.27]** Each pack animal adds ~100 carrying capacity (perks raise it); animals
   weigh nothing themselves. Selling any mount or pack animal carries a +0.8 trade penalty (it
   fetches about half its buy price) — the planner never sells and buys the same kind in one visit.
+  **The one exception [Anton 2026.09.28, step 17]**: the Lame horses row sells the lame and old ones while this row (and
+  the riding and war rows) buy healthy ones in their place — that is what "Replace lame horses" asks for.
+- **Lame pack animals** (a bad modifier, RESEARCH §22) are never bought; with `ReplaceLameHorses` (default **on**) they
+  sit in the Lame horses row (sold) and do not count toward the target, so healthy ones replace them; one the market
+  cannot take this visit (gold, min sell) still counts. Off: kept and counted, like any pack animal.
 - **Locked pack animals are managed** **[Anton 2026.09.28, playtest round 2]**: counted as held and sold as surplus, most
   expensive first, locked or not — unless `LocksProtectFoodAndHorses` (§2.6).
 
 ### 2.3 Mounts — horses for the footmen
+
+**[Anton 2026.09.28, step 17 — "don't worry about the mounts needing upgrades … the other soldiers just draw from my mounts
+… make it simpler for now … this simplifies your whole deal with the upgrades that confused me."]** (Core
+`Planning\MountGoal`, `MountPlanner`, `LameHorsePlanner`.)
 
 - **Footmen** = party troops (not heroes? — per RESEARCH: count what the game's speed model
   counts) who ride no horse.
@@ -364,59 +398,79 @@ pure Core logic fed a snapshot of the party and the market (§5).
   mounted when his battle-equipment horse slot is filled). Footmen ride any **mount** in the
   inventory (war and noble horses and camels too) but **never a pack animal**. Mounts beyond the
   footmen join the herd, which slows the party only once animals outnumber the men.
-- **Target** = `ceil(footmen × MountsPer100Footmen / 100)` (default **110** → a 10% buffer).
   **[step 15]** The footmen of the party after the deal: every man the plan hires who is not mounted (the game's own
-  `CharacterObject.IsMounted`, RESEARCH §3) needs a mount too — live with every hire (§1.1).
-- War mounts held (§2.4) count toward this target when `WarMountsCountAsMounts` (default on —
-  the game lets footmen ride any riding animal in the inventory).
-- **Buy** the cheapest ELIGIBLE mounts (§1.1.1 — price-book max AND ≤ `MountMaxPrice`, default
-  **500**). Surplus sells under the same price-book rules as pack animals.
-- **Sell surplus** (`SellMountSurplus`, default on) above target, **most expensive first**, but
-  never a war mount reserved for upgrades.
-- **Locked mounts are managed** **[Anton 2026.09.28, playtest round 2]**: riding mounts and upgrade horses LOCKED in the
-  inventory count as held and the riding surplus is sold most expensive first, locked or not; the horses reserved for
-  upgrades are still never sold by the steward (the player may, by hand). With `LocksProtectFoodAndHorses` on, locked
-  mounts are counted but never sold (§2.6). The reservation order stays the game's (unlocked first, §2.4) either way.
+  `CharacterObject.IsMounted`, RESEARCH §3) needs a mount too — live with every hire, recruit and dismissal (§1.1).
+- **Horses to keep** `T = ceil(footmen × MountsPer100Footmen / 100)` (default **110** → a 10% buffer). EVERY mount kept
+  counts toward it — riding horses, the war horses kept (§2.4), noble horses kept (locked, or `SellNobleHorses` off) and
+  lame ones kept (`ReplaceLameHorses` off, a guarding lock, or the market could not take them) — because a footman rides
+  any of them. ~~War mounts held (§2.4) count toward this target when `WarMountsCountAsMounts`~~ (retired: they always do).
+- **Riding horses fill the rest**: `R = T − the war, noble and lame horses kept after the deal` (with the war horses at
+  their number: `R = max(0, T − W)`). **Anton's example**: 100 footmen at 110 per 100, keep 10 war → **100 riding + 10
+  war = 110 horses**. When he upgrades men with those war horses they become cavalry, the footmen drop, and the numbers
+  settle by themselves (the next town buys the war horses back up to W and sells the riding horses the smaller party no
+  longer needs — test `After_an_upgrade_took_the_war_horses_the_numbers_settle_by_themselves`).
+- **Buy** the cheapest ELIGIBLE riding horses (§1.1.1 — price-book max AND ≤ `MountMaxPrice`, default **500**; never a
+  war or noble horse — a war horse bought as a riding horse would be a surplus war horse next visit — and never a modified
+  one). Riding mounts outrank war horses for the purse (§3): when the purse cannot pay for every war horse short, riding
+  horses fill the gap first — the steward pledges the war horses it will buy, and while fewer are affordable (or on offer)
+  it buys more riding horses instead (the pledge simulation, kept from step 4).
+- **Sell surplus** (`SellMountSurplus`, default on) above `R`, **most expensive first** — against the war horses the party
+  will HAVE after the deal, those bought in this visit too **[decided: Claude, 2026.09.28 — step 17]**: when the steward
+  buys war horses while the riding row has a surplus, the planner plans once more with those war horses pledged
+  (`MountPlanner.PledgeHint` → `PlanContext.WarPledge`), so 110 riding + 0 war with "keep 10" becomes −10 riding, +10 war
+  in ONE visit, and a fresh plan after Do it has nothing left (Anton's promise, §1.1). Should the second pass afford fewer
+  war horses than the first (the riding sales' gold is the market's too), a footman may lack a horse until the next town.
+  (The old rule "riding surplus is not sold in a visit that buys an upgrade horse" is gone: a riding and a war horse are
+  different kinds now.) Never a riding horse bought in a visit that sells riding horses.
+- **Locked mounts are managed** **[Anton 2026.09.28, playtest round 2]**: riding mounts and war horses LOCKED in the
+  inventory count as held and their surplus is sold most expensive first, locked or not. With
+  `LocksProtectFoodAndHorses` on, locked mounts are counted but never sold (§2.6). **A noble horse's lock always keeps it**
+  (step 17, below).
+- **Noble horses** **[Anton 2026.09.28, step 17 — "never used to upgrade troops; exclusively for you and your companions …
+  we don't care about noble horses and we are selling them if the player didn't lock them"]**: the `noble_horse` category
+  is **never bought**, and every one NOT LOCKED is sold (`SellNobleHorses`, default **on**; Mounts group) — a lock ALWAYS
+  protects a noble horse, whatever `LocksProtectFoodAndHorses` says (`LockRule.IsGuarded`; the executor honours a lock
+  set after the plan too). They sell at ≥ their final min sell price like any horse (the Prices tab's "Noble horses — sell
+  only" sub-group always shows the sell placeholder, §1.3), so a village never gets one for a pittance. Their own row in
+  the Suggestion tab: **Noble horses**, sell only. Kept (locked, the switch off, unticked, or below the min price) they
+  carry footmen and count toward T.
+- **Lame horses** **[Anton 2026.09.28, step 17 — "the whole idea is to speed up the infantry, so if a lame horse gives the
+  bonus — keep it; never buy them as they don't look good; add a button to sell and replace them with healthy ones, default
+  ON"]**: the steward **never buys** a horse or pack animal with a BAD modifier (`ItemModifier.PriceMultiplier < 1`, the
+  game's own test — RESEARCH §22: vanilla's "Lame" and "Old"). `ReplaceLameHorses` (default **on**; Mounts group): every
+  one the party holds — pack, riding or war; not a noble horse (that row sells it anyway), not one a lock guards, not one
+  unticked for selling, and only for a role the steward manages — sits in its own **Lame horses** row (sell only, the
+  dearest first, first among the animal sales) and is sold, while its role row, which does not count it, buys a healthy
+  one: the explicit exception to "never sell and buy the same kind in one visit" (§2.2). One the market cannot take this
+  visit still counts toward its role (it carries a footman). Off: they are kept and counted — a lame horse does carry a
+  footman (RESEARCH §22: the speed model counts every `IsMount` animal, modified or not).
 
-### 2.4 War mounts — ready for the upgrades
+### 2.4 War mounts — a plain number to keep
 
-- **Needed** per war-mount category = number of troops that can upgrade NOW to a tier that
-  requires that category, + `WarMountsExtra` (default **0**). Each kind has its own fixed number:
-  `WarMountsHorseTarget` (plain horses, `horse`) and `WarMountsWarHorseTarget` (war horses, `war_horse`) — ≥ 0
-  replaces the automatic count for that kind only, with no spares on top (default **-1** = automatic). A category a mod
-  adds is always automatic.
-  **[decided: Claude, 2026.09.28 — step 12, playtest round 1]** The old single `WarMountsManualTarget` applied to EACH
-  kind: Anton's "10" kept 10 horses AND 10 war horses. It is split in two (labels "Horses for upgrades" / "War horses
-  for upgrades", "Spare upgrade horses (each kind)"); an old file's `WarMountsManualTarget` is retired — dropped, both
-  kinds start automatic, the log says so (`SettingsFile.RetiredKeys`). The Instructions tab shows the live count beside
-  them ("Ready to upgrade now: 4 horses, 10 war horses").
+- ~~**Needed** per war-mount category = number of troops that can upgrade NOW to a tier that requires that category, +
+  `WarMountsExtra` …; `WarMountsHorseTarget` / `WarMountsWarHorseTarget` (-1 = automatic) …; reserved = the held horses
+  the upgrades would take …; `WarMountsCountAsMounts` …~~ — **SUPERSEDED [Anton 2026.09.28, step 17]** (see §2.3's
+  quote). The step-4/12/15 machinery (`UpgradeNeeds`: the party screen's ready count per stack, the plain-horse upgrade
+  reserve, the kinds "in play", the per-kind fixed numbers and spares, the reservation in the game's consumption order,
+  the "Upgrade horses (horse)" and "(war_horse)" rows, the Instructions tab's "Troops ready to upgrade now" line) is gone,
+  and with it the snapshot's upgrade stacks and every troop's upgrade kinds. An old settings file's
+  `WarMountsHorseTarget`, `WarMountsWarHorseTarget`, `WarMountsExtra` and `WarMountsCountAsMounts` (and round 1's
+  `WarMountsManualTarget`) are retired — ignored and logged once, not converted (`SettingsFile.RetiredKeys`).
+- **War horses to keep** `W = WarMountsToKeep` (default **0**, 0–500; War mounts group, label "War horses to keep") — a
+  plain NUMBER of mounts of the **`war_horse` category** (noble horses are NOT war mounts; a mod's category is a riding
+  horse). The steward **buys up to it** — the cheapest ELIGIBLE (price-book max if set — war horses have no auto-filled
+  placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**; never a modified one) — and **sells above it**, the
+  dearest first, when `SellWarMountSurplus` (default on). They count toward T (§2.3): the riding horses fill the rest. With
+  the default 0 every unlocked war horse is surplus — set the number to what you mean to upgrade.
+- **Upgrades draw on what is kept** — the game's own upgrade takes a horse of the category the target troop needs
+  (RESEARCH §4): a plain-horse upgrade draws from the riding horses, a war-horse one from the war horses kept; the
+  upgraded men ride as cavalry, the footmen drop, and the next plan follows (§2.3).
+- `WarMountsEnabled` (default on, "Manage war horses"): off = a war horse is a plain riding horse to the steward (counted,
+  bought and sold as one; no War horses row).
 - **[research 2026.09.27]** The requirement sits on the troop you upgrade INTO
-  (`UpgradeRequiresItemFromCategory` of the target); vanilla uses `horse` and `war_horse` only.
-  "Can upgrade now" = the party screen's own count per stack and target:
-  `min(floor(stackXp / xpCost), stack size)` when the target's level ≥ the troop's. Both targets
-  of a stack share one XP pool — count a stack once. 12 vanilla stacks (recruits) choose between a
-  foot target and a horse-needing one (see NOT FULLY DECIDED). An upgrade consumes the **cheapest**
-  animal of the category first and locked ones only last — so the reserved war mounts are the
-  cheapest of their category.
-- **[step 15]** Men the plan hires are never ready to upgrade (no XP yet); a hired troop whose upgrade needs a kind of horse
-  puts that kind in play (its fixed number or the spares then apply — §1.1, the live re-plan).
-- **Buy** the cheapest ELIGIBLE of the needed category (price-book max if set — war mounts have
-  no auto-filled placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**).
-- **Sell surplus** (`SellWarMountSurplus`, default on) above what is needed, most expensive first.
-- **How a held mount gets its role** **[decided: Claude, 2026.09.27 — step 4]**:
-  - Need per category counts a stack once, at its best horse-needing target (foot-or-horse recruits
-    count — the board's proposal). `WarMountsExtra` goes on every category the party's troops upgrade
-    into, even with nobody ready; a kind's fixed number (`WarMountsHorseTarget` / `WarMountsWarHorseTarget`) applies
-    only while some troop upgrades into that kind (Core `Planning\UpgradeNeeds`).
-  - Reserved = the held horses the upgrades would take (unlocked first, cheapest base value first, as
-    vanilla consumes them); every other mount — war and noble horses too — is a riding mount.
-  - With `WarMountsCountAsMounts`, the reserved horses AND the upgrade horses about to be bought count
-    toward the footmen's target: the upgraded man takes his horse, so counting both would buy one horse
-    too many per upgrade. When the purse cannot pay for all the upgrade horses, riding mounts fill the
-    gap first (Mounts outrank War mounts).
-  - Riding surplus is not sold in a visit that buys an upgrade horse (never sell and buy mounts in one
-    visit — after the upgrade it is surplus for real). With war mounts managed and
-    `SellWarMountSurplus` off, no horse of an upgrade category is ever sold.
+  (`UpgradeRequiresItemFromCategory` of the target); vanilla uses `horse` and `war_horse` only. An upgrade consumes the
+  **cheapest** animal of the category first and locked ones only last (kept for the record — the steward no longer
+  reserves any).
 
 ### 2.5 Prisoners — ransom or donate
 
@@ -469,10 +523,11 @@ pure Core logic fed a snapshot of the party and the market (§5).
   "rusty sword" does not lock a plain one (RESEARCH §6). Also never sold: livestock, banners,
   books, quest items, non-transferable items.
 - **What a lock guards** **[Anton 2026.09.28, playtest round 2 — "food and horses even if locked, manage them"]**: locks
-  keep guarding ARMOUR & WEAPONS exactly as above, whatever the settings. Food, pack animals, riding mounts and upgrade
-  horses are managed WHETHER LOCKED OR NOT — counted as held, sold as surplus by their own rules (§2.1–§2.4; reserved
-  upgrade horses are still never sold) — unless `LocksProtectFoodAndHorses` ("Locks protect food & horses", General,
-  default **off**): on, locked food and animals are counted but never sold and shown apart as "+N locked", the old way.
+  keep guarding ARMOUR & WEAPONS exactly as above, whatever the settings. Food, pack animals, riding mounts and war
+  horses are managed WHETHER LOCKED OR NOT — counted as held, sold as surplus by their own rules (§2.1–§2.4) — unless
+  `LocksProtectFoodAndHorses` ("Locks protect food & horses", General, default **off**): on, locked food and animals are
+  counted but never sold and shown apart as "+N locked", the old way. **A NOBLE horse's lock always guards it**
+  **[Anton 2026.09.28, step 17]** — the lock is how the player keeps his own horse (§2.3).
   The planner and the executor share one rule (Core `Planning\LockRule`): each sale carries whether its lock guards it
   (`PlanTransaction.HonoursLock`), and at the click only a guarded sale of a stack locked now is skipped (§5). The game's
   own lock only works in the trade screen's "transfer all" (RESEARCH §6), so a locked stack sells through vanilla's
@@ -567,8 +622,9 @@ too); castles have no market and no steward. One row per troop type — never ev
 - **The party size limit never blocks** — the footer's `Party 99/96` counts recruits in and dismissed men out, red when over
   (§1.1, §2.7). Only an empty purse stops a recruit (vanilla's rule: the cart's total ≤ your gold).
 - **Party-changing rows** (§1.1, the live re-plan): a recruit or a dismissal re-plans every untouched row — the eaters, the
-  footmen (a recruit on foot needs a riding mount; the game's own rule, RESEARCH §3), the capacity, and the upgrades: new men
-  are never ready but put their kind of upgrade horse in play; dismissing upgrade-ready men lowers the upgrade-horse need.
+  footmen (a recruit on foot needs a horse; the game's own rule, RESEARCH §3) and with them the horses to keep (§2.3), the
+  capacity. (~~and the upgrades: new men put their kind of upgrade horse in play; dismissing upgrade-ready men lowers the
+  upgrade-horse need~~ — step 17: nothing counts upgrades any more.)
   Their gold comes first for the purse, like the hires: the steward's own buys give way.
 - **Dismissing takes the WOUNDED first** **[decided: Claude, 2026.09.28 — step 16]**: vanilla's party screen does exactly
   that when you move men out of your party (RESEARCH §21), and it keeps the men who can fight now — and carry: healthy men
@@ -652,15 +708,16 @@ actually summed (vanilla divides by the town count − 1 even when a castle-boun
 
 ## 5. The snapshot (Core input) and the executor (Module)
 
-The Module reads a plain snapshot for Core: party members (with footmen/riders split, upgrade-
-ready troops and their required war-mount category), prisoners (with ransom value), inventory
-(item id, count, weight, type, locked flag), market (item id, stock, buy price walk, sell price
+The Module reads a plain snapshot for Core: party members (with footmen/riders split; ~~upgrade-
+ready troops and their required war-mount category~~ — gone in step 17), prisoners (with ransom value), inventory
+(item id, count, weight, type, locked flag, **[step 17]** the modifier's price factor — below 1 = a lame or old horse),
+market (item id, stock, buy price walk, sell price
 walk), market gold, player gold, daily food consumption, settlement kind (town/village), whether
 donating prisoners is allowed, the tavern (wanderers with hire price and wage; the mercenary
-troop, count on offer, price and wage — **[step 15]** and for each, whether he rides (`IsMounted`) and, for the band, the kinds of
-upgrade horse its upgrades need), the party size limit (shown, never a block) and room for companions; **[step 16]** the
-troops (§2.8: per troop type the men held and wounded, whether they may be dismissed, the volunteers on offer to the player,
-the price and wage per man, `IsMounted`, the upgrade kinds). Core returns a **StewardPlan**: rows (item or troop, change,
+troop, count on offer, price and wage — **[step 15]** and for each, whether he rides (`IsMounted`)), the party size limit
+(shown, never a block) and room for companions; **[step 16]** the troops (§2.8: per troop type the men held and wounded,
+whether they may be dismissed, the volunteers on offer to the player, the price and wage per man, `IsMounted`). Core
+returns a **StewardPlan**: rows (item or troop, change,
 unit prices, total), and footer numbers. The Module's executor performs a plan with the game's
 own trade/ransom/donate actions so gold, stock, prices and skill XP behave as in vanilla.
 
@@ -766,7 +823,7 @@ troop / hero, the count and the expected unit prices.
   - **The report** is one message line — jobs joined by ` · `, as the example above, in the fonts' glyphs (en-dash minus,
     `»`) — plus the trouble line `Steward: 1 cut short, 2 skipped — see smart_steward.log` (or `nothing was done` when the
     run could not start). The counts are the executor's real ones, not the plan's. The jobs: food (with the kinds
-    bought), mounts (the whole horses section: pack, riding, upgrade), armour & weapons, prisoners (ransomed / donated,
+    bought), mounts (the whole horses section: pack, riding, war, noble, lame), armour & weapons, prisoners (ransomed / donated,
     influence).
   - **Every campaign starts clean** **[decided: Claude, 2026.09.28 — step 12]**: every campaign start and end (a new game,
     a load from the main menu or from inside a running campaign, the exit to the main menu) closes the window and drops the
@@ -810,23 +867,22 @@ troop / hero, the count and the expected unit prices.
 | Prices | SellPriceMultiplier | 0.8 | 0–10 | final min sell = base × this **[Anton]** |
 | Prices | AutoFillFoodPrices | true | — | placeholder = average price for food |
 | Prices | AutoFillPackAndMountPrices | true | — | … for pack animals and riding mounts |
-| Prices | AutoFillWarMountPrices | false | — | … for war mounts (off: trader's cheat sheet) |
+| Prices | AutoFillWarMountPrices | false | — | … for war horses (off: trader's cheat sheet); noble horses always show their sell average (sell only, step 17) |
 | Prices | PriceBook | {} | bases 0–1,000,000 | per item id: buy tick, buy base, sell tick, sell base (LATER: hold-up-to for Others) — only the player's changes (file + Prices tab, not MCM) |
 | Pack | PackAnimalsEnabled | true | — | manage pack animals |
 | Pack | PackAnimalsTarget | 10 | 0–500 | pack animals to keep |
 | Pack | PackAnimalMaxPrice | 300 | 0–100,000 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
 | Pack | SellPackAnimalSurplus | true | — | sell above target, most expensive first |
 | Mounts | MountsEnabled | true | — | manage riding mounts for footmen |
-| Mounts | MountsPer100Footmen | 110 | 0–300 | mounts kept per 100 footmen |
+| Mounts | MountsPer100Footmen | 110 | 0–300 | horses kept per 100 footmen — the war horses kept count among them, riding horses fill the rest **[Anton 2026.09.28, step 17]** |
 | Mounts | MountMaxPrice | 500 | 0–100,000 | role cap: never pay more for a footman's mount (0 = none; not scaled) |
-| Mounts | WarMountsCountAsMounts | true | — | war mounts held count toward the footmen's mounts |
 | Mounts | SellMountSurplus | true | — | sell above target, most expensive first |
-| War mounts | WarMountsEnabled | true | — | manage war mounts for upgrades |
-| War mounts | WarMountsHorseTarget | -1 | -1–500 | plain horses (`horse`) for upgrades: -1 = the troops ready now (+ spares); ≥0 = keep exactly this **[step 12]** |
-| War mounts | WarMountsWarHorseTarget | -1 | -1–500 | war horses (`war_horse`) for upgrades: -1 = the troops ready now (+ spares); ≥0 = keep exactly this **[step 12]** |
-| War mounts | WarMountsExtra | 0 | 0–100 | spares on top of the automatic count, for each kind in play |
-| War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per upgrade horse (0 = none; not scaled) |
-| War mounts | SellWarMountSurplus | true | — | sell above need, most expensive first |
+| Mounts | SellNobleHorses | true | — | "Sell noble horses": never bought; sold (at ≥ min sell) unless LOCKED — a lock always keeps one **[Anton 2026.09.28, step 17]** |
+| Mounts | ReplaceLameHorses | true | — | "Replace lame horses": sell the badly modified (lame, old) horses and pack animals and buy healthy ones; off = kept and counted **[Anton 2026.09.28, step 17]** |
+| War mounts | WarMountsEnabled | true | — | manage war horses (off: a war horse is a plain riding horse) |
+| War mounts | WarMountsToKeep | 0 | 0–500 | "War horses to keep": a plain number of `war_horse` mounts, bought up to it and sold above it; they count toward the horses per 100 footmen — replaces WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts (retired, logged once) **[Anton 2026.09.28, step 17]** |
+| War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per war horse (0 = none; not scaled) |
+| War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
 | Prisoners | RansomPrisoners | true | — | ransom prisoners in towns |
 | Prisoners | RansomHeroPrisoners | false | — | include lords |
 | Prisoners | DonatePrisonersWhenPossible | false | — | donate to own garrison (influence) instead |
@@ -869,8 +925,9 @@ float slider and the file agree on the same number). A value outside its range i
   **[research 2026.09.27 — step 5]** Format **"none"**, not the default "memory" (which throws on the
   first registration in MCM 5.12.3): MCM keeps and writes nothing, settings.json is the only store.
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
-  - Core: `SettingsRegistry` (the §7 keys in table order — 48 since step 16: 47 scalars + the price book; the
-    prisoner list is gone since step 12), `SettingsFile` (text in, text out), `SettingsService` (the live values). Module: `SettingsHost`
+  - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; the
+    prisoner list is gone since step 12, the four upgrade-horse keys since step 17), `SettingsFile` (text in, text out),
+    `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.
   - The file opens with a short header (how to edit, when it is re-read, delete to reset, where the
     fixes are logged) and has a `// ===== Group =====` heading per group; above every key sits

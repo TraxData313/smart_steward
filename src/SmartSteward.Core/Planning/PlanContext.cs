@@ -14,13 +14,14 @@ namespace SmartSteward.Core.Planning
             new Dictionary<string, PriceBookPrices>(StringComparer.Ordinal);
 
         public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, PlanMode mode,
-            PlanPins? pins = null)
+            PlanPins? pins = null, int warPledge = 0)
         {
             Snapshot = snapshot;
             Settings = settings;
             Oracle = oracle;
             Mode = mode;
             Pins = pins ?? PlanPins.None;
+            WarPledge = Math.Max(0, warPledge);
             Party = PartyAfter.Of(snapshot);
             Floors = MoneyFloors.For(settings, mode);
             Walk = new WalkState(new MarketState(oracle, snapshot.MarketGold), snapshot.PlayerGold);
@@ -33,6 +34,11 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>The rows the player's hand is on (a live re-plan); <see cref="PlanPins.None"/> for a fresh plan.</summary>
         public PlanPins Pins { get; }
+
+        /// <summary>The war horses the steward will buy in this plan, as a first pass found them (<see cref="StewardPlanner"/>) —
+        /// so the riding surplus is sold against the war horses the party will HAVE after the deal, not only those it holds
+        /// (step 17: R = T − war horses kept). 0 on the first pass.</summary>
+        public int WarPledge { get; }
 
         /// <summary>The party the steward plans for — the snapshot's, with the plan's hires (and step 16's recruits and
         /// dismissals) applied (<see cref="PartyAfter"/>). Set by the planner once the party rows are known.</summary>
@@ -85,6 +91,10 @@ namespace SmartSteward.Core.Planning
 
         public IEnumerable<ItemStack> MarketStacks(ItemKind kind) =>
             ByKey((Snapshot.Market ?? new List<ItemStack>()).Where(s => s != null && s.Kind == kind && s.Count > 0));
+
+        /// <summary>The min sell price of one held stack: its item's final min sell scaled by the stack's modifier — a lame
+        /// horse against a lame horse's worth (<see cref="PriceBook.MinSellOf"/>); null = any price.</summary>
+        public int? MinSellOf(ItemStack stack) => PriceBook.MinSellOf(Book(stack)?.FinalMinSell, stack.ModifierPriceFactor);
 
         /// <summary>The resolved price-book row of a stack's item; null for items not in the V1 price book.</summary>
         public PriceBookPrices? Book(ItemStack stack)

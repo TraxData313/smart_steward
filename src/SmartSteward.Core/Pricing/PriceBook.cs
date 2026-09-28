@@ -5,7 +5,7 @@ using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Pricing
 {
-    /// <summary>The price book's groups (DESIGN §1.3) — V1 has food and the three horse sub-headers only.
+    /// <summary>The price book's groups (DESIGN §1.3) — V1 has food and the four horse sub-headers only.
     /// Armour and weapons are NEVER in the price book. (LATER: Others, §1.3.1.)</summary>
     public enum PriceBookGroup
     {
@@ -13,6 +13,10 @@ namespace SmartSteward.Core.Pricing
         PackAnimals,
         Mounts,
         WarMounts,
+
+        /// <summary>Noble horses — sell only (step 17, Anton 2026.09.28: never bought, sold unless locked): the Prices tab
+        /// shows no buy column, and the sell placeholder is always filled so they never go for a pittance.</summary>
+        NobleHorses,
     }
 
     /// <summary>One price-book row resolved against the settings: ticks, bases (typed or placeholder) and
@@ -48,15 +52,13 @@ namespace SmartSteward.Core.Pricing
     public static class PriceBook
     {
         /// <summary>
-        /// Mount categories shown under the price book's "Mounts" sub-header (auto-filled with
-        /// <c>AutoFillPackAndMountPrices</c>); every other mount category — war_horse, noble_horse, and any
-        /// a mod adds — sits under "War mounts" (<c>AutoFillWarMountPrices</c>, off by default: no
-        /// trader's cheat sheet for the dear ones). Vanilla's plain riding horses and camels are `horse`.
-        /// [decided: Claude, 2026.09.27 — step 4]
+        /// The mount categories of the price book's sub-headers: <c>war_horse</c> under "War mounts" (<c>AutoFillWarMountPrices</c>,
+        /// off by default: no trader's cheat sheet for the dear ones), <c>noble_horse</c> under "Noble horses — sell only", and
+        /// every other one — vanilla's plain riding horses and camels (<c>horse</c>) and any a mod adds — under "Mounts"
+        /// (<c>AutoFillPackAndMountPrices</c>): to the steward they are riding horses. [decided: Claude, 2026.09.27 — step 4;
+        /// step 17: noble horses left the war mounts (Anton 2026.09.28), a mod's category joined the riding horses — nothing
+        /// counts upgrades any more.]
         /// </summary>
-        public static readonly IReadOnlyCollection<string> RidingMountCategoryIds = new[] { "horse" };
-
-        /// <summary>The price-book group of an item; null for everything not in the V1 price book.</summary>
         public static PriceBookGroup? GroupOf(ItemKind kind, string categoryId)
         {
             switch (kind)
@@ -66,13 +68,27 @@ namespace SmartSteward.Core.Pricing
                 case ItemKind.PackAnimal:
                     return PriceBookGroup.PackAnimals;
                 case ItemKind.Mount:
-                    foreach (var riding in RidingMountCategoryIds)
-                        if (string.Equals(riding, categoryId, StringComparison.Ordinal))
-                            return PriceBookGroup.Mounts;
-                    return PriceBookGroup.WarMounts;
+                    if (string.Equals(categoryId, Planning.MountGoal.WarHorse, StringComparison.Ordinal))
+                        return PriceBookGroup.WarMounts;
+                    if (string.Equals(categoryId, Planning.MountGoal.NobleHorse, StringComparison.Ordinal))
+                        return PriceBookGroup.NobleHorses;
+                    return PriceBookGroup.Mounts;
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// The min sell price of one STACK: the item's final min sell scaled by the stack's modifier
+        /// (<see cref="ItemStack.ModifierPriceFactor"/>) — the game prices a lame horse at a tenth of a plain one
+        /// (<c>EquipmentElement.ItemValue</c>), so it is judged against a lame horse's worth, not a healthy one's; null stays
+        /// null (any price). [decided: Claude, 2026.09.28 — step 17]
+        /// </summary>
+        public static int? MinSellOf(int? finalMinSell, double modifierPriceFactor)
+        {
+            if (finalMinSell == null || Math.Abs(modifierPriceFactor - 1.0) < 1e-9)
+                return finalMinSell;
+            return Final(finalMinSell.Value, Math.Max(0, modifierPriceFactor));
         }
 
         /// <summary>Resolves one item's row: the player's overrides first, then the defaults (ticks on,
@@ -122,6 +138,9 @@ namespace SmartSteward.Core.Pricing
                 case PriceBookGroup.PackAnimals:
                 case PriceBookGroup.Mounts: return settings.AutoFillPackAndMountPrices;
                 case PriceBookGroup.WarMounts: return settings.AutoFillWarMountPrices;
+                // Only ever sold: the average SELL price is no trader's cheat sheet, and without it a noble horse would go
+                // at any price (DESIGN §1.3, step 17).
+                case PriceBookGroup.NobleHorses: return true;
                 default: return false;
             }
         }

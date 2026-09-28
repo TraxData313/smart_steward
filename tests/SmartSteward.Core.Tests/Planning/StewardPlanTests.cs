@@ -35,19 +35,19 @@ public class StewardPlanTests
     }
 
     [Fact]
-    public void Buys_go_food_then_pack_then_mounts_then_upgrade_horses()
+    public void Buys_go_food_then_pack_then_mounts_then_war_horses()
     {
-        var plan = new Scenario().Party(10, footmen: 10).Gold(6_000)
-            .Upgrade("recruit", 10, ("war_horse", 2))
+        var s = new Scenario().Party(10, footmen: 10).Gold(6_000)
             .Food("grain", market: 100, buy: 10)
             .Pack("mule", market: 20, buy: 150)
             .Mount("hunter", "horse", market: 20, buy: 200)
-            .Mount("charger", "war_horse", market: 5, buy: 1500)
-            .Plan();
+            .Mount("charger", "war_horse", market: 5, buy: 1500);
+        s.Settings.WarMountsToKeep = 2;
+        var plan = s.Plan();
         Assert.Equal(20, plan.Row("food:grain").Change);                // 200 → 5,800
         Assert.Equal(5, plan.Row("mounts:pack").Change);                 // 750 → 5,050
         Assert.Equal(0, plan.Row("mounts:riding").Change);
-        Assert.Equal(0, plan.Row("mounts:upgrade:war_horse").Change);
+        Assert.Equal(0, plan.Row("mounts:war").Change);
         Assert.Equal(5_050, plan.Totals.GoldAfter);
     }
 
@@ -108,7 +108,7 @@ public class StewardPlanTests
             new[] { PlanSectionKind.Tavern, PlanSectionKind.Food, PlanSectionKind.Mounts,
                 PlanSectionKind.ArmourAndWeapons, PlanSectionKind.Prisoners },
             plan.Sections.Select(x => x.Kind));
-        Assert.Equal(new[] { "mounts:pack", "mounts:riding", "mounts:upgrade:war_horse" },
+        Assert.Equal(new[] { "mounts:pack", "mounts:riding", "mounts:war" },
             plan.Section(PlanSectionKind.Mounts)!.Rows.Select(r => r.Id));
 
         var bare = new Scenario().Plan();
@@ -123,7 +123,6 @@ public class StewardPlanTests
         b.Snap.Inventory.Reverse();
         b.Snap.Market.Reverse();
         b.Snap.Prisoners.Reverse();
-        b.Snap.Upgrades.Reverse();
         b.Snap.Tavern!.Wanderers.Reverse();
         Assert.Equal(Describe(a.Plan()), Describe(b.Plan()));
         Assert.Equal(Describe(a.Plan()), Describe(a.Plan()));
@@ -219,7 +218,7 @@ public class StewardPlanTests
     {
         var snapshot = new StewardSnapshot
         {
-            Inventory = null!, Market = null!, Prisoners = null!, Upgrades = null!, AveragePrices = null!,
+            Inventory = null!, Market = null!, Prisoners = null!, AveragePrices = null!,
             Prison = null!, Party = null!, PlayerGold = 1_000,
         };
         var plan = StewardPlanner.Plan(snapshot, new StewardSettings { PriceBook = null! },

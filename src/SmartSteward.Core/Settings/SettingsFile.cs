@@ -109,14 +109,24 @@ namespace SmartSteward.Core.Settings
         public static readonly IReadOnlyDictionary<string, string> RetiredKeys =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                // One number for both kinds kept 10 horses AND 10 war horses: each kind now has its own, both automatic.
-                ["WarMountsManualTarget"] = "upgrade horses are now set per kind (" + nameof(StewardSettings.WarMountsHorseTarget)
-                                            + ", " + nameof(StewardSettings.WarMountsWarHorseTarget)
-                                            + ") - both start automatic (-1)",
+                // One number for both kinds kept 10 horses AND 10 war horses (round 1); since step 17 one plain number.
+                ["WarMountsManualTarget"] = WarHorsesNow,
+                // Step 17 (Anton 2026.09.28 - "make it simpler for now"): no automatic upgrade counting any more. War horses
+                // are a plain number to keep and count among the horses for the footmen; plain-horse upgrades draw on the
+                // riding horses.
+                ["WarMountsHorseTarget"] = WarHorsesNow,
+                ["WarMountsWarHorseTarget"] = WarHorsesNow,
+                ["WarMountsExtra"] = WarHorsesNow,
+                ["WarMountsCountAsMounts"] = "the war horses kept always count among the horses for the footmen now ("
+                                             + nameof(StewardSettings.MountsPer100Footmen) + ")",
                 // The "Prisoners to ransom" tick-list: ransom is all or none now, "Include lords" the one choice left.
                 ["PrisonersExcluded"] = "every prisoner may be ransomed now; " + nameof(StewardSettings.RansomHeroPrisoners)
                                         + " still decides the lords",
             };
+
+        private const string WarHorsesNow = "the steward no longer counts troop upgrades - war horses are one plain number to "
+                                            + "keep now (" + nameof(StewardSettings.WarMountsToKeep) + ", default 0), and "
+                                            + "plain-horse upgrades use the riding horses";
 
         /// <summary>The explanation at the top of the file.</summary>
         public static readonly string[] Header =

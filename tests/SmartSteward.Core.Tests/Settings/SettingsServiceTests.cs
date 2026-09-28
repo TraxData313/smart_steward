@@ -257,9 +257,9 @@ public class SettingsServiceTests
     public void Values_set_out_of_range_are_clamped()
     {
         _service.Load();
-        _service.Set(Def("WarMountsExtra"), 5000);
+        _service.Set(Def("WarMountsToKeep"), 5000);
         _service.Set(Def("SellPriceMultiplier"), -3.0);
-        Assert.Equal(100, _service.Current.WarMountsExtra);
+        Assert.Equal(500, _service.Current.WarMountsToKeep);
         Assert.Equal(0.0, _service.Current.SellPriceMultiplier);
     }
 

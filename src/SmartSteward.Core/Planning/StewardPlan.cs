@@ -28,24 +28,17 @@ namespace SmartSteward.Core.Planning
         /// <summary>Food is sold only while held is ABOVE this: target × (1 + tolerance/100).</summary>
         public double FoodSellAbove { get; internal set; }
         public int PackTarget { get; internal set; }
+        /// <summary>Men on foot in the party after the deal (the game's <c>NumberOfMenWithoutHorse</c> + the footmen hired).</summary>
         public int Footmen { get; internal set; }
+
+        /// <summary>T: the horses kept for the footmen — ceil(footmen × MountsPer100Footmen / 100) (step 17, <see cref="MountGoal"/>).</summary>
+        public int MountTarget { get; internal set; }
+
+        /// <summary>The riding horses the plan aims for: T minus the war, noble and lame horses kept after the deal.</summary>
         public int RidingTarget { get; internal set; }
 
-        /// <summary>Mounts counting toward the riding target now (unreserved + reserved when
-        /// WarMountsCountAsMounts).</summary>
-        public int RidingCounted { get; internal set; }
-
-        /// <summary>Troops ready to upgrade now, per category their target needs (only categories in play).</summary>
-        public IReadOnlyDictionary<string, int> UpgradeReady { get; internal set; } =
-            new Dictionary<string, int>(StringComparer.Ordinal);
-
-        /// <summary>Upgrade horses needed per category (only categories the party's troops upgrade into).</summary>
-        public IReadOnlyDictionary<string, int> UpgradeNeed { get; internal set; } =
-            new Dictionary<string, int>(StringComparer.Ordinal);
-
-        /// <summary>Held horses reserved for upgrades per category (the cheapest unlocked first).</summary>
-        public IReadOnlyDictionary<string, int> UpgradeReserved { get; internal set; } =
-            new Dictionary<string, int>(StringComparer.Ordinal);
+        /// <summary>W: the war horses to keep (WarMountsToKeep; 0 when war horses are not managed).</summary>
+        public int WarTarget { get; internal set; }
     }
 
     /// <summary>The header and footer (DESIGN §1.1).</summary>

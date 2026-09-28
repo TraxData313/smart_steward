@@ -34,9 +34,10 @@ public class PlanPerformanceTests
             s.Mount("war_horse" + i, "war_horse", held: 1, market: 6, buy: 900 + 60 * i, sell: 450 + 30 * i, noAverage: true);
         for (int i = 0; i < 4; i++)
             s.Mount("noble" + i, "noble_horse", held: 1, market: 2, buy: 2500 + 100 * i, sell: 1200, noAverage: true);
+        for (int i = 0; i < 3; i++)
+            s.Mount("horse" + i, "horse", held: 2, buy: 30, sell: 12, modifier: "lame_horse", priceFactor: Scenario.Lame);
         s.Settings.AutoFillWarMountPrices = true;
-        for (int i = 0; i < 6; i++)
-            s.Upgrade("troop" + i, 30, (null, 5), (i % 2 == 0 ? "horse" : "war_horse", 5 + i));
+        s.Settings.WarMountsToKeep = 12; // step 17: a plain number of war horses (the upgrade stacks are gone)
         var groups = new[] { LootGroup.Armour, LootGroup.MeleeWeapons, LootGroup.Ranged, LootGroup.Shields };
         for (int i = 0; i < 250; i++)
             s.Loot("loot" + i, groups[i % 4], held: 1 + i % 5, sell: 5 + (i * 37) % 400, weight: 1 + i % 9,
@@ -56,9 +57,9 @@ public class PlanPerformanceTests
         // Step 16: a late-game party's 30 troop types, 6 of them on offer here too, plus 4 more volunteers' types.
         for (int i = 0; i < 30; i++)
             s.Troop("unit" + i, inParty: 2 + i % 4, wounded: i % 3, onOffer: i < 6 ? 3 : 0, price: 20 + 10 * i,
-                mounted: i % 3 == 0, upgrade: i % 2 == 0 ? "horse" : null);
+                mounted: i % 3 == 0);
         for (int i = 0; i < 4; i++)
-            s.Troop("volunteer" + i, onOffer: 2 + i, price: 15 + 5 * i, upgrade: "war_horse");
+            s.Troop("volunteer" + i, onOffer: 2 + i, price: 15 + 5 * i);
         return s;
     }
 

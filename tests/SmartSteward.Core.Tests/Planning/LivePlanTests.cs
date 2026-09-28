@@ -38,7 +38,7 @@ public class LivePlanTests
     }
 
     /// <summary>Plan → edit the party → Do it (the transactions applied to the snapshot) → a fresh plan of the resulting
-    /// party proposes NOTHING new for food, pack animals, riding mounts or upgrade horses. <paramref name="flat"/>: the market's
+    /// party proposes NOTHING new for food, pack animals, riding mounts, war, noble or lame horses. <paramref name="flat"/>: the market's
     /// prices stay flat (a village's way); else they walk like a town's.</summary>
     [Theory]
     [MemberData(nameof(Edits))]
@@ -68,7 +68,12 @@ public class LivePlanTests
         Assert.Equal(plan.Facts.FoodTarget, fresh.Facts.FoodTarget);
         Assert.Equal(plan.Facts.Footmen, fresh.Facts.Footmen);
         Assert.Equal(plan.Facts.RidingTarget, fresh.Facts.RidingTarget);
-        Assert.Equal(plan.Facts.UpgradeNeed, fresh.Facts.UpgradeNeed);
+        Assert.Equal(plan.Facts.MountTarget, fresh.Facts.MountTarget);
+        Assert.Equal(plan.Facts.WarTarget, fresh.Facts.WarTarget);
+        // Step 17: the noble horse was sold, the lame hunters replaced, the war horses kept at their number.
+        Assert.Null(fresh.FindRow("mounts:noble"));
+        Assert.Null(fresh.FindRow("mounts:lame"));
+        Assert.Equal(3, fresh.Row("mounts:war").Mine);
     }
 
     public static TheoryData<string> VillageEdits => new() { "recruit all on offer", "dismiss the ready men", "recruit and dismiss" };
@@ -89,10 +94,11 @@ public class LivePlanTests
                 Assert.Equal(39, plan.Totals.MembersAfter);
                 break;
             case "dismiss the ready men":
-                Assert.Equal(-5, plan.SetChange("troops:vlg_footman", -5).After);   // 1 left: at most 1 ready
-                Assert.Equal(1, plan.Facts.UpgradeNeed["war_horse"]);
+                Assert.Equal(-5, plan.SetChange("troops:vlg_footman", -5).After);
+                Assert.Equal(15, plan.Facts.Footmen);
                 Assert.Equal(-7, plan.SetChange("troops:vlg_recruit", -7).After);   // the 2 wounded and 5 healthy
-                Assert.Equal(3, plan.Facts.UpgradeNeed["horse"]);
+                Assert.Equal(8, plan.Facts.Footmen);
+                Assert.Equal(9, plan.Facts.MountTarget);                            // T follows the footmen live
                 break;
             case "recruit and dismiss":
                 plan.Increase("troops:vlg_archer", EditSize.All);
@@ -107,15 +113,15 @@ public class LivePlanTests
 
         ApplyDoIt(s, plan);
         var fresh = s.Plan();
-        _output.WriteLine(edit + ": food target " + plan.Facts.FoodTarget + " for " + plan.Facts.FoodEaters + " eaters, riding "
-                          + plan.Facts.RidingTarget + " for " + plan.Facts.Footmen + " footmen, upgrade need "
-                          + string.Join(", ", plan.Facts.UpgradeNeed.Select(p => p.Key + " " + p.Value)));
+        _output.WriteLine(edit + ": food target " + plan.Facts.FoodTarget + " for " + plan.Facts.FoodEaters + " eaters, "
+                          + plan.Facts.MountTarget + " horses (riding " + plan.Facts.RidingTarget + ", war " + plan.Facts.WarTarget
+                          + ") for " + plan.Facts.Footmen + " footmen");
         NothingNew(fresh, "village: " + edit);
         Assert.Equal(plan.Facts.FoodEaters, fresh.Facts.FoodEaters);
         Assert.Equal(plan.Facts.FoodTarget, fresh.Facts.FoodTarget);
         Assert.Equal(plan.Facts.Footmen, fresh.Facts.Footmen);
         Assert.Equal(plan.Facts.RidingTarget, fresh.Facts.RidingTarget);
-        Assert.Equal(plan.Facts.UpgradeNeed, fresh.Facts.UpgradeNeed);
+        Assert.Equal(plan.Facts.MountTarget, fresh.Facts.MountTarget);
         Assert.Equal(plan.Totals.MembersAfter, fresh.Totals.MembersAfter);
     }
 
@@ -142,7 +148,8 @@ public class LivePlanTests
         Assert.Equal(40, plan.Facts.FoodEaters);        // 40 men; the lord stays: 1/2 = 0
         Assert.Equal(80, plan.Facts.FoodTarget);
         Assert.Equal(30, plan.Facts.Footmen);
-        Assert.Equal(33, plan.Facts.RidingTarget);
+        Assert.Equal(33, plan.Facts.MountTarget);
+        Assert.Equal(30, plan.Facts.RidingTarget);      // 33 − the 3 war horses kept
         int food = FoodChange(plan);
         int riding = plan.Row("mounts:riding").Change;
 
@@ -150,7 +157,9 @@ public class LivePlanTests
         Assert.Equal(60, plan.Facts.FoodEaters);
         Assert.Equal(120, plan.Facts.FoodTarget);
         Assert.Equal(50, plan.Facts.Footmen);
-        Assert.Equal(55, plan.Facts.RidingTarget);
+        Assert.Equal(55, plan.Facts.MountTarget);
+        Assert.Equal(52, plan.Facts.RidingTarget);
+        Assert.Equal(3, plan.Row("mounts:war").Result);  // the war horses stay at their number
         Assert.Equal(food + 40, FoodChange(plan));
         Assert.Equal(riding + 22, plan.Row("mounts:riding").Change);
         Assert.Equal(60, plan.Totals.MembersAfter);
@@ -195,51 +204,35 @@ public class LivePlanTests
     }
 
     [Fact]
-    public void Hired_troops_put_their_kind_of_upgrade_horse_in_play_never_ready()
+    public void Recruits_change_the_horses_to_keep_live_and_the_war_horses_stay_at_their_number()
     {
-        // Nobody upgrades into a war horse here; the player keeps a fixed 4 of them "for upgrades" — only once some troop
-        // needs one. Mercenaries whose upgrade needs a war horse bring the kind in play (not ready: 0 + the fixed number).
-        var s = new Scenario().Party(10).Gold(100_000).Mount("charger", "war_horse", market: 10, buy: 1500, noAverage: true);
-        s.Settings.WarMountsWarHorseTarget = 4;
-        s.Snap.Tavern = new TavernInfo
-        {
-            Mercenaries = new MercenaryOffer
-            {
-                TroopId = "merc", Name = "Squires", Available = 6, PricePerMan = 80, IsMounted = true,
-                UpgradeCategories = { "war_horse" },
-            },
-        };
+        // Step 17 (Anton 2026.09.28): T = footmen × 110 / 100 follows every recruit and dismissal; the war horses to keep are
+        // a plain number, so only the riding row moves — nothing counts upgrades any more.
+        var s = new Scenario().Party(20, footmen: 20).Gold(100_000)
+            .Mount("hunter", "horse", held: 12, market: 80, buy: 200, sell: 100)
+            .Mount("charger", "war_horse", market: 10, buy: 1500)
+            .Troop("recruit", onOffer: 20, price: 20)
+            .Troop("footman", inParty: 10);
+        s.Settings.WarMountsToKeep = 10;
         var plan = s.Plan();
-        Assert.Null(plan.FindRow("mounts:upgrade:war_horse"));
-        int layout = plan.Layout;
+        Assert.Equal(22, plan.Facts.MountTarget);
+        Assert.Equal(0, plan.Row("mounts:riding").Change);      // 12 riding + 10 war = 22
+        Assert.Equal(10, plan.Row("mounts:war").Change);
 
-        plan.Increase("tavern:mercenaries");
-        var row = plan.Row("mounts:upgrade:war_horse");             // a new row — the window rebuilds its table
-        Assert.NotEqual(layout, plan.Layout);
-        Assert.Equal(4, row.Need);
-        Assert.Equal(4, row.Change);
-        Assert.Equal(0, plan.Facts.UpgradeReady["war_horse"]);      // new men are never ready
+        Assert.Equal(20, plan.Increase("troops:recruit", EditSize.All).After);   // 20 more men on foot
+        Assert.Equal(44, plan.Facts.MountTarget);
+        Assert.Equal(22, plan.Row("mounts:riding").Change);     // the riding row follows…
+        Assert.Equal(10, plan.Row("mounts:war").Change);        // …the war horses do not
+        Assert.False(plan.Row("mounts:riding").IsTouched);
 
-        plan.Decrease("tavern:mercenaries");
-        Assert.Null(plan.FindRow("mounts:upgrade:war_horse"));      // nobody needs one again: the steward's row goes
-    }
+        plan.Decrease("troops:recruit", EditSize.All);
+        Assert.Equal(-10, plan.SetChange("troops:footman", -10).After);          // 10 fewer men on foot than at first
+        Assert.Equal(11, plan.Facts.MountTarget);
+        Assert.Equal(-11, plan.Row("mounts:riding").Change);    // 12 riding + 10 war for 10 footmen: 1 riding kept
+        Assert.Equal(10, plan.Row("mounts:war").Change);
 
-    [Fact]
-    public void Men_who_leave_a_stack_take_its_ready_count_down_with_them()
-    {
-        // Step 16's dismissals yield the same party moves: 10 recruits, 6 ready for a horse; 7 leave → at most 3 ready.
-        var snap = new StewardSnapshot
-        {
-            Upgrades =
-            {
-                new UpgradeStack { TroopId = "recruit", Count = 10, Targets = { new UpgradeTarget { RequiredCategoryId = "horse", ReadyCount = 6 } } },
-            },
-        };
-        Assert.Equal(6, UpgradeNeeds.Of(snap).ReadyFor("horse"));
-        var after = UpgradeNeeds.Of(snap, new[] { new PartyMove("recruit", -7, isMounted: false, null) });
-        Assert.Equal(3, after.ReadyFor("horse"));
         var party = PartyAfter.Of(new StewardSnapshot { Party = new PartyInfo { Members = 10, Footmen = 10 } },
-            new[] { new PartyMove("recruit", -7, isMounted: false, null), new PartyMove("rider", 4, isMounted: true, null) });
+            new[] { new PartyMove("recruit", -7, isMounted: false), new PartyMove("rider", 4, isMounted: true) });
         Assert.Equal(7, party.Members);
         Assert.Equal(3, party.Footmen);
     }
@@ -273,21 +266,26 @@ public class LivePlanTests
     }
 
     [Fact]
-    public void The_players_rows_take_the_stock_and_price_room_first()
+    public void The_players_war_horses_take_the_purse_first_and_carry_footmen()
     {
-        // 30 hunters on offer. The player's upgrade row wants 20 of them; the steward's riding row gets what is left — and
-        // a hire that adds footmen cannot take the player's horses away.
-        var s = new Scenario().Village().Party(10, footmen: 10).Gold(100_000).Upgrade("recruit", 10, ("horse", 2))
-            .Mount("hunter", "horse", market: 30, buy: 200);
-        s.Snap.SettlementKind = SettlementKind.Town; // a town's tavern, flat prices
-        s.Snap.Tavern = new TavernInfo { Mercenaries = new MercenaryOffer { TroopId = "merc", Name = "Spears", Available = 30, PricePerMan = 50 } };
+        // 20,000 gold. The player buys 8 war horses by hand (12,000); a hire then re-plans the steward's riding row for 44
+        // horses: the player's war horses walk first for the purse and count among the 44 — the steward buys what the animal
+        // floor (5,000) and the hire (500) leave: 12 riding horses.
+        var s = new Scenario().Party(30, footmen: 30).Gold(20_000)
+            .Mount("hunter", "horse", market: 80, buy: 200)
+            .Mount("charger", "war_horse", market: 10, buy: 1500);
+        s.Settings.WarMountsToKeep = 1;
+        s.Snap.Tavern = new TavernInfo { Mercenaries = new MercenaryOffer { TroopId = "merc", Name = "Spears", Available = 10, PricePerMan = 50 } };
         var plan = s.Plan();
-        Assert.Equal(20, plan.SetChange("mounts:upgrade:horse", 20).After);
-        plan.Increase("tavern:mercenaries", EditSize.All);           // 40 footmen → 44 riding wanted
-        Assert.Equal(20, plan.Row("mounts:upgrade:horse").Change);   // the player's, untouched by the re-plan
-        Assert.Equal(10, plan.Row("mounts:riding").Change);          // what the market has left
-        Assert.Equal(EditBlock.NeededByAnotherRow, plan.Row("mounts:riding").IncreaseBlock);
-        Assert.Equal(44, plan.Facts.RidingTarget);
+        Assert.Equal(1, plan.Row("mounts:war").Change);
+        Assert.Equal(8, plan.SetChange("mounts:war", 8).After);
+        plan.Increase("tavern:mercenaries", EditSize.All);            // 40 footmen → 44 horses
+        Assert.Equal(44, plan.Facts.MountTarget);
+        Assert.Equal(8, plan.Row("mounts:war").Change);               // the player's, untouched by the re-plan
+        Assert.Equal(12, plan.Row("mounts:riding").Change);           // what the purse leaves above the floor
+        Assert.Equal(36, plan.Facts.RidingTarget);                    // 44 − the player's 8
+        Assert.Equal(5_100, plan.Totals.GoldAfter);
+        Assert.False(plan.Totals.BelowMinGoldForHorses);
     }
 
     [Fact]
@@ -359,7 +357,8 @@ public class LivePlanTests
         carry.ApplyTo(fresh);
         Assert.Equal(20, fresh.Row("tavern:mercenaries").Change);
         Assert.Equal(60, fresh.Facts.FoodEaters);
-        Assert.Equal(60, fresh.Facts.RidingTarget);                   // 50 footmen × 1.2
+        Assert.Equal(60, fresh.Facts.MountTarget);                    // 50 footmen × 1.2
+        Assert.Equal(57, fresh.Facts.RidingTarget);                   // − the 3 war horses kept
     }
 
     [Fact]
@@ -384,7 +383,6 @@ public class LivePlanTests
     public void A_party_click_on_a_big_plan_stays_within_the_click_budget()
     {
         var s = PlanPerformanceTests.BigTown();
-        s.Snap.Tavern!.Mercenaries!.UpgradeCategories.Add("horse");
         var plan = s.Plan();
         PlanPerformanceTests.RefreshLikeTheWindow(plan);
         var clicks = new List<Action>
@@ -419,14 +417,12 @@ public class LivePlanTests
 
     // ── The scenario and Do it ───────────────────────────────────────────────────────────────────────
 
-    /// <summary>A town with everything a party change moves: 40 men (30 on foot), upgrades ready for horses and war horses,
-    /// food, pack animals and horses on offer, prisoners, two wanderers (Arn on foot, Bea mounted) and 20 foot mercenaries
-    /// whose upgrade needs a horse. Rich enough that no floor binds.</summary>
+    /// <summary>A town with everything a party change moves: 40 men (30 on foot), food, pack animals and horses on offer — 3
+    /// war horses to keep (1 held), a noble horse to sell, 2 lame hunters to replace (step 17) —, prisoners, two wanderers
+    /// (Arn on foot, Bea mounted) and 20 foot mercenaries. Rich enough that no floor binds.</summary>
     private static Scenario Camp(bool flat)
     {
         var s = new Scenario().Party(40, footmen: 30).Gold(200_000, marketGold: 50_000)
-            .Upgrade("recruit", 12, (null, 6), ("horse", 6))
-            .Upgrade("footman", 8, ("war_horse", 3))
             .Food("grain", held: 30, market: 400, buy: 10, sell: 7)
             .Food("fish", held: 10, market: 300, buy: 14, sell: 10)
             .Food("cheese", market: 200, buy: 25, sell: 18)
@@ -434,10 +430,13 @@ public class LivePlanTests
             .Mount("hunter", "horse", held: 10, market: 80, buy: 210, sell: 100)
             .Mount("steppe", "horse", market: 60, buy: 260, sell: 120)
             .Mount("charger", "war_horse", held: 1, market: 20, buy: 1500, sell: 700)
+            .Mount("noble_a", "noble_horse", held: 1, sell: 2000)
+            .Mount("hunter", "horse", held: 2, buy: 40, sell: 12, modifier: "lame_horse", priceFactor: Scenario.Lame)
             .Prisoner("looter", 12, 20)
             .Prisoner("bandit", 5, 45)
             .Prisoner("lord_x", 1, 3000, hero: true);
         s.Settings.AutoFillWarMountPrices = true;
+        s.Settings.WarMountsToKeep = 3;
         s.Snap.AveragePrices["charger"] = new AveragePrices(1500, 700);
         s.Snap.Tavern = new TavernInfo
         {
@@ -449,36 +448,34 @@ public class LivePlanTests
             Mercenaries = new MercenaryOffer
             {
                 TroopId = "merc", Name = "Spearmen", Available = 20, PricePerMan = 60, WagePerMan = 3,
-                UpgradeCategories = { "horse" },
             },
         };
-        // The troops section (step 16): the party's regulars behind the upgrade stacks, and the notables' volunteers.
-        s.Troop("recruit", inParty: 12, wounded: 3, onOffer: 5, price: 20, upgrade: "horse")
-            .Troop("footman", inParty: 8, upgrade: "war_horse")
+        // The troops section (step 16): some of the party's regulars, and the notables' volunteers.
+        s.Troop("recruit", inParty: 12, wounded: 3, onOffer: 5, price: 20)
+            .Troop("footman", inParty: 8)
             .Troop("archer", onOffer: 4, price: 30)
             .Troop("rider", inParty: 10, mounted: true);
         s.Oracle.Slope = flat ? 0 : 0.00001;
         return s;
     }
 
-    /// <summary>A village camp (step 16): 30 men (20 on foot), upgrades ready for horses and war horses, food and animals on
-    /// flat village prices, no tavern, no ransom — the notables offer 6 recruits (their upgrade needs a horse) and 3 archers.</summary>
+    /// <summary>A village camp (step 16): 30 men (20 on foot), food and animals on flat village prices, 2 war horses to keep,
+    /// no tavern, no ransom — the notables offer 6 recruits and 3 archers.</summary>
     private static Scenario VillageCamp()
     {
         var s = new Scenario().Village().Party(30, footmen: 20).Gold(20_000, marketGold: 6_000)
-            .Upgrade("vlg_recruit", 10, (null, 4), ("horse", 4))
-            .Upgrade("vlg_footman", 6, ("war_horse", 2))
             .Food("grain", held: 20, market: 200, buy: 10, sell: 7)
             .Food("cheese", market: 60, buy: 20, sell: 14)
             .Pack("mule", held: 4, market: 12, buy: 140, sell: 70)
             .Mount("hunter", "horse", held: 6, market: 40, buy: 210, sell: 100)
             .Mount("charger", "war_horse", market: 8, buy: 1500, sell: 700)
-            .Troop("vlg_recruit", inParty: 10, wounded: 2, onOffer: 6, price: 20, upgrade: "horse")
-            .Troop("vlg_footman", inParty: 6, upgrade: "war_horse")
+            .Troop("vlg_recruit", inParty: 10, wounded: 2, onOffer: 6, price: 20)
+            .Troop("vlg_footman", inParty: 6)
             .Troop("vlg_archer", onOffer: 3, price: 40)
             .Troop("vlg_rider", inParty: 4, mounted: true);
         s.Snap.Prison.CanRansom = false;
         s.Settings.AutoFillWarMountPrices = true;
+        s.Settings.WarMountsToKeep = 2;
         return s;
     }
 
@@ -513,15 +510,14 @@ public class LivePlanTests
                 Assert.Equal(39, plan.Facts.Footmen);
                 break;
             case "dismiss the ready footmen":
-                Assert.Equal(-6, plan.SetChange("troops:footman", -6).After);   // 2 left of the 3 ready for a war horse
-                Assert.Equal(2, plan.Facts.UpgradeNeed["war_horse"]);
+                Assert.Equal(-6, plan.SetChange("troops:footman", -6).After);
                 Assert.Equal(-4, plan.SetChange("troops:rider", -4).After);
                 Assert.Equal(30, plan.Totals.MembersAfter);
                 Assert.Equal(24, plan.Facts.Footmen);
                 break;
             case "recruit and dismiss":
                 plan.Increase("troops:archer", EditSize.All);
-                plan.SetChange("troops:recruit", -7);                          // 12 → 5: at most 5 ready for a horse
+                plan.SetChange("troops:recruit", -7);                          // 12 → 5
                 plan.SetChange("tavern:mercenaries", 5);
                 plan.Increase("food:cheese", EditSize.Five);
                 Assert.Equal(40 + 4 - 7 + 5, plan.Totals.MembersAfter);
@@ -533,7 +529,7 @@ public class LivePlanTests
 
     private static int FoodChange(StewardPlan plan) => plan.Rows.Where(r => r.Type == RowType.Food).Sum(r => r.Change);
 
-    /// <summary>No food, pack, riding or upgrade-horse row moves (food within its surplus tolerance: sold only above it).</summary>
+    /// <summary>No food, pack, riding, war, noble or lame horse row moves (food within its surplus tolerance: sold only above it).</summary>
     private static void NothingNew(StewardPlan plan, string what)
     {
         foreach (var row in plan.Rows.Where(r => r.Type is RowType.Food or RowType.Pack or RowType.Mount or RowType.WarMount))
@@ -581,34 +577,17 @@ public class LivePlanTests
                     band.InParty += tx.Count;
                     snap.Party.Members += tx.Count;
                     if (!band.IsMounted) snap.Party.Footmen += tx.Count;
-                    snap.Upgrades.Add(new UpgradeStack
-                    {
-                        TroopId = band.TroopId,
-                        Count = tx.Count,
-                        Targets = band.UpgradeCategories.Select(c => new UpgradeTarget { RequiredCategoryId = c, ReadyCount = 0 }).ToList(),
-                    });
                     snap.PlayerGold -= tx.Gold;
                     break;
                 }
                 case TransactionKind.Dismiss:
                 {
-                    // The party screen's way (RESEARCH §21): the wounded go first; the stack keeps its XP, so its ready
-                    // count is at most the men left.
+                    // The party screen's way (RESEARCH §21): the wounded go first.
                     var troop = snap.Troops.Single(t => t.TroopId == tx.TroopId);
                     troop.Wounded -= Math.Min(tx.Count, troop.Wounded);
                     troop.InParty -= tx.Count;
                     snap.Party.Members -= tx.Count;
                     if (!troop.IsMounted) snap.Party.Footmen -= tx.Count;
-                    int left = tx.Count;
-                    foreach (var stack in snap.Upgrades.Where(u => u.TroopId == tx.TroopId))
-                    {
-                        int n = Math.Min(left, stack.Count);
-                        stack.Count -= n;
-                        left -= n;
-                        foreach (var target in stack.Targets)
-                            target.ReadyCount = Math.Min(target.ReadyCount, stack.Count);
-                    }
-                    snap.Upgrades.RemoveAll(u => u.Count <= 0);
                     break;
                 }
                 case TransactionKind.Recruit:
@@ -619,13 +598,6 @@ public class LivePlanTests
                     troop.CanDismiss = true;
                     snap.Party.Members += tx.Count;
                     if (!troop.IsMounted) snap.Party.Footmen += tx.Count;
-                    if (troop.UpgradeCategories.Count > 0)
-                        snap.Upgrades.Add(new UpgradeStack
-                        {
-                            TroopId = troop.TroopId,
-                            Count = tx.Count,
-                            Targets = troop.UpgradeCategories.Select(c => new UpgradeTarget { RequiredCategoryId = c, ReadyCount = 0 }).ToList(),
-                        });
                     snap.PlayerGold -= tx.Gold;
                     break;
                 }
@@ -647,11 +619,6 @@ public class LivePlanTests
         s.Snap.Party.Members += count;
         s.Snap.Party.DailyFoodUse = perEater * PlanTotals.GameEaters(s.Snap.Party.Members, s.Snap.Prisoners.Sum(p => p.Count));
         if (!band.IsMounted) s.Snap.Party.Footmen += count;
-        s.Snap.Upgrades.Add(new UpgradeStack
-        {
-            TroopId = troop, Count = count,
-            Targets = band.UpgradeCategories.Select(c => new UpgradeTarget { RequiredCategoryId = c }).ToList(),
-        });
     }
 
     private static void Move(List<ItemStack> from, List<ItemStack> to, string key, int count)
@@ -663,7 +630,8 @@ public class LivePlanTests
         {
             target = new ItemStack
             {
-                Key = source.Key, ItemId = source.ItemId, Name = source.Name, ModifierId = source.ModifierId, Kind = source.Kind,
+                Key = source.Key, ItemId = source.ItemId, Name = source.Name, ModifierId = source.ModifierId,
+                ModifierPriceFactor = source.ModifierPriceFactor, Kind = source.Kind,
                 CategoryId = source.CategoryId, LootGroup = source.LootGroup, UnitWeight = source.UnitWeight,
                 UnitWeightAtSea = source.UnitWeightAtSea, UnitValue = source.UnitValue, StoreValueStep = source.StoreValueStep,
             };

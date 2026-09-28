@@ -74,36 +74,41 @@ public class InventoryLockTests
     }
 
     [Fact]
-    public void Locked_riding_mounts_are_counted_and_sold_most_expensive_first()
+    public void Locked_riding_and_war_horses_are_counted_and_sold_most_expensive_first()
     {
-        var plan = new Scenario().Party(10, footmen: 5) // riding target ceil(5 × 1.1) = 6
+        var plan = new Scenario().Party(10, footmen: 5) // horses to keep ceil(5 × 1.1) = 6
             .Mount("hunter", "horse", held: 6, sell: 100)
-            .Mount("noble", "noble_horse", held: 1, sell: 2000, locked: true)
+            .Mount("steppe", "horse", held: 1, sell: 300, locked: true)
             .Mount("charger", "war_horse", held: 1, sell: 800, locked: true)
             .Plan();
+        var war = plan.Row("mounts:war");
+        Assert.Equal(-1, war.Change);             // none to keep (the default 0): the locked charger goes, managed
+        Assert.Equal(0, war.Locked);
         var riding = plan.Row("mounts:riding");
-        Assert.Equal(8, riding.Mine);
-        Assert.Equal(-2, riding.Change);
-        Assert.Equal(-1, riding.Moved("noble"));
-        Assert.Equal(-1, riding.Moved("charger"));
+        Assert.Equal(7, riding.Mine);
+        Assert.Equal(-1, riding.Change);
+        Assert.Equal(-1, riding.Moved("steppe")); // the dearest, locked or not
         Assert.Equal(0, riding.Moved("hunter"));
         Assert.Equal(0, riding.Locked);
     }
 
     [Fact]
-    public void Reserved_upgrade_horses_are_never_sold_even_when_locked()
+    public void Locked_war_horses_are_managed_like_the_rest_unless_locks_protect_them()
     {
-        var plan = new Scenario().Party(10, footmen: 0).Upgrade("recruit", 10, ("war_horse", 2))
-            .Mount("charger", "war_horse", held: 3, buy: 1000, sell: 500, locked: true)
-            .Plan();
-        var upgrade = plan.Row("mounts:upgrade:war_horse");
-        Assert.Equal(2, upgrade.Mine);
-        Assert.Equal(0, upgrade.Change);   // reserved for the two upgrades: the steward never sells them
-        Assert.Equal(0, upgrade.Locked);
-        Assert.Equal(2, upgrade.MaxSell);  // the player still may, by hand
-        var riding = plan.Row("mounts:riding");
-        Assert.Equal(-1, riding.Change);   // the third one is riding surplus (no footmen) — sold, locked or not
-        Assert.Equal(-1, riding.Moved("charger"));
+        var s = new Scenario().Party(10, footmen: 0)
+            .Mount("charger", "war_horse", held: 3, buy: 1000, sell: 500, locked: true);
+        s.Settings.WarMountsToKeep = 2;
+        var war = s.Plan().Row("mounts:war");
+        Assert.Equal(3, war.Mine);
+        Assert.Equal(-1, war.Change);   // the one above the number to keep — sold, locked or not
+        Assert.Equal(0, war.Locked);
+        Assert.Equal(3, war.MaxSell);
+
+        s.Settings.LocksProtectFoodAndHorses = true;
+        war = s.Plan().Row("mounts:war");
+        Assert.Equal(0, war.Change);
+        Assert.Equal(3, war.Locked);
+        Assert.Equal(0, war.MaxSell);
     }
 
     [Theory]
@@ -162,7 +167,7 @@ public class InventoryLockTests
 
         var riding = plan.Row("mounts:riding");
         Assert.Equal(-1, riding.Moved("hunter"));
-        Assert.Equal(0, riding.Moved("noble"));
+        Assert.Equal(0, riding.Moved("steppe"));
         Assert.Equal(1, riding.Locked);
     }
 
@@ -191,8 +196,8 @@ public class InventoryLockTests
         // The locked food and horses are in the executor's list, not guarded by their lock...
         Assert.Equal(30, sales["grain"].Count);
         Assert.Equal(4, sales["sumpter_horse"].Count);
-        Assert.Equal(1, sales["noble"].Count);
-        foreach (var key in new[] { "grain", "sumpter_horse", "noble" })
+        Assert.Equal(1, sales["steppe"].Count);
+        foreach (var key in new[] { "grain", "sumpter_horse", "steppe" })
         {
             Assert.False(sales[key].HonoursLock, key);
             Assert.False(ExecutionBudget.StoppedByLock(sales[key], lockedNow: true), key); // still locked at the click
@@ -223,7 +228,7 @@ public class InventoryLockTests
         var plan = s.Plan();
         var sales = plan.Transactions.Where(t => t.Kind == TransactionKind.Sell).ToDictionary(t => t.StackKey!);
 
-        foreach (var key in new[] { "grain", "sumpter_horse", "noble", "helm" })
+        foreach (var key in new[] { "grain", "sumpter_horse", "steppe", "helm" })
             Assert.DoesNotContain(key, sales.Keys);
         Assert.Equal(10, sales["fish"].Count);
         Assert.Equal(4, sales["mule"].Count);
@@ -250,8 +255,8 @@ public class InventoryLockTests
     }
 
     /// <summary>A town with a surplus in every job, and a locked stack in each: food 50 of target 20 (grain locked),
-    /// pack animals 14 of 10 (the dearer sumpter horses locked), riding mounts 7 of 6 (the noble horse locked, the
-    /// dearest), armour with a locked helm.</summary>
+    /// pack animals 14 of 10 (the dearer sumpter horses locked), riding mounts 7 of 6 (the steppe horse locked, the
+    /// dearest — step 17: not a noble horse, whose lock always keeps it), armour with a locked helm.</summary>
     private static Scenario LockedEverything()
     {
         var s = new Scenario().Party(10, footmen: 5)
@@ -260,7 +265,7 @@ public class InventoryLockTests
             .Pack("sumpter_horse", held: 8, sell: 70, locked: true)
             .Pack("mule", held: 6, sell: 60)
             .Mount("hunter", "horse", held: 6, sell: 100)
-            .Mount("noble", "noble_horse", held: 1, sell: 2000, locked: true)
+            .Mount("steppe", "horse", held: 1, sell: 300, locked: true)
             .Loot("rags", LootGroup.Armour, held: 10, sell: 8)
             .Loot("helm", LootGroup.Armour, held: 3, sell: 60, locked: true);
         s.Settings.SellLoot = true;

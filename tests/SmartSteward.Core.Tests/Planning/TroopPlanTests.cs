@@ -244,29 +244,30 @@ public class TroopPlanTests
     public void Recruits_and_dismissals_re_plan_the_food_and_the_horses()
     {
         var s = new Scenario().Village().Party(20, footmen: 10).Gold(100_000)
-            .Upgrade("footman", 8, ("war_horse", 3))
             .Food("grain", market: 500, buy: 10)
             .Mount("hunter", "horse", market: 100, buy: 200)
             .Mount("charger", "war_horse", market: 10, buy: 1500)
-            .Troop("footman", inParty: 8, upgrade: "war_horse")
-            .Troop("peasant", onOffer: 6, price: 10, upgrade: "horse")
+            .Troop("footman", inParty: 8)
+            .Troop("peasant", onOffer: 6, price: 10)
             .Troop("rider", inParty: 5, mounted: true);
         s.Settings.AutoFillWarMountPrices = true;
-        s.Settings.WarMountsHorseTarget = 2;                                   // a fixed 2 — once some troop needs a horse
+        s.Settings.WarMountsToKeep = 3;                                        // a plain number: no troop changes it (step 17)
         var plan = s.Plan();
-        Assert.Equal((20, 10, 3), (plan.Facts.FoodEaters, plan.Facts.Footmen, plan.Facts.UpgradeNeed["war_horse"]));
-        Assert.Null(plan.FindRow("mounts:upgrade:horse"));
+        Assert.Equal((20, 10, 11), (plan.Facts.FoodEaters, plan.Facts.Footmen, plan.Facts.MountTarget));
+        Assert.Equal(3, plan.Row("mounts:war").Change);
+        Assert.Equal(8, plan.Row("mounts:riding").Change);                     // 11 − the 3 war horses
 
-        plan.Increase("troops:peasant", EditSize.All);                         // 6 foot recruits whose upgrade needs a horse
+        plan.Increase("troops:peasant", EditSize.All);                         // 6 foot recruits
         Assert.Equal((26, 16), (plan.Facts.FoodEaters, plan.Facts.Footmen));
         Assert.Equal(52, plan.Facts.FoodTarget);
-        Assert.Equal(2, plan.Row("mounts:upgrade:horse").Need);                // the kind comes in play, never ready
-        Assert.Equal(0, plan.Facts.UpgradeReady["horse"]);
+        Assert.Equal(18, plan.Facts.MountTarget);                              // ceil(16 × 1.1)
+        Assert.Equal(15, plan.Row("mounts:riding").Change);
+        Assert.Equal(3, plan.Row("mounts:war").Change);
 
-        plan.SetChange("troops:footman", -6);                                  // 6 of the 8 ready-to-upgrade footmen go
+        plan.SetChange("troops:footman", -6);                                  // 6 of the 8 footmen go
         Assert.Equal((20, 10), (plan.Facts.FoodEaters, plan.Facts.Footmen));
-        Assert.Equal(2, plan.Facts.UpgradeNeed["war_horse"]);                  // 2 left: at most 2 ready
-        Assert.Equal(2, plan.Row("mounts:upgrade:war_horse").Change);
+        Assert.Equal(8, plan.Row("mounts:riding").Change);
+        Assert.Equal(3, plan.Row("mounts:war").Change);
 
         plan.Decrease("troops:rider", EditSize.All);                           // mounted men leave: fewer eaters, same footmen
         Assert.Equal((15, 10), (plan.Facts.FoodEaters, plan.Facts.Footmen));
@@ -371,13 +372,14 @@ public class TroopPlanTests
     [Fact]
     public void The_log_tells_the_troop_rows_and_their_transactions()
     {
-        var plan = new Scenario().Troop("a", inParty: 3, onOffer: 5, price: 20, upgrade: "horse")
+        var plan = new Scenario().Troop("a", inParty: 3, onOffer: 5, price: 20)
             .Troop("c", inParty: 10, wounded: 2, mounted: true).Plan();
         plan.SetChange("troops:a", 3);
         plan.SetChange("troops:c", -4);
         var text = string.Join("\n", PlanReport.Full(plan));
         Assert.Contains("troops:a \"a\" Troop: mine 3, change +3 (yours, suggested +0), result 6, market 5", text);
-        Assert.Contains("on offer 5 at 20, wage 2, on foot, upgrades need horse", text);
+        Assert.Contains("on offer 5 at 20, wage 2, on foot", text);
+        Assert.DoesNotContain("upgrades need", text);
         Assert.Contains("troops:c \"c\" Troop: mine 10, change -4", text);
         Assert.Contains("not on offer, wage 2, 2 wounded, mounted", text);
         Assert.Contains("Dismiss 4 x c [troops:c] (free, the wounded first)", text);

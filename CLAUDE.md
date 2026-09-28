@@ -6,7 +6,8 @@ Guidance for Claude Code when working in this repository.
 
 **Smart Steward** — a mod for *Mount & Blade II: Bannerlord* (game v1.4.8, War Sails era) that
 takes the pesky logistics chores off the player: keeping food (with variety), pack animals,
-riding mounts for the footmen, war mounts for pending upgrades, ransoming prisoners and selling
+riding mounts for the footmen (a set number of war horses among them, noble horses sold, lame ones
+replaced), ransoming prisoners and selling
 loot — all proposed in one glanceable **Party Steward** window when the party enters a town or
 village, adjustable row by row, executed with one click.
 
@@ -101,13 +102,15 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               on change, Changed)
   Snapshot/                   StewardSnapshot — the game-free input the Module fills; LootGroups table;
                               GameRules = the pure rules the adapter applies (stack key item|modifier, lock id,
-                              item kind, upgrade-ready count, average prices, donate rule, wounded first)
+                              item kind, bad modifier (step 17), average prices, donate rule, wounded first)
   Pricing/                    IPriceOracle (the Module implements it with the game's price model),
                               PriceBook rules, MarketState + TradeLane/LaneCursor = the price walk
   Planning/                   StewardPlanner.Plan(snapshot, settings, oracle) → StewardPlan
                               (sections → rows with their lanes, totals, facts); one planner per job;
-                              PlanWalk = the picking rules the planner and the editor share; UpgradeNeeds (step 12) = the
-                              upgrade horses per kind (ready count, fixed number or automatic); MoneyFloors + PlanMode =
+                              PlanWalk = the picking rules the planner and the editor share; MountGoal (step 17) = the
+                              horses to keep (T = footmen x per 100, W war horses among them, riding the rest - no upgrade
+                              counting); MountPlanner (riding/war/noble rows, a second pass pledges the war horses bought),
+                              LameHorsePlanner (the lame horses row, sold first); MoneyFloors + PlanMode =
                               the floors (window, or autonomous: raised to AutonomousMinGold, no tavern). The plan is
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor;

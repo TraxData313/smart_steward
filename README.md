@@ -9,7 +9,8 @@ nudge any row with `[–]` `[+]` (click ±1, Shift ±5, Ctrl all), then **Do it*
 
 - **Tavern** — wanderers and the tavern's mercenaries, hired with a click (never suggested: your choice)
 - **Food** — enough for everyone, varied for morale, surplus sold
-- **Horses** — pack animals, a riding horse per footman, the horses your troops need to upgrade
+- **Horses** — pack animals and a horse per footman (a set number of war horses among them); noble horses sold unless
+  locked, lame ones replaced by healthy ones
 - **Armour & weapons** — loot sold in bulk groups (off until you turn it on)
 - **Prisoners** — ransomed, or donated to your kingdom's dungeons for influence
 

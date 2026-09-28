@@ -118,26 +118,27 @@ namespace SmartSteward.Core.Settings
 
         // ── Mounts (DESIGN §2.3) ─────────────────────────────────────────────────────────────────
         public bool MountsEnabled { get; set; } = true;
-        /// <summary>Riding target = ceil(footmen × this / 100).</summary>
+        /// <summary>Horses kept for the footmen = ceil(footmen × this / 100) — the war horses kept count among them, riding
+        /// horses fill the rest (Anton 2026.09.28, step 17: <c>Planning.MountGoal</c>).</summary>
         public int MountsPer100Footmen { get; set; } = 110;
         /// <summary>Role cap per footman's mount (0 = none; not scaled).</summary>
         public int MountMaxPrice { get; set; } = 500;
-        /// <summary>Horses reserved for upgrades count toward the footmen's riding target.</summary>
-        public bool WarMountsCountAsMounts { get; set; } = true;
         public bool SellMountSurplus { get; set; } = true;
+        /// <summary>Noble horses are never bought and are sold unless LOCKED — a lock always keeps one (Anton 2026.09.28, step
+        /// 17): they are for the player and his companions, never an upgrade requirement.</summary>
+        public bool SellNobleHorses { get; set; } = true;
+        /// <summary>Sell the party's badly modified horses (lame, old) and buy healthy ones in their place (Anton 2026.09.28,
+        /// step 17). Off: they are kept and counted — a lame horse still carries a footman. Never bought either way.</summary>
+        public bool ReplaceLameHorses { get; set; } = true;
 
         // ── War mounts (DESIGN §2.4) ─────────────────────────────────────────────────────────────
+        /// <summary>Manage war horses at all; off = a war horse is a plain riding horse to the steward.</summary>
         public bool WarMountsEnabled { get; set; } = true;
-        /// <summary>Plain horses ("horse" category) kept for upgrades: -1 = automatic (the troops ready now +
-        /// <see cref="WarMountsExtra"/>); ≥ 0 = exactly this many. Replaces half of the old WarMountsManualTarget
-        /// (playtest round 1: one number for both kinds bought 10 of each).</summary>
-        public int WarMountsHorseTarget { get; set; } = -1;
-        /// <summary>War horses ("war_horse" category) kept for upgrades: -1 = automatic; ≥ 0 = exactly this many.</summary>
-        public int WarMountsWarHorseTarget { get; set; } = -1;
-        /// <summary>Spares on top of the automatic count, for each kind the troops upgrade into (not added to a fixed
-        /// number).</summary>
-        public int WarMountsExtra { get; set; } = 0;
-        /// <summary>Role cap per upgrade horse (0 = none; not scaled).</summary>
+        /// <summary>War horses (the <c>war_horse</c> category) the party keeps — a plain number, bought up to it and sold above
+        /// it; they count among the horses for the footmen (Anton 2026.09.28, step 17 — replaces the automatic upgrade count:
+        /// WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts are retired).</summary>
+        public int WarMountsToKeep { get; set; } = 0;
+        /// <summary>Role cap per war horse (0 = none; not scaled).</summary>
         public int WarMountMaxPrice { get; set; } = 2000;
         public bool SellWarMountSurplus { get; set; } = true;
 
