@@ -58,17 +58,20 @@
     <string id="ss_hint_FoodCountPrisoners" text="Count your prisoners when working out the food target - half a man each, as the game feeds them. Default: on." />
     <string id="ss_hint_FoodDays" text="How many days of food the steward keeps for your party as it will be after the deal - at the game's own rate, perks included (a man eats one food in about 20 days, a prisoner half as much), so 40 days is about 2 food per man. The Instructions tab shows what your days mean per man right now. Default: 40. Range: 1 to 365." />
     <string id="ss_hint_FoodEnabled" text="Buy food up to the target and sell what is far above it. Default: on." />
+    <string id="ss_hint_FoodMinDenari" text="The steward starts managing food once your purse holds at least this many denari when you arrive - below it it neither buys nor sells food, and you trade by hand. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_FoodStrategy" text="Balanced buys the kinds you hold least of first - every different food lifts morale. Cheapest always buys the cheapest kind. Default: Balanced (variety first)." />
     <string id="ss_hint_FoodSurplusTolerancePercent" text="How far above the target food may pile up before the steward sells: 25 sells only above 125% of the target. Default: 25. Range: 0 to 500." />
     <string id="ss_hint_LocksProtectFoodAndHorses" text="Off: the steward manages food and horses even when you locked them in the inventory - your locks keep guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons. Default: off." />
-    <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denars. Default: 1,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denari. Default: 1,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_ModEnabled" text="Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, nothing done on its own. Default: on." />
     <string id="ss_hint_MountMaxPrice" text="Never pay more than this for a footman's horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 500. Range: 0 to 100,000." />
     <string id="ss_hint_MountsEnabled" text="Keep horses for the men who walk, so the party moves faster. Default: on." />
+    <string id="ss_hint_MountsMinDenari" text="The steward starts managing riding horses once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them, nor sells noble or lame horses. 0 = always. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MountsPer100Footmen" text="Horses kept for every 100 men on foot: 110 is one each plus 10% spare. The war horses you keep count among them; riding horses fill the rest. Default: 110. Range: 0 to 300." />
     <string id="ss_hint_PackAnimalMaxPrice" text="Never pay more than this for one pack animal, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 300. Range: 0 to 100,000." />
     <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
+    <string id="ss_hint_PackAnimalsMinDenari" text="The steward starts managing pack animals once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
     <string id="ss_hint_RansomHeroPrisoners" text="Also ransom (or donate) captured lords. A ransomed lord goes free. Default: off." />
@@ -77,7 +80,7 @@
     <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
     <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields). Default: off." />
     <string id="ss_hint_SellLootEquipment" text="Include weapons, armour, shields and ammunition in the loot sale. Default: on." />
-    <string id="ss_hint_SellLootMaxItemValue" text="Never sell a piece worth more than this many denars. 0 = no cap. Pieces you locked in the inventory are never sold anyway. Default: 0. Range: 0 to 1,000,000." />
+    <string id="ss_hint_SellLootMaxItemValue" text="Never sell a piece worth more than this many denari. 0 = no cap. Pieces you locked in the inventory are never sold anyway. Default: 0. Range: 0 to 1,000,000." />
     <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the gold), the lowest price per kg, or the most expensive (the game's own habit). Default: Cheapest first." />
     <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
     <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
@@ -88,9 +91,10 @@
     <string id="ss_hint_ShowTavern" text="Show the tavern section in towns: wanderers and mercenaries to hire with a click. Default: on." />
     <string id="ss_hint_ShowTroops" text="Show the troops section in towns and villages: the recruits the notables offer you, then your own troops, to recruit or dismiss with a click. Nothing is ever recruited or dismissed unless you click. Default: on." />
     <string id="ss_hint_ShowWanderers" text="List the wanderers for hire in the town's tavern. Default: on." />
+    <string id="ss_hint_WarHorsesMinDenari" text="The steward starts keeping war horses once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. 0 = always. Default: 20,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_WarMountMaxPrice" text="Never pay more than this for one war horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 2,000. Range: 0 to 100,000." />
     <string id="ss_hint_WarMountsEnabled" text="Keep a set number of war horses for upgrading your troops into cavalry. When off, a war horse is just another riding horse to the steward. Default: on." />
-    <string id="ss_hint_WarMountsToKeep" text="How many war horses the party keeps - bought up to it, sold above it. They carry footmen until you upgrade men with them (who then ride as cavalry), so they count among the horses per 100 footmen. 0 = none kept: spare war horses are sold. Default: 0. Range: 0 to 500." />
+    <string id="ss_hint_WarMountsToKeep" text="How many war horses the party keeps - bought up to it, sold above it. They carry footmen until you upgrade men with them (who then ride as cavalry), so they count among the horses per 100 footmen. 0 = none kept: spare war horses are sold. Only once your purse reaches the war horse threshold above. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_WarnIfNotReviewed" text="Ask before you leave a town or village whose suggestions you never looked at. Default: on." />
     <string id="ss_leave_anyway" text="Leave anyway" />
     <string id="ss_leave_review" text="Review" />
@@ -109,24 +113,27 @@
     <string id="ss_set_AutoFillWarMountPrices" text="Average prices for war horses" />
     <string id="ss_set_AutoPopupOnTownEnter" text="Open on entering a town" />
     <string id="ss_set_AutoPopupOnVillageEnter" text="Open on entering a village" />
-    <string id="ss_set_AutonomousMinGold" text="Keep while autonomous (gold)" />
+    <string id="ss_set_AutonomousMinGold" text="Keep while autonomous (denari)" />
     <string id="ss_set_AutonomousSteward" text="Full-autonomous steward" />
     <string id="ss_set_BuyPriceMultiplier" text="Buy price multiplier" />
     <string id="ss_set_DonatePrisonersWhenPossible" text="Donate when possible" />
     <string id="ss_set_FoodCountPrisoners" text="Feed prisoners too" />
     <string id="ss_set_FoodDays" text="Keep food for (days)" />
     <string id="ss_set_FoodEnabled" text="Manage food" />
+    <string id="ss_set_FoodMinDenari" text="Manage food from (denari)" />
     <string id="ss_set_FoodStrategy" text="Food buying" />
     <string id="ss_set_FoodSurplusTolerancePercent" text="Surplus tolerance (%)" />
     <string id="ss_set_LocksProtectFoodAndHorses" text="Locks protect food &amp; horses" />
-    <string id="ss_set_MinGoldAfterDeal" text="Always keep (gold)" />
-    <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (gold)" />
+    <string id="ss_set_MinGoldAfterDeal" text="Always keep (denari)" />
+    <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (denari)" />
     <string id="ss_set_ModEnabled" text="Steward on" />
     <string id="ss_set_MountMaxPrice" text="Max price per riding horse" />
     <string id="ss_set_MountsEnabled" text="Manage riding horses" />
+    <string id="ss_set_MountsMinDenari" text="Manage riding horses from (denari)" />
     <string id="ss_set_MountsPer100Footmen" text="Horses per 100 footmen" />
     <string id="ss_set_PackAnimalMaxPrice" text="Max price per pack animal" />
     <string id="ss_set_PackAnimalsEnabled" text="Manage pack animals" />
+    <string id="ss_set_PackAnimalsMinDenari" text="Manage pack animals from (denari)" />
     <string id="ss_set_PackAnimalsTarget" text="Pack animals to keep" />
     <string id="ss_set_PopupOnlyWithChanges" text="Only open with suggestions" />
     <string id="ss_set_RansomHeroPrisoners" text="Include lords" />
@@ -146,6 +153,7 @@
     <string id="ss_set_ShowTavern" text="Show the tavern" />
     <string id="ss_set_ShowTroops" text="Show the troops" />
     <string id="ss_set_ShowWanderers" text="Show wanderers" />
+    <string id="ss_set_WarHorsesMinDenari" text="Manage war horses from (denari)" />
     <string id="ss_set_WarMountMaxPrice" text="Max price per war horse" />
     <string id="ss_set_WarMountsEnabled" text="Manage war horses" />
     <string id="ss_set_WarMountsToKeep" text="War horses to keep" />

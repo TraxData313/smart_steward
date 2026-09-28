@@ -125,7 +125,7 @@ namespace SmartSteward.Core.Settings
             };
 
         private const string WarHorsesNow = "the steward no longer counts troop upgrades - war horses are one plain number to "
-                                            + "keep now (" + nameof(StewardSettings.WarMountsToKeep) + ", default 0), and "
+                                            + "keep now (" + nameof(StewardSettings.WarMountsToKeep) + ", default 10), and "
                                             + "plain-horse upgrades use the riding horses";
 
         /// <summary>The explanation at the top of the file.</summary>

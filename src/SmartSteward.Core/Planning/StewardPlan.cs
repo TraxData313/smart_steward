@@ -39,6 +39,21 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>W: the war horses to keep (WarMountsToKeep; 0 when war horses are not managed).</summary>
         public int WarTarget { get; internal set; }
+
+        /// <summary>The switched-on jobs whose activation threshold the purse before the deal did not reach (round 4,
+        /// <see cref="JobThresholds"/>) → the denari each needs; in <see cref="JobThresholds.All"/>'s order. Empty = every job
+        /// acts. The section overviews say "starts at 20,000 denari".</summary>
+        public IReadOnlyList<KeyValuePair<ManagedJob, int>> Waiting { get; internal set; } =
+            Array.Empty<KeyValuePair<ManagedJob, int>>();
+
+        /// <summary>The threshold a job waits for; null when it acts (or is switched off).</summary>
+        public int? StartsAt(ManagedJob job)
+        {
+            foreach (var pair in Waiting)
+                if (pair.Key == job)
+                    return pair.Value;
+            return null;
+        }
     }
 
     /// <summary>The header and footer (DESIGN §1.1).</summary>

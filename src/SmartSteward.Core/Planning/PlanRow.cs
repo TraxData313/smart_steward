@@ -289,6 +289,10 @@ namespace SmartSteward.Core.Planning
         /// kept after the deal — DESIGN §2.3; war: WarMountsToKeep).</summary>
         public int? Target { get; internal set; }
 
+        /// <summary>The steward's job for this row waits for the purse (round 4, <see cref="JobThresholds"/>): the denari it needs
+        /// before the deal; null when the job acts (or the row belongs to no such job). The row stays editable by hand.</summary>
+        public int? StartsAtDenari { get; internal set; }
+
         /// <summary>Food rows: the item's resolved price book row.</summary>
         public PriceBookPrices? PriceBook { get; internal set; }
 
@@ -354,6 +358,7 @@ namespace SmartSteward.Core.Planning
             WeightDelta = planned.WeightDelta;
             InfluenceDelta = planned.InfluenceDelta;
             Target = planned.Target;
+            StartsAtDenari = planned.StartsAtDenari;
             PriceBook = planned.PriceBook;
             Prisoner = planned.Prisoner;
             Tavern = planned.Tavern;

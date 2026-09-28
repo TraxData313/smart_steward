@@ -74,6 +74,13 @@ namespace SmartSteward.Core.Planning
 
         public bool IsTown => Snapshot.SettlementKind == SettlementKind.Town;
 
+        /// <summary>Does the steward's own side of this job act — the purse before the deal at least its threshold
+        /// (<see cref="JobThresholds"/>, round 4)? The player's own rows walk either way.</summary>
+        public bool JobActive(ManagedJob job) => JobThresholds.IsActive(job, Settings, Snapshot.PlayerGold);
+
+        /// <summary>The threshold a waiting job needs (for <see cref="PlanRow.StartsAtDenari"/>); null when it acts.</summary>
+        public int? StartsAt(ManagedJob job) => JobActive(job) ? (int?)null : JobThresholds.Of(job, Settings);
+
         /// <summary>No purchase takes the purse below this.</summary>
         public int FoodFloor => Floors.All;
 

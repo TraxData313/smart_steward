@@ -116,6 +116,7 @@ namespace SmartSteward.Core.Planning
             facts.MountTarget = mounts.MountTarget;
             facts.RidingTarget = mounts.RidingTarget;
             facts.WarTarget = mounts.WarTarget;
+            facts.Waiting = Waiting(ctx);
 
             var rows = new List<PlanRow>();
             rows.AddRange(tavernRows);
@@ -127,6 +128,23 @@ namespace SmartSteward.Core.Planning
             rows.AddRange(loot.Rows);
             rows.AddRange(prisonerRows);
             return Assemble(ctx, facts, rows, loot.SellOrder);
+        }
+
+        /// <summary>The switched-on jobs the purse before the deal does not switch on yet (round 4).</summary>
+        private static IReadOnlyList<KeyValuePair<ManagedJob, int>> Waiting(PlanContext ctx)
+        {
+            var s = ctx.Settings;
+            var waiting = new List<KeyValuePair<ManagedJob, int>>();
+            foreach (var job in JobThresholds.All)
+            {
+                bool enabled = job == ManagedJob.Food ? s.FoodEnabled
+                    : job == ManagedJob.PackAnimals ? s.PackAnimalsEnabled
+                    : job == ManagedJob.Mounts ? s.MountsEnabled
+                    : s.WarMountsEnabled;
+                if (enabled && !ctx.JobActive(job))
+                    waiting.Add(new KeyValuePair<ManagedJob, int>(job, JobThresholds.Of(job, s)));
+            }
+            return waiting;
         }
 
         private static StewardPlan Assemble(PlanContext ctx, PlanFacts facts, List<PlanRow> rows,

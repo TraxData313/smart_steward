@@ -40,6 +40,9 @@ namespace SmartSteward.Core.Planning
         private readonly List<Line> _lines = new List<Line>();
         private readonly bool _active;
 
+        /// <summary>The steward's own side acts (the purse before the deal reached FoodMinDenari — round 4).</summary>
+        private readonly bool _stewardActs;
+
         public FoodPlanner(PlanContext ctx, int prisonersAfter)
         {
             _ctx = ctx;
@@ -57,6 +60,9 @@ namespace SmartSteward.Core.Planning
             _active = settings.FoodEnabled && ctx.Snapshot.CanTrade;
             if (!_active)
                 return;
+            // Round 4: below FoodMinDenari the steward neither buys nor sells food - the rows stay for the player's hand.
+            _stewardActs = ctx.JobActive(ManagedJob.Food);
+            int? startsAt = ctx.StartsAt(ManagedJob.Food);
 
             var heldByItem = ctx.Inventory(ItemKind.Food).GroupBy(s => s.ItemId, StringComparer.Ordinal)
                 .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.Ordinal);
@@ -109,6 +115,7 @@ namespace SmartSteward.Core.Planning
                     PriceBook = book,
                     BuyLane = buyLane,
                     SellLane = sellLane,
+                    StartsAtDenari = startsAt,
                 };
                 int? pinned = ctx.Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
                 _lines.Add(new Line(row, item.Held, new WalkLine(row, sellLane, held, book: row.Book), pinned));
@@ -139,7 +146,7 @@ namespace SmartSteward.Core.Planning
             if (mine.Count > 0)
                 PlanWalk.SellMostHeldFirst(_ctx.Walk, mine, () => true);
 
-            if (!_ctx.Settings.SellFoodSurplus || TotalHeld <= SellAbove)
+            if (!_stewardActs || !_ctx.Settings.SellFoodSurplus || TotalHeld <= SellAbove)
                 return;
             PlanWalk.SellMostHeldFirst(_ctx.Walk, Steward.Select(l => l.Sell).ToList(), () => TotalHeld > Target,
                 _ctx.FoodSellCeiling);
@@ -159,6 +166,8 @@ namespace SmartSteward.Core.Planning
             if (mine.Count > 0)
                 PlanWalk.BuyFood(walk, mine, balanced, () => null, () => true);
 
+            if (!_stewardActs)
+                return;
             // No row sells and buys in one visit (sold only above target + tolerance, bought only below the
             // target), so the buy walk starts from the units held after the sales.
             var buys = Steward.Select(l => new WalkLine(l.Row, l.Row.BuyLane!, l.Sell.Held, book: l.Row.Book)).ToList();

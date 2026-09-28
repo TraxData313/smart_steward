@@ -83,6 +83,7 @@ namespace SmartSteward.Core.Planning
                 var sellLane = SellLane(_riding);
                 var buyLane = BuyLane(s => MountGoal.IsRiding(s, settings), settings.MountMaxPrice);
                 RidingRow = RoleRow(RidingId, RowType.Mount, MountRole.Riding, null, _riding, sellLane, buyLane);
+                RidingRow.StartsAtDenari = ctx.StartsAt(ManagedJob.Mounts);
                 _ridingBuy = new LaneCursor(buyLane);
                 _ridingSell = new WalkLine(RidingRow, sellLane, book: RidingRow.Book);
                 _ridingPinned = Pin(RidingRow);
@@ -94,6 +95,7 @@ namespace SmartSteward.Core.Planning
                 var buyLane = BuyLane(s => MountGoal.IsWar(s, settings), settings.WarMountMaxPrice);
                 WarRow = RoleRow(WarId, RowType.WarMount, MountRole.War, MountGoal.WarHorse, _war, sellLane, buyLane);
                 WarRow.Target = WarTarget;
+                WarRow.StartsAtDenari = ctx.StartsAt(ManagedJob.WarHorses);
                 _warBuy = new LaneCursor(buyLane);
                 _warSell = new WalkLine(WarRow, sellLane, book: WarRow.Book);
                 _warPinned = Pin(WarRow);
@@ -104,6 +106,7 @@ namespace SmartSteward.Core.Planning
                 var sellLane = SellLane(_noble);
                 NobleRow = RoleRow(NobleId, RowType.Mount, MountRole.Noble, MountGoal.NobleHorse, _noble, sellLane, null);
                 NobleRow.LocksGuard = true; // a lock always keeps a noble horse — one locked after the plan too, at the click
+                NobleRow.StartsAtDenari = ctx.StartsAt(ManagedJob.Mounts);
                 _nobleSell = new WalkLine(NobleRow, sellLane, book: NobleRow.Book);
                 _noblePinned = Pin(NobleRow);
             }
@@ -145,13 +148,19 @@ namespace SmartSteward.Core.Planning
             get
             {
                 if (_ctx.WarPledge > 0 || WarRow == null || _warPinned != null || RidingRow == null || _ridingPinned != null
-                    || !_ctx.Settings.SellMountSurplus)
+                    || !_ctx.Settings.SellMountSurplus || !RidingActs)
                     return 0;
                 int bought = Bought(WarRow);
                 bool sellableLeft = RidingRow.MaxSell - Sold(RidingRow) > 0;
                 return bought > 0 && sellableLeft && Counted() > MountTarget ? bought : 0;
             }
         }
+
+        /// <summary>The steward's riding side acts (MountsMinDenari met — round 4); it sells the noble horses too.</summary>
+        private bool RidingActs => _ctx.JobActive(ManagedJob.Mounts);
+
+        /// <summary>The steward's war side acts (WarHorsesMinDenari met — round 4).</summary>
+        private bool WarActs => _ctx.JobActive(ManagedJob.WarHorses);
 
         private int? Pin(PlanRow row) => _ctx.Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
 
@@ -250,11 +259,11 @@ namespace SmartSteward.Core.Planning
         {
             var settings = _ctx.Settings;
             var walk = _ctx.Walk;
-            if (NobleRow != null && _nobleSell != null && _noblePinned == null)
+            if (NobleRow != null && _nobleSell != null && _noblePinned == null && RidingActs)
                 PlanWalk.WalkLane(walk, _nobleSell, int.MaxValue, _ctx.AnimalSellCeiling);
-            if (WarRow != null && _warSell != null && _warPinned == null && settings.SellWarMountSurplus)
+            if (WarRow != null && _warSell != null && _warPinned == null && settings.SellWarMountSurplus && WarActs)
                 PlanWalk.WalkLane(walk, _warSell, WarNow - WarTarget, _ctx.AnimalSellCeiling);
-            if (RidingRow != null && _ridingSell != null && _ridingPinned == null && settings.SellMountSurplus)
+            if (RidingRow != null && _ridingSell != null && _ridingPinned == null && settings.SellMountSurplus && RidingActs)
             {
                 int surplus = Counted() + WarToBuy() - MountTarget;
                 if (surplus > 0)
@@ -272,8 +281,8 @@ namespace SmartSteward.Core.Planning
         public void PlanBuys()
         {
             var walk = _ctx.Walk;
-            bool stewardRides = RidingRow != null && _ridingBuy != null && _ridingPinned == null && !_soldRiding;
-            bool stewardWar = WarRow != null && _warBuy != null && _warPinned == null;
+            bool stewardRides = RidingRow != null && _ridingBuy != null && _ridingPinned == null && !_soldRiding && RidingActs;
+            bool stewardWar = WarRow != null && _warBuy != null && _warPinned == null && WarActs;
             int warShort = stewardWar ? Math.Max(0, WarTarget - WarNow) : 0;
             int ridingNeed = stewardRides ? Math.Max(0, MountTarget - Counted()) : 0;
 

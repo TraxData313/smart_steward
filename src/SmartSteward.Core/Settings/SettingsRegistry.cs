@@ -124,14 +124,14 @@ namespace SmartSteward.Core.Settings
                 s => s.LocksProtectFoodAndHorses, (s, v) => s.LocksProtectFoodAndHorses = v),
 
             // ── Money ────────────────────────────────────────────────────────────────────────────
-            new IntSetting(nameof(StewardSettings.MinGoldAfterDeal), Money, "Always keep (gold)",
-                "No purchase takes your purse below this many denars.",
+            new IntSetting(nameof(StewardSettings.MinGoldAfterDeal), Money, "Always keep (denari)",
+                "No purchase takes your purse below this many denari.",
                 0, MaxGold, s => s.MinGoldAfterDeal, (s, v) => s.MinGoldAfterDeal = v),
-            new IntSetting(nameof(StewardSettings.MinGoldForHorses), Money, "Keep before buying animals (gold)",
+            new IntSetting(nameof(StewardSettings.MinGoldForHorses), Money, "Keep before buying animals (denari)",
                 "No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - "
                 + "food comes first.",
                 0, MaxGold, s => s.MinGoldForHorses, (s, v) => s.MinGoldForHorses = v),
-            new IntSetting(nameof(StewardSettings.AutonomousMinGold), Money, "Keep while autonomous (gold)",
+            new IntSetting(nameof(StewardSettings.AutonomousMinGold), Money, "Keep while autonomous (denari)",
                 "While the full-autonomous steward is on, it never takes your purse below this - both floors above "
                 + "rise to it when they are lower. Raise the price limits to let it spend more freely, never this.",
                 0, MaxAutonomousGold, s => s.AutonomousMinGold, (s, v) => s.AutonomousMinGold = v),
@@ -140,6 +140,10 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.FoodEnabled), Food, "Manage food",
                 "Buy food up to the target and sell what is far above it.",
                 s => s.FoodEnabled, (s, v) => s.FoodEnabled = v),
+            new IntSetting(nameof(StewardSettings.FoodMinDenari), Food, "Manage food from (denari)",
+                "The steward starts managing food once your purse holds at least this many denari when you arrive - below it "
+                + "it neither buys nor sells food, and you trade by hand. 0 = always.",
+                0, MaxGold, s => s.FoodMinDenari, (s, v) => s.FoodMinDenari = v),
             new IntSetting(nameof(StewardSettings.FoodDays), Food, "Keep food for (days)",
                 "How many days of food the steward keeps for your party as it will be after the deal - at the game's own "
                 + "rate, perks included (a man eats one food in about 20 days, a prisoner half as much), so 40 days is about "
@@ -191,6 +195,10 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.PackAnimalsEnabled), Pack, "Manage pack animals",
                 "Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight.",
                 s => s.PackAnimalsEnabled, (s, v) => s.PackAnimalsEnabled = v),
+            new IntSetting(nameof(StewardSettings.PackAnimalsMinDenari), Pack, "Manage pack animals from (denari)",
+                "The steward starts managing pack animals once your purse holds at least this many denari when you arrive - "
+                + "below it it neither buys nor sells them. 0 = always.",
+                0, MaxGold, s => s.PackAnimalsMinDenari, (s, v) => s.PackAnimalsMinDenari = v),
             new IntSetting(nameof(StewardSettings.PackAnimalsTarget), Pack, "Pack animals to keep",
                 "How many pack animals the party keeps.",
                 0, 500, s => s.PackAnimalsTarget, (s, v) => s.PackAnimalsTarget = v),
@@ -206,6 +214,10 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.MountsEnabled), Mounts, "Manage riding horses",
                 "Keep horses for the men who walk, so the party moves faster.",
                 s => s.MountsEnabled, (s, v) => s.MountsEnabled = v),
+            new IntSetting(nameof(StewardSettings.MountsMinDenari), Mounts, "Manage riding horses from (denari)",
+                "The steward starts managing riding horses once your purse holds at least this many denari when you arrive - "
+                + "below it it neither buys nor sells them, nor sells noble or lame horses. 0 = always.",
+                0, MaxGold, s => s.MountsMinDenari, (s, v) => s.MountsMinDenari = v),
             new IntSetting(nameof(StewardSettings.MountsPer100Footmen), Mounts, "Horses per 100 footmen",
                 "Horses kept for every 100 men on foot: 110 is one each plus 10% spare. The war horses you keep count "
                 + "among them; riding horses fill the rest.",
@@ -232,10 +244,14 @@ namespace SmartSteward.Core.Settings
                 "Keep a set number of war horses for upgrading your troops into cavalry. When off, a war horse is just "
                 + "another riding horse to the steward.",
                 s => s.WarMountsEnabled, (s, v) => s.WarMountsEnabled = v),
+            new IntSetting(nameof(StewardSettings.WarHorsesMinDenari), WarMounts, "Manage war horses from (denari)",
+                "The steward starts keeping war horses once your purse holds at least this many denari when you arrive - "
+                + "below it it neither buys nor sells them. 0 = always.",
+                0, MaxGold, s => s.WarHorsesMinDenari, (s, v) => s.WarHorsesMinDenari = v),
             new IntSetting(nameof(StewardSettings.WarMountsToKeep), WarMounts, "War horses to keep",
                 "How many war horses the party keeps - bought up to it, sold above it. They carry footmen until you "
                 + "upgrade men with them (who then ride as cavalry), so they count among the horses per 100 footmen. "
-                + "0 = none kept: spare war horses are sold.",
+                + "0 = none kept: spare war horses are sold. Only once your purse reaches the war horse threshold above.",
                 0, 500, s => s.WarMountsToKeep, (s, v) => s.WarMountsToKeep = v),
             new IntSetting(nameof(StewardSettings.WarMountMaxPrice), WarMounts, "Max price per war horse",
                 "Never pay more than this for one war horse, whatever the price book says. 0 = no cap. "
@@ -265,7 +281,7 @@ namespace SmartSteward.Core.Settings
                 "Include weapons, armour, shields and ammunition in the loot sale.",
                 s => s.SellLootEquipment, (s, v) => s.SellLootEquipment = v),
             new IntSetting(nameof(StewardSettings.SellLootMaxItemValue), Loot, "Keep pieces worth more than",
-                "Never sell a piece worth more than this many denars. 0 = no cap. Pieces you locked in the inventory "
+                "Never sell a piece worth more than this many denari. 0 = no cap. Pieces you locked in the inventory "
                 + "are never sold anyway.",
                 0, MaxGold, s => s.SellLootMaxItemValue, (s, v) => s.SellLootMaxItemValue = v),
             new EnumSetting<SellLootOrder>(nameof(StewardSettings.SellLootOrder), Loot, "Loot selling order",

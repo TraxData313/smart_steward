@@ -87,9 +87,11 @@ namespace SmartSteward.Core.Planning
             var settings = ctx.Settings;
             if (!settings.ReplaceLameHorses || stack == null || !stack.HasBadModifier || MountGoal.IsNoble(stack))
                 return false;
-            bool managed = stack.Kind == ItemKind.PackAnimal ? settings.PackAnimalsEnabled
-                : MountGoal.IsWar(stack, settings) ? settings.WarMountsEnabled
-                : stack.Kind == ItemKind.Mount && settings.MountsEnabled;
+            // Round 4: only while the role's job acts (its threshold met) - else its role row, which buys nothing either,
+            // keeps and counts it.
+            bool managed = stack.Kind == ItemKind.PackAnimal ? settings.PackAnimalsEnabled && ctx.JobActive(ManagedJob.PackAnimals)
+                : MountGoal.IsWar(stack, settings) ? settings.WarMountsEnabled && ctx.JobActive(ManagedJob.WarHorses)
+                : stack.Kind == ItemKind.Mount && settings.MountsEnabled && ctx.JobActive(ManagedJob.Mounts);
             return managed && !ctx.IsGuarded(stack) && ctx.Book(stack)?.SellTicked == true;
         }
 

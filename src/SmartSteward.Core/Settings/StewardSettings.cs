@@ -87,6 +87,9 @@ namespace SmartSteward.Core.Settings
 
         // ── Food (DESIGN §2.1) ───────────────────────────────────────────────────────────────────
         public bool FoodEnabled { get; set; } = true;
+        /// <summary>The purse (before the deal) food needs to be managed at all — below it the steward neither buys nor sells
+        /// food (Anton 2026.09.28, round 4; <c>Planning.JobThresholds</c>). 0 = always.</summary>
+        public int FoodMinDenari { get; set; } = 2000;
         /// <summary>Days of food kept for the party after the deal, at the game's own rate (Anton 2026.09.28 — replaces
         /// FoodPerMan): target = ceil(days × daily use per eater × eaters) (<c>Planning.FoodGoal</c>).</summary>
         public int FoodDays { get; set; } = 40;
@@ -111,6 +114,8 @@ namespace SmartSteward.Core.Settings
 
         // ── Pack animals (DESIGN §2.2) ───────────────────────────────────────────────────────────
         public bool PackAnimalsEnabled { get; set; } = true;
+        /// <summary>The purse (before the deal) pack animals need to be managed at all (round 4).</summary>
+        public int PackAnimalsMinDenari { get; set; } = 2000;
         public int PackAnimalsTarget { get; set; } = 10;
         /// <summary>Role cap per pack animal (0 = none; NOT scaled by the multiplier).</summary>
         public int PackAnimalMaxPrice { get; set; } = 300;
@@ -118,6 +123,9 @@ namespace SmartSteward.Core.Settings
 
         // ── Mounts (DESIGN §2.3) ─────────────────────────────────────────────────────────────────
         public bool MountsEnabled { get; set; } = true;
+        /// <summary>The purse (before the deal) riding horses need to be managed at all — noble horses sold and lame riding horses
+        /// replaced too (round 4).</summary>
+        public int MountsMinDenari { get; set; } = 5000;
         /// <summary>Horses kept for the footmen = ceil(footmen × this / 100) — the war horses kept count among them, riding
         /// horses fill the rest (Anton 2026.09.28, step 17: <c>Planning.MountGoal</c>).</summary>
         public int MountsPer100Footmen { get; set; } = 110;
@@ -134,10 +142,13 @@ namespace SmartSteward.Core.Settings
         // ── War mounts (DESIGN §2.4) ─────────────────────────────────────────────────────────────
         /// <summary>Manage war horses at all; off = a war horse is a plain riding horse to the steward.</summary>
         public bool WarMountsEnabled { get; set; } = true;
+        /// <summary>The purse (before the deal) war horses need to be managed at all (round 4).</summary>
+        public int WarHorsesMinDenari { get; set; } = 20000;
         /// <summary>War horses (the <c>war_horse</c> category) the party keeps — a plain number, bought up to it and sold above
         /// it; they count among the horses for the footmen (Anton 2026.09.28, step 17 — replaces the automatic upgrade count:
-        /// WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts are retired).</summary>
-        public int WarMountsToKeep { get; set; } = 0;
+        /// WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts are retired). Default 10 since
+        /// round 4 (Anton 2026.09.28; was 0) — kept only once the purse reaches WarHorsesMinDenari.</summary>
+        public int WarMountsToKeep { get; set; } = 10;
         /// <summary>Role cap per war horse (0 = none; not scaled).</summary>
         public int WarMountMaxPrice { get; set; } = 2000;
         public bool SellWarMountSurplus { get; set; } = true;

@@ -30,9 +30,23 @@ internal sealed class FakeOracle : IPriceOracle
 }
 
 /// <summary>Builds a snapshot, settings and oracle together. Defaults: a town, rich party and market, 10
-/// members, no footmen — so each test switches on only what it looks at.</summary>
+/// members, no footmen — so each test switches on only what it looks at.
+/// <para>The settings are the defaults EXCEPT the two round-4 changes that would switch jobs off under the tests' small
+/// purses (<see cref="LegacyDefaults"/>): the activation thresholds are 0 (every job acts, whatever the purse) and
+/// WarMountsToKeep is 0 — the defaults every test before step 20 was written against. <c>JobThresholdTests</c> tests the real
+/// defaults.</para></summary>
 internal sealed class Scenario
 {
+    /// <summary>The defaults, with the activation thresholds at 0 and no war horses kept (the pre-round-4 defaults).</summary>
+    public static StewardSettings LegacyDefaults() => new()
+    {
+        FoodMinDenari = 0,
+        PackAnimalsMinDenari = 0,
+        MountsMinDenari = 0,
+        WarHorsesMinDenari = 0,
+        WarMountsToKeep = 0,
+    };
+
     public StewardSnapshot Snap { get; } = new()
     {
         SettlementKind = SettlementKind.Town,
@@ -49,7 +63,7 @@ internal sealed class Scenario
         Prison = new PrisonInfo { CanRansom = true },
     };
 
-    public StewardSettings Settings { get; } = new();
+    public StewardSettings Settings { get; } = LegacyDefaults();
     public FakeOracle Oracle { get; } = new();
 
     public StewardPlan Plan() => StewardPlanner.Plan(Snap, Settings, Oracle);

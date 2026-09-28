@@ -494,12 +494,13 @@ pure Core logic fed a snapshot of the party and the market (§5).
   and with it the snapshot's upgrade stacks and every troop's upgrade kinds. An old settings file's
   `WarMountsHorseTarget`, `WarMountsWarHorseTarget`, `WarMountsExtra` and `WarMountsCountAsMounts` (and round 1's
   `WarMountsManualTarget`) are retired — ignored and logged once, not converted (`SettingsFile.RetiredKeys`).
-- **War horses to keep** `W = WarMountsToKeep` (default **0**, 0–500; War mounts group, label "War horses to keep") — a
+- **War horses to keep** `W = WarMountsToKeep` (default **10** since round 4 **[Anton 2026.09.28]** — **0** until then; 0–500;
+  War mounts group, label "War horses to keep"; kept only once the purse reaches `WarHorsesMinDenari`, §3) — a
   plain NUMBER of mounts of the **`war_horse` category** (noble horses are NOT war mounts; a mod's category is a riding
   horse). The steward **buys up to it** — the cheapest ELIGIBLE (price-book max if set — war horses have no auto-filled
   placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**; never a modified one) — and **sells above it**, the
   dearest first, when `SellWarMountSurplus` (default on). They count toward T (§2.3): the riding horses fill the rest. With
-  the default 0 every unlocked war horse is surplus — set the number to what you mean to upgrade.
+  0 every unlocked war horse is surplus — set the number to what you mean to upgrade.
 - **Upgrades draw on what is kept** — the game's own upgrade takes a horse of the category the target troop needs
   (RESEARCH §4): a plain-horse upgrade draws from the riding horses, a war-horse one from the war horses kept; the
   upgraded men ride as cavalry, the footmen drop, and the next plan follows (§2.3).
@@ -716,14 +717,30 @@ too); castles have no market and no steward. One row per troop type — never ev
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
      purse below this. Food only answers to `MinGoldAfterDeal` — food outranks horses.
    - While the Full-autonomous steward acts alone, both rise to `AutonomousMinGold` (default **100000**, §6).
-4. The market's own gold limits what the steward can sell there (villages especially) — the
+4. **Activation thresholds** **[Anton 2026.09.28, playtest round 4 — "war hourses to keep, default set it to 10, add another
+   option min denari to have to start keeping war hourses 20k by default · same for the mouts … 5k · same for food keeping,
+   have at least 2k before start auto managing · pack animals - have min 2k … i want it in such a way that the players turn
+   it on and with the default settings they will be happy like that, as they become richer those start activating and
+   helping them"]** (Core `Planning\JobThresholds`): a job ACTS only when the purse at planning — before this visit's deal —
+   is at least its threshold: `FoodMinDenari` **2,000**, `PackAnimalsMinDenari` **2,000**, `MountsMinDenari` **5,000**
+   (riding horses; the noble horses sold and the lame riding horses replaced go with them), `WarHorsesMinDenari` **20,000**
+   (0 = always). Below it the steward's own side of the job does NOTHING — no buy, no sell (a surplus is kept too); lame
+   horses of a waiting job stay counted in their role row. The rows stay in the table at 0 (`PlanRow.StartsAtDenari`), so
+   the player can still buy or sell by hand; the plan's facts list the waiting jobs (`PlanFacts.Waiting`) and the section's
+   overview says `starts at 20,000 denari`. **How they relate to the floors [decided: Claude, 2026.09.28 — step 20]**: the
+   thresholds only SWITCH a job on; the floors (`MinGoldAfterDeal`, `MinGoldForHorses`, raised to `AutonomousMinGold` while
+   autonomous) still CAP what an active job spends. So with 3,000 denari food acts and may spend down to 1,000, pack animals
+   act but cannot buy (the 5,000 animal floor) — they still sell a surplus —, riding and war horses wait. The purse BEFORE the
+   deal is the test: a ransom or a sale in the same visit never switches a job on halfway, and a live re-plan (same
+   snapshot) keeps the same jobs on. The Full-autonomous steward answers to them too.
+5. The market's own gold limits what the steward can sell there (villages especially) — the
    planner never proposes a sale the market cannot pay for.
    **[research 2026.09.27]** Vanilla would let the sale go through and simply pay no more than
    the market's gold — overselling loses the goods for nothing, so this rule matters.
    **[decided: Claude, 2026.09.27 — step 4]** The limit applies to the item sales (food, animals,
    loot); ransom gold comes from the game, not the market. The executor ransoms before it trades, so
    the ransom funds the buys.
-5. **[research 2026.09.27]** Villages trade both ways (the "Buy products" screen also buys from
+6. **[research 2026.09.27]** Villages trade both ways (the "Buy products" screen also buys from
    you); their stock is their produce (horse ranches sell horses, mules and sumpters). Trading
    anywhere needs the game's trade access (not at war, crime, etc.) — no access, no market rows.
 
@@ -917,6 +934,7 @@ troop / hero, the count and the expected unit prices.
 | Money | MinGoldForHorses | 5000 | 0–1,000,000 | purse floor for animal purchases |
 | Money | AutonomousMinGold | 100000 | 0–10,000,000 | purse floor while autonomous: both floors above rise to it (§6) **[Anton 2026.09.27]** |
 | Food | FoodEnabled | true | — | manage food |
+| Food | FoodMinDenari | 2000 | 0–1,000,000 | "Manage food from (denari)": the purse before the deal food needs to be managed at all — below it the steward neither buys nor sells food (0 = always; §3 activation thresholds) **[Anton 2026.09.28, round 4]** |
 | Food | FoodDays | 40 | 1–365 | "Keep food for (days)": days of food kept for the party after the deal, at the game's own rate (≈ 2 per man at vanilla's) — replaces `FoodPerMan` (2.0, 0.1–10: food units per eater; an old file's value converts once, × 20) **[Anton 2026.09.28]** |
 | Food | FoodCountPrisoners | true | — | prisoners count as eaters (half each, like the game) |
 | Food | FoodStrategy | Balanced | Balanced / Cheapest | Balanced (variety first) or Cheapest |
@@ -929,17 +947,20 @@ troop / hero, the count and the expected unit prices.
 | Prices | AutoFillWarMountPrices | false | — | … for war horses (off: trader's cheat sheet); noble horses always show their sell average (sell only, step 17) |
 | Prices | PriceBook | {} | bases 0–1,000,000 | per item id: buy tick, buy base, sell tick, sell base (LATER: hold-up-to for Others) — only the player's changes (file + Prices tab, not MCM) |
 | Pack | PackAnimalsEnabled | true | — | manage pack animals |
+| Pack | PackAnimalsMinDenari | 2000 | 0–1,000,000 | "Manage pack animals from (denari)": the purse before the deal pack animals need (§3) **[Anton 2026.09.28, round 4]** |
 | Pack | PackAnimalsTarget | 10 | 0–500 | pack animals to keep |
 | Pack | PackAnimalMaxPrice | 300 | 0–100,000 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
 | Pack | SellPackAnimalSurplus | true | — | sell above target, most expensive first |
 | Mounts | MountsEnabled | true | — | manage riding mounts for footmen |
+| Mounts | MountsMinDenari | 5000 | 0–1,000,000 | "Manage riding horses from (denari)": the purse before the deal riding horses need — noble horses sold and lame riding horses replaced only then too (§3) **[Anton 2026.09.28, round 4]** |
 | Mounts | MountsPer100Footmen | 110 | 0–300 | horses kept per 100 footmen — the war horses kept count among them, riding horses fill the rest **[Anton 2026.09.28, step 17]** |
 | Mounts | MountMaxPrice | 500 | 0–100,000 | role cap: never pay more for a footman's mount (0 = none; not scaled) |
 | Mounts | SellMountSurplus | true | — | sell above target, most expensive first |
 | Mounts | SellNobleHorses | true | — | "Sell noble horses": never bought; sold (at ≥ min sell) unless LOCKED — a lock always keeps one **[Anton 2026.09.28, step 17]** |
 | Mounts | ReplaceLameHorses | true | — | "Replace lame horses": sell the badly modified (lame, old) horses and pack animals and buy healthy ones; off = kept and counted **[Anton 2026.09.28, step 17]** |
 | War mounts | WarMountsEnabled | true | — | manage war horses (off: a war horse is a plain riding horse) |
-| War mounts | WarMountsToKeep | 0 | 0–500 | "War horses to keep": a plain number of `war_horse` mounts, bought up to it and sold above it; they count toward the horses per 100 footmen — replaces WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts (retired, logged once) **[Anton 2026.09.28, step 17]** |
+| War mounts | WarHorsesMinDenari | 20000 | 0–1,000,000 | "Manage war horses from (denari)": the purse before the deal war horses need (§3) **[Anton 2026.09.28, round 4]** |
+| War mounts | WarMountsToKeep | 10 | 0–500 | "War horses to keep" (default 0 until round 4 — **[Anton 2026.09.28]**: 10): a plain number of `war_horse` mounts, bought up to it and sold above it; they count toward the horses per 100 footmen — replaces WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts (retired, logged once) **[Anton 2026.09.28, step 17]** |
 | War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per war horse (0 = none; not scaled) |
 | War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
 | Prisoners | RansomPrisoners | true | — | ransom prisoners in towns |
@@ -984,7 +1005,8 @@ float slider and the file agree on the same number). A value outside its range i
   **[research 2026.09.27 — step 5]** Format **"none"**, not the default "memory" (which throws on the
   first registration in MCM 5.12.3): MCM keeps and writes nothing, settings.json is the only store.
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
-  - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; the
+  - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; 51 since step 20's
+    four activation thresholds; the
     prisoner list is gone since step 12, the four upgrade-horse keys since step 17), `SettingsFile` (text in, text out),
     `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.

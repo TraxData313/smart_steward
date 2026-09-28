@@ -58,6 +58,7 @@ namespace SmartSteward.Core.Planning
                 MaxSell = sellLane.Capacity,
                 BuyLane = buyLane,
                 SellLane = sellLane,
+                StartsAtDenari = ctx.StartsAt(ManagedJob.PackAnimals),
             };
             Row.MaxBuy = Row.Market ?? 0;
             _buy = new WalkLine(Row, buyLane, book: Row.Book);
@@ -95,7 +96,8 @@ namespace SmartSteward.Core.Planning
         /// <summary>Surplus above the target, the most expensive first, while the market can pay.</summary>
         public void PlanSells()
         {
-            if (Row == null || _sell == null || _pinned != null || !_ctx.Settings.SellPackAnimalSurplus)
+            if (Row == null || _sell == null || _pinned != null || !_ctx.Settings.SellPackAnimalSurplus
+                || !_ctx.JobActive(ManagedJob.PackAnimals))
                 return;
             _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, Counted - Target, _ctx.AnimalSellCeiling);
         }
@@ -103,7 +105,7 @@ namespace SmartSteward.Core.Planning
         /// <summary>Up to the target, the cheapest eligible first, never below the animal floor.</summary>
         public void PlanBuys()
         {
-            if (Row == null || _buy == null || _pinned != null)
+            if (Row == null || _buy == null || _pinned != null || !_ctx.JobActive(ManagedJob.PackAnimals))
                 return;
             var walk = _ctx.Walk;
             _heldCount += PlanWalk.WalkLane(walk, _buy, Target - Counted, () => _ctx.AnimalBuyCeiling(walk));
