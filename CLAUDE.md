@@ -126,8 +126,13 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               troop type ([+] recruits, [-] dismisses), party rows of the live re-plan;
                               HerdTotals (step 18) = the footer's herd line: horses after the deal vs the most before the herd
                               slows the party (the game's rule, RESEARCH §23);
-                              TroopBulk (step 18) = the folded Troops line's [-] (DismissLowest) / [+] (RecruitBest) - ordinary
-                              row edits; troop rows ordered by tier (TroopPlanner.DismissOrder / RecruitOrder)
+                              TroopBulk (step 18, reworked step 20) = the two troop lines: Your troops [-] DismissLowest / [+]
+                              ReAddDropped (an undo stack), Recruits [+] RecruitBest / [-] TakeBackRecruits - ordinary row edits,
+                              each only on its own side of a row; troop rows ordered by tier (TroopPlanner.DismissOrder / RecruitOrder);
+                              JobThresholds (step 20) = the activation thresholds (a job acts only from its purse before the deal:
+                              PlanContext.JobActive, PlanRow.StartsAtDenari, PlanFacts.Waiting); PlanMetrics (step 20) = the
+                              spreadsheet's number columns per row (Denari, Influence, Party, Prisoners, Land kg, Sea kg), summed;
+                              Overburden + CarryTotals.ComputeSlowdown (step 20) = the game's overburden slowdown, land and sea (RESEARCH §25)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
@@ -136,7 +141,11 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
                               SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule); SectionSummary (step 18: the
-                              folded section's one line + SectionGroup), WindowState (step 18: window_state.json - the folds).
+                              folded section's one line + SectionGroup), WindowState (step 18: window_state.json - the folds);
+                              SuggestionSheet (step 20) = the round-4 spreadsheet the step-21 window binds: SheetGroup sections in the
+                              mockup's order with overview lines, SheetLines (tavern rows, Recruits, Your troops, Lords, Others),
+                              detail rows, PlanMetrics per line/section/Total, the header texts, the weight table with slowdown -
+                              SheetWords = its English words (the window fills them); PriceBookOrder (step 20) = cheapest first.
                               Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to

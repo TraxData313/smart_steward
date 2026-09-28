@@ -303,3 +303,24 @@ herd slows (herd … vs … men; …)`, the snapshot line `livestock N` and each
    Vlandian Footman –160`. Unfold: those rows carry the ⟲, and the food and horses followed. Do it: the same as dismissing
    and recruiting row by row. With too little gold for a T3, `[+]` takes a cheaper tier; greyed buttons say why on hover.
 9. **Speed.** With several sections folded, clicks should feel at least as quick as before (folded rows are not refreshed).
+
+## Step 20 — round 4, the Core under the old window (deployed 2026.09.28)
+
+Step 20 built the round-4 rules; the NEW spreadsheet window is step 21 — until then the old window shows them as it can.
+The log (`smart_steward.log`) has the rest.
+
+1. **Settings carried over.** Open `settings.json` (or the Instructions tab / Mod Options): the four "Manage … from (denari)"
+   thresholds, "Food buy / sell price multiplier" (2.0 / 0.5), "Horse buy / sell price multiplier" (your old 1.2 / 0.8), "Captured
+   lords" (Keep) and "Other prisoners" (Ransom), "Sell other goods". The log says once how your old multipliers and prisoner
+   switches were carried over (`… is now HorseBuyPriceMultiplier`, `… now PrisonerAction = "Ransom"`).
+2. **Jobs switch on with the purse.** With under 2,000 denari the steward proposes no food or pack animals; under 5,000 no
+   riding horses (nor sells noble horses); under 20,000 no war horses — the rows stay at 0 and you can still click them. Richer:
+   they act. War horses to keep is 10 now.
+3. **Food prices.** Grain at ~10 on average is bought up to ~20 (the Prices tab's food lines show `× 2`, horses `× 1.2`).
+4. **Prisoners.** Lords are kept unless you pick Ransom or Donate; the others are ransomed. Donate in your kingdom's town
+   (not your clan's): the dungeon fills most valuable first, the rest are ransomed; lords to donate that do not fit stay.
+5. **Other.** The "Armour & weapons" section is now "Other" and has an **Other goods** row (wool, salt, pottery, jewelry…) —
+   everything that is not food, a horse or gear, sold cheapest first. Lock a good in the inventory: it is never sold.
+6. **Prices tab.** Inside each group the cheapest item is on top.
+7. **Slowdown in the log.** Overload the party (buy goods past your capacity) and open the window: the log's footer line says
+   `(land speed -12%, -0.40)` — compare with the party speed tooltip's "Overburdened" line.
