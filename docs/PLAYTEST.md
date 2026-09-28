@@ -32,7 +32,7 @@ Deploy (game closed), load a save, enter a town. The town menu has **Party Stewa
 looks broken, press Escape — and send the log.
 
 1. **It opens and closes.** Click Party Steward: a dark window "Party Steward — <town>" with three tabs. Escape
-   closes it; so does **Not now**. Open it again — same plan. Nothing in the game moved.
+   closes it; so does **Close**. Open it again — same plan. Nothing in the game moved.
 2. **Suggestion tab — read it.** At the very top: `Gold 12,400 » 10,930 (–1,470)`, green if the deal earns, red if
    it costs. Sections in this order: Tavern, Food, Mounts, Armour & weapons, Prisoners. Columns line up: Mine | [–]
    change [+] | Result | Price | Market | Item | Type. Buys green, sells red, untouched grey.
@@ -78,7 +78,7 @@ question is on; the autonomous steward is off. Mod Options (or settings.json) ch
 5. **Leave question.** Untick "Open on entering a town", enter a town with suggestions and click Leave: *"Your steward
    has suggestions you haven't looked at."* **Review** opens the window (Leave then leaves without asking); **Leave
    anyway** leaves at once (Escape does the same). No incident should pop while the question is up.
-6. **No question when looked at, or nothing to say.** Open Party Steward from the menu (even just Not now), then
+6. **No question when looked at, or nothing to say.** Open Party Steward from the menu (even just Close), then
    Leave: no question. A town where the steward has nothing to suggest: no question.
 7. **Ships (War Sails).** In a port town go to the port and **Set sail** with unreviewed suggestions: the same
    question (Review opens the window right there). At a coastal village, **Set Sail** asks too.

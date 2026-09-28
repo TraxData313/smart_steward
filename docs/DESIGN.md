@@ -147,7 +147,8 @@ Buttons on Change:
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
 Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
-the weight line · buttons **Do it** and **Not now**.
+the weight line · buttons **Do it** and **Close** (Escape = Close; the button read "Not now" until **[Anton 2026.09.28,
+playtest round 3]**: "it is just Close").
 **The weight line** **[Anton 2026.09.28, playtest round 3 — "like the food line"]**, on its own footer line:
 `Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000` — the load now, the change and the load after, then
 the carrying capacity AFTER the deal: pack animals and mounts bought or sold and troops hired change it (the ransomed
@@ -624,7 +625,7 @@ expected unit prices.
     open now logs its door.)
   - The warning's buttons: **Review** opens the window (also from War Sails' port); **Leave anyway** carries out the
     leave the player clicked, the vanilla way (the game's leaving incidents roll then, not on the click that asked).
-    Escape on the question = Leave anyway — the player had clicked Leave. Opening the window at all (even Not now)
+    Escape on the question = Leave anyway — the player had clicked Leave. Opening the window at all (even just Close)
     counts as reviewed for the visit.
   - **The window ignores AutonomousMinGold**: with the autonomous steward on, the menu entry still opens the normal
     window with the normal floors — the player's own hand. Only the steward's own runs answer to the autonomous floor.

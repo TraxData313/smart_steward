@@ -12,7 +12,7 @@ namespace SmartSteward.UI
 {
     /// <summary>
     /// The Party Steward window's root view model (DESIGN §1): the title, the three tabs (Suggestion, Prices,
-    /// Instructions), Do it and Not now. Every command is wrapped (<see cref="Guard"/>) — a bug closes the window
+    /// Instructions), Do it and Close. Every command is wrapped (<see cref="Guard"/>) — a bug closes the window
     /// with a log line instead of reaching Gauntlet, which rethrows it into the game (RESEARCH §14). Getters only
     /// return fields.
     /// <para>Re-planning [decided: Claude, 2026.09.27 — step 7]: a settings change (Prices or Instructions tab, or
@@ -42,7 +42,7 @@ namespace SmartSteward.UI
             SuggestionTabText = UiText.S("ss_ui_tab_suggestion", "Suggestion");
             PricesTabText = UiText.S("ss_ui_tab_prices", "Prices");
             InstructionsTabText = UiText.S("ss_ui_tab_instructions", "Instructions");
-            CloseText = UiText.S("ss_ui_not_now", "Not now");
+            CloseText = UiText.S("ss_ui_close", "Close"); // was "Not now" until round 3 (Anton 2026.09.28)
             DoItText = UiText.S("ss_ui_do_it", "Do it");
             DoItHint = new HintVM();
             Suggestion = new SuggestionTabVM(RefreshDoIt);
@@ -177,7 +177,7 @@ namespace SmartSteward.UI
 
         public void ExecuteSelectInstructions() => Guard("tab", () => SelectTab(2));
 
-        /// <summary>"Not now" and Escape: close, nothing done.</summary>
+        /// <summary>"Close" and Escape: close, nothing done.</summary>
         public void ExecuteClose() => Guard("close", StewardWindow.Close);
 
         /// <summary>Do it: the executor runs the plan's transactions (step 6), the result shows, and the window plans

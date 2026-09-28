@@ -163,6 +163,7 @@
     <string id="ss_ui_block_other_row" text="What is left is already planned for another row." />
     <string id="ss_ui_block_price_limit" text="The next one costs more than its max buy price - a town's prices climb as you buy." />
     <string id="ss_ui_block_sell_only" text="Only ever sold, ransomed or donated - never bought." />
+    <string id="ss_ui_close" text="Close" />
     <string id="ss_ui_col_buy" text="Buy" />
     <string id="ss_ui_col_change" text="Change" />
     <string id="ss_ui_col_item" text="Item" />
@@ -214,7 +215,6 @@
     <string id="ss_ui_mine_kept" text="(+{N} kept)" />
     <string id="ss_ui_mine_locked" text="(+{N} locked)" />
     <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
-    <string id="ss_ui_not_now" text="Not now" />
     <string id="ss_ui_nothing_to_do" text="Nothing to do." />
     <string id="ss_ui_open_failed" text="Smart Steward: the window could not open - see smart_steward.log." />
     <string id="ss_ui_price_influence" text="{INF} influence" />
