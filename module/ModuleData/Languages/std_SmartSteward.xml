@@ -180,6 +180,8 @@
     <string id="ss_ui_block_none_eligible" text="Nothing on offer the steward may buy: none in the market, unticked in the Prices tab, or dearer than its max buy price." />
     <string id="ss_ui_block_none_to_dismiss" text="None of these in your party to dismiss." />
     <string id="ss_ui_block_not_on_offer" text="No notable here offers you this troop." />
+    <string id="ss_ui_block_nothing_dropped" text="Nobody is dismissed, so nobody comes back." />
+    <string id="ss_ui_block_nothing_recruited" text="No recruit is queued to give back." />
     <string id="ss_ui_block_nothing_to_sell" text="Nothing to sell: none held, all locked, or unticked for selling in the Prices tab." />
     <string id="ss_ui_block_other_row" text="What is left is already planned for another row." />
     <string id="ss_ui_block_price_limit" text="The next one costs more than its max buy price - a town's prices climb as you buy." />

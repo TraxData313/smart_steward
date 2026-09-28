@@ -74,6 +74,12 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>A troop row's [−]: every man of the type is already dismissed in the plan (step 16).</summary>
         AllDismissed,
+
+        /// <summary>The Your troops line's [+]: nobody is dropped, so nobody comes back (step 20).</summary>
+        NothingDropped,
+
+        /// <summary>The Recruits line's [−]: no recruit is queued to give back (step 20).</summary>
+        NothingRecruited,
     }
 
     /// <summary>What one click did.</summary>
@@ -179,6 +185,7 @@ namespace SmartSteward.Core.Planning
                 return;
             foreach (var row in Rows)
                 row.IsTouched = false;
+            ClearTroopLines();
             Replan();
         }
 

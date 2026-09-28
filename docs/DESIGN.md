@@ -715,16 +715,37 @@ too); castles have no market and no steward. One row per troop type — never ev
   recruits the highest tier on offer first (shift/ctrl steps as usual), and the line says what it does"]** (Core
   `StewardPlan.DismissLowest` / `RecruitBest`, `DismissLowestBlock` / `RecruitBestBlock`): click 1 man, shift 5, ctrl every
   man.
-  - `[-]` takes men out of the party after the deal, lowest tier first: the party's own troops (Your troops) from the lowest
-    tier up, then the men of the types on offer by the same order; a type with recruits queued gives those back first (they
-    are the men of that type the deal would bring). Greyed when nobody is left who may go.
+  - `[-]` takes men out of the party after the deal, lowest tier first: ~~the party's own troops (Your troops) from the lowest
+    tier up, then the men of the types on offer by the same order; a type with recruits queued gives those back first~~ —
+    **[step 20]** every held type by tier alone, never a row with recruits queued (below). Greyed when nobody is left who may go.
   - `[+]` recruits the highest tier on offer first, spilling to the next type when one runs out; a type the purse cannot pay
-    is passed for the next (a lower tier costs less); a type with dismissals queued takes those back first. Greyed with the
-    reason (nobody offers a troop here, every volunteer already in the plan, not enough gold).
+    is passed for the next (a lower tier costs less); ~~a type with dismissals queued takes those back first~~ (**[step 20]**
+    never a row with dismissals queued). Greyed with the reason (nobody offers a troop here, every volunteer already in the
+    plan, not enough gold).
   - They are ORDINARY row edits underneath (each moves troop rows with `SetChange`): the rows are touched (⟲ shows when
     unfolded), the food and horses re-plan live, Do it runs the same Dismiss and Recruit transactions — no new executor path.
     The line then says what the section does: `dismissing 1 T1 Imperial Peasant, 1 T1 Vlandian Recruit · recruiting 2 T3
     Vlandian Footman –160`.
+- **The two aggregate lines** **[Anton 2026.09.28, playtest round 4 — "when I press - there drop the lowest tier unit, if I
+  press + add them back the same order I dropped them, in some brackets show me what im dropping"; mockup choice 8, approved:
+  "Recruits only hire (best tier first), Your troops only dismiss (lowest tier first, wounded first; [+] re-adds in reverse) —
+  a type you have that is also on offer shows in both"]** (Core `StewardPlan.YourTroopRows` / `RecruitRows`, step 20 — they
+  supersede the folded Troops line's pair above; the window of step 21 binds them):
+  - **Your troops** — every type the party holds and may dismiss, on offer here or not, lowest tier first
+    (`TroopPlanner.DismissOrder`). `[-]` `DismissLowest` drops men lowest tier first (the executor takes the wounded first
+    within a type); `[+]` `ReAddDropped` brings them back in the REVERSE order they were dropped — an undo stack on the line:
+    a shift-click is undone part by part, an entry gives back at most what its row still drops (the player may have moved it
+    by hand since), and once the record is used up the rows still dropping men give them back highest tier first. The line
+    says what it drops: `dropping 2 T0 Empire Peasant, 1 T1 Imperial Recruit` (past three types a count).
+  - **Recruits** — every type on offer here, highest tier first (`TroopPlanner.RecruitOrder`). `[+]` `RecruitBest` hires the
+    highest tier on offer first (a type the purse cannot pay passed for the next); `[-]` `TakeBackRecruits` gives recruits
+    back newest first, then lowest tier first.
+  - **Each line moves only its own side of a row** **[decided: Claude, 2026.09.28 — step 20]**: Your troops never touches a
+    row with recruits queued, Recruits never one with dismissals queued (recruiting and dismissing one type in one deal is
+    pointless) — step 18's "a type with recruits queued gives those back first" is gone with the single folded line.
+  - Blocks: `DismissLowestBlock` (NoneToDismiss / AllDismissed), `ReAddDroppedBlock` (NothingDropped), `RecruitBestBlock`
+    (NotOnOfferHere / AllOnOffer / the first row's block), `TakeBackRecruitsBlock` (NothingRecruited). Reset all forgets both
+    records. They stay ORDINARY row edits (`SetChange`): touched, the live re-plan, the same Dismiss / Recruit transactions.
 - **Names are clickable**: a troop's name opens its unit page in the Encyclopedia (like the mercenaries — unit pages are never
   hidden).
 - `ShowTroops` (default **on**, the Tavern group — "Show the troops") shows the section.

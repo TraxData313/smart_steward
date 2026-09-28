@@ -112,6 +112,10 @@ namespace SmartSteward.UI
                     return UiText.S("ss_ui_block_none_to_dismiss", "None of these in your party to dismiss.");
                 case EditBlock.AllDismissed:
                     return UiText.S("ss_ui_block_all_dismissed", "All of them are already dismissed in the plan.");
+                case EditBlock.NothingDropped:
+                    return UiText.S("ss_ui_block_nothing_dropped", "Nobody is dismissed, so nobody comes back.");
+                case EditBlock.NothingRecruited:
+                    return UiText.S("ss_ui_block_nothing_recruited", "No recruit is queued to give back.");
                 default: return block.ToString();
             }
         }

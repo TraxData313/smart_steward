@@ -109,15 +109,23 @@ public class TroopTierTests
     }
 
     [Fact]
-    public void Minus_gives_back_queued_recruits_of_a_type_before_its_held_men_and_plus_takes_back_dismissals()
+    public void Each_line_moves_only_its_own_side_of_a_type_that_is_in_both()
     {
+        // Step 20 (mockup choice 8): Recruits only hire, Your troops only dismiss — a type held AND on offer is in both lines.
         var plan = new Scenario().Troop("footman", inParty: 2, onOffer: 4, price: 80, tier: 3).Plan();
+        Assert.Equal(new[] { "troops:footman" }, plan.RecruitRows.Select(r => r.Id));
+        Assert.Equal(new[] { "troops:footman" }, plan.YourTroopRows.Select(r => r.Id));
         plan.RecruitBest(EditSize.Five);
         Assert.Equal(4, plan.Row("troops:footman").Change);
-        plan.DismissLowest(EditSize.Five);                         // the 4 queued recruits go back, then 1 of the 2 held
-        Assert.Equal(-1, plan.Row("troops:footman").Change);
-        plan.RecruitBest(EditSize.One);                            // that dismissal is taken back first
+        Assert.Empty(plan.DismissLowest(EditSize.Five));           // its recruits belong to the Recruits line
+        Assert.Equal(EditBlock.NoneToDismiss, plan.DismissLowestBlock);
+        plan.TakeBackRecruits(EditSize.All);
         Assert.Equal(0, plan.Row("troops:footman").Change);
+        plan.DismissLowest(EditSize.Five);                         // clamped to the 2 held
+        Assert.Equal(-2, plan.Row("troops:footman").Change);
+        Assert.Empty(plan.RecruitBest(EditSize.One));              // its dismissals belong to the Your troops line
+        plan.ReAddDropped(EditSize.One);
+        Assert.Equal(-1, plan.Row("troops:footman").Change);
     }
 
     [Fact]

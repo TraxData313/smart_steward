@@ -72,7 +72,7 @@ namespace SmartSteward.Core.Planning
             return rows;
         }
 
-        /// <summary>The folded Troops line's [+] order (step 18): the types on offer, highest tier first, ties by name, then id.</summary>
+        /// <summary>The Recruits line's rows and its [+] order (step 18): the types on offer, highest tier first, ties by name, then id.</summary>
         internal static List<PlanRow> RecruitOrder(IEnumerable<PlanRow> rows) =>
             rows.Where(r => r.Type == RowType.Troop && r.Troop != null && r.MaxBuy > 0)
                 .OrderByDescending(r => r.Troop!.Tier)
@@ -80,12 +80,12 @@ namespace SmartSteward.Core.Planning
                 .ThenBy(r => r.Id, StringComparer.Ordinal)
                 .ToList();
 
-        /// <summary>The folded Troops line's [−] order (step 18 — Anton: "dismisses from the lowest tier up"): the party's own
-        /// troops (not on offer here) lowest tier first, then the types on offer by the same order; ties by name, then id.</summary>
+        /// <summary>The Your troops line's rows and its [−] order (step 18 — Anton: "dismisses from the lowest tier up"; step 20:
+        /// the line lists every type the party holds and may dismiss, on offer here or not — mockup choice 8): lowest tier first,
+        /// ties by name, then id.</summary>
         internal static List<PlanRow> DismissOrder(IEnumerable<PlanRow> rows) =>
-            rows.Where(r => r.Type == RowType.Troop && r.Troop != null)
-                .OrderBy(r => r.Troop!.OnOffer > 0 ? 1 : 0)
-                .ThenBy(r => r.Troop!.Tier)
+            rows.Where(r => r.Type == RowType.Troop && r.Troop != null && r.MaxSell > 0)
+                .OrderBy(r => r.Troop!.Tier)
                 .ThenBy(r => r.Name, StringComparer.Ordinal)
                 .ThenBy(r => r.Id, StringComparer.Ordinal)
                 .ToList();
