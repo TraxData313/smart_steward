@@ -169,12 +169,15 @@ namespace SmartSteward.Core.Execution
                 case TransactionKind.Sell:
                     money = "+" + Money(o.Gold) + " gold";
                     break;
+                case TransactionKind.Dismiss:
+                    money = "free";
+                    break;
                 default:
                     money = "-" + Money(o.Gold) + " gold";
                     break;
             }
             string line = what + ": " + done + ", " + money;
-            if (t.Kind != TransactionKind.Donate && o.Done > 0)
+            if (t.Kind != TransactionKind.Donate && t.Kind != TransactionKind.Dismiss && o.Done > 0)
             {
                 int drift = o.Drift;
                 line += drift == 0 ? " (as planned)" : " (planned " + Money(o.Gold - drift) + ", drift " + Signed(drift) + ")";

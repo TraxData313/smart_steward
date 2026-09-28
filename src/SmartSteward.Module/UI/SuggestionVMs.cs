@@ -247,7 +247,7 @@ namespace SmartSteward.UI
             _onPlanChanged();
         }
 
-        /// <summary>A wanderer's or the mercenary troop's Encyclopedia page (DESIGN §2.7).</summary>
+        /// <summary>A wanderer's, the mercenary troop's or a troop row's Encyclopedia page (DESIGN §2.7, §2.8).</summary>
         internal void OpenLink(PlanRow row)
         {
             string? link = null;
@@ -452,6 +452,12 @@ namespace SmartSteward.UI
                     DetailText = UiText.S2("ss_ui_sec_mounts_detail", "{FOOTMEN} men on foot  ·  riding target {TARGET}",
                         "FOOTMEN", UiFormat.Money(facts.Footmen), "TARGET", UiFormat.Money(facts.RidingTarget));
                     break;
+                case PlanSectionKind.Recruits:
+                    DetailText = UiText.S("ss_ui_sec_recruits_detail", "[+] recruits  ·  [–] dismisses yours");
+                    break;
+                case PlanSectionKind.Troops:
+                    DetailText = UiText.S("ss_ui_sec_troops_detail", "[–] dismisses, the wounded first");
+                    break;
                 default:
                     DetailText = "";
                     break;
@@ -501,7 +507,7 @@ namespace SmartSteward.UI
             _tab = tab;
             NameText = UiLabels.RowName(row);
             TypeText = UiLabels.Type(row.Type);
-            IsLink = row.Type == RowType.Tavern;
+            IsLink = row.Type == RowType.Tavern || row.Type == RowType.Troop; // troop names open their unit page (step 16)
             IsPlainName = !IsLink;
             IncreaseHint = new HintVM();
             DecreaseHint = new HintVM();
@@ -582,6 +588,13 @@ namespace SmartSteward.UI
                 parts.Add(t.Kind == TavernRowKind.Mercenaries
                     ? UiText.S1("ss_ui_detail_wage_each", "{WAGE} a day each", "WAGE", UiFormat.Money(t.DailyWage))
                     : UiText.S1("ss_ui_detail_wage", "{WAGE} a day", "WAGE", UiFormat.Money(t.DailyWage)));
+            }
+            var troop = _row.Troop;
+            if (troop != null)
+            {
+                parts.Add(UiText.S1("ss_ui_detail_wage_each", "{WAGE} a day each", "WAGE", UiFormat.Money(troop.DailyWage)));
+                if (troop.Wounded > 0)
+                    parts.Add(UiText.S1("ss_ui_detail_wounded", "{N} wounded", "N", UiFormat.Money(troop.Wounded)));
             }
             return string.Join("  ·  ", parts);
         }

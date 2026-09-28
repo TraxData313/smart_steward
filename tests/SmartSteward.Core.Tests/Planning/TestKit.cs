@@ -151,6 +151,28 @@ internal sealed class Scenario
         return this;
     }
 
+    /// <summary>A troop type of the troops section (step 16): <paramref name="inParty"/> men in the party (dismissable unless
+    /// said), <paramref name="onOffer"/> volunteers the notables offer the player at <paramref name="price"/> a man.</summary>
+    public Scenario Troop(string id, int inParty = 0, int onOffer = 0, int price = 20, bool mounted = false, int wounded = 0,
+        bool canDismiss = true, int wage = 2, string? upgrade = null, double seaWeight = 0)
+    {
+        Snap.Troops.Add(new TroopStack
+        {
+            TroopId = id,
+            Name = id,
+            InParty = inParty,
+            Wounded = wounded,
+            CanDismiss = canDismiss && inParty > 0,
+            OnOffer = onOffer,
+            PricePerMan = price,
+            WagePerMan = wage,
+            IsMounted = mounted,
+            UpgradeCategories = upgrade == null ? new List<string>() : new List<string> { upgrade },
+            SeaWeightPerMan = seaWeight,
+        });
+        return this;
+    }
+
     /// <summary>A town where every job has something to do.</summary>
     public static Scenario BusyTown()
     {

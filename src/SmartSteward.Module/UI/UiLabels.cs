@@ -19,6 +19,7 @@ namespace SmartSteward.UI
             switch (type)
             {
                 case RowType.Tavern: return UiText.S("ss_ui_type_tavern", "Tavern");
+                case RowType.Troop: return UiText.S("ss_ui_type_troop", "Troop");
                 case RowType.Food: return UiText.S("ss_ui_type_food", "Food");
                 case RowType.Pack: return UiText.S("ss_ui_type_pack", "Pack");
                 case RowType.Mount: return UiText.S("ss_ui_type_mount", "Mount");
@@ -34,6 +35,8 @@ namespace SmartSteward.UI
             switch (kind)
             {
                 case PlanSectionKind.Tavern: return UiText.S("ss_ui_sec_tavern", "Tavern");
+                case PlanSectionKind.Recruits: return UiText.S("ss_ui_sec_recruits", "Recruits on offer");
+                case PlanSectionKind.Troops: return UiText.S("ss_ui_sec_troops", "Your troops");
                 case PlanSectionKind.Food: return UiText.S("ss_ui_sec_food", "Food");
                 case PlanSectionKind.Mounts: return UiText.S("ss_ui_sec_mounts", "Mounts");
                 case PlanSectionKind.ArmourAndWeapons: return UiText.S("ss_ui_sec_loot", "Armour & weapons");
@@ -121,6 +124,12 @@ namespace SmartSteward.UI
                 case EditBlock.CompanionLimit:
                     return UiText.S("ss_ui_block_companions", "Your clan's companion limit is reached.");
                 case EditBlock.DungeonFull: return UiText.S("ss_ui_block_dungeon_full", "The dungeon has no more room.");
+                case EditBlock.NotOnOfferHere:
+                    return UiText.S("ss_ui_block_not_on_offer", "No notable here offers you this troop.");
+                case EditBlock.NoneToDismiss:
+                    return UiText.S("ss_ui_block_none_to_dismiss", "None of these in your party to dismiss.");
+                case EditBlock.AllDismissed:
+                    return UiText.S("ss_ui_block_all_dismissed", "All of them are already dismissed in the plan.");
                 default: return block.ToString();
             }
         }

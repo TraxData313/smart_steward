@@ -160,5 +160,8 @@ namespace SmartSteward.Core.Settings
         public bool ShowTavern { get; set; } = true;
         public bool ShowWanderers { get; set; } = true;
         public bool ShowMercenaries { get; set; } = true;
+
+        /// <summary>The troops section (DESIGN §2.8, step 16): the recruits on offer, then the party's own troops.</summary>
+        public bool ShowTroops { get; set; } = true;
     }
 }

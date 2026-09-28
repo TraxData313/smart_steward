@@ -284,6 +284,10 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.ShowMercenaries), Tavern, "Show mercenaries",
                 "List the mercenary band in the town's tavern.",
                 s => s.ShowMercenaries, (s, v) => s.ShowMercenaries = v),
+            new BoolSetting(nameof(StewardSettings.ShowTroops), Tavern, "Show the troops",
+                "Show the troops section in towns and villages: the recruits the notables offer you, then your own troops, "
+                + "to recruit or dismiss with a click. Nothing is ever recruited or dismissed unless you click.",
+                s => s.ShowTroops, (s, v) => s.ShowTroops = v),
         };
     }
 }

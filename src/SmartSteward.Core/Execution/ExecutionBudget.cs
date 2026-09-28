@@ -9,11 +9,12 @@ namespace SmartSteward.Core.Execution
     {
         None,
 
-        /// <summary>A sale: the party no longer holds the units. A prisoner: no longer in the party's prison.</summary>
+        /// <summary>A sale: the party no longer holds the units. A prisoner: no longer in the party's prison. A dismissal:
+        /// fewer men of the type in the party.</summary>
         NotHeld,
 
         /// <summary>A purchase: the market no longer has the units. A hire: no longer on offer (the wanderer left,
-        /// the mercenary band changed or is gone).</summary>
+        /// the mercenary band changed or is gone). A recruit: fewer volunteers open to the player.</summary>
         NotOnOffer,
 
         /// <summary>Locked in the inventory / party screen since the plan was made — never ransomed; never sold when the
@@ -154,6 +155,29 @@ namespace SmartSteward.Core.Execution
             {
                 n = System.Math.Max(0, gold) / pricePerMan;
                 reason = SkipReason.NotEnoughGold;
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// How many volunteers to recruit now (step 16): what the plan wants, capped by the slots the notables still open to
+        /// the player and by the purse — vanilla's recruit screen refuses a cart that costs more than the gold held
+        /// (<c>RecruitmentVM.OnDone</c>: total ≤ gold, not strictly less) — never by the party size limit (vanilla only asks
+        /// "Over Limit?" and goes on); <paramref name="reason"/> names the last cap that bit.
+        /// </summary>
+        public static int RecruitCount(int wanted, int slotsOpen, int gold, int pricePerMan, out SkipReason reason) =>
+            MercenaryCount(wanted, slotsOpen, gold, pricePerMan, out reason);
+
+        /// <summary>How many men to dismiss now (step 16): what the plan wants, capped by the men of the type the party still
+        /// holds (<see cref="SkipReason.NotHeld"/> when fewer). Free — no purse check.</summary>
+        public static int DismissCount(int wanted, int held, out SkipReason reason)
+        {
+            reason = SkipReason.None;
+            int n = System.Math.Max(0, wanted);
+            if (System.Math.Max(0, held) < n)
+            {
+                n = System.Math.Max(0, held);
+                reason = SkipReason.NotHeld;
             }
             return n;
         }

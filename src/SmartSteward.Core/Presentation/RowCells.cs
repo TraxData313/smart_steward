@@ -30,7 +30,8 @@ namespace SmartSteward.Core.Presentation
 
         public string Result { get; private set; } = "";
 
-        /// <summary><c>3 × 180–240 = –630</c>; a tavern row at 0 shows its price to hire; empty when nothing moves.</summary>
+        /// <summary><c>3 × 180–240 = –630</c>; a tavern row (or a troop row on offer) at 0 shows its price to hire; empty when
+        /// nothing moves, and for a dismissal (free).</summary>
         public string Price { get; private set; } = "";
 
         /// <summary>Prisoners donated: the influence they bring, <c>+2.4</c>; null = none.</summary>
@@ -80,6 +81,14 @@ namespace SmartSteward.Core.Presentation
                         cells.Price = row.Change > 0
                             ? UiFormat.PriceCell(row.Change, t.UnitPrice, t.UnitPrice, row.GoldDelta)
                             : UiFormat.Money(t.UnitPrice);
+                    break;
+                case RowType.Troop:
+                    // Step 16: recruits cost their price per man (a row on offer at 0 shows it); a dismissal is free — no price.
+                    var troop = row.Troop;
+                    if (troop != null)
+                        cells.Price = row.Change > 0
+                            ? UiFormat.PriceCell(row.Change, troop.UnitPrice, troop.UnitPrice, row.GoldDelta)
+                            : row.Change == 0 && troop.OnOffer > 0 ? UiFormat.Money(troop.UnitPrice) : "";
                     break;
                 default:
                     cells.Price = UiFormat.PriceCell(Math.Abs(row.Change), row.UnitPriceMin, row.UnitPriceMax, row.GoldDelta);

@@ -67,9 +67,9 @@ namespace SmartSteward.Core.Planning
                 if (!row.IsTouched)
                     continue;
                 changes[row.Id] = row.Change;
-                if (row.Type == RowType.Tavern)
+                if (PartyAfter.IsHireRow(row)) // tavern hires and the troops section's recruits (step 16)
                 {
-                    hires += Math.Max(0, row.Change) * (row.Tavern?.UnitPrice ?? 0);
+                    hires += PartyAfter.HireCost(row);
                     continue;
                 }
                 int sold = 0, bought = 0;

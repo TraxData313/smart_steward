@@ -177,7 +177,9 @@ namespace SmartSteward.Core.Execution
                     case PlanSectionKind.Mounts: return StewardJob.Mounts;
                     case PlanSectionKind.ArmourAndWeapons: return StewardJob.ArmourAndWeapons;
                     case PlanSectionKind.Prisoners: return StewardJob.Prisoners;
-                    case PlanSectionKind.Tavern: return null;
+                    case PlanSectionKind.Tavern:
+                    case PlanSectionKind.Recruits:
+                    case PlanSectionKind.Troops: return null; // the player's hand only — never in an autonomous plan
                 }
             }
             switch (t.Kind)

@@ -235,6 +235,27 @@ namespace SmartSteward.Core.Planning
                 o.Realized = hired;
             }
 
+            // 5. The troops section (step 16) — recruits after the hires (paid last, the table's order), clamped to what the
+            //    notables offer the player; dismissals clamped to the men the party screen lets go, and free. The party
+            //    size limit never blocks either.
+            foreach (var o in Of(RowType.Troop))
+            {
+                var info = o.Row.Troop!;
+                int done = o.Requested;
+                if (done > o.Row.MaxBuy)
+                {
+                    done = Math.Max(0, o.Row.MaxBuy);
+                    o.Short = o.Row.MaxBuy <= 0 ? EditBlock.NotOnOfferHere : EditBlock.AllOnOffer;
+                }
+                else if (done < -o.Row.MaxSell)
+                {
+                    done = -Math.Max(0, o.Row.MaxSell);
+                    o.Short = o.Row.MaxSell <= 0 ? EditBlock.NoneToDismiss : EditBlock.AllDismissed;
+                }
+                walk.Gold -= Math.Max(0, done) * info.UnitPrice;
+                o.Realized = done;
+            }
+
             return new WalkOutcome(all, log, walk.Gold);
         }
 

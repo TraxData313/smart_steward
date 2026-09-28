@@ -73,6 +73,13 @@ namespace SmartSteward.Core.Planning
                     if (row.Tavern?.Kind == TavernRowKind.Mercenaries)
                         seaWeightChange += row.Change * Math.Max(0, row.Tavern.SeaWeightPerMan);
                 }
+                else if (row.Type == RowType.Troop && row.Troop != null && row.Change != 0)
+                {
+                    // Step 16: recruits join healthy; dismissals take the wounded first, so the healthy members — the ones
+                    // that carry — drop only once no wounded are left. At sea every mounted man's horse weighs, wounded too.
+                    hired += row.Change > 0 ? row.Change : -row.Troop.HealthyAmong(-row.Change);
+                    seaWeightChange += row.Change * Math.Max(0, row.Troop.SeaWeightPerMan);
+                }
             }
 
             // The wounded leave first (the executor's rule), so healthy prisoners drop only once no wounded are left.

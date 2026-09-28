@@ -9,6 +9,14 @@ namespace SmartSteward.Core.Planning
     public enum PlanSectionKind
     {
         Tavern,
+
+        /// <summary>The troops section, top half (step 16, DESIGN §2.8): the troop types on offer here — [+] recruits them,
+        /// [−] dismisses the party's own men of the type.</summary>
+        Recruits,
+
+        /// <summary>The troops section, bottom half: the party's other regular troops — [−] dismisses them.</summary>
+        Troops,
+
         Food,
         Mounts,
         ArmourAndWeapons,
@@ -19,6 +27,10 @@ namespace SmartSteward.Core.Planning
     public enum RowType
     {
         Tavern,
+
+        /// <summary>A troop type of the troops section (step 16): + recruits, − dismisses.</summary>
+        Troop,
+
         Food,
         Pack,
         Mount,
@@ -143,6 +155,33 @@ namespace SmartSteward.Core.Planning
         public IReadOnlyList<string> UpgradeCategories { get; internal set; } = Array.Empty<string>();
     }
 
+    /// <summary>Troop row facts (step 16, DESIGN §2.8): a positive change recruits volunteers, a negative one dismisses men.</summary>
+    public sealed class TroopRowInfo
+    {
+        /// <summary>The recruitment cost per man (0 when the type is not on offer here).</summary>
+        public int UnitPrice { get; internal set; }
+
+        public int DailyWage { get; internal set; }
+
+        /// <summary>Volunteers on offer to the player here (the row's Market); 0 = one of the party's own troops only.</summary>
+        public int OnOffer { get; internal set; }
+
+        /// <summary>The party's wounded men of the type — a dismissal takes them first (vanilla's party screen, RESEARCH §21).</summary>
+        public int Wounded { get; internal set; }
+
+        /// <summary>The game's "man with a horse" (<c>CharacterObject.IsMounted</c>) — else each man is a footman.</summary>
+        public bool IsMounted { get; internal set; }
+
+        /// <summary>The kinds of upgrade horse the type's upgrades need (recruits put them in play, never ready).</summary>
+        public IReadOnlyList<string> UpgradeCategories { get; internal set; } = Array.Empty<string>();
+
+        /// <summary>What one man adds to the load at sea (his horse, when the type rides — War Sails).</summary>
+        public double SeaWeightPerMan { get; internal set; }
+
+        /// <summary>Healthy men among <paramref name="dismissed"/> of them: the wounded go first.</summary>
+        public int HealthyAmong(int dismissed) => Math.Max(0, Math.Max(0, dismissed) - Math.Max(0, Wounded));
+    }
+
     /// <summary>
     /// One row of the Suggestion table (DESIGN §1.1). Change is signed: + buy / hire, − sell / ransom /
     /// donate. Names come from the snapshot; role and group rows carry no text (the window labels them
@@ -254,6 +293,9 @@ namespace SmartSteward.Core.Planning
         public PrisonerRowInfo? Prisoner { get; internal set; }
         public TavernRowInfo? Tavern { get; internal set; }
 
+        /// <summary>Troop rows (step 16): the recruit price, the offer, the wounded, the horse and upgrade facts.</summary>
+        public TroopRowInfo? Troop { get; internal set; }
+
         /// <summary>What a [+] may buy — the walk data for re-pricing (null for rows that never buy items).</summary>
         public TradeLane? BuyLane { get; internal set; }
 
@@ -314,6 +356,7 @@ namespace SmartSteward.Core.Planning
             PriceBook = planned.PriceBook;
             Prisoner = planned.Prisoner;
             Tavern = planned.Tavern;
+            Troop = planned.Troop;
             BuyLane = planned.BuyLane;
             SellLane = planned.SellLane;
             Breakdown = planned.Breakdown;

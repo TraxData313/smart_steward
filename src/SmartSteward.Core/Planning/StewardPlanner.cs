@@ -22,6 +22,7 @@ namespace SmartSteward.Core.Planning
     /// <item>BUY in priority order: food (under MinGoldAfterDeal), pack animals, riding mounts, upgrade horses
     ///   (under both floors). No kind is both sold and bought in one visit.</item>
     /// <item>Tavern — rows at 0, outside the chain; never in an autonomous plan (DESIGN §6).</item>
+    /// <item>Troops (step 16) — recruit and dismiss rows at 0, outside the chain like the tavern; never autonomous.</item>
     /// </list>
     /// <see cref="PlanMode.Autonomous"/> raises the floors to AutonomousMinGold (<see cref="MoneyFloors"/>).
     /// <para>The live re-plan (step 15, DESIGN §1.1): <see cref="StewardPlan"/> plans again with the rows the player's hand
@@ -56,7 +57,9 @@ namespace SmartSteward.Core.Planning
             //    even offered to the autonomous steward, which never hires (DESIGN §6). Its hires are the party after the
             //    deal the steward feeds and mounts; they are paid after the trades, but the steward's buys leave their gold.
             var tavernRows = mode == PlanMode.Autonomous ? new List<PlanRow>() : TavernPlanner.Plan(ctx);
-            ctx.Party = PartyAfter.Of(snapshot, PartyAfter.MovesOf(tavernRows));
+            //    The troops (step 16) the same way: recruits and dismissals only by the player's hand, never autonomous.
+            var troopRows = mode == PlanMode.Autonomous ? new List<PlanRow>() : TroopPlanner.Plan(ctx);
+            ctx.Party = PartyAfter.Of(snapshot, PartyAfter.MovesOf(tavernRows.Concat(troopRows)));
 
             // 1. Prisoners first: their gold funds the buys, and the food target counts only those who stay.
             var prisonerRows = PrisonerPlanner.Plan(ctx, out int prisonersAfter);
@@ -99,6 +102,7 @@ namespace SmartSteward.Core.Planning
 
             var rows = new List<PlanRow>();
             rows.AddRange(tavernRows);
+            rows.AddRange(troopRows);
             rows.AddRange(food.Rows);
             if (pack.Row != null) rows.Add(pack.Row);
             rows.AddRange(mounts.Rows);

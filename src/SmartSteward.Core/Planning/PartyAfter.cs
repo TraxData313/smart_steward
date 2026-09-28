@@ -6,8 +6,8 @@ namespace SmartSteward.Core.Planning
 {
     /// <summary>
     /// Men who join (+) or leave (−) the party with the deal — what one party-changing row does to the party (DESIGN §1.1,
-    /// the live re-plan). Tavern rows now; step 16's recruit and dismiss rows yield the same moves
-    /// (<see cref="PartyAfter.MovesOf"/>), so the steward's food and horses follow them without any new rule.
+    /// the live re-plan): tavern hires, and step 16's recruit (+) and dismiss (−) rows (<see cref="PartyAfter.MovesOf"/>), so
+    /// the steward's food and horses follow them without any new rule.
     /// </summary>
     internal readonly struct PartyMove
     {
@@ -81,17 +81,36 @@ namespace SmartSteward.Core.Planning
         }
 
         /// <summary>Does this row change who is in the party after the deal? Then an edit of it re-plans the steward's rows
-        /// (<see cref="StewardPlan"/>, the live re-plan): hires (the tavern), prisoners (a prisoner ransomed or donated no
-        /// longer eats). Step 16: the troops section's recruit and dismiss rows.</summary>
-        public static bool ChangesParty(PlanRow row) => row.Type == RowType.Tavern || row.Type == RowType.Prisoner;
+        /// (<see cref="StewardPlan"/>, the live re-plan): hires (the tavern), the troops section's recruits and dismissals
+        /// (step 16), prisoners (a prisoner ransomed or donated no longer eats).</summary>
+        public static bool ChangesParty(PlanRow row) =>
+            row.Type == RowType.Tavern || row.Type == RowType.Troop || row.Type == RowType.Prisoner;
+
+        /// <summary>Rows whose quantity is the player's hire of men — tavern hires and troop rows: they start at 0, are paid
+        /// after the trades, and the steward's buys leave their gold (<see cref="PlanPins"/>).</summary>
+        public static bool IsHireRow(PlanRow row) => row.Type == RowType.Tavern || row.Type == RowType.Troop;
+
+        /// <summary>What a hire row costs at its quantity (recruits and hires; a dismissal costs nothing).</summary>
+        public static int HireCost(PlanRow row)
+        {
+            int price = row.Type == RowType.Tavern ? row.Tavern?.UnitPrice ?? 0
+                : row.Type == RowType.Troop ? row.Troop?.UnitPrice ?? 0
+                : 0;
+            return Math.Max(0, row.Change) * price;
+        }
 
         /// <summary>The men the rows add or take away, at their current quantities (prisoners are not members — they are
-        /// counted by their own rows).</summary>
+        /// counted by their own rows): hires and recruits join (+), dismissed men leave (−, step 16).</summary>
         public static List<PartyMove> MovesOf(IEnumerable<PlanRow> rows)
         {
             var moves = new List<PartyMove>();
             foreach (var row in rows)
             {
+                if (row.Type == RowType.Troop && row.Troop != null && row.Change != 0)
+                {
+                    moves.Add(new PartyMove(row.TroopId, row.Change, row.Troop.IsMounted, row.Troop.UpgradeCategories));
+                    continue;
+                }
                 if (row.Type != RowType.Tavern || row.Tavern == null || row.Change <= 0)
                     continue;
                 var info = row.Tavern;

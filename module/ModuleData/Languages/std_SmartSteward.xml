@@ -84,6 +84,7 @@
     <string id="ss_hint_SellWarMountSurplus" text="Sell upgrade horses above what your troops need, the dearest first. Default: on." />
     <string id="ss_hint_ShowMercenaries" text="List the mercenary band in the town's tavern. Default: on." />
     <string id="ss_hint_ShowTavern" text="Show the tavern section in towns: wanderers and mercenaries to hire with a click. Default: on." />
+    <string id="ss_hint_ShowTroops" text="Show the troops section in towns and villages: the recruits the notables offer you, then your own troops, to recruit or dismiss with a click. Nothing is ever recruited or dismissed unless you click. Default: on." />
     <string id="ss_hint_ShowWanderers" text="List the wanderers for hire in the town's tavern. Default: on." />
     <string id="ss_hint_WarMountMaxPrice" text="Never pay more than this for one upgrade horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 2,000. Range: 0 to 100,000." />
     <string id="ss_hint_WarMountsCountAsMounts" text="Horses kept for troop upgrades also count as riding horses for the footmen until the upgrade takes them. Default: on." />
@@ -142,6 +143,7 @@
     <string id="ss_set_SellWarMountSurplus" text="Sell surplus upgrade horses" />
     <string id="ss_set_ShowMercenaries" text="Show mercenaries" />
     <string id="ss_set_ShowTavern" text="Show the tavern" />
+    <string id="ss_set_ShowTroops" text="Show the troops" />
     <string id="ss_set_ShowWanderers" text="Show wanderers" />
     <string id="ss_set_WarMountMaxPrice" text="Max price per upgrade horse" />
     <string id="ss_set_WarMountsCountAsMounts" text="Upgrade horses carry footmen" />
@@ -150,6 +152,7 @@
     <string id="ss_set_WarMountsHorseTarget" text="Horses for upgrades" />
     <string id="ss_set_WarMountsWarHorseTarget" text="War horses for upgrades" />
     <string id="ss_set_WarnIfNotReviewed" text="Warn before leaving" />
+    <string id="ss_ui_block_all_dismissed" text="All of them are already dismissed in the plan." />
     <string id="ss_ui_block_all_on_offer" text="Everything on offer is already in the plan." />
     <string id="ss_ui_block_all_sold" text="Everything that may go is already in the plan. Locked ones never are." />
     <string id="ss_ui_block_buy_only" text="Only ever hired." />
@@ -159,6 +162,8 @@
     <string id="ss_ui_block_market_gold" text="The market has no gold left to pay for more." />
     <string id="ss_ui_block_min_sell" text="The next one would fetch less than its min sell price - a town's prices fall as you sell." />
     <string id="ss_ui_block_none_eligible" text="Nothing on offer the steward may buy: none in the market, unticked in the Prices tab, or dearer than its max buy price." />
+    <string id="ss_ui_block_none_to_dismiss" text="None of these in your party to dismiss." />
+    <string id="ss_ui_block_not_on_offer" text="No notable here offers you this troop." />
     <string id="ss_ui_block_nothing_to_sell" text="Nothing to sell: none held, all locked, or unticked for selling in the Prices tab." />
     <string id="ss_ui_block_other_row" text="What is left is already planned for another row." />
     <string id="ss_ui_block_price_limit" text="The next one costs more than its max buy price - a town's prices climb as you buy." />
@@ -182,6 +187,7 @@
     <string id="ss_ui_detail_target" text="target {N}" />
     <string id="ss_ui_detail_wage" text="{WAGE} a day" />
     <string id="ss_ui_detail_wage_each" text="{WAGE} a day each" />
+    <string id="ss_ui_detail_wounded" text="{N} wounded" />
     <string id="ss_ui_do_it" text="Do it" />
     <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Gold {BEFORE} » {AFTER}." />
     <string id="ss_ui_done_abort" text="Steward: nothing was done - see smart_steward.log." />
@@ -239,7 +245,11 @@
     <string id="ss_ui_sec_mounts" text="Mounts" />
     <string id="ss_ui_sec_mounts_detail" text="{FOOTMEN} men on foot  ·  riding target {TARGET}" />
     <string id="ss_ui_sec_prisoners" text="Prisoners" />
+    <string id="ss_ui_sec_recruits" text="Recruits on offer" />
+    <string id="ss_ui_sec_recruits_detail" text="[+] recruits  ·  [–] dismisses yours" />
     <string id="ss_ui_sec_tavern" text="Tavern" />
+    <string id="ss_ui_sec_troops" text="Your troops" />
+    <string id="ss_ui_sec_troops_detail" text="[–] dismisses, the wounded first" />
     <string id="ss_ui_shortcuts" text="Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia" />
     <string id="ss_ui_tab_instructions" text="Instructions" />
     <string id="ss_ui_tab_prices" text="Prices" />
@@ -251,6 +261,7 @@
     <string id="ss_ui_type_pack" text="Pack" />
     <string id="ss_ui_type_prisoner" text="Prisoner" />
     <string id="ss_ui_type_tavern" text="Tavern" />
+    <string id="ss_ui_type_troop" text="Troop" />
     <string id="ss_ui_type_war_mount" text="War mount" />
     <string id="ss_ui_warn_cannot_afford" text="You cannot afford this deal - take something back." />
     <string id="ss_ui_warn_market_gold" text="The market cannot pay for all the sales." />

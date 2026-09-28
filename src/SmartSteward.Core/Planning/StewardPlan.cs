@@ -82,7 +82,8 @@ namespace SmartSteward.Core.Planning
 
         public double InfluenceGained { get; internal set; }
 
-        /// <summary>The party after the deal (hires added) — against <see cref="PartySizeLimit"/> in the footer.</summary>
+        /// <summary>The party after the deal (hires and recruits added, dismissed men gone) — against <see cref="PartySizeLimit"/>
+        /// in the footer.</summary>
         public int MembersAfter { get; internal set; }
 
         /// <summary>The party size limit — information, never a wall (Anton 2026.09.28, playtest round 3: hire past it,
@@ -164,12 +165,17 @@ namespace SmartSteward.Core.Planning
                             bought = true;
                         }
                         break;
+                    case RowType.Troop: // step 16: recruits join (paid), dismissed men leave
+                        if (row.Change > 0)
+                            bought = true;
+                        hired += row.Change;
+                        break;
                 }
             }
 
             totals.FoodUnitsNow = foodNow;
             totals.FoodUnitsAfter = foodNow + foodChange;
-            totals.MembersAfter = snapshot.Party.Members + hired;
+            totals.MembersAfter = Math.Max(0, snapshot.Party.Members + hired);
             totals.PrisonersAfter = prisonersNow - prisonersMoved;
             totals.Carry = CarryTotals.Compute(rows, snapshot.Carry, totals.WeightChange, prisonersNow, totals.PrisonersAfter);
             totals.BelowMinGoldAfterDeal = bought && totals.GoldAfter < floors.All;

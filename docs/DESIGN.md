@@ -781,6 +781,7 @@ expected unit prices.
 | Tavern | ShowTavern | true | — | show the tavern section in towns |
 | Tavern | ShowWanderers | true | — | list wanderers for hire |
 | Tavern | ShowMercenaries | true | — | list the tavern's mercenaries |
+| Tavern | ShowTroops | true | — | "Show the troops": the troops section in towns and villages — recruits on offer, then your troops (§2.8) **[Anton 2026.09.28, playtest round 3]** |
 
 Keys are final names for the settings file and code; UI labels can be friendlier.
 

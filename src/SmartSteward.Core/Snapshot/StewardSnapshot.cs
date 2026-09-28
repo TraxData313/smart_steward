@@ -54,6 +54,10 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>The tavern's offer; null when there is no tavern here or no access to it.</summary>
         public TavernInfo? Tavern { get; set; }
 
+        /// <summary>The troops section (step 16, DESIGN §2.8): one entry per troop type that is on offer here to the player
+        /// (the notables' volunteers the game lets him take) or that the party holds as regulars — never every troop in the
+        /// game. Heroes are never in it.</summary>
+        public List<TroopStack> Troops { get; set; } = new List<TroopStack>();
         /// <summary>The party's load and carrying capacity now, on land and (with ships) at sea, and what one more member,
         /// mount, pack animal or prisoner changes them by — the footer's weight line (round 3, RESEARCH §19).</summary>
         public CarryInfo Carry { get; set; } = new CarryInfo();
@@ -331,5 +335,50 @@ namespace SmartSteward.Core.Snapshot
         /// war_horse…). New men are never ready to upgrade; these only put a kind of upgrade horse "in play" (DESIGN §2.4). The
         /// same field for the recruits of step 16.</summary>
         public List<string> UpgradeCategories { get; set; } = new List<string>();
+    }
+
+    /// <summary>
+    /// One troop type of the troops section (step 16, DESIGN §2.8, RESEARCH §21): what the party holds of it and what the
+    /// settlement's notables offer the player of it. The party's regulars come from <c>MemberRoster</c> (heroes never); the
+    /// offer is vanilla's recruit screen: every notable who <c>CanHaveRecruits</c>, each of the six <c>VolunteerTypes</c>
+    /// slots holding a troop that <c>HeroHelper.HeroCanRecruitFromHero(MainHero, notable, index)</c> opens to him.
+    /// </summary>
+    public sealed class TroopStack
+    {
+        public string TroopId { get; set; } = "";
+        public string Name { get; set; } = "";
+
+        /// <summary><c>CharacterObject.Tier</c> — for the log only.</summary>
+        public int Tier { get; set; }
+
+        /// <summary>Men of this type in the party now, wounded included (<c>TroopRosterElement.Number</c>) — the row's Mine.</summary>
+        public int InParty { get; set; }
+
+        /// <summary>Of <see cref="InParty"/>, the wounded — a dismissal takes them first, like vanilla's party screen.</summary>
+        public int Wounded { get; set; }
+
+        /// <summary>The party screen lets these men go: a regular that is not bound to a quest
+        /// (<c>!IsNotTransferableInPartyScreen</c>). False → the row's [−] is never live.</summary>
+        public bool CanDismiss { get; set; }
+
+        /// <summary>Volunteers of this type the player may recruit here now (0 = not on offer): the notables' slots the game's
+        /// volunteer model opens to him, only where the game's recruit gate (<c>SettlementAction.RecruitTroops</c>) is open.</summary>
+        public int OnOffer { get; set; }
+
+        /// <summary>The recruitment cost per man — <c>PartyWageModel.GetTroopRecruitmentCost(troop, MainHero)</c>, perks included;
+        /// the same for every man of the type, whichever notable offers him.</summary>
+        public int PricePerMan { get; set; }
+
+        /// <summary><c>CharacterObject.TroopWage</c> — the daily wage of one man.</summary>
+        public int WagePerMan { get; set; }
+
+        /// <summary><c>CharacterObject.IsMounted</c> — the game's "man with a horse" (RESEARCH §3); not mounted = a footman.</summary>
+        public bool IsMounted { get; set; }
+
+        /// <summary>The kinds of upgrade horse the type's upgrades need (a recruit puts them in play, never ready).</summary>
+        public List<string> UpgradeCategories { get; set; } = new List<string>();
+
+        /// <summary>What one man adds to the load at sea — his horse, when the type rides (War Sails); 0 on foot or without ships.</summary>
+        public double SeaWeightPerMan { get; set; }
     }
 }

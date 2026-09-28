@@ -53,6 +53,12 @@ public class PlanPerformanceTests
             },
             Mercenaries = new MercenaryOffer { TroopId = "merc", Name = "Blades", Available = 20, PricePerMan = 100 },
         };
+        // Step 16: a late-game party's 30 troop types, 6 of them on offer here too, plus 4 more volunteers' types.
+        for (int i = 0; i < 30; i++)
+            s.Troop("unit" + i, inParty: 2 + i % 4, wounded: i % 3, onOffer: i < 6 ? 3 : 0, price: 20 + 10 * i,
+                mounted: i % 3 == 0, upgrade: i % 2 == 0 ? "horse" : null);
+        for (int i = 0; i < 4; i++)
+            s.Troop("volunteer" + i, onOffer: 2 + i, price: 15 + 5 * i, upgrade: "war_horse");
         return s;
     }
 
@@ -100,6 +106,8 @@ public class PlanPerformanceTests
             () => plan.Decrease("prisoner:prisoner3"),
             () => plan.Increase("tavern:mercenaries", EditSize.Five),
             () => plan.Decrease("loot:MeleeWeapons", EditSize.All),
+            () => plan.Increase("troops:volunteer2", EditSize.All),
+            () => plan.Decrease("troops:unit12", EditSize.All),
             () => plan.ResetAll(),
         };
         var times = new List<long>();

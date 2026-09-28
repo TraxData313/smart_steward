@@ -65,6 +65,15 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>Only donation is possible here and the dungeon has no more room.</summary>
         DungeonFull,
+
+        /// <summary>A troop row's [+]: no notable here offers this troop to the player (step 16).</summary>
+        NotOnOfferHere,
+
+        /// <summary>A troop row's [−]: none of these men in the party that may be dismissed (step 16).</summary>
+        NoneToDismiss,
+
+        /// <summary>A troop row's [−]: every man of the type is already dismissed in the plan (step 16).</summary>
+        AllDismissed,
     }
 
     /// <summary>What one click did.</summary>
@@ -200,9 +209,10 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>
         /// The executor's list (DESIGN §5, PLAN step 6) for the plan as it stands: donations and ransoms first
-        /// (the ransom funds the buys), then every sale, then every purchase — in the walk's order, grouped by
-        /// item category (which never changes a price: a town's price walks per category) —, then the hires,
-        /// wanderers before mercenaries. Each with the stack / troop / hero, the count and the expected prices.
+        /// (the ransom funds the buys), then the dismissals (step 16), then every sale, then every purchase — in the walk's
+        /// order, grouped by item category (which never changes a price: a town's price walks per category) —, then the
+        /// hires, wanderers before mercenaries, then the recruits (step 16). Each with the stack / troop / hero, the count
+        /// and the expected prices.
         /// </summary>
         public IReadOnlyList<PlanTransaction> Transactions
         {
@@ -230,10 +240,38 @@ namespace SmartSteward.Core.Planning
             {
                 var (min, max) = Bounds(row);
                 int next = current + direction;
-                block = next < min || next > max ? StaticBlock(row, direction) : Trial(row, next);
+                block = next < min || next > max ? StaticBlock(row, direction)
+                    : row.Type == RowType.Troop ? TroopBlock(row, direction)
+                    : Trial(row, next);
             }
             _blocks[(row, direction)] = block;
             return block;
+        }
+
+        /// <summary>
+        /// A troop row's live block within its range, without a trial walk (a big party lists dozens of troop types, and the
+        /// window asks every row after every click). Exact, because troop rows come last in the walk and touch no market:
+        /// one more dismissal needs nothing (free, no stock); one more recruit only needs the purse — the trial's own rule
+        /// (<see cref="Unaffordable"/>) on the walk as it stands, the price further on. <c>PlanEditingTests</c> hold it to
+        /// <see cref="Trial"/>.
+        /// </summary>
+        private EditBlock TroopBlock(PlanRow row, int direction)
+        {
+            if (direction < 0)
+                return EditBlock.None;
+            int giveWay = 0;
+            foreach (var other in Rows)
+            {
+                if (other.IsTouched || ReferenceEquals(other, row) || PartyAfter.ChangesParty(other))
+                    continue;
+                foreach (var tally in other.Tallies)
+                    if (tally.Direction == Pricing.TradeDirection.Buy)
+                        giveWay += tally.Gold;
+            }
+            int goldAfter = Totals.GoldAfter - (row.Troop?.UnitPrice ?? 0);
+            return goldAfter + giveWay < 0 || (Totals.HireUnaffordable && giveWay == 0)
+                ? EditBlock.NotEnoughGold
+                : EditBlock.None;
         }
 
         private PlanRow RowOrThrow(string rowId) =>
@@ -275,7 +313,7 @@ namespace SmartSteward.Core.Planning
                     Lower(row, target);
                 else
                     Raise(row, target);
-                if (row.Type == RowType.Tavern && row.Change > before && couldAfford && Totals.CannotAfford)
+                if (PartyAfter.IsHireRow(row) && row.Change > before && couldAfford && Totals.CannotAfford)
                     FitPurse(row, before);
             }
             int after = row.Change;
@@ -364,7 +402,7 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>Would the plan work with this row at <paramref name="value"/>? None = yes; else why not. The row is
         /// walked as touched — it will be, once moved.</summary>
-        private EditBlock Trial(PlanRow row, int value)
+        internal EditBlock Trial(PlanRow row, int value)
         {
             var outcome = Walk(r => ReferenceEquals(r, row) ? value : r.Change, r => r.IsTouched || ReferenceEquals(r, row));
             var own = outcome.Of(row);
@@ -440,6 +478,10 @@ namespace SmartSteward.Core.Planning
                         row.UnitPriceMin = o.Realized > 0 ? row.Tavern.UnitPrice : 0;
                         row.UnitPriceMax = row.UnitPriceMin;
                         break;
+                    case RowType.Troop:
+                        row.Change = o.Realized;
+                        TroopPlanner.ApplyGold(row);
+                        break;
                     default:
                         row.Book = o.Book;
                         PlanMath.RefreshItemRow(row);
@@ -453,7 +495,7 @@ namespace SmartSteward.Core.Planning
         }
 
         /// <summary>The row's static range: food and the mount role rows buy and sell; loot and prisoners only
-        /// sell; tavern rows only hire.</summary>
+        /// sell; tavern rows only hire; troop rows recruit (up to what is on offer) and dismiss (down to the men held).</summary>
         private static (int Min, int Max) Bounds(PlanRow row)
         {
             switch (row.Type)
@@ -482,6 +524,8 @@ namespace SmartSteward.Core.Planning
                         return row.MaxBuy == 0 && row.Tavern!.Block == HireBlock.CompanionLimit
                             ? EditBlock.CompanionLimit
                             : EditBlock.AllOnOffer;
+                    case RowType.Troop:
+                        return row.MaxBuy == 0 ? EditBlock.NotOnOfferHere : EditBlock.AllOnOffer;
                     default:
                         return row.MaxBuy == 0 ? EditBlock.NoneEligible : EditBlock.AllOnOffer;
                 }
@@ -490,6 +534,8 @@ namespace SmartSteward.Core.Planning
             {
                 case RowType.Tavern:
                     return EditBlock.BuyOnly;
+                case RowType.Troop:
+                    return row.MaxSell == 0 ? EditBlock.NoneToDismiss : EditBlock.AllDismissed;
                 case RowType.Prisoner:
                     return !_inputs!.Ransom && row.MaxSell < row.Mine ? EditBlock.DungeonFull : EditBlock.AllSold;
                 default:

@@ -22,6 +22,14 @@ namespace SmartSteward.Core.Planning
 
         HireWanderer,
         HireMercenaries,
+
+        /// <summary>Men of the party let go (step 16) — vanilla's party screen without the screen: the wounded first, no gold,
+        /// no event.</summary>
+        Dismiss,
+
+        /// <summary>Volunteers recruited from the settlement's notables (step 16) — vanilla's recruit screen without the
+        /// screen: the slot emptied, the man added, <c>OnUnitRecruited</c>, the gold paid.</summary>
+        Recruit,
     }
 
     /// <summary>
@@ -63,7 +71,7 @@ namespace SmartSteward.Core.Planning
         /// </summary>
         public bool HonoursLock { get; }
 
-        /// <summary>Donate / Ransom / HireMercenaries: the troop.</summary>
+        /// <summary>Donate / Ransom / HireMercenaries / Dismiss / Recruit: the troop.</summary>
         public string? TroopId { get; }
 
         /// <summary>HireWanderer: the hero.</summary>
@@ -97,6 +105,11 @@ namespace SmartSteward.Core.Planning
                     list.Add(new PlanTransaction(TransactionKind.Ransom, o.Row, o.Ransomed,
                         Enumerable.Repeat(info.RansomValue, o.Ransomed).ToArray(), 0, null));
             }
+
+            // The troops section's dismissals (step 16) right after the prisoners: men leave before any goods move — free,
+            // and nothing in the trade depends on them [decided: Claude, 2026.09.28 — step 16].
+            foreach (var o in outcome.Rows.Where(o => o.Row.Type == RowType.Troop && o.Realized < 0))
+                list.Add(new PlanTransaction(TransactionKind.Dismiss, o.Row, -o.Realized, Array.Empty<int>(), 0, null));
 
             foreach (var direction in new[] { TradeDirection.Sell, TradeDirection.Buy })
             {
@@ -136,6 +149,12 @@ namespace SmartSteward.Core.Planning
                         list.Add(new PlanTransaction(
                             kind == TavernRowKind.Wanderer ? TransactionKind.HireWanderer : TransactionKind.HireMercenaries,
                             o.Row, o.Realized, Enumerable.Repeat(o.Row.Tavern!.UnitPrice, o.Realized).ToArray(), 0, null));
+
+            // The recruits last (step 16): after the trades (their proceeds fund them) and the tavern's hires — the table's
+            // order, tavern above troops [decided: Claude, 2026.09.28 — step 16].
+            foreach (var o in outcome.Rows.Where(o => o.Row.Type == RowType.Troop && o.Realized > 0))
+                list.Add(new PlanTransaction(TransactionKind.Recruit, o.Row, o.Realized,
+                    Enumerable.Repeat(o.Row.Troop!.UnitPrice, o.Realized).ToArray(), 0, null));
             return list;
         }
 

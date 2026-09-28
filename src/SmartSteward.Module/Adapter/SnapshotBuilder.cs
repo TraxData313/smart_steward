@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Helpers;
 using SmartSteward.Core.Snapshot;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
@@ -64,7 +65,112 @@ namespace SmartSteward.Adapter
             ReadPrisoners(snap, settlement, main, hero);
             if (isTown)
                 ReadTavern(snap, settlement, main, hero);
+            ReadTroops(snap, settlement, main, hero);
             return new GameVisit(settlement, snap, elements);
+        }
+
+        /// <summary>The game lets the player recruit here right now — the town's and the village's "Recruit troops" gate
+        /// (<c>SettlementAccessModel.CanMainHeroDoSettlementAction(…, RecruitTroops, …)</c>: a hostile village no, a village
+        /// that is not in its normal state no; a town always — war lowers the slots through the volunteer model instead,
+        /// RESEARCH §21). It reads <c>Settlement.CurrentSettlement</c>: call it while in the settlement.</summary>
+        public static bool CanRecruitNow(Settlement settlement)
+        {
+            try
+            {
+                return Campaign.Current.Models.SettlementAccessModel.CanMainHeroDoSettlementAction(settlement,
+                    SettlementAccessModel.SettlementAction.RecruitTroops, out _, out _);
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading recruit access", ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// The volunteer slots of <paramref name="troop"/> the player may take here now, in vanilla's recruit-screen order
+        /// (<c>RecruitmentVM.RefreshScreen</c>: the settlement's notables in order, each notable's slots 0–5): a living notable
+        /// who <c>CanHaveRecruits</c>, a slot holding the troop, and <c>HeroHelper.HeroCanRecruitFromHero(MainHero, notable,
+        /// index)</c> — index ≤ the volunteer model's maximum for the player (relation, faction, war, perks — RESEARCH §21).
+        /// Null <paramref name="troop"/> = every troop.
+        /// </summary>
+        internal static List<(Hero Notable, int Index, CharacterObject Troop)> VolunteerSlots(Settlement settlement, Hero hero,
+            CharacterObject? troop)
+        {
+            var slots = new List<(Hero, int, CharacterObject)>();
+            foreach (var notable in settlement.Notables)
+            {
+                if (notable == null || !notable.IsAlive || !notable.CanHaveRecruits)
+                    continue;
+                var types = notable.VolunteerTypes;
+                if (types == null)
+                    continue;
+                for (int i = 0; i < types.Length; i++)
+                {
+                    var volunteer = types[i];
+                    if (volunteer == null || (troop != null && volunteer != troop))
+                        continue;
+                    if (HeroHelper.HeroCanRecruitFromHero(hero, notable, i))
+                        slots.Add((notable, i, volunteer));
+                }
+            }
+            return slots;
+        }
+
+        /// <summary>
+        /// The troops section (step 16, DESIGN §2.8): the party's regular troops (heroes never; a quest-bound troop only when
+        /// it is on offer too — the party screen will not let it go) and the volunteers the notables offer the player —
+        /// vanilla's recruit screen's rule, behind the game's recruit gate. Price per man from the game's wage model with the
+        /// player's perks; the footman and upgrade facts as for the tavern's band.
+        /// </summary>
+        private static void ReadTroops(StewardSnapshot snap, Settlement settlement, MobileParty main, Hero hero)
+        {
+            try
+            {
+                var byId = new Dictionary<string, TroopStack>(StringComparer.Ordinal);
+                var wages = Campaign.Current.Models.PartyWageModel;
+                TroopStack Of(CharacterObject troop)
+                {
+                    if (!byId.TryGetValue(troop.StringId, out var stack))
+                    {
+                        stack = new TroopStack
+                        {
+                            TroopId = troop.StringId,
+                            Name = troop.Name?.ToString() ?? troop.StringId,
+                            Tier = troop.Tier,
+                            PricePerMan = wages.GetTroopRecruitmentCost(troop, hero).RoundedResultNumber,
+                            WagePerMan = troop.TroopWage,
+                            IsMounted = troop.IsMounted,
+                            UpgradeCategories = UpgradeCategoriesOf(troop),
+                            SeaWeightPerMan = SeaWeightPerMan(snap, main, troop),
+                        };
+                        byId[troop.StringId] = stack;
+                    }
+                    return stack;
+                }
+
+                foreach (var element in main.MemberRoster.GetTroopRoster())
+                {
+                    var c = element.Character;
+                    if (c == null || c.IsHero || element.Number <= 0)
+                        continue;
+                    var stack = Of(c);
+                    stack.InParty += element.Number;
+                    stack.Wounded += element.WoundedNumber;
+                    stack.CanDismiss = !c.IsNotTransferableInPartyScreen;
+                }
+
+                if (CanRecruitNow(settlement))
+                    foreach (var slot in VolunteerSlots(settlement, hero, null))
+                        Of(slot.Troop).OnOffer++;
+
+                snap.Troops = byId.Values.Where(t => t.OnOffer > 0 || t.CanDismiss).ToList();
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading the troops", ex);
+                snap.Troops = new List<TroopStack>();
+            }
         }
 
         /// <summary>The game lets the player trade here right now: the town's "Trade" / the village's "Buy products"
@@ -184,7 +290,12 @@ namespace SmartSteward.Adapter
                          + (s.Tavern.Mercenaries == null ? "no band" : s.Tavern.Mercenaries.Available.ToString(inv) + " " + s.Tavern.Mercenaries.Name
                              + (s.Tavern.Mercenaries.IsMounted ? " (mounted" : " (on foot")
                              + (s.Tavern.Mercenaries.UpgradeCategories.Count > 0
-                                 ? ", upgrades need " + string.Join("/", s.Tavern.Mercenaries.UpgradeCategories) : "") + ")"));
+                                 ? ", upgrades need " + string.Join("/", s.Tavern.Mercenaries.UpgradeCategories) : "") + ")"))
+                   + "; troops " + s.Troops.Count.ToString(inv) + " types, on offer ["
+                   + string.Join(", ", s.Troops.Where(t => t.OnOffer > 0).Select(t => t.OnOffer.ToString(inv) + " " + t.TroopId
+                       + " at " + t.PricePerMan.ToString(inv) + (t.IsMounted ? " (mounted)" : "")))
+                   + "], in the party " + s.Troops.Sum(t => t.InParty).ToString(inv) + " men ("
+                   + s.Troops.Sum(t => t.Wounded).ToString(inv) + " wounded)";
         }
 
         private static void ReadParty(StewardSnapshot snap, MobileParty main)

@@ -20,8 +20,9 @@ namespace SmartSteward.Adapter
 {
     /// <summary>
     /// Carries a plan out through the game's own paths (DESIGN §5, RESEARCH §9), in
-    /// <see cref="StewardPlan.Transactions"/> order: donations and ransoms (the ransom gold funds the buys), every
-    /// sale then every purchase in ONE headless trade, then the wanderers, then the mercenaries.
+    /// <see cref="StewardPlan.Transactions"/> order: donations and ransoms (the ransom gold funds the buys), the dismissals
+    /// (step 16), every sale then every purchase in ONE headless trade, then the wanderers, then the mercenaries, then the
+    /// recruits (step 16).
     /// </summary>
     /// <remarks>
     /// Every rule is checked again at the click — access, what is held and on offer, locks, the purse, the market's
@@ -53,11 +54,15 @@ namespace SmartSteward.Adapter
 
             Donate(transactions.Where(t => t.Kind == TransactionKind.Donate).ToList(), report, settlement, main);
             Ransom(transactions.Where(t => t.Kind == TransactionKind.Ransom).ToList(), report, settlement, main);
+            foreach (var tx in transactions.Where(t => t.Kind == TransactionKind.Dismiss))
+                Dismiss(report.Add(tx), main);
             Trade(plan, transactions.Where(t => t.IsItemTrade).ToList(), report, settlement, main);
             foreach (var tx in transactions.Where(t => t.Kind == TransactionKind.HireWanderer))
                 HireWanderer(report.Add(tx), settlement, main);
             foreach (var tx in transactions.Where(t => t.Kind == TransactionKind.HireMercenaries))
                 HireMercenaries(report.Add(tx), settlement, main);
+            foreach (var tx in transactions.Where(t => t.Kind == TransactionKind.Recruit))
+                Recruit(report.Add(tx), settlement, main);
 
             report.GoldAfter = hero.Gold;
             return report;
@@ -456,6 +461,106 @@ namespace SmartSteward.Adapter
             catch (Exception ex)
             {
                 ModLog.Error("execute", "hiring mercenaries " + o.Transaction.TroopId, ex);
+                o.Stop(SkipReason.Error, ex.Message);
+            }
+        }
+
+        // ── Troops (step 16) ─────────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Vanilla's party screen without the screen (RESEARCH §21): the normal party screen moves dismissed men from the
+        /// party's LIVE roster to a dummy one — the WOUNDED FIRST (<c>PartyVM.OnTransferTroop</c> with
+        /// <c>TransferHealthiesGetWoundedsFirst</c> false), the stack's XP left with the men who stay — and its done handler
+        /// drops the dummy roster: no gold, no event. So: <c>MemberRoster.AddToCounts(troop, −n, false, −wounded)</c>. A hero
+        /// or a quest-bound troop (<c>IsNotTransferableInPartyScreen</c>) is never let go.
+        /// </summary>
+        private static void Dismiss(TransactionOutcome o, MobileParty main)
+        {
+            try
+            {
+                var tx = o.Transaction;
+                if (!FindTroop(main.MemberRoster, tx.TroopId, out var element) || element.Character.IsHero)
+                {
+                    o.Stop(SkipReason.NotHeld);
+                    return;
+                }
+                var troop = element.Character;
+                if (troop.IsNotTransferableInPartyScreen)
+                {
+                    o.Stop(SkipReason.GameRefused, "the party screen will not let this troop go (a quest)");
+                    return;
+                }
+                int n = ExecutionBudget.DismissCount(tx.Count, element.Number, out var reason);
+                if (reason != SkipReason.None)
+                    o.Stop(reason, "only " + element.Number.ToString(Inv) + " in the party");
+                if (n <= 0)
+                    return;
+                int wounded = GameRules.WoundedToMove(n, element.WoundedNumber);
+                main.MemberRoster.AddToCounts(troop, -n, false, -wounded);
+                o.AddUnits(n, 0);
+                Log("dismissed " + n.ToString(Inv) + " " + troop.StringId + " (" + wounded.ToString(Inv) + " wounded)");
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("execute", "dismissing " + o.Transaction.TroopId, ex);
+                o.Stop(SkipReason.Error, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Vanilla's recruit screen without the screen (<c>RecruitmentVM.OnDone</c>, RESEARCH §21), re-checked at the click:
+        /// the recruit gate, the slots the notables still open to the player (<see cref="SnapshotBuilder.VolunteerSlots"/>),
+        /// the LIVE price per man and the purse (vanilla: the cart's total ≤ the gold held). Per man: the notable's slot
+        /// emptied (<c>VolunteerTypes[index] = null</c>), <c>MemberRoster.AddToCounts(troop, 1)</c>,
+        /// <c>OnUnitRecruited(troop, 1)</c> (Leadership XP, Famous Commander, statistics); then the gold, once
+        /// (<c>GiveGoldAction</c> to nobody — vanilla's recruits pay no notable). The party size limit is no reason.
+        /// </summary>
+        private static void Recruit(TransactionOutcome o, Settlement settlement, MobileParty main)
+        {
+            try
+            {
+                var tx = o.Transaction;
+                if (!SnapshotBuilder.CanRecruitNow(settlement))
+                {
+                    o.Stop(SkipReason.NotAllowedHere);
+                    return;
+                }
+                var troop = TaleWorlds.ObjectSystem.MBObjectManager.Instance?.GetObject<CharacterObject>(tx.TroopId);
+                if (troop == null)
+                {
+                    o.Stop(SkipReason.NotOnOffer, "unknown troop");
+                    return;
+                }
+                var hero = Hero.MainHero;
+                var slots = SnapshotBuilder.VolunteerSlots(settlement, hero, troop);
+                int price = Campaign.Current.Models.PartyWageModel.GetTroopRecruitmentCost(troop, hero).RoundedResultNumber;
+                int n = ExecutionBudget.RecruitCount(tx.Count, slots.Count, hero.Gold, price, out var reason);
+                if (reason != SkipReason.None)
+                    o.Stop(reason, "price " + price.ToString(Inv) + ", open slots " + slots.Count.ToString(Inv)
+                                   + ", gold " + hero.Gold.ToString(Inv));
+                int done = 0;
+                try
+                {
+                    for (int i = 0; i < n; i++)
+                    {
+                        var slot = slots[i];
+                        slot.Notable.VolunteerTypes[slot.Index] = null;
+                        main.MemberRoster.AddToCounts(troop, 1);
+                        done++;
+                        CampaignEventDispatcher.Instance.OnUnitRecruited(troop, 1);
+                    }
+                }
+                finally
+                {
+                    // the men who joined are paid for, even if a later one failed
+                    if (done > 0)
+                        GiveGoldAction.ApplyBetweenCharacters(hero, null, done * price);
+                    o.AddUnits(done, done * price);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("execute", "recruiting " + o.Transaction.TroopId, ex);
                 o.Stop(SkipReason.Error, ex.Message);
             }
         }

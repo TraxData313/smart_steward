@@ -92,6 +92,8 @@ namespace SmartSteward.Core.Planning
             string text = tx.Kind + " " + tx.Count.ToString(Inv) + " x " + subject + " [" + tx.RowId + "]";
             if (tx.Kind == TransactionKind.Donate)
                 return text + " = +" + tx.Influence.ToString("0.##", Inv) + " influence";
+            if (tx.Kind == TransactionKind.Dismiss)
+                return text + " (free, the wounded first)";
             text += " = " + Money(tx.Gold);
             if (tx.UnitPrices.Count > 0)
                 text += " (" + PriceRange(tx.UnitPrices.Min(), tx.UnitPrices.Max()) + ")";
@@ -128,6 +130,12 @@ namespace SmartSteward.Core.Planning
                     .Append(", wage ").Append(row.Tavern.DailyWage.ToString(Inv))
                     .Append(row.Tavern.Block == HireBlock.None ? "" : ", blocked " + row.Tavern.Block)
                     .Append(string.IsNullOrEmpty(row.Tavern.SkillTag) ? "" : ", " + row.Tavern.SkillTag);
+            if (row.Troop != null)
+                sb.Append(row.Troop.OnOffer > 0 ? ", on offer " + row.Troop.OnOffer.ToString(Inv) + " at " + row.Troop.UnitPrice.ToString(Inv) : ", not on offer")
+                    .Append(", wage ").Append(row.Troop.DailyWage.ToString(Inv))
+                    .Append(row.Troop.Wounded > 0 ? ", " + row.Troop.Wounded.ToString(Inv) + " wounded" : "")
+                    .Append(row.Troop.IsMounted ? ", mounted" : ", on foot")
+                    .Append(row.Troop.UpgradeCategories.Count > 0 ? ", upgrades need " + string.Join("/", row.Troop.UpgradeCategories) : "");
             return sb.ToString();
         }
 
