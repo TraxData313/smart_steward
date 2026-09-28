@@ -104,3 +104,18 @@ Deploy (game closed). Mostly invisible fixes — these points check nothing got 
 3. **Autonomous floor.** With the Full-autonomous steward on, set Money → Keep while autonomous a little below your
    gold (e.g. gold − 500) and enter a town where it wants horses or food: your gold never ends below that number.
 4. **Log.** After a session, `smart_steward.log` has no `ERROR` lines (search for it) — send it if it does.
+
+## Round 1 fixes (step 12)
+
+Deploy (game closed). Send `smart_steward.log` AND the game's newest `C:\ProgramData\Mount and Blade II
+Bannerlord\logs\rgl_log_*.txt` with any report.
+
+1. **Save → load, no restart (the "cannot enter towns" bug).** Load save A. Visit a village, open Party Steward, close
+   it; visit a town, open it again. Now load save B from the in-game menu (Escape → Load) — no restart. Enter a town,
+   then a village: both enter normally. Repeat the whole round twice (B → A, then again through Exit to main menu →
+   Load). The log has `steward state reset (session N)` at every load.
+   **If it happens again:** before anything else, tap **Left Alt** once and click the town again. A click with Left Alt
+   held asks for a parley instead of travelling — the game then says "Your clan tier is not high enough to request a
+   meeting" on hostile towns and does nothing at all elsewhere; a Left Alt stuck after Alt+Tab looks exactly like the
+   bug. Say whether the tap cured it. The log says `the map's follow modifier … has read as held` when the game believes
+   Alt is down.

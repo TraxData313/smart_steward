@@ -43,8 +43,15 @@ namespace SmartSteward.UI
         private static int _escapeGuardFrames;
         private static bool _closeRequested;
         private static Action<EncyclopediaPageChangedEvent>? _onEncyclopediaPage;
+        private static TaleWorlds.Library.EventSystem.EventManager? _eventManager;
+
+        /// <summary>The campaign the open window belongs to (<see cref="CampaignSession.Generation"/>).</summary>
+        private static int _generation;
 
         public static bool IsOpen => _layer != null;
+
+        /// <summary>This view model is the open window's (a settings listener of any other must let go).</summary>
+        internal static bool IsCurrent(StewardWindowVM vm) => _vm == vm && _generation == CampaignSession.Generation;
 
         /// <summary>Shift held this frame (the game's FiveStackModifier) — a click steps ±5.</summary>
         public static bool FiveStackHeld { get; private set; }
@@ -56,10 +63,10 @@ namespace SmartSteward.UI
         public static EditSize CurrentEditSize => UiInput.EditSizeFor(FiveStackHeld, EntireStackHeld);
 
         /// <summary>Opens the window for the settlement the party stands in — from the menu entry, the leave warning's
-        /// Review, or the arrival popup (<paramref name="onlyWithChanges"/>: PopupOnlyWithChanges — a plan with nothing
-        /// to suggest opens nothing; <paramref name="quiet"/>: no "nothing to plan here" message). True when it opened;
-        /// an opened window marks the visit reviewed (no leave warning).</summary>
-        public static bool Open(Settlement? settlement, bool onlyWithChanges = false, bool quiet = false)
+        /// Review, or the arrival popup (<paramref name="source"/> says which, in the log; <paramref name="onlyWithChanges"/>:
+        /// PopupOnlyWithChanges — a plan with nothing to suggest opens nothing; <paramref name="quiet"/>: no "nothing to
+        /// plan here" message). True when it opened; an opened window marks the visit reviewed (no leave warning).</summary>
+        public static bool Open(Settlement? settlement, string source, bool onlyWithChanges = false, bool quiet = false)
         {
             if (IsOpen)
                 Close();
@@ -70,11 +77,12 @@ namespace SmartSteward.UI
                     return false; // it said why (or kept quiet)
                 if (onlyWithChanges && !vm.HasChanges)
                 {
-                    ModLog.Info("window", "nothing to suggest at " + vm.Settlement.Name + " - not opened");
+                    ModLog.Info("window", "nothing to suggest at " + vm.Settlement.Name + " - not opened (" + source + ")");
                     vm.OnFinalize();
                     return false;
                 }
                 _vm = vm;
+                _generation = CampaignSession.Generation;
                 _layer = new GauntletLayer("SmartStewardWindow", LayerOrder) { IsFocusLayer = true };
                 _movie = _layer.LoadMovie(MovieName, vm);
                 _layer.Input.RegisterHotKeyCategory(HotKeyManager.GetCategory("GenericPanelGameKeyCategory"));
@@ -84,10 +92,11 @@ namespace SmartSteward.UI
                 _host.AddLayer(_layer);
                 ScreenManager.TrySetFocus(_layer);
                 _onEncyclopediaPage = OnEncyclopediaPageChanged;
-                Game.Current?.EventManager?.RegisterEvent(_onEncyclopediaPage);
+                _eventManager = Game.Current?.EventManager;
+                _eventManager?.RegisterEvent(_onEncyclopediaPage);
                 _encyclopediaOpen = false;
                 _escapeGuardFrames = 2;
-                ModLog.Info("window", "opened at " + vm.Settlement.Name);
+                ModLog.Info("window", "opened at " + vm.Settlement.Name + " (" + source + ")");
                 StewardTriggers.MarkReviewed(vm.Settlement);
                 return true;
             }
@@ -125,13 +134,14 @@ namespace SmartSteward.UI
             try
             {
                 if (_onEncyclopediaPage != null)
-                    Game.Current?.EventManager?.UnregisterEvent(_onEncyclopediaPage);
+                    _eventManager?.UnregisterEvent(_onEncyclopediaPage); // the game's manager it was registered with
             }
             catch (Exception ex)
             {
                 ModLog.Error("window", "unregistering the encyclopedia event", ex);
             }
             _onEncyclopediaPage = null;
+            _eventManager = null;
 
             try
             {
@@ -182,6 +192,12 @@ namespace SmartSteward.UI
                 return;
             if (_closeRequested)
             {
+                Close();
+                return;
+            }
+            if (_generation != CampaignSession.Generation)
+            {
+                ModLog.Info("window", "the window belongs to an earlier campaign - closing");
                 Close();
                 return;
             }

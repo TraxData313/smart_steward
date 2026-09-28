@@ -830,6 +830,39 @@ the file is for translators. Translations: `Languages\DE\language_data.xml` + `D
 report, the menu entry, the settings' `ss_set_` / `ss_hint_` / `ss_opt_` / `ss_grp_` built from the registry for MCM
 and the Instructions tab). Generated and held to the code by `StringsFileTests`; deploy.ps1 copies `ModuleData`.
 
+## 17. Playtest round 1 — "cannot enter towns after a load" (2026.09.28)
+
+**The symptom** (Anton, 2026.09.28): after a save was loaded in the same game session, clicking a town or a village no
+longer took the party there; on a town the game said *"Your clan tier is not high enough to request a meeting."* A
+restart cured it.
+
+**Where that text comes from** (the only place in 1.4.8): `DefaultSettlementAccessModel.IsRequestMeetingOptionAvailable`
+(clan tier < 3). It reaches the screen as a QUICK INFORMATION through `DefaultEncounterModel.CanMainHeroDoParleyWithParty`
+← SandBox.View `SettlementVisual.OnMapClick(followModifierUsed: true)`: `MapScreen.HandleLeftMouseButtonClick` passes
+`SceneLayer.Input.IsHotKeyDown("MapFollowModifier")`, and with it held a settlement click is a **parley request**, not a
+move. The parley check only answers for a fortification AT WAR with the player (then the explanation shows); for every
+other town and every village it returns false with no text — **nothing happens, the party does not move**.
+`MBInformationManager.AddQuickInformation` also `Debug.Print`s its text, which is how it reached the game's log.
+
+**The evidence**: `rgl_log_39992.txt` (the session) has the line three times — 09:33:03, 09:33:07, 09:33:15 — after the
+load (save "fst3" at 09:32:21, exit to the main menu 09:32:27, loaded 09:32:35–09:32:48); no exception, no assert, no
+failed load anywhere; our log shows no arrival after the load (the party never entered anything). **`MapFollowModifier` =
+Left Alt** (and a controller's LB) — `MapHotKeyCategory`. `IsHotKeyDown` reads the engine's global key state
+(`Key.IsDown` → `Input.IsKeyDown`), untouched by layers except the keys-allowed flag.
+
+**The cause of the stuck key — inferred, not proven**: the same log shows Alt+Tabs (`OnGameWindowFocusChange: False`
+09:29:43 → `True` 09:30:35, the last focus change before the quit at 09:33:19). Leaving by Alt+Tab and coming back by a
+mouse click can leave the engine believing Left Alt is still down — the Alt release happened outside the window. (The
+managed side only clears the layers' "last down keys" on a focus change — `ScreenManager.OnGameWindowFocusChange` →
+`ResetLastDownKeys`; the key state itself lives in the native engine, not in the decompile.) One tap of Left Alt, or a
+restart, frees it. The load was a coincidence: no map click to a settlement is in the log between the
+Alt+Tab and the load, so the stuck state may well predate it.
+
+**Not the steward**: the mod never writes input (`Input.PressKey` / `ClearKeys` unused; it only reads Shift / Ctrl /
+Escape on its own layer while its window is open — closed at 09:31:18), and no state of it survives a load (audit in
+TASKS_DONE step 12). Since step 12 `InputWatch` writes one log line when the map has read `MapFollowModifier` as held for
+5 s with no menu up, and one when it lets go — the next report says at once whether this was it.
+
 ---
 
 ## Gotchas (one line each)
@@ -898,6 +931,8 @@ and the Instructions tab). Generated and held to the code by `StringsFileTests`;
     `MapState.NextIncident == null` and `!MapScreen.IsMapIncidentActive` before opening anything.
 53. **A module's `Languages\std_*.xml` is never loaded by itself** — only files a `language_data.xml` names are; English
     comes from the code's `{=id}English`, the root std file is the translators' source.
+54. **A map click with Left Alt held asks for a PARLEY, not a move** — a Left Alt stuck after Alt+Tab looks like "towns
+    and villages cannot be entered" ("clan tier not high enough to request a meeting" on hostile towns); tap Left Alt.
 
 ---
 

@@ -54,6 +54,7 @@ namespace SmartSteward
                 starter.AddBehavior(new SmartStewardBehavior());
                 _announcePending = true;
                 ModLog.Info("campaign", "campaign starting — behavior registered");
+                CampaignSession.Begin(); // nothing of an earlier campaign survives (a load inside a running game too)
                 try
                 {
                     SettingsHost.ReloadIfChanged(); // edited at the main menu? pick it up
@@ -72,6 +73,7 @@ namespace SmartSteward
             base.OnApplicationTick(dt);
             UI.StewardWindow.Tick(dt); // cheap when the window is closed
             StewardTriggers.Tick();    // arrival popup / autonomy / leave warning answers — cheap when nothing waits
+            InputWatch.Tick(dt);       // log-only: the map's follow modifier read as held (round 1's "cannot enter towns")
             if (!_announcePending) return;
             try
             {
@@ -93,8 +95,7 @@ namespace SmartSteward
         public override void OnGameEnd(Game game)
         {
             _announcePending = false;
-            UI.StewardWindow.Close(); // a window must not outlive its campaign
-            StewardTriggers.Reset();  // nor a visit or a pending popup
+            CampaignSession.End(); // a window, a visit or a pending popup must not outlive its campaign
             base.OnGameEnd(game);
         }
 

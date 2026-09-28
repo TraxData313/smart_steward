@@ -117,6 +117,11 @@ namespace SmartSteward.UI
         /// typed in; a tab shown later refreshes whole when selected.</summary>
         private void OnSettingsChanged()
         {
+            if (!StewardWindow.IsCurrent(this))
+            {
+                OnFinalize(); // a window that is gone (or of an earlier campaign) never re-plans — let go
+                return;
+            }
             _planStale = true;
             Guard("settings changed", () =>
             {

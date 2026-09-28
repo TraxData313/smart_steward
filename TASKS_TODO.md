@@ -18,6 +18,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [ ] 12. Playtest round 1 fixes — the six BUGS lines marked (R1), the save-load bug first
 
 SHIPPING NEXT (done in main, NOT released yet):
+- Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
 
 BUGS:
 - [ ] (R1) Prices tab: Item name must be the FIRST (leftmost) column
@@ -25,7 +26,7 @@ BUGS:
 - [ ] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
 - [ ] (R1) Arrival popup opened at a village with NO TRADE and nothing to do (Hiblet) — must stay shut
 - [ ] (R1) Closed market (war, crime…) shows an empty table — say the game's reason in the window instead
-- [ ] (R1) TOP: after loading a save in the same game session, clicking towns/villages no longer entered them ("clan tier not high enough to request a meeting" shown) — a game RESTART cured it. Suspect the mod's state surviving a save load
+- [x] (R1) TOP: after loading a save in the same game session, clicking towns/villages no longer entered them ("clan tier not high enough to request a meeting" shown) — a game RESTART cured it. Found: the game read Left Alt as HELD (Alt+Tab) → every click asked for a parley; not the mod — tap Left Alt (RESEARCH §17)
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
@@ -65,3 +66,4 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 10: the Workshop preview is a drawn stand-in of the window — after the playtest put a real shot in tools\preview_thumbnail.html, re-render (tools\render-preview.ps1)
 - [ ] Step 10: the release ships no PDBs (like TrainingBattles) — with them a player's log would carry line numbers (~100 KB); Anton's call
 - [ ] TrainingBattles' package.ps1 zips with Compress-Archive → backslash entry names (seen in TrainingBattles_v1.4.0.zip); ours writes '/' — port it there
+- [ ] Step 12: a stuck Left Alt (after Alt+Tab) blocks entering towns in vanilla too — tell the player in game ("tap Left Alt")? now log-only (InputWatch); Anton's call

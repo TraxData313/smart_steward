@@ -61,11 +61,18 @@ namespace SmartSteward
             public bool Reviewed;
         }
 
+        /// <summary>A popup still waiting for a quiet map after this many frames says in the log what holds it up.</summary>
+        private const int WaitReportFrames = 600;
+
         private static Visit? _visit;
         private static int _quietFrames;
+        private static int _waitFrames;
         private static Settlement? _openRequest;
         private static LeaveGuard? _leaveRequest;
         private static int _leaveRequestFrames;
+
+        /// <summary>The <see cref="CampaignSession.Generation"/> this state belongs to (stamped by <see cref="Reset"/>).</summary>
+        private static int _generation;
 
         /// <summary>The settlement whose leave warning is up this frame: its "leaving" incident must not roll for a
         /// click that did not leave (see <see cref="OnIsSettlementBusy"/>).</summary>
@@ -84,28 +91,62 @@ namespace SmartSteward
 
         // ── campaign events (forwarded by SmartStewardBehavior) ─────────────────────────────────────────
 
-        /// <summary>A new campaign session: nothing carries over from the last one (the menus were rebuilt too).</summary>
+        /// <summary>A new campaign session: nothing carries over from the last one (the menus were rebuilt too). Stamps
+        /// the state with the current <see cref="CampaignSession.Generation"/>.</summary>
         public static void Reset()
         {
             _visit = null;
             _quietFrames = 0;
+            _waitFrames = 0;
             _openRequest = null;
             _leaveRequest = null;
             _warnedThisFrame = null;
+            _generation = CampaignSession.Generation;
             LeaveGuard.Reset();
+        }
+
+        /// <summary>What the triggers hold right now, for the campaign reset's log line ("" = nothing).</summary>
+        internal static string Describe()
+        {
+            var parts = new System.Collections.Generic.List<string>();
+            var visit = _visit;
+            if (visit != null)
+                parts.Add("the visit at " + visit.Settlement?.Name
+                          + (visit.ArrivalPending ? " (arrival popup pending)" : "") + (visit.Reviewed ? " (reviewed)" : ""));
+            if (_openRequest != null)
+                parts.Add("a Review request");
+            if (_leaveRequest != null)
+                parts.Add("a Leave anyway");
+            return string.Join(", ", parts);
+        }
+
+        /// <summary>Drops state stamped by an earlier campaign — the hooks reset it on every start and end already; this
+        /// makes it impossible to act on a settlement or menu of a previous campaign whatever the game's order.</summary>
+        private static void EnsureCurrent()
+        {
+            if (_generation == CampaignSession.Generation)
+                return;
+            string held = Describe();
+            Reset();
+            if (held.Length > 0)
+                ModLog.Info("trigger", "state of an earlier campaign found and dropped: " + held);
         }
 
         public static void OnSettlementEntered(MobileParty? party, Settlement? settlement)
         {
             if (party == null || party != MobileParty.MainParty)
                 return;
+            EnsureCurrent();
             if (settlement == null || !(settlement.IsTown || settlement.IsVillage))
             {
+                if (settlement != null)
+                    ModLog.Info("trigger", "entered " + settlement.Name + " - not a town or a village");
                 _visit = null;
                 return;
             }
             _visit = new Visit(settlement) { Arrived = true };
             _quietFrames = 0;
+            _waitFrames = 0;
             ModLog.Info("trigger", "arrived at " + settlement.Name);
         }
 
@@ -113,6 +154,7 @@ namespace SmartSteward
         {
             if (party == null || party != MobileParty.MainParty)
                 return;
+            EnsureCurrent();
             if (_visit != null)
                 ModLog.Info("trigger", "left " + _visit.Settlement.Name + (_visit.Reviewed ? " (reviewed)" : ""));
             _visit = null;
@@ -127,6 +169,7 @@ namespace SmartSteward
             var menu = args?.MenuContext?.GameMenu;
             if (menu == null)
                 return;
+            EnsureCurrent();
             string id = menu.StringId;
             foreach (var (menuId, optionId) in LeaveOptions)
                 if (menuId == id)
@@ -138,6 +181,9 @@ namespace SmartSteward
             {
                 visit.ArrivalPending = true;
                 _quietFrames = 0;
+                _waitFrames = 0;
+                ModLog.Info("trigger", "the " + id + " menu is up at " + visit.Settlement.Name
+                                       + " - the arrival waits for a quiet map");
             }
         }
 
@@ -146,6 +192,7 @@ namespace SmartSteward
         {
             if (settlement == null)
                 return;
+            EnsureCurrent();
             if (_visit == null || _visit.Settlement != settlement)
                 _visit = new Visit(settlement); // e.g. a campaign loaded inside the town: no arrival, but a visit
             _visit.Reviewed = true;
@@ -168,6 +215,7 @@ namespace SmartSteward
         public static void Tick()
         {
             _warnedThisFrame = null;
+            EnsureCurrent();
             if (_leaveRequest != null)
             {
                 RunLeaveRequest();
@@ -178,26 +226,31 @@ namespace SmartSteward
             if (!arrival && _openRequest == null)
             {
                 _quietFrames = 0;
+                _waitFrames = 0;
                 return;
             }
             try
             {
                 var settlement = _openRequest ?? visit!.Settlement;
-                if (!IsQuiet(settlement, allowPort: _openRequest != null))
+                string? blocker = QuietBlocker(settlement, allowPort: _openRequest != null);
+                if (blocker != null)
                 {
                     _quietFrames = 0;
+                    if (++_waitFrames == WaitReportFrames)
+                        ModLog.Info("trigger", "still waiting for a quiet map at " + settlement.Name + ": " + blocker);
                     return;
                 }
                 if (++_quietFrames < QuietFramesNeeded)
                     return;
                 _quietFrames = 0;
+                _waitFrames = 0;
 
                 if (_openRequest != null)
                 {
                     var target = _openRequest;
                     _openRequest = null;
                     ModLog.Info("trigger", "review requested at " + target.Name + " - opening the window");
-                    StewardWindow.Open(target);
+                    StewardWindow.Open(target, "Review on the leave question");
                     return;
                 }
                 visit!.ArrivalPending = false;
@@ -216,35 +269,44 @@ namespace SmartSteward
             }
         }
 
-        /// <summary>The map screen shows the town/village menu of <paramref name="settlement"/> (or, for a Review
-        /// asked from War Sails' port, the port menu) and nothing else asks for the player: no inquiry, conversation,
-        /// map incident (pending or open), encyclopedia, escape menu, army / town management, recruitment, options,
-        /// cheats, marriage or heir popup — and our own window is closed.</summary>
-        private static bool IsQuiet(Settlement settlement, bool allowPort)
+        /// <summary>Null when the map screen shows the town/village menu of <paramref name="settlement"/> (or, for a
+        /// Review asked from War Sails' port, the port menu) and nothing else asks for the player: no inquiry,
+        /// conversation, map incident (pending or open), encyclopedia, escape menu, army / town management, recruitment,
+        /// options, cheats, marriage or heir popup — and our own window is closed. Otherwise what holds it up (for the
+        /// log).</summary>
+        private static string? QuietBlocker(Settlement settlement, bool allowPort)
         {
-            if (Campaign.Current == null || StewardWindow.IsOpen)
-                return false;
-            if (!(Game.Current?.GameStateManager?.ActiveState is MapState mapState) || !mapState.AtMenu
-                || mapState.NextIncident != null)
-                return false;
+            if (Campaign.Current == null)
+                return "no campaign";
+            if (StewardWindow.IsOpen)
+                return "the window is open";
+            if (!(Game.Current?.GameStateManager?.ActiveState is MapState mapState))
+                return "not on the campaign map (" + (Game.Current?.GameStateManager?.ActiveState?.GetType().Name ?? "no state") + ")";
+            if (!mapState.AtMenu)
+                return "no menu up";
+            if (mapState.NextIncident != null)
+                return "a map incident is pending";
             string? menuId = mapState.MenuContext?.GameMenu?.StringId;
             if (menuId != "town" && menuId != "village" && !(allowPort && menuId == "port_menu"))
-                return false;
+                return "the menu is " + (menuId ?? "none");
             if (MobileParty.MainParty?.CurrentSettlement != settlement)
-                return false;
+                return "the party is at " + (MobileParty.MainParty?.CurrentSettlement?.Name?.ToString() ?? "no settlement");
             if (InformationManager.IsAnyInquiryActive())
-                return false;
+                return "an inquiry is up";
             var conversations = Campaign.Current.ConversationManager;
             if (conversations != null && (conversations.IsConversationFlowActive || conversations.IsConversationInProgress))
-                return false;
-            if (!(ScreenManager.TopScreen is MapScreen map) || !map.IsReady || !map.IsInMenu || map.IsEscapeMenuOpened
-                || map.IsInBattleSimulation || map.IsInTownManagement || map.IsInHideoutTroopManage
+                return "a conversation is running";
+            if (!(ScreenManager.TopScreen is MapScreen map))
+                return "the top screen is " + (ScreenManager.TopScreen?.GetType().Name ?? "none");
+            if (!map.IsReady || !map.IsInMenu)
+                return "the map screen is not ready";
+            if (map.IsEscapeMenuOpened || map.IsInBattleSimulation || map.IsInTownManagement || map.IsInHideoutTroopManage
                 || map.IsInArmyManagement || map.IsInRecruitment || map.IsInCampaignOptions
                 || map.IsMarriageOfferPopupActive || map.IsMapCheatsActive || map.IsMapIncidentActive
                 || map.IsHeirSelectionPopupActive)
-                return false;
+                return "a map panel or popup is open";
             var encyclopedia = map.EncyclopediaScreenManager;
-            return encyclopedia == null || !encyclopedia.IsEncyclopediaOpen;
+            return encyclopedia != null && encyclopedia.IsEncyclopediaOpen ? "the encyclopedia is open" : null;
         }
 
         // ── arrival ─────────────────────────────────────────────────────────────────────────────────────
@@ -272,7 +334,7 @@ namespace SmartSteward
                 return;
             ModLog.Info("trigger", "arrival popup at " + settlement.Name
                 + (settings.PopupOnlyWithChanges ? " (only with suggestions)" : ""));
-            StewardWindow.Open(settlement, onlyWithChanges: settings.PopupOnlyWithChanges, quiet: true);
+            StewardWindow.Open(settlement, "arrival popup", onlyWithChanges: settings.PopupOnlyWithChanges, quiet: true);
         }
 
         private static bool IsLootedVillage(Settlement settlement) =>
@@ -288,6 +350,7 @@ namespace SmartSteward
             settlement = null;
             try
             {
+                EnsureCurrent();
                 var here = MobileParty.MainParty?.CurrentSettlement;
                 if (here == null || !(here.IsTown || here.IsVillage) || IsLootedVillage(here))
                     return false;
@@ -403,11 +466,17 @@ namespace SmartSteward
         private readonly GameMenuOption _option;
         private readonly GameMenuOption.OnConsequenceDelegate? _original;
 
+        /// <summary>The campaign this option was wrapped in: a guard of an earlier one only ever passes through.</summary>
+        private readonly int _generation;
+
+        private bool _saidStale;
+
         private LeaveGuard(string menuId, GameMenuOption option)
         {
             MenuId = menuId;
             _option = option;
             _original = option.OnConsequence;
+            _generation = CampaignSession.Generation;
         }
 
         public string MenuId { get; }
@@ -440,6 +509,16 @@ namespace SmartSteward
         /// vanilla's); only the steward's check is guarded.</summary>
         private void Consequence(MenuCallbackArgs args)
         {
+            if (_generation != CampaignSession.Generation)
+            {
+                if (!_saidStale)
+                {
+                    _saidStale = true;
+                    ModLog.Info("leave", MenuId + "/" + OptionId + " was wrapped in an earlier campaign - passing straight through");
+                }
+                _original?.Invoke(args);
+                return;
+            }
             if (!_bypass && StewardTriggers.ShouldWarnOnLeave(out var settlement) && settlement != null)
             {
                 try

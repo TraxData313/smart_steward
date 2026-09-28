@@ -566,6 +566,10 @@ expected unit prices.
     run could not start). The counts are the executor's real ones, not the plan's. The jobs: food (with the kinds
     bought), mounts (the whole horses section: pack, riding, upgrade), armour & weapons, prisoners (ransomed / donated,
     influence).
+  - **Every campaign starts clean** **[decided: Claude, 2026.09.28 — step 12]**: every campaign start and end (a new game,
+    a load from the main menu or from inside a running campaign, the exit to the main menu) closes the window and drops the
+    visit, a pending popup, Review or Leave anyway (`Module\CampaignSession`); what the steward holds is stamped with its
+    campaign and never used in another (a leave option wrapped in an earlier campaign only passes through).
 - **[research 2026.09.27]** (RESEARCH §10)
   - Menu entries go into the `town` and `village` menus (right after Trade); arrival =
     `SettlementEntered`, then the next `town`/`village` menu opening (it re-fires on every return

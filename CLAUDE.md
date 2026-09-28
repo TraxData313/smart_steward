@@ -137,6 +137,9 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
   StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map, the leave warning (LeaveGuard wraps
                               the leave options lazily at their menu's first opening), the IsSettlementBusy veto
   AutonomousRun.cs            (step 8) the Full-autonomous steward: autonomous plan → executor → message-log report
+  CampaignSession.cs          (step 12) every campaign start/end resets the window + triggers; a generation stamp so nothing
+                              of an earlier campaign is ever used
+  InputWatch.cs               (step 12) log-only: the map's follow modifier (Left Alt) read as held — RESEARCH §17
 tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and
                               StewardSettings + SettingsRegistry ↔ DESIGN §7 checks (keys, order, groups,
                               defaults, ranges); Settings/ = registry, file and service tests;

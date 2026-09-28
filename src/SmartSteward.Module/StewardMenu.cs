@@ -76,7 +76,8 @@ namespace SmartSteward
         {
             try
             {
-                StewardWindow.Open(MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement);
+                StewardWindow.Open(MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement,
+                    "the Party Steward menu entry");
             }
             catch (Exception ex)
             {
