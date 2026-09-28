@@ -179,3 +179,28 @@ Deploy (game closed). Send `smart_steward.log` with any report.
 5. **Wanderer pages.** In a town you never visited the tavern district of, open Party Steward: the message log says
    "You've learned about …" for each listed wanderer. Click a wanderer's name: the Encyclopedia page is complete (no
    "???"). The mercenary troop's name opens its unit page as before.
+
+## Round 3 — live re-plan (step 15)
+
+Deploy (game closed). Send `smart_steward.log` with any report — every re-plan writes a line
+`re-planned for the party after the deal: food target … for … eaters (was …), … footmen, riding target … (was …)`.
+
+1. **Hires feed and mount themselves.** In a town with a mercenary band of foot soldiers, open Party Steward and note the
+   Food section's "target N for M eaters" and the Mounts section's "men on foot · riding target". Ctrl [+] the band: both
+   targets grow at once (2 food and 1.1 horses per man hired), and the food and riding rows buy more. [-] the band back:
+   they shrink back. A mounted band (cavalry) grows the food only. A wanderer: +1 eater, +1 footman unless he rides.
+2. **Prisoners.** [+] on a prisoner row (keep them instead of ransoming): the food target grows by half a man each; ransom
+   them again: it shrinks.
+3. **Your rows stay yours.** Change a food row by hand (its ⟲ appears — that marks it as yours), then hire: your row keeps
+   its number, the other food rows make up the rest. Click your row back to where it was: the ⟲ stays until you click it.
+   ⟲ hands the row back — it follows the party again. **Reset all** gives the first plan back exactly.
+4. **The promise.** Hire men, keep or ransom prisoners, then **Do it**: the window plans afresh — the food and horse rows
+   should show nothing new to buy (food within its surplus tolerance). Check the party screen: enough horses for the
+   footmen (+10%), the food for your days.
+5. **Money.** With a thin purse, hire many men: the steward's own food and horses give way to the hires (your hires come
+   first), the floors still hold where they can. If the steward's food sales shrink with the bigger party so much that the
+   deal no longer pays, the click stops at the most men it pays.
+6. **Food in days.** The Instructions tab's Food group reads `Keep food for (days) [40] days (~2.0 per soul)`; type 60: the
+   bracket shows ~3.0 (less with Warrior's Diet — it is your party's own rate), and the Suggestion tab's food target follows.
+   An old `settings.json` with `"FoodPerMan": 2.5` comes back as `"FoodDays": 50` (one log line, no `.bak`).
+7. **Speed.** Clicks on the mercenaries or a prisoner row should feel as quick as any other click, even on a big party.

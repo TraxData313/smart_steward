@@ -114,7 +114,11 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               PlanReport = the plan as text for the log; LockRule (step 13) = what an inventory lock
                               guards (armour & weapons always, food & horses only with LocksProtectFoodAndHorses);
                               CarryTotals (step 14) = the load and carrying capacity after the deal, land and sea (the
-                              game's numbers now + the formula's rates — GameRules.SetCarryRates, RESEARCH §19)
+                              game's numbers now + the formula's rates — GameRules.SetCarryRates, RESEARCH §19);
+                              the live re-plan (step 15): PlanRow.IsTouched, PartyAfter (the party after the deal from the
+                              party-changing rows — step 16's troop rows plug in via PartyAfter.MovesOf/ChangesParty),
+                              PlanPins (touched rows pinned, walked first; the steward's rows leave them room);
+                              FoodGoal (step 15) = the food goal in days at the game's own rate
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
@@ -153,6 +157,7 @@ tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xm
                               defaults, ranges); Settings/ = registry, file and service tests;
                               Planning/TestKit.cs = FakeOracle + Scenario builder for planner tests;
                               Planning/PlanPerformanceTests = a big late-game plan, open + clicks timed;
+                              Planning/LivePlanTests = the live re-plan (plan → edit the party → Do it → nothing new);
                               Snapshot/, Execution/ = the adapter's pure half; StringsFileTests = the strings file ↔
                               the code (SS_WRITE_STRINGS=1 dotnet test --filter StringsFileTests regenerates it)
 module/SubModule.xml          the manifest

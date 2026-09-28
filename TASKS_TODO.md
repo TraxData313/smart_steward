@@ -37,6 +37,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000" — the capacity after the deal, the part over it in red
 - The "Not now" button is "Close"
 - A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
+- Live re-plan: hires and prisoners kept or ransomed re-plan the food and horses at once — your own rows (⟲ shown) stay and go first
 - Food goal in days: "Keep food for [40] days (~2.0 per soul)" at your party's own rate, perks included; an old "Food per man" converts once (× 20)
 
 BUGS:
@@ -53,7 +54,7 @@ BUGS:
 
 NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [ ] (R3) TROOPS section right after the Tavern: the recruits on offer in this town/village (volunteers of its notables you may take) at the top, then the troops you have — one row per troop type, Mine / [-] [+] / Result / price / on offer; [+] recruits, [-] dismisses; never every troop in the game; starts at 0 like the tavern; names open the Encyclopedia
-- [ ] (R3) Live re-plan (Anton: "after I change the troops the mounts etc are not accurate… so when I hit Do it I won't see new suggestions"): untouched rows follow the party after the deal; touched rows stay
+- [x] (R3) Live re-plan (Anton: "after I change the troops the mounts etc are not accurate… so when I hit Do it I won't see new suggestions"): untouched rows follow the party after the deal; touched rows stay
 - [x] (R3) Weight line like the food: "1,000 +120 kg → 1,120 kg · capacity land 1,500 / sea 1,000" — capacity AFTER the deal (pack animals and troops add to it), the part over a capacity in red ("+120 over at sea")
 - [x] (R3) The "Not now" button next to Do it is just "Close"
 - [x] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
@@ -99,3 +100,4 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 13: with "Locks protect food & horses" on, a food / animal row shows `40 (+40 locked)` — its Mine already counts the locked units (loot's Mine does not), so "+" reads as extra; say "(40 locked)" there?
 - [ ] Step 14: the footer grew a line (the weight line) — the table is ~30 px (one row) shorter; check the look at 1080p
 - [ ] Step 14: unverified whether a party docked at a port counts as IsCurrentlyAtSea (the party screen's capacity uses that live flag) — compare with the footer's land / sea in game
+- [ ] Step 15: a village has no tavern and no ransom, so the live re-plan's promise is tested in towns (walking and flat prices) — step 16: add a village case with recruits to LivePlanTests
