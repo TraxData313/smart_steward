@@ -116,8 +116,9 @@ public class RowCellsTests
     [Fact]
     public void Footer_warnings_come_most_serious_first()
     {
-        var plan = Scenario.BusyTown().Gold(1_500).Plan();
-        plan.Increase("tavern:mercenaries", EditSize.All); // hires past the floors
+        var plan = Scenario.BusyTown().Gold(500).Plan();
+        plan.Increase("tavern:mercenaries", EditSize.All); // the hires alone take the purse past the floors (the steward's
+                                                           // own buys give way to them — the live re-plan)
         var warnings = PlanFooter.Warnings(plan.Totals);
         Assert.Contains(PlanWarning.BelowMinGoldAfterDeal, warnings);
         Assert.Equal(warnings.OrderBy(w => w).ToList(), warnings.ToList());

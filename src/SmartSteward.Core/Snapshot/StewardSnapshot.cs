@@ -300,6 +300,10 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary>Optional short tag of the best skills, when cheap to show.</summary>
         public string? SkillTag { get; set; }
+
+        /// <summary><c>CharacterObject.IsMounted</c> of the hero — a horse in his battle equipment's horse slot (RESEARCH §3).
+        /// Not mounted = one more footman after the hire (the live re-plan, step 15).</summary>
+        public bool IsMounted { get; set; }
     }
 
     public sealed class MercenaryOffer
@@ -316,5 +320,16 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>What one man adds to the load at sea — his horse, when the troop rides (War Sails weighs every mounted
         /// troop's horse at sea); 0 on foot or without ships.</summary>
         public double SeaWeightPerMan { get; set; }
+
+        /// <summary><c>CharacterObject.IsMounted</c> of the troop type — the game's own "man with a horse"
+        /// (<c>PartyBase.NumberOfMenWithHorse</c>): a troop whose default formation class is cavalry or horse archer (its XML
+        /// <c>default_group</c>), RESEARCH §3. Not mounted = every man hired is one more footman who needs a riding mount (the
+        /// live re-plan, step 15). The same field for the recruits of step 16.</summary>
+        public bool IsMounted { get; set; }
+
+        /// <summary>The item categories the troop's upgrade targets require (<c>UpgradeRequiresItemFromCategory</c> — horse,
+        /// war_horse…). New men are never ready to upgrade; these only put a kind of upgrade horse "in play" (DESIGN §2.4). The
+        /// same field for the recruits of step 16.</summary>
+        public List<string> UpgradeCategories { get; set; } = new List<string>();
     }
 }

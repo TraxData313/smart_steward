@@ -58,26 +58,47 @@ namespace SmartSteward.Core.Planning
             Row.MaxBuy = Row.Market ?? 0;
             _buy = new WalkLine(Row, buyLane, book: Row.Book);
             _sell = new WalkLine(Row, sellLane, book: Row.Book);
+            if (ctx.Pins.TryGet(Row.Id, out int pin))
+                _pinned = pin;
         }
+
+        /// <summary>The player's own quantity (a touched row in a live re-plan) — walked first, never re-planned.</summary>
+        private readonly int? _pinned;
 
         public int Target { get; }
         public PlanRow? Row { get; }
 
+        /// <summary>The player's sale of pack animals (a touched row) — first among the animal sales (<see cref="PlanPins"/>).</summary>
+        public void PlanPinnedSells()
+        {
+            if (Row != null && _pinned < 0)
+                PlanWalk.WalkLane(_ctx.Walk, new WalkLine(Row, Row.SellLane!, Row.Mine, -_pinned.Value, Row.Book), int.MaxValue,
+                    () => _ctx.Market.MarketGoldLeft);
+        }
+
+        /// <summary>The player's purchase of pack animals (a touched row) — first among the animal buys.</summary>
+        public void PlanPinnedBuys()
+        {
+            if (Row != null && _pinned > 0)
+                PlanWalk.WalkLane(_ctx.Walk, new WalkLine(Row, Row.BuyLane!, Row.Mine, _pinned.Value, Row.Book), int.MaxValue,
+                    () => null);
+        }
+
         /// <summary>Surplus above the target, the most expensive first, while the market can pay.</summary>
         public void PlanSells()
         {
-            if (Row == null || _sell == null || !_ctx.Settings.SellPackAnimalSurplus)
+            if (Row == null || _sell == null || _pinned != null || !_ctx.Settings.SellPackAnimalSurplus)
                 return;
-            var market = _ctx.Market;
-            _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, _heldCount - Target, () => market.MarketGoldLeft);
+            _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, _heldCount - Target, _ctx.AnimalSellCeiling);
         }
 
         /// <summary>Up to the target, the cheapest eligible first, never below the animal floor.</summary>
         public void PlanBuys()
         {
-            if (Row == null || _buy == null)
+            if (Row == null || _buy == null || _pinned != null)
                 return;
-            _heldCount += PlanWalk.WalkLane(_ctx.Walk, _buy, Target - _heldCount, () => _ctx.Gold - _ctx.AnimalFloor);
+            var walk = _ctx.Walk;
+            _heldCount += PlanWalk.WalkLane(walk, _buy, Target - _heldCount, () => _ctx.AnimalBuyCeiling(walk));
         }
 
         public void Finish()

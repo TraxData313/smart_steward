@@ -102,16 +102,26 @@ namespace SmartSteward.Core.Planning
     /// price limits, the market's stock and the market's gold. For an unedited plan it reproduces the planner
     /// unit for unit: prices only climb while buying and fall while selling, so the same picking capped by the
     /// planner's own quantities makes the same choices.
+    /// <para>The precedence of the live re-plan (step 15, <see cref="PlanPins"/>): in every phase the rows the player's hand
+    /// is on (<paramref name="touchedOf"/>) walk first, then the steward's — the order the re-plan planned the steward's rows
+    /// in, so what it planned is exactly what the walk can do. With no row touched it is the planner's own order.</para>
     /// </summary>
     internal static class PlanReplay
     {
-        public static WalkOutcome Walk(PlanInputs inputs, IReadOnlyList<PlanRow> rows, Func<PlanRow, int> changeOf)
+        public static WalkOutcome Walk(PlanInputs inputs, IReadOnlyList<PlanRow> rows, Func<PlanRow, int> changeOf,
+            Func<PlanRow, bool>? touchedOf = null)
         {
             var log = new List<WalkStep>();
             var market = new MarketState(inputs.Oracle, inputs.Snapshot.MarketGold);
             var walk = new WalkState(market, inputs.Snapshot.PlayerGold, log);
             var all = rows.Select(r => new RowWalk(r, changeOf(r))).ToList();
             List<RowWalk> Of(params RowType[] types) => all.Where(o => Array.IndexOf(types, o.Row.Type) >= 0).ToList();
+            touchedOf ??= r => r.IsTouched;
+            var players = new HashSet<PlanRow>(rows.Where(touchedOf));
+            // The player's rows first, then the steward's (with nothing touched: one pass, the planner's order).
+            var passes = players.Count == 0 ? new[] { false } : new[] { true, false };
+            List<RowWalk> Pass(IEnumerable<RowWalk> phase, bool player) =>
+                phase.Where(o => players.Contains(o.Row) == player).ToList();
 
             // 1. Prisoners — ransom gold (paid by the game) and donations.
             var prisoners = Of(RowType.Prisoner);
@@ -143,24 +153,35 @@ namespace SmartSteward.Core.Planning
             int? goldLeft() => market.MarketGoldLeft;
             int? noCeiling() => null;
 
-            PlanWalk.SellMostHeldFirst(walk,
-                sells.Where(o => o.Row.Type == RowType.Food).Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
-                () => true);
-            foreach (var o in sells.Where(o => o.Row.Section == PlanSectionKind.Mounts))
-                PlanWalk.WalkLane(walk, Line(o, o.Row.SellLane!, -o.Requested), int.MaxValue, goldLeft);
-            PlanWalk.SellInOrder(walk,
-                sells.Where(o => o.Row.Type == RowType.Loot).Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
-                inputs.LootOrder);
+            foreach (bool player in passes)
+                PlanWalk.SellMostHeldFirst(walk,
+                    Pass(sells.Where(o => o.Row.Type == RowType.Food), player)
+                        .Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
+                    () => true);
+            foreach (bool player in passes)
+                foreach (var o in Pass(sells.Where(o => o.Row.Section == PlanSectionKind.Mounts), player))
+                    PlanWalk.WalkLane(walk, Line(o, o.Row.SellLane!, -o.Requested), int.MaxValue, goldLeft);
+            foreach (bool player in passes)
+                PlanWalk.SellInOrder(walk,
+                    Pass(sells.Where(o => o.Row.Type == RowType.Loot), player)
+                        .Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
+                    inputs.LootOrder);
 
             // 3. Buy: food, pack, riding, upgrade horses (the cheapest next across categories).
-            PlanWalk.BuyFood(walk,
-                buys.Where(o => o.Row.Type == RowType.Food).Select(o => Line(o, o.Row.BuyLane!, o.Requested)).ToList(),
-                inputs.FoodBalanced, noCeiling, () => true);
-            foreach (var o in buys.Where(o => o.Row.Type == RowType.Pack || o.Row.Type == RowType.Mount))
-                PlanWalk.WalkLane(walk, Line(o, o.Row.BuyLane!, o.Requested), int.MaxValue, noCeiling);
-            PlanWalk.BuyCheapestAcross(walk,
-                buys.Where(o => o.Row.Type == RowType.WarMount).Select(o => Line(o, o.Row.BuyLane!, o.Requested)).ToList(),
-                noCeiling);
+            foreach (bool player in passes)
+                PlanWalk.BuyFood(walk,
+                    Pass(buys.Where(o => o.Row.Type == RowType.Food), player)
+                        .Select(o => Line(o, o.Row.BuyLane!, o.Requested)).ToList(),
+                    inputs.FoodBalanced, noCeiling, () => true);
+            foreach (bool player in passes)
+            {
+                foreach (var o in Pass(buys.Where(o => o.Row.Type == RowType.Pack || o.Row.Type == RowType.Mount), player))
+                    PlanWalk.WalkLane(walk, Line(o, o.Row.BuyLane!, o.Requested), int.MaxValue, noCeiling);
+                PlanWalk.BuyCheapestAcross(walk,
+                    Pass(buys.Where(o => o.Row.Type == RowType.WarMount), player)
+                        .Select(o => Line(o, o.Row.BuyLane!, o.Requested)).ToList(),
+                    noCeiling);
+            }
 
             foreach (var o in itemRows)
             {

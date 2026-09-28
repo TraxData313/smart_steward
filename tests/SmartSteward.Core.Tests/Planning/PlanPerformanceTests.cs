@@ -124,6 +124,8 @@ public class PlanPerformanceTests
         // for a slower machine; the game price calls are counted exactly.
         Assert.True(times.Max() < 100, "slowest click " + times.Max() + " ms");
         Assert.True(open < 400, "opening took " + open + " ms");
-        Assert.True(calls.Max() <= 10, "a click asked the game for " + calls.Max() + " new prices");
+        // Step 15: a party-changing click re-plans (the planner again, from the warm cache), and the player's rows walk
+        // first — both reach price points the first walk never needed: a few dozen new game prices at most, microseconds.
+        Assert.True(calls.Max() <= 60, "a click asked the game for " + calls.Max() + " new prices");
     }
 }

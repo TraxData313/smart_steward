@@ -212,14 +212,20 @@ namespace SmartSteward.Core.Planning
                 row.Owner = this;
         }
 
-        /// <summary>Only the sections that have rows, in order: tavern, food, mounts, armour &amp; weapons, prisoners.</summary>
-        public IReadOnlyList<PlanSection> Sections { get; }
+        /// <summary>Only the sections that have rows, in order: tavern, food, mounts, armour &amp; weapons, prisoners. Replaced
+        /// only when a live re-plan adds or removes a row (<see cref="Layout"/>).</summary>
+        public IReadOnlyList<PlanSection> Sections { get; private set; }
+
+        /// <summary>Bumps when a live re-plan changed WHICH rows the plan has (an upgrade row appears or goes with the party
+        /// after the deal) — the window rebuilds its table then; otherwise the row objects stay and only their numbers move.</summary>
+        public int Layout { get; private set; }
 
         /// <summary>The header and footer — replaced after every edit.</summary>
         public PlanTotals Totals { get; private set; }
 
-        /// <summary>What the steward derived when planning (targets, needs) — edits do not change them.</summary>
-        public PlanFacts Facts { get; }
+        /// <summary>What the steward derived when planning (targets, needs) — for the party after the deal: a party-changing
+        /// edit re-plans and replaces them (step 15).</summary>
+        public PlanFacts Facts { get; private set; }
 
         /// <summary>Who the plan was made for (the window, or the autonomous steward).</summary>
         public PlanMode Mode => _inputs?.Mode ?? PlanMode.Window;
@@ -263,6 +269,48 @@ namespace SmartSteward.Core.Planning
                 if (string.Equals(row.Id, id, StringComparison.Ordinal))
                     return row;
             return null;
+        }
+
+        /// <summary>
+        /// Takes over a re-plan of this plan (<see cref="StewardPlanner"/> with the touched rows pinned): every row by id
+        /// adopts its re-planned self (<see cref="PlanRow.AdoptFrom"/>) — the objects stay, so the window's rows stay —, rows
+        /// only the re-plan has join, rows it no longer has go (the untouched upgrade row of a kind nobody needs any more), and
+        /// the facts are the party after the deal's. The totals and transactions follow from the caller's walk.
+        /// </summary>
+        internal void Adopt(StewardPlan planned)
+        {
+            var mine = new Dictionary<string, PlanRow>(StringComparer.Ordinal);
+            foreach (var row in Rows)
+                mine[row.Id] = row;
+            bool changed = false;
+            int count = 0;
+            var sections = new List<PlanSection>();
+            foreach (var section in planned.Sections)
+            {
+                var rows = new List<PlanRow>();
+                foreach (var fresh in section.Rows)
+                {
+                    count++;
+                    if (mine.TryGetValue(fresh.Id, out var live))
+                    {
+                        live.AdoptFrom(fresh);
+                        rows.Add(live);
+                    }
+                    else
+                    {
+                        fresh.Owner = this;
+                        rows.Add(fresh);
+                        changed = true;
+                    }
+                }
+                sections.Add(new PlanSection(section.Kind, rows));
+            }
+            if (changed || count != mine.Count)
+            {
+                Sections = sections;
+                Layout++;
+            }
+            Facts = planned.Facts;
         }
     }
 }

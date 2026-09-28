@@ -106,7 +106,7 @@ namespace SmartSteward.Core.Planning
             if (row.Locked > 0) sb.Append(" (+").Append(row.Locked.ToString(Inv)).Append(" locked)");
             if (row.OverValueCap > 0) sb.Append(" (+").Append(row.OverValueCap.ToString(Inv)).Append(" over value cap)");
             sb.Append(", change ").Append(SignedCount(row.Change));
-            if (row.IsEdited) sb.Append(" (suggested ").Append(SignedCount(row.SuggestedChange)).Append(')');
+            if (row.IsTouched) sb.Append(" (yours, suggested ").Append(SignedCount(row.SuggestedChange)).Append(')');
             sb.Append(", result ").Append(row.Result.ToString(Inv))
                 .Append(", market ").Append(row.Market == null ? "-" : row.Market.Value.ToString(Inv))
                 .Append(", max buy ").Append(row.MaxBuy.ToString(Inv)).Append(" / sell ").Append(row.MaxSell.ToString(Inv));

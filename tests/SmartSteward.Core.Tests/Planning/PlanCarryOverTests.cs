@@ -14,7 +14,7 @@ public class PlanCarryOverTests
         Assert.Equal(-5, plan.SetChange("food:grain", -9).After); // clamped to what is held, crossing zero
         Assert.Equal(100, plan.SetChange("food:grain", 500).After); // clamped to the market
         Assert.Equal(15, plan.SetChange("food:grain", 15).After);
-        Assert.False(plan.Row("food:grain").IsEdited);
+        Assert.True(plan.Row("food:grain").IsTouched); // the steward's number again, but by the player's hand
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class PlanCarryOverTests
     }
 
     [Fact]
-    public void A_re_plan_keeps_the_edited_rows_and_takes_the_new_suggestion_elsewhere()
+    public void A_re_plan_keeps_the_touched_rows_and_the_steward_plans_the_rest_around_them()
     {
         var s = new Scenario().Village().Party(10)
             .Food("grain", held: 5, market: 100, buy: 10)
@@ -41,11 +41,10 @@ public class PlanCarryOverTests
 
         s.Settings.FoodPerMan = 4.0; // the steward now wants more food
         var fresh = s.Plan();
-        int fishSuggested = fresh.Row("food:fish").Change;
         Assert.Equal(1, carry.ApplyTo(fresh));
         Assert.Equal(30, fresh.Row("food:grain").Change);         // the player's hand
-        Assert.True(fresh.Row("food:grain").IsEdited);
-        Assert.Equal(fishSuggested, fresh.Row("food:fish").Change); // the new suggestion
+        Assert.True(fresh.Row("food:grain").IsTouched);
+        Assert.Equal(40 - 35, fresh.Row("food:fish").Change);     // the steward fills the new target (40) around it
     }
 
     [Fact]

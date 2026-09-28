@@ -22,7 +22,7 @@ public class PlanEditingTests
         Assert.Equal(21, plan.Increase("food:grain", EditSize.Five).After);
         Assert.Equal(16, plan.Decrease("food:grain", EditSize.Five).After);
         Assert.Equal(15, plan.Decrease("food:grain").After);
-        Assert.False(row.IsEdited);
+        Assert.True(row.IsTouched); // back at the steward's number, but the player's hand is on it until ⟲ (step 15)
 
         var all = plan.Increase("food:grain", EditSize.All);
         Assert.Equal(100, all.After);           // everything on offer within the price
@@ -187,9 +187,10 @@ public class PlanEditingTests
         Assert.Equal(3, plan.Row("mounts:riding").Change);
 
         var reset = plan.Reset("mounts:upgrade:horse");
-        Assert.Equal(0, reset.After);
+        Assert.Equal(0, reset.After);                            // the player's riding row walks first and took all 3
         Assert.Equal(EditBlock.NeededByAnotherRow, reset.Block);
-        Assert.True(plan.Row("mounts:upgrade:horse").IsEdited);
+        Assert.False(plan.Row("mounts:upgrade:horse").IsTouched); // ⟲ handed it back to the steward
+        Assert.True(plan.Row("mounts:riding").IsTouched);
 
         plan.ResetAll();
         Assert.False(plan.IsEdited);
@@ -540,7 +541,9 @@ public class PlanEditingTests
             list.Select(t => t.Kind));
         Assert.Equal(("looter", 3, 3.0), (list[0].TroopId, list[0].Count, list[0].Influence));
         Assert.Equal(("looter", 5, 100), (list[1].TroopId, list[1].Count, list[1].Gold));
-        Assert.Equal(("grain", 40, 320), (list[2].StackKey, list[2].Count, list[2].Gold));
+        // Arn and 5 mercenaries eat too: the food target follows the party after the deal (16 men → 32), so the steward
+        // sells 28 of the 60 grain, not the 40 it planned for 10 men (the live re-plan, step 15).
+        Assert.Equal(("grain", 28, 224), (list[2].StackKey, list[2].Count, list[2].Gold));
         Assert.Equal(("rags", 10, 80), (list[3].StackKey, list[3].Count, list[3].Gold));
         Assert.Equal(("mule", 10, 1_500), (list[4].StackKey, list[4].Count, list[4].Gold));
         Assert.Equal(("w1", 1, 700), (list[5].HeroId, list[5].Count, list[5].Gold));

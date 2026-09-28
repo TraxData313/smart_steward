@@ -23,6 +23,10 @@ namespace SmartSteward.UI
         private StewardPlan? _plan;
         private Settlement? _settlement;
 
+        /// <summary>The plan's <see cref="StewardPlan.Layout"/> the table was built for — a live re-plan that adds or removes a
+        /// row bumps it, and the table is built again (step 15).</summary>
+        private int _layout;
+
         private MBBindingList<SectionVM> _sections = new MBBindingList<SectionVM>();
         private string _headerText = "";
         private string _headerColor = UiColors.Muted;
@@ -75,13 +79,25 @@ namespace SmartSteward.UI
             var snap = visit.Snapshot;
             MarketClosedText = snap.CanTrade ? ""
                 : UiText.S1("ss_ui_market_closed", "Market closed: {REASON}", "REASON", snap.TradeClosedReason ?? "");
-            var sections = new MBBindingList<SectionVM>();
-            foreach (var section in plan.Sections)
-                sections.Add(new SectionVM(section, plan, this));
-            Sections = sections;
+            BuildSections(plan);
             Refresh();
             if (_shown)
                 Adapter.TavernKnowledge.LearnAboutListed(_settlement, plan);
+        }
+
+        /// <summary>The table's sections and rows for the plan as it is; rows that were open (▸) stay open.</summary>
+        private void BuildSections(StewardPlan plan)
+        {
+            var open = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var section in Sections)
+                foreach (var row in section.Rows)
+                    if (row.IsExpanded)
+                        open.Add(row.RowId);
+            var sections = new MBBindingList<SectionVM>();
+            foreach (var section in plan.Sections)
+                sections.Add(new SectionVM(section, plan, this, open));
+            Sections = sections;
+            _layout = plan.Layout;
         }
 
         /// <summary>The window is on screen now (not an arrival popup that stayed shut): the player sees the tavern
@@ -183,10 +199,11 @@ namespace SmartSteward.UI
             if (plan == null)
                 return;
             var size = StewardWindow.CurrentEditSize;
+            var facts = plan.Facts;
             var result = direction > 0 ? plan.Increase(row.Id, size) : plan.Decrease(row.Id, size);
             ModLog.Info("window", (direction > 0 ? "[+] " : "[-] ") + size + " " + row.Id + ": " + result.Before + " -> "
                                   + result.After + (result.Block == EditBlock.None ? "" : " (" + result.Block + ")"));
-            AfterEdit();
+            AfterEdit(facts);
         }
 
         internal void Reset(PlanRow row)
@@ -194,22 +211,37 @@ namespace SmartSteward.UI
             var plan = _plan;
             if (plan == null)
                 return;
+            var facts = plan.Facts;
             var result = plan.Reset(row.Id);
-            ModLog.Info("window", "reset " + row.Id + ": " + result.Before + " -> " + result.After);
-            AfterEdit();
+            ModLog.Info("window", "reset " + row.Id + ": " + result.Before + " -> " + result.After + " (the steward's again)");
+            AfterEdit(facts);
         }
 
         public void ExecuteResetAll() => StewardWindowVM.Guard("reset all", () =>
         {
             if (_plan == null)
                 return;
+            var facts = _plan.Facts;
             _plan.ResetAll();
             ModLog.Info("window", "reset all");
-            AfterEdit();
+            AfterEdit(facts);
         });
 
-        private void AfterEdit()
+        /// <summary>After any edit: a live re-plan (step 15) is logged with the party it planned for, a table whose rows
+        /// changed is built again, then everything reads the plan.</summary>
+        private void AfterEdit(PlanFacts factsBefore)
         {
+            var plan = _plan;
+            if (plan != null && !ReferenceEquals(plan.Facts, factsBefore))
+            {
+                var f = plan.Facts;
+                ModLog.Info("window", "re-planned for the party after the deal: food target " + f.FoodTarget + " for " + f.FoodEaters
+                                      + " eaters (was " + factsBefore.FoodTarget + "), " + f.Footmen + " footmen, riding target "
+                                      + f.RidingTarget + " (was " + factsBefore.RidingTarget + "), upgrade need "
+                                      + string.Join(", ", f.UpgradeNeed.Select(p => p.Key + " " + p.Value)));
+            }
+            if (plan != null && plan.Layout != _layout)
+                BuildSections(plan);
             SetStatus("");
             Refresh();
             _onPlanChanged();
@@ -395,14 +427,14 @@ namespace SmartSteward.UI
         private readonly StewardPlan _plan;
         private string _detailText = "";
 
-        internal SectionVM(PlanSection section, StewardPlan plan, SuggestionTabVM tab)
+        internal SectionVM(PlanSection section, StewardPlan plan, SuggestionTabVM tab, ISet<string>? open = null)
         {
             _section = section;
             _plan = plan;
             TitleText = UiLabels.Section(section.Kind);
             Rows = new MBBindingList<SuggestionRowVM>();
             foreach (var row in section.Rows)
-                Rows.Add(new SuggestionRowVM(row, tab));
+                Rows.Add(new SuggestionRowVM(row, tab) { IsExpanded = open != null && open.Contains(row.Id) });
         }
 
         internal void Refresh()
@@ -473,7 +505,7 @@ namespace SmartSteward.UI
             IsPlainName = !IsLink;
             IncreaseHint = new HintVM();
             DecreaseHint = new HintVM();
-            ResetHint = new HintVM(UiText.S("ss_ui_reset_hint", "Back to the steward's suggestion"));
+            ResetHint = new HintVM(UiText.S("ss_ui_reset_hint", "Your number - the steward plans around it. Click to hand the row back to the steward."));
             LinkHint = new HintVM(UiText.S("ss_ui_link_hint", "Open in the Encyclopedia"));
             ExpandHint = new HintVM(UiText.S("ss_ui_expand_hint", "Show the kinds of animal in this row"));
         }
@@ -504,7 +536,7 @@ namespace SmartSteward.UI
             CanDecrease = decrease == EditBlock.None;
             IncreaseHint.Text = UiLabels.Block(increase);
             DecreaseHint.Text = UiLabels.Block(decrease);
-            CanReset = _row.IsEdited;
+            CanReset = _row.IsTouched; // the ⟲ shows on the rows the player's hand is on (step 15)
 
             HasBreakdown = cells.HasBreakdown;
             RefreshBreakdown();
@@ -553,6 +585,9 @@ namespace SmartSteward.UI
             }
             return string.Join("  ·  ", parts);
         }
+
+        /// <summary>The plan row's id (kept open across a table rebuild).</summary>
+        internal string RowId => _row.Id;
 
         // ── commands ─────────────────────────────────────────────────────────────────────────────────────
 

@@ -134,6 +134,13 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>Mercenaries: what one man adds to the load at sea (his horse, when the troop rides — War Sails).</summary>
         public double SeaWeightPerMan { get; internal set; }
+
+        /// <summary>The man hired rides a horse of his own (<c>CharacterObject.IsMounted</c>) — else he is one more footman
+        /// the steward mounts (the live re-plan, step 15).</summary>
+        public bool IsMounted { get; internal set; }
+
+        /// <summary>Mercenaries: the kinds of upgrade horse the troop's upgrades need (never ready now — new men).</summary>
+        public IReadOnlyList<string> UpgradeCategories { get; internal set; } = Array.Empty<string>();
     }
 
     /// <summary>
@@ -184,7 +191,8 @@ namespace SmartSteward.Core.Planning
         /// null = "—".</summary>
         public int? Market { get; internal set; }
 
-        /// <summary>The steward's proposal — what ⟲ resets to.</summary>
+        /// <summary>The steward's proposal for this row — for an untouched row its quantity, kept up to date by the live
+        /// re-plan; for a touched row the steward's last word before the player's hand took over.</summary>
         public int SuggestedChange { get; internal set; }
 
         /// <summary>The quantity the plan will do — the steward's, or the player's after an edit
@@ -192,8 +200,17 @@ namespace SmartSteward.Core.Planning
         public int Change { get; internal set; }
         public int Result => Mine + Change;
 
-        /// <summary>The player moved this row away from the steward's suggestion (⟲ is live).</summary>
-        public bool IsEdited => Change != SuggestedChange;
+        /// <summary>
+        /// The player's hand is on this row (Anton 2026.09.28, step 15): a click moved it, so it keeps its quantity and the
+        /// steward plans around it — first in its phase of the walk (<see cref="PlanPins"/>). An untouched row belongs to
+        /// the steward: a party-changing edit (a hire, a prisoner kept or ransomed) re-plans it for the party after the
+        /// deal. ⟲ clears the touch and hands the row back to the steward; the ⟲ shows exactly on touched rows.
+        /// </summary>
+        public bool IsTouched { get; internal set; }
+
+        /// <summary>The player's hand is on this row (⟲ is live) — <see cref="IsTouched"/>. It stays so even when clicks bring
+        /// it back to the steward's number; only ⟲ hands it back.</summary>
+        public bool IsEdited => IsTouched;
 
         /// <summary>Why a [+] cannot move this row right now (<see cref="EditBlock.None"/> = it can) — live:
         /// recomputed after every edit, since rows share the market's stock, gold and prices, the purse and the
@@ -261,6 +278,48 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>The plan the row belongs to (its editor).</summary>
         internal StewardPlan? Owner { get; set; }
+
+        /// <summary>
+        /// Takes over what a re-plan made of this row (same id) — every number, lane and fact — so the window keeps its
+        /// row objects across a live re-plan. Kept: the id, section and type (the same by id), the owner, the touch, and a
+        /// touched row's <see cref="SuggestedChange"/> (the steward did not plan it). Every settable property must be listed
+        /// here — <c>PlanRowTests</c> checks by reflection that none is forgotten.
+        /// </summary>
+        internal void AdoptFrom(PlanRow planned)
+        {
+            Name = planned.Name;
+            ItemId = planned.ItemId;
+            TroopId = planned.TroopId;
+            HeroId = planned.HeroId;
+            CategoryId = planned.CategoryId;
+            LootGroup = planned.LootGroup;
+            Role = planned.Role;
+            Mine = planned.Mine;
+            Locked = planned.Locked;
+            LocksGuard = planned.LocksGuard;
+            OverValueCap = planned.OverValueCap;
+            Market = planned.Market;
+            if (!IsTouched)
+                SuggestedChange = planned.SuggestedChange;
+            Change = planned.Change;
+            MaxBuy = planned.MaxBuy;
+            MaxSell = planned.MaxSell;
+            UnitPriceMin = planned.UnitPriceMin;
+            UnitPriceMax = planned.UnitPriceMax;
+            GoldDelta = planned.GoldDelta;
+            WeightDelta = planned.WeightDelta;
+            InfluenceDelta = planned.InfluenceDelta;
+            Target = planned.Target;
+            Need = planned.Need;
+            PriceBook = planned.PriceBook;
+            Prisoner = planned.Prisoner;
+            Tavern = planned.Tavern;
+            BuyLane = planned.BuyLane;
+            SellLane = planned.SellLane;
+            Breakdown = planned.Breakdown;
+            Book = planned.Book;
+            HeldStacks = planned.HeldStacks;
+        }
 
         /// <summary>Change, prices, gold and weight of an item row, from its tallies.</summary>
         internal void SumTallies()

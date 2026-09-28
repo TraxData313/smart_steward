@@ -102,6 +102,15 @@ trade penalty of 0.06 (§8).
   element whose `CharacterObject.IsMounted` — for troops that is their battle equipment; for a
   **hero** it is `Equipment[10].Item != null` (horse slot of the hero's battle equipment).
   **Heroes and wounded are included.**
+  **[corrected 2026.09.28 — step 15]** For a TROOP it is not the equipment: `BasicCharacterObject.IsMounted` returns
+  `_isMounted = DefaultFormationClass.IsMounted()`, set once when the troop's XML is read (`default_group` → the
+  formation class; `TroopClassExtensions.IsMounted` = `DefaultClass()` is Cavalry, or the class is HorseArcher — so
+  HeavyCavalry/LightCavalry count, `Core\BasicCharacterObject.cs` Deserialize, `Core\TroopClassExtensions.cs`). Only a
+  HERO is judged by his gear: `CharacterObject.IsMounted` overrides it with `Equipment[10]`, and a hero's `Equipment` is
+  `HeroObject.BattleEquipment` (`CS\CharacterObject.cs`). The steward carries exactly that bool per hired troop type
+  (`MercenaryOffer.IsMounted`, `WandererForHire.IsMounted` — step 16's recruits the same) and counts every man hired who is
+  not mounted as a footman (DESIGN §1.1, the live re-plan). NB War Sails' sea weight looks at the equipment instead
+  (`Equipment.Horse`, §19) — two different rules for "has a horse", each used where the game uses it.
 - **Available mounts** = `ItemRoster.NumberOfMounts` (items with `HorseComponent.IsMount`). War
   horses, noble horses and camels count; **pack animals never carry footmen**.
 - **Mounted footmen** = `min(footmen, NumberOfMounts)` → `+0.15 × mountedFootmen / totalMen`
@@ -1074,6 +1083,9 @@ opened the town's tavern district menu, the same click showed the full page.
     formula's pieces (§19); at sea War Sails weighs every animal AND every mounted troop's horse.
 59. **An unknown clanless hero's Encyclopedia page is all "???"** — `Hero.IsKnownToPlayer`; vanilla sets it for the tavern's
     heroes when the tavern district menu opens (`GameMenuOpened` + `MenuLocations`), no talk needed (§20).
+60. **A troop's "man with a horse" is its formation class, not its gear** — `CharacterObject.IsMounted` (what
+    `NumberOfMenWithoutHorse` counts) = the XML `default_group` is cavalry / horse archer; only heroes are judged by the horse
+    slot. War Sails' sea weight uses the gear instead (§3, §19).
 
 ---
 

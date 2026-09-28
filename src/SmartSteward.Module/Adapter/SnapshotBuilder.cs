@@ -181,7 +181,10 @@ namespace SmartSteward.Adapter
                    + (s.Prison.DonateAllowed ? "yes, room " + s.Prison.DungeonRoom.ToString(inv) : "no") + "); tavern "
                    + (s.Tavern == null ? "none"
                        : s.Tavern.Wanderers.Count.ToString(inv) + " wanderers, "
-                         + (s.Tavern.Mercenaries == null ? "no band" : s.Tavern.Mercenaries.Available.ToString(inv) + " " + s.Tavern.Mercenaries.Name));
+                         + (s.Tavern.Mercenaries == null ? "no band" : s.Tavern.Mercenaries.Available.ToString(inv) + " " + s.Tavern.Mercenaries.Name
+                             + (s.Tavern.Mercenaries.IsMounted ? " (mounted" : " (on foot")
+                             + (s.Tavern.Mercenaries.UpgradeCategories.Count > 0
+                                 ? ", upgrades need " + string.Join("/", s.Tavern.Mercenaries.UpgradeCategories) : "") + ")"));
         }
 
         private static void ReadParty(StewardSnapshot snap, MobileParty main)
@@ -475,6 +478,8 @@ namespace SmartSteward.Adapter
                     HirePrice = hiring.GetCompanionHiringPrice(h),
                     DailyWage = h.CharacterObject.TroopWage,
                     SkillTag = SkillTag(h),
+                    // the game's own "man with a horse": a hero by his battle equipment's horse slot (RESEARCH §3)
+                    IsMounted = h.CharacterObject.IsMounted,
                 });
             }
 
@@ -491,9 +496,31 @@ namespace SmartSteward.Adapter
                     WagePerMan = troop.TroopWage,
                     InParty = main.MemberRoster.GetTroopCount(troop),
                     SeaWeightPerMan = SeaWeightPerMan(snap, main, troop),
+                    IsMounted = troop.IsMounted,
+                    UpgradeCategories = UpgradeCategoriesOf(troop),
                 };
             }
             snap.Tavern = tavern;
+        }
+
+        /// <summary>
+        /// The kinds of upgrade horse a troop type's upgrades need — <c>UpgradeRequiresItemFromCategory</c> of each upgrade
+        /// TARGET (RESEARCH §4). The live re-plan (step 15) puts them in play when such men are hired (never ready: new men
+        /// have no XP); step 16's recruits use the same.
+        /// </summary>
+        internal static List<string> UpgradeCategoriesOf(CharacterObject troop)
+        {
+            var categories = new List<string>();
+            var targets = troop.UpgradeTargets;
+            if (targets == null)
+                return categories;
+            foreach (var target in targets)
+            {
+                string? id = target?.UpgradeRequiresItemFromCategory?.StringId;
+                if (!string.IsNullOrEmpty(id) && !categories.Contains(id!))
+                    categories.Add(id!);
+            }
+            return categories;
         }
 
         private static string? SkillTag(Hero hero)

@@ -228,7 +228,7 @@
     <string id="ss_ui_ready_to_upgrade" text="Troops ready to upgrade now: {HORSES} for a horse, {WAR_HORSES} for a war horse" />
     <string id="ss_ui_ready_to_upgrade_hint" text="What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen." />
     <string id="ss_ui_reset_all" text="Reset all" />
-    <string id="ss_ui_reset_hint" text="Back to the steward's suggestion" />
+    <string id="ss_ui_reset_hint" text="Your number - the steward plans around it. Click to hand the row back to the steward." />
     <string id="ss_ui_role_pack" text="Pack animals" />
     <string id="ss_ui_role_riding" text="Riding mounts" />
     <string id="ss_ui_role_upgrade" text="Upgrade horses ({CATEGORY})" />

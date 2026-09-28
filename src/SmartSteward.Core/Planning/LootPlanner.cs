@@ -123,7 +123,26 @@ namespace SmartSteward.Core.Planning
         private static double PerKg(ItemStack stack, Func<ItemStack, int> startPrice) =>
             stack.UnitWeight > 0 ? startPrice(stack) / stack.UnitWeight : double.PositiveInfinity;
 
-        public void PlanSells() => PlanWalk.SellInOrder(_ctx.Walk, _groups.Select(g => g.Sell).ToList(), _order);
+        /// <summary>The player's own loot rows first (touched rows in a live re-plan, <see cref="PlanPins"/>), then the
+        /// steward's: every group sold in the order, with the market's gold that is left.</summary>
+        public void PlanSells()
+        {
+            var mine = new List<WalkLine>();
+            var steward = new List<WalkLine>();
+            foreach (var group in _groups)
+            {
+                if (_ctx.Pins.TryGet(group.Row.Id, out int pin))
+                {
+                    if (pin < 0)
+                        mine.Add(new WalkLine(group.Row, group.Row.SellLane!, group.Row.Mine, -pin, group.Row.Book));
+                }
+                else
+                    steward.Add(group.Sell);
+            }
+            if (mine.Count > 0)
+                PlanWalk.SellInOrder(_ctx.Walk, mine, _order);
+            PlanWalk.SellInOrder(_ctx.Walk, steward, _order);
+        }
 
         public void Finish()
         {

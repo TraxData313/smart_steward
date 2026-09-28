@@ -106,11 +106,54 @@ Buttons on Change:
   buying; everything held when selling). **[research 2026.09.27]** These are the game's own
   rebindable hot keys `FiveStackModifier` (Shift) and `EntireStackModifier` (Ctrl) — the same the
   inventory and party screens use (RESEARCH §11).
-- **⟲ reset** returns the row to the steward's suggestion.
+- **⟲ reset** returns the row to the steward's suggestion. **[step 15]** It hands the row back to the steward: the touch is
+  cleared and the steward plans the row again, around the rows the player still holds (the live re-plan below).
 - Clamped: can never sell more than held, never buy more than the market has.
 - Every edit re-prices the row (marginal prices, §4.1) and refreshes the footer live.
-- A row the player edits stays as edited — the steward does not re-plan other rows around it
-  **[decided: Claude, 2026.09.27 — predictable beats clever]**.
+- ~~A row the player edits stays as edited — the steward does not re-plan other rows around it
+  **[decided: Claude, 2026.09.27 — predictable beats clever]**.~~ — **PARTLY OVERTURNED [Anton 2026.09.28, playtest round 3]**:
+  *"after I change the troops the mounts etc are not really accurate for the new numbers I entered, so can you recalculate
+  the food and mounts as I add more troops or remove dynamically, so when I hit Do it at the end I won't see new
+  suggestions for the new troop counts?"* A row the player edits still stays as edited; but an edit that changes the PARTY
+  after the deal now re-plans every row the player has not touched — **the live re-plan**, below. An edit that does not
+  change the party still re-plans nothing (predictable beats clever holds there).
+- **The live re-plan** **[Anton 2026.09.28, playtest round 3; how: decided: Claude, 2026.09.28 — step 15]**
+  (Core `StewardPlan` editing, `PlanPins`, `PartyAfter`):
+  - **Touched rows.** Every row has an explicit "touched by the player" state (`PlanRow.IsTouched`): a click that moves it
+    touches it, and it stays touched — even when clicks bring it back to the steward's number — until ⟲. The ⟲ shows exactly
+    on touched rows (that is the subtle mark of "yours"; no prefab change). Untouched rows are the steward's.
+  - **What re-plans.** An edit of a party-changing row — a tavern hire (wanderers, mercenaries), a prisoner row (a prisoner
+    ransomed or donated stops eating, one kept eats half a ration), and step 16's recruit and dismiss rows — re-derives the
+    party after the deal and runs the SAME planners in the SAME walk, order, money chain and floors on the same snapshot,
+    with every touched row pinned at its quantity. Every UNTOUCHED item row — food, pack animals, riding mounts, upgrade and
+    war horses, and armour & weapons (whose share of the market's gold moves with the food sales) — takes what the planners
+    make of it now. Other edits do not re-plan (keeps a click fast and predictable). ⟲ and "Reset all" re-plan too: ⟲ hands one
+    row back, "Reset all" hands every row back — with nothing touched that is exactly the first plan.
+  - **The party after the deal.** Members = now + hires (+ recruits − dismissals). Eaters = members + half the prisoners who
+    stay (the game's integer halves). Footmen = now + every man hired who is not mounted, by the game's own rule
+    (`CharacterObject.IsMounted`: a troop by its default formation class, cavalry / horse archer; a hero by his battle
+    equipment's horse slot — RESEARCH §3), carried per troop type in the snapshot (the mercenary band, each wanderer; step
+    16's recruits the same field). New men are never ready to upgrade (no XP yet), but a troop whose upgrade needs a kind of
+    horse puts that kind in play (a fixed "horses for upgrades" number or the spares then apply); men who leave a stack take
+    its ready count down with them. The footer's facts (food target and eaters, footmen, riding target) follow.
+  - **Precedence** (`PlanPins`): in every phase of the walk — food sales · animal sales · loot sales · food buys · animal
+    buys — the player's touched rows go FIRST, then the steward's; so the player's rows take the market's stock, its gold and
+    a category's price room before the steward's. And because a phase only sees what came before it, the steward's rows
+    also leave room for the player's rows of later phases: its sales leave the market the gold the player's later sales need,
+    its buys leave the purse what the player's later buys AND hires cost — then the money floors as ever. So hires come
+    first for the purse: the steward's own food and horses give way to them (a [+] on a hire is judged with the steward's
+    buys giving way; if the re-planned deal still cannot pay — a bigger party leaves less food surplus to sell — the click
+    steps back to the most hires it pays). The plan editor's walk (`PlanReplay`) uses the same precedence, so every edit
+    prices the player's rows first too; with no row touched it is the planner's own order.
+  - **Rows may come and go.** A kind of upgrade horse that comes into play brings its row; an untouched upgrade row nobody
+    needs any more goes (a touched one stays). The window keeps its row objects and rebuilds its table only then
+    (`StewardPlan.Layout`).
+  - **A settings change** (Prices/Instructions tab, MCM, the file) re-plans as before and puts the player's touched rows back
+    in one re-plan (`PlanCarryOver` → `StewardPlan.Restore`): the steward plans its rows around them — the hires included.
+  - **The promise, as a test** (`LivePlanTests`): plan → edit the party → Do it → a fresh plan of the resulting party proposes
+    nothing new for food, pack animals, riding mounts or upgrade horses (food within its surplus tolerance).
+  - **Speed**: only a party-changing click (or ⟲ / Reset all) re-plans; on the late-game benchmark a re-planning click costs
+    15–26 ms (the re-plan itself 1–6 ms, the rest the window's usual refresh), ordinary clicks 14–19 ms (step 9: ≤ ~20 ms).
 - **How an edit behaves** **[decided: Claude, 2026.09.27 — step 4b]** (Core: `StewardPlan.Increase` /
   `Decrease` / `Reset` / `ResetAll`, the rows' live `IncreaseBlock` / `DecreaseBlock`):
   - Every click walks the WHOLE plan again in the planner's own order and picking rules (§3, §4.1), each
@@ -129,7 +172,7 @@ Buttons on Change:
   - Rarely, lowering one row makes another impossible (a sale taken back raises a category's price past the
     max of a row buying in it): that row is cut to what the market allows.
   - ⟲ returns a row to the suggestion as far as what other rows took since allows; reset-all restores the plan
-    exactly.
+    exactly. **[step 15]** Both by a re-plan now: the row (every row) is the steward's again.
   - Prisoners moved by hand join the same split as the steward's: the dungeon's room filled most valuable
     first, the rest ransomed.
 - **The window as built** **[decided: Claude, 2026.09.27 — step 7]**:
@@ -137,7 +180,8 @@ Buttons on Change:
     on the same snapshot when the Suggestion tab shows again; every row the player had edited is set back to its
     edited quantity by row id, as far as the new plan allows (new limits clamp it; a row the new plan no longer has
     is dropped); the other rows take the new suggestion. **Do it** looks at the world again and plans afresh with no
-    carry-over — the edits were carried out. (Core `PlanCarryOver`, `StewardPlan.SetChange`.)
+    carry-over — the edits were carried out. (Core `PlanCarryOver`, `StewardPlan.SetChange`.) **[step 15]** "Edited" =
+    touched; they are put back in one re-plan (`StewardPlan.Restore`), so the new suggestion is planned around them.
   - The Price cell reads `units × unit price = signed total` (`3 × 180–240 = –630`, `5 × 48 = +240`); a tavern row at
     0 shows the price to hire. The game's UI fonts have no → − ≈ ⟲ ▸ (RESEARCH §14): the header reads
     `Gold 12,400 » 10,930 (–1,470)`, the minus is an en dash, ⟲ and ▸ are the game's refresh and collapser icons.
@@ -270,6 +314,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   price (§1.3).
 - **[decided: Claude, 2026.09.27 — step 4]** The target counts only the prisoners who stay — those
   this visit ransoms or donates are not fed. Two types held equally when selling → the dearer goes first.
+- **[step 15]** The eaters are the party AFTER the deal: the men the plan hires eat from today, and the target follows every
+  hire and every prisoner kept or ransomed live (§1.1, the live re-plan).
 - **Locked food is managed** **[Anton 2026.09.28, playtest round 2]**: food LOCKED in the inventory screen counts as held
   and is sold as surplus by the rules above like any other (most-held type first, down to the target) — unless
   `LocksProtectFoodAndHorses` (default **off**; on = locked food is counted but never sold, the old way). See §2.6.
@@ -296,6 +342,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   inventory (war and noble horses and camels too) but **never a pack animal**. Mounts beyond the
   footmen join the herd, which slows the party only once animals outnumber the men.
 - **Target** = `ceil(footmen × MountsPer100Footmen / 100)` (default **110** → a 10% buffer).
+  **[step 15]** The footmen of the party after the deal: every man the plan hires who is not mounted (the game's own
+  `CharacterObject.IsMounted`, RESEARCH §3) needs a mount too — live with every hire (§1.1).
 - War mounts held (§2.4) count toward this target when `WarMountsCountAsMounts` (default on —
   the game lets footmen ride any riding animal in the inventory).
 - **Buy** the cheapest ELIGIBLE mounts (§1.1.1 — price-book max AND ≤ `MountMaxPrice`, default
@@ -327,6 +375,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   foot target and a horse-needing one (see NOT FULLY DECIDED). An upgrade consumes the **cheapest**
   animal of the category first and locked ones only last — so the reserved war mounts are the
   cheapest of their category.
+- **[step 15]** Men the plan hires are never ready to upgrade (no XP yet); a hired troop whose upgrade needs a kind of horse
+  puts that kind in play (its fixed number or the spares then apply — §1.1, the live re-plan).
 - **Buy** the cheapest ELIGIBLE of the needed category (price-book max if set — war mounts have
   no auto-filled placeholder by default — AND ≤ `WarMountMaxPrice`, default **2000**).
 - **Sell surplus** (`SellWarMountSurplus`, default on) above what is needed, most expensive first.
@@ -441,6 +491,8 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
   section) follow the same rule.
 - Tavern hires count in the header total and the footer like any purchase, but sit OUTSIDE the
   money floors' priority chain (the player chose them by hand; a floor breach shows red, §1.1).
+  **[step 15]** They come FIRST for the purse: the steward's own food and horses — planned live for the party with the hires
+  (§1.1) — leave their gold, then answer to the floors.
 - `ShowTavern` (default **on**) shows the section; `ShowWanderers`, `ShowMercenaries` (default
   **on**) toggle its halves.
 - **Names are clickable** **[Anton 2026.09.27]**: a wanderer's name opens that hero's Encyclopedia
@@ -476,6 +528,8 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts (LATER → Others, the
    price-book trading of §1.3.1, answering to `MinGoldAfterDeal`).
 3. **Floors**:
+   - **[step 15]** The player's own rows (touched rows and hires) come before the chain: the steward's buys leave their gold
+     first (§1.1, the live re-plan).
    - `MinGoldAfterDeal` (default **1000**): no purchase takes the purse below this.
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
      purse below this. Food only answers to `MinGoldAfterDeal` — food outranks horses.
@@ -536,7 +590,8 @@ ready troops and their required war-mount category), prisoners (with ransom valu
 (item id, count, weight, type, locked flag), market (item id, stock, buy price walk, sell price
 walk), market gold, player gold, daily food consumption, settlement kind (town/village), whether
 donating prisoners is allowed, the tavern (wanderers with hire price and wage; the mercenary
-troop, count on offer, price and wage), the party size limit (shown, never a block) and room for companions. Core returns a **StewardPlan**: rows (item or troop, change,
+troop, count on offer, price and wage — **[step 15]** and for each, whether he rides (`IsMounted`) and, for the band, the kinds of
+upgrade horse its upgrades need), the party size limit (shown, never a block) and room for companions. Core returns a **StewardPlan**: rows (item or troop, change,
 unit prices, total), and footer numbers. The Module's executor performs a plan with the game's
 own trade/ransom/donate actions so gold, stock, prices and skill XP behave as in vanilla.
 

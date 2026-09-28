@@ -152,19 +152,22 @@ namespace SmartSteward.Core.Planning
     internal static class PlanWalk
     {
         /// <summary>Food surplus: the line holding the most goes first (keeps variety), ties → the dearer unit;
-        /// a unit only while the market can pay for it.</summary>
-        public static void SellMostHeldFirst(WalkState walk, IReadOnlyList<WalkLine> lines, Func<bool> more)
+        /// a unit only while the market can pay for it — or, given a <paramref name="ceiling"/>, only up to it (the steward's
+        /// sales leave the market the gold the player's later sales need, <see cref="PlanPins"/>).</summary>
+        public static void SellMostHeldFirst(WalkState walk, IReadOnlyList<WalkLine> lines, Func<bool> more,
+            Func<int?>? ceiling = null)
         {
             var market = walk.Market;
             while (more())
             {
+                int? limit = ceiling != null ? ceiling() : market.MarketGoldLeft;
                 WalkLine? best = null;
                 UnitQuote bestQuote = default;
                 foreach (var line in lines)
                 {
                     if (!line.Wants)
                         continue;
-                    var quote = line.Cursor.Peek(market, market.MarketGoldLeft);
+                    var quote = line.Cursor.Peek(market, limit);
                     if (quote == null)
                         continue;
                     if (best == null || line.Held > best.Held

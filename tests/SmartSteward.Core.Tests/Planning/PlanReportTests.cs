@@ -57,7 +57,7 @@ public class PlanReportTests
         // …the player's hand buys one anyway: the floor shows, it does not block
         plan.Increase("mounts:riding");
         var edited = PlanReport.Full(plan).ToList();
-        Assert.Contains(edited, l => l.Contains("mounts:riding \"Riding mounts\" Mount: mine 0, change +1 (suggested +0)"));
+        Assert.Contains(edited, l => l.Contains("mounts:riding \"Riding mounts\" Mount: mine 0, change +1 (yours, suggested +0)"));
         Assert.Contains("flags: below the minimum gold for horses", edited);
         Assert.DoesNotContain(edited, l => l.Contains("cannot afford"));
     }

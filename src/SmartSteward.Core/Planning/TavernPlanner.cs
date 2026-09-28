@@ -30,7 +30,7 @@ namespace SmartSteward.Core.Planning
                              .ThenBy(w => w.HeroId, StringComparer.Ordinal))
                 {
                     var block = ctx.Snapshot.Party.CompanionSlotsFree <= 0 ? HireBlock.CompanionLimit : HireBlock.None;
-                    rows.Add(new PlanRow("tavern:wanderer:" + wanderer.HeroId, PlanSectionKind.Tavern, RowType.Tavern)
+                    rows.Add(Pinned(ctx, new PlanRow("tavern:wanderer:" + wanderer.HeroId, PlanSectionKind.Tavern, RowType.Tavern)
                     {
                         Name = wanderer.Name,
                         HeroId = wanderer.HeroId,
@@ -44,15 +44,16 @@ namespace SmartSteward.Core.Planning
                             DailyWage = wanderer.DailyWage,
                             Block = block,
                             SkillTag = wanderer.SkillTag,
+                            IsMounted = wanderer.IsMounted,
                         },
-                    });
+                    }));
                 }
             }
 
             var mercenaries = tavern.Mercenaries;
             if (settings.ShowMercenaries && mercenaries != null && mercenaries.Available > 0)
             {
-                rows.Add(new PlanRow("tavern:mercenaries", PlanSectionKind.Tavern, RowType.Tavern)
+                rows.Add(Pinned(ctx, new PlanRow("tavern:mercenaries", PlanSectionKind.Tavern, RowType.Tavern)
                 {
                     Name = mercenaries.Name,
                     TroopId = mercenaries.TroopId,
@@ -65,10 +66,27 @@ namespace SmartSteward.Core.Planning
                         UnitPrice = mercenaries.PricePerMan,
                         DailyWage = mercenaries.WagePerMan,
                         SeaWeightPerMan = Math.Max(0, mercenaries.SeaWeightPerMan),
+                        IsMounted = mercenaries.IsMounted,
+                        UpgradeCategories = (mercenaries.UpgradeCategories ?? new List<string>())
+                            .Where(c => !string.IsNullOrEmpty(c)).Distinct(StringComparer.Ordinal).ToList(),
                     },
-                });
+                }));
             }
             return rows;
+        }
+
+        /// <summary>Every hire starts at 0 — or, in a live re-plan, at the player's own number (<see cref="PlanPins"/>): the
+        /// hires are the player's hand, the steward plans the food and horses around them.</summary>
+        private static PlanRow Pinned(PlanContext ctx, PlanRow row)
+        {
+            if (ctx.Pins.TryGet(row.Id, out int hired))
+            {
+                row.Change = Math.Max(0, Math.Min(row.MaxBuy, hired));
+                row.GoldDelta = -row.Change * row.Tavern!.UnitPrice;
+                row.UnitPriceMin = row.Change > 0 ? row.Tavern.UnitPrice : 0;
+                row.UnitPriceMax = row.UnitPriceMin;
+            }
+            return row;
         }
     }
 }

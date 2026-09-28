@@ -61,8 +61,7 @@ namespace SmartSteward.Core.Planning
                          .OrderByDescending(p => p.RansomValue).ThenBy(p => p.TroopId, StringComparer.Ordinal))
             {
                 bool proposed = !prisoner.IsHero || settings.RansomHeroPrisoners;
-                wanted.Add(proposed ? prisoner.Count : 0);
-                rows.Add(new PlanRow("prisoner:" + prisoner.TroopId, PlanSectionKind.Prisoners, RowType.Prisoner)
+                var row = new PlanRow("prisoner:" + prisoner.TroopId, PlanSectionKind.Prisoners, RowType.Prisoner)
                 {
                     Name = prisoner.Name,
                     TroopId = prisoner.TroopId,
@@ -74,7 +73,12 @@ namespace SmartSteward.Core.Planning
                         InfluencePerMan = prisoner.InfluencePerMan,
                         IsHero = prisoner.IsHero,
                     },
-                });
+                };
+                // A live re-plan keeps the player's own number of prisoners to move (a touched row, PlanPins).
+                wanted.Add(ctx.Pins.TryGet(row.Id, out int pin)
+                    ? Math.Max(0, Math.Min(row.MaxSell, -pin))
+                    : proposed ? prisoner.Count : 0);
+                rows.Add(row);
             }
 
             var moves = Split(wanted, ransom, donate, room);

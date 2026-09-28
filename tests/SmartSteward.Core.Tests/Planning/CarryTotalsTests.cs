@@ -99,6 +99,7 @@ public class CarryTotalsTests
             Mercenaries = new MercenaryOffer
             {
                 TroopId = "merc", Name = "Riders", Available = 10, PricePerMan = 100, SeaWeightPerMan = 50,
+                IsMounted = true, // riders bring their own horses: no footmen to mount
             },
         };
         var plan = s.Plan();
@@ -106,10 +107,10 @@ public class CarryTotalsTests
 
         var c = plan.Totals.Carry;
         Assert.True(c.ShowSea);
-        // at sea: +20 grain, +10 mules × 30, −3 hunters × 50, +5 riders' horses × 50
-        Assert.Equal(1_150 + 20 + 300 - 150 + 250, c.WeightAtSeaAfter);
+        // at sea: +30 grain (the 5 riders eat too — the live re-plan), +10 mules × 30, −3 hunters × 50, +5 riders' horses × 50
+        Assert.Equal(1_150 + 30 + 300 - 150 + 250, c.WeightAtSeaAfter);
         Assert.Equal(1_000 + 5 * 20, c.CapacitySeaAfter);       // ships fixed; animals add nothing at sea
-        Assert.Equal(1_570 - 1_100, c.OverSea);
+        Assert.Equal(1_580 - 1_100, c.OverSea);
         Assert.Equal(1_500 + 1_000 - 60 + 5 * 20, c.CapacityLandAfter);
         Assert.Equal(0, c.OverLand);
         Assert.True(c.SeaLoadDiffers);

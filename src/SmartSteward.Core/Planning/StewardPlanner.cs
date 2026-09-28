@@ -24,11 +24,18 @@ namespace SmartSteward.Core.Planning
     /// <item>Tavern — rows at 0, outside the chain; never in an autonomous plan (DESIGN §6).</item>
     /// </list>
     /// <see cref="PlanMode.Autonomous"/> raises the floors to AutonomousMinGold (<see cref="MoneyFloors"/>).
+    /// <para>The live re-plan (step 15, DESIGN §1.1): <see cref="StewardPlan"/> plans again with the rows the player's hand
+    /// is on PINNED (<see cref="PlanPins"/>) — the hires and prisoners define the party after the deal
+    /// (<see cref="PartyAfter"/>), and in every phase above the pinned rows walk first, then the steward plans its own rows
+    /// with what they left, by the same rules. With nothing pinned it is exactly the plan above.</para>
     /// </remarks>
     public static class StewardPlanner
     {
         public static StewardPlan Plan(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle,
-            PlanMode mode = PlanMode.Window)
+            PlanMode mode = PlanMode.Window) => Plan(snapshot, settings, oracle, mode, PlanPins.None);
+
+        internal static StewardPlan Plan(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle,
+            PlanMode mode, PlanPins pins)
         {
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             if (settings == null) throw new ArgumentNullException(nameof(settings));
@@ -37,11 +44,19 @@ namespace SmartSteward.Core.Planning
 
             // One price cache for the planner AND the editor that re-walks the plan after every click: a plan's
             // prices are a snapshot (nothing trades while it is planned or edited), and the game's price model is
-            // not free — the same quotes come up again and again (PLAN step 9, review area 5).
-            var ctx = new PlanContext(snapshot, settings, new CachingPriceOracle(oracle), mode);
+            // not free — the same quotes come up again and again (PLAN step 9, review area 5). A re-plan reuses the
+            // plan's own cache.
+            var cache = oracle as CachingPriceOracle ?? new CachingPriceOracle(oracle);
+            var ctx = new PlanContext(snapshot, settings, cache, mode, pins);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
                 return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0);
+
+            // 0. The tavern: offered, never proposed (every row at 0 — or at the player's number in a re-plan) - and not
+            //    even offered to the autonomous steward, which never hires (DESIGN §6). Its hires are the party after the
+            //    deal the steward feeds and mounts; they are paid after the trades, but the steward's buys leave their gold.
+            var tavernRows = mode == PlanMode.Autonomous ? new List<PlanRow>() : TavernPlanner.Plan(ctx);
+            ctx.Party = PartyAfter.Of(snapshot, PartyAfter.MovesOf(tavernRows));
 
             // 1. Prisoners first: their gold funds the buys, and the food target counts only those who stay.
             var prisonerRows = PrisonerPlanner.Plan(ctx, out int prisonersAfter);
@@ -51,20 +66,20 @@ namespace SmartSteward.Core.Planning
             var mounts = new MountPlanner(ctx);
             var loot = new LootPlanner(ctx);
 
-            // 2. Sell first — the proceeds fund the buys.
+            // 2. Sell first — the proceeds fund the buys. In every phase the player's pinned rows go first.
             food.PlanSells();
+            pack.PlanPinnedSells();
+            mounts.PlanPinnedSells();
             pack.PlanSells();
             mounts.PlanSells();
             loot.PlanSells();
 
             // 3. Buy in priority order under the floors.
             food.PlanBuys();
+            pack.PlanPinnedBuys();
+            mounts.PlanPinnedBuys();
             pack.PlanBuys();
             mounts.PlanBuys();
-
-            // 4. The tavern: offered, never proposed - and not even offered to the autonomous steward, which never
-            //    hires (DESIGN §6).
-            var tavernRows = mode == PlanMode.Autonomous ? new List<PlanRow>() : TavernPlanner.Plan(ctx);
 
             food.Finish();
             pack.Finish();

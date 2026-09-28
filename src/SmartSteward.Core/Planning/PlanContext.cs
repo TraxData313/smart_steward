@@ -13,12 +13,15 @@ namespace SmartSteward.Core.Planning
         private readonly Dictionary<string, PriceBookPrices> _books =
             new Dictionary<string, PriceBookPrices>(StringComparer.Ordinal);
 
-        public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, PlanMode mode)
+        public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, PlanMode mode,
+            PlanPins? pins = null)
         {
             Snapshot = snapshot;
             Settings = settings;
             Oracle = oracle;
             Mode = mode;
+            Pins = pins ?? PlanPins.None;
+            Party = PartyAfter.Of(snapshot);
             Floors = MoneyFloors.For(settings, mode);
             Walk = new WalkState(new MarketState(oracle, snapshot.MarketGold), snapshot.PlayerGold);
         }
@@ -27,6 +30,27 @@ namespace SmartSteward.Core.Planning
         public StewardSettings Settings { get; }
         public IPriceOracle Oracle { get; }
         public PlanMode Mode { get; }
+
+        /// <summary>The rows the player's hand is on (a live re-plan); <see cref="PlanPins.None"/> for a fresh plan.</summary>
+        public PlanPins Pins { get; }
+
+        /// <summary>The party the steward plans for — the snapshot's, with the plan's hires (and step 16's recruits and
+        /// dismissals) applied (<see cref="PartyAfter"/>). Set by the planner once the party rows are known.</summary>
+        public PartyAfter Party { get; set; }
+
+        /// <summary>The most the steward's own FOOD sales may take of the market's gold: what is left, minus what the player's
+        /// later sales need (<see cref="PlanPins"/>).</summary>
+        public int? FoodSellCeiling() => Market.MarketGoldLeft - Pins.SellGoldAfterFood;
+
+        /// <summary>The most the steward's own ANIMAL sales may take of the market's gold.</summary>
+        public int? AnimalSellCeiling() => Market.MarketGoldLeft - Pins.SellGoldAfterAnimals;
+
+        /// <summary>The most the steward's next food unit may cost: the purse above MinGoldAfterDeal, minus what the player's
+        /// later buys and hires cost.</summary>
+        public int? FoodBuyCeiling(WalkState walk) => walk.Gold - FoodFloor - Pins.SpendAfterFood;
+
+        /// <summary>The most the steward's next animal may cost: the purse above both floors, minus the player's hires.</summary>
+        public int? AnimalBuyCeiling(WalkState walk) => walk.Gold - AnimalFloor - Pins.SpendAfterAnimals;
 
         /// <summary>The purse floors in effect (raised while autonomous - DESIGN §6).</summary>
         public MoneyFloors Floors { get; }

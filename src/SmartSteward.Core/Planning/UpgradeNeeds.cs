@@ -37,14 +37,35 @@ namespace SmartSteward.Core.Planning
         public int ReadyFor(string category) => _ready.TryGetValue(category, out var n) ? n : 0;
 
         /// <summary>Reads the upgrade stacks of a snapshot.</summary>
-        public static UpgradeNeeds Of(StewardSnapshot snapshot)
+        public static UpgradeNeeds Of(StewardSnapshot snapshot) => Of(snapshot, Array.Empty<PartyMove>());
+
+        /// <summary>The upgrade stacks after the deal's party moves (<see cref="PartyAfter"/>, step 15): men who join are never
+        /// ready (no XP yet) but put their troop's kinds of upgrade horse in play; men who leave a stack take its size — and
+        /// so at most its ready count — down with them.</summary>
+        internal static UpgradeNeeds Of(StewardSnapshot? snapshot, IReadOnlyCollection<PartyMove> moves)
         {
             var inPlay = new SortedSet<string>(StringComparer.Ordinal);
             var ready = new Dictionary<string, int>(StringComparer.Ordinal);
+            var leaving = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var move in moves)
+            {
+                if (move.Men > 0)
+                {
+                    foreach (var category in move.UpgradeCategories)
+                        if (!string.IsNullOrEmpty(category))
+                            inPlay.Add(category);
+                }
+                else if (move.Men < 0 && move.TroopId != null)
+                    leaving[move.TroopId] = (leaving.TryGetValue(move.TroopId, out var n) ? n : 0) - move.Men;
+            }
+
             foreach (var stack in snapshot?.Upgrades ?? new List<UpgradeStack>())
             {
                 if (stack?.Targets == null)
                     continue;
+                int size = Math.Max(0, stack.Count);
+                if (leaving.TryGetValue(stack.TroopId, out var gone))
+                    size = Math.Max(0, size - gone);
                 UpgradeTarget? best = null;
                 foreach (var target in stack.Targets)
                 {
@@ -58,7 +79,7 @@ namespace SmartSteward.Core.Planning
                 }
                 if (best != null)
                 {
-                    int count = Math.Min(best.ReadyCount, Math.Max(0, stack.Count));
+                    int count = Math.Min(best.ReadyCount, size);
                     ready[best.RequiredCategoryId!] = (ready.TryGetValue(best.RequiredCategoryId!, out var r) ? r : 0) + count;
                 }
             }

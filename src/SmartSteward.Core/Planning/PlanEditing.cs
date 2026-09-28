@@ -96,10 +96,18 @@ namespace SmartSteward.Core.Planning
     /// never does arithmetic of its own.
     /// </summary>
     /// <remarks>
-    /// Every edit changes ONE row's quantity; every other row keeps its quantity (the steward does not re-plan
-    /// around the player), but the whole plan is walked again (<see cref="PlanReplay"/>) so every price, total
-    /// and flag that depends on it refreshes — town prices walk per item category, the market's gold and stock
-    /// are shared. Rules [decided: Claude, 2026.09.27 — step 4b]:
+    /// Every edit changes ONE row's quantity and puts the player's hand on it (<see cref="PlanRow.IsTouched"/>); the whole
+    /// plan is walked again (<see cref="PlanReplay"/>) so every price, total and flag that depends on it refreshes — town
+    /// prices walk per item category, the market's gold and stock are shared.
+    /// <para>THE LIVE RE-PLAN (Anton 2026.09.28, step 15 — "recalculate the food and mounts as I add more troops or remove,
+    /// so when I hit Do it I won't see new suggestions"): an edit of a row that changes the PARTY after the deal (a hire, a
+    /// prisoner kept or ransomed — <see cref="PartyAfter.ChangesParty"/>) plans the steward's rows again for that party:
+    /// every UNTOUCHED item row (food, pack animals, riding mounts, upgrade horses, armour &amp; weapons) takes what the
+    /// planners make of it now, with the touched rows pinned and walked first (<see cref="PlanPins"/>). Any other edit keeps
+    /// every other row's quantity (predictable beats clever — the step-4b rule, still true for them). ⟲ hands a row back to
+    /// the steward and "Reset all" hands every row back — both re-plan (with nothing touched, that is exactly the first
+    /// plan).</para>
+    /// Rules [decided: Claude, 2026.09.27 — step 4b]:
     /// <list type="bullet">
     /// <item>Toward zero (buy less, sell less) always works.</item>
     /// <item>Away from zero goes as far as it can without taking what another row already has (stock, the
@@ -127,17 +135,27 @@ namespace SmartSteward.Core.Planning
         /// <summary>[−] on a row: sell / ransom more, or buy less.</summary>
         public EditResult Decrease(string rowId, EditSize size = EditSize.One) => Step(RowOrThrow(rowId), -1, size);
 
-        /// <summary>⟲ on a row: back to the steward's suggestion — as far as what other rows took since allows.</summary>
+        /// <summary>⟲ on a row: the player's hand leaves it — the steward plans it again (a re-plan, with the other touched
+        /// rows pinned: as far as what they took allows). <see cref="EditResult.Asked"/> is the steward's last suggestion for
+        /// the row; the block says why it could not get back there.</summary>
         public EditResult Reset(string rowId)
         {
             var row = RowOrThrow(rowId);
-            return MoveTo(row, row.SuggestedChange, Math.Sign(row.SuggestedChange - row.Change));
+            int before = row.Change, asked = row.SuggestedChange;
+            if (_inputs == null)
+                return new EditResult(row.Id, before, asked, before, EditBlock.None);
+            row.IsTouched = false;
+            Replan();
+            var now = FindRow(rowId); // an upgrade row nobody needs any more is gone after the re-plan
+            int after = now?.Change ?? 0;
+            var block = now == null || after == asked ? EditBlock.None : BlockOf(now, Math.Sign(asked - after));
+            return new EditResult(row.Id, before, asked, after, block);
         }
 
         /// <summary>
         /// Moves a row toward <paramref name="value"/> as far as the walk allows — clamped to the row's range, never
-        /// taking what another row has, crossing zero through 0 (as ⟲ does). What a re-plan uses to carry the player's
-        /// edits over (<see cref="PlanCarryOver"/>); a click uses <see cref="Increase"/> / <see cref="Decrease"/>.
+        /// taking what another row has, crossing zero through 0 — and puts the player's hand on it. A click uses
+        /// <see cref="Increase"/> / <see cref="Decrease"/>.
         /// </summary>
         public EditResult SetChange(string rowId, int value)
         {
@@ -145,14 +163,39 @@ namespace SmartSteward.Core.Planning
             return MoveTo(row, value, Math.Sign(value - row.Change));
         }
 
-        /// <summary>Every row back to the steward's suggestion — exactly the plan as it was made.</summary>
+        /// <summary>Every row handed back to the steward — exactly the plan as it was made (a re-plan with nothing touched).</summary>
         public void ResetAll()
         {
             if (_inputs == null)
                 return;
             foreach (var row in Rows)
-                row.Change = row.SuggestedChange;
-            Settle();
+                row.IsTouched = false;
+            Replan();
+        }
+
+        /// <summary>
+        /// Puts the player's hand back on rows of a NEW plan (a settings re-plan, <see cref="PlanCarryOver"/>): each found
+        /// row is set to its quantity (clamped to the row's range) and touched, then the steward plans its own rows around
+        /// them in one re-plan — the touched rows walk first, so what the new limits no longer allow is cut. Returns how
+        /// many rows were found.
+        /// </summary>
+        public int Restore(IEnumerable<KeyValuePair<string, int>> touched)
+        {
+            if (touched == null) throw new ArgumentNullException(nameof(touched));
+            int found = 0;
+            foreach (var edit in touched)
+            {
+                var row = FindRow(edit.Key);
+                if (row == null)
+                    continue;
+                var (min, max) = Bounds(row);
+                row.Change = Math.Max(min, Math.Min(max, edit.Value));
+                row.IsTouched = true;
+                found++;
+            }
+            if (found > 0 && _inputs != null)
+                Replan();
+            return found;
         }
 
         /// <summary>
@@ -221,16 +264,19 @@ namespace SmartSteward.Core.Planning
         private EditResult MoveTo(PlanRow row, int asked, int direction)
         {
             int before = row.Change;
+            bool couldAfford = !Totals.CannotAfford;
             if (_inputs != null && asked != before)
             {
                 var (min, max) = Bounds(row);
                 int target = Math.Max(min, Math.Min(max, asked));
                 if (before != 0 && Math.Sign(target) == -Math.Sign(before))
-                    Lower(row, 0); // crossing zero (only ⟲ does): first back to zero
+                    Lower(row, 0); // crossing zero (SetChange): first back to zero
                 if (target == 0 || (Math.Sign(target) == Math.Sign(row.Change) && Math.Abs(target) <= Math.Abs(row.Change)))
                     Lower(row, target);
                 else
                     Raise(row, target);
+                if (row.Type == RowType.Tavern && row.Change > before && couldAfford && Totals.CannotAfford)
+                    FitPurse(row, before);
             }
             int after = row.Change;
             var block = after == asked || direction == 0 ? EditBlock.None : BlockOf(row, Math.Sign(asked - after));
@@ -243,7 +289,7 @@ namespace SmartSteward.Core.Planning
             if (row.Change == value)
                 return;
             row.Change = value;
-            Settle();
+            Commit(row);
         }
 
         /// <summary>Away from zero: the furthest value toward <paramref name="target"/> that the walk can do with
@@ -263,22 +309,94 @@ namespace SmartSteward.Core.Planning
             if (lo == row.Change)
                 return;
             row.Change = lo;
+            Commit(row);
+        }
+
+        /// <summary>The row moved: the player's hand is on it now. A row that changes the party after the deal re-plans the
+        /// steward's rows for that party (the live re-plan); any other edit is walked with every other row as it is.</summary>
+        private void Commit(PlanRow row)
+        {
+            row.IsTouched = true;
+            if (PartyAfter.ChangesParty(row))
+                Replan();
+            else
+                Settle();
+        }
+
+        /// <summary>
+        /// A hire the purse turned out not to pay once the steward re-planned (its own sales shrink with a bigger party — more
+        /// mouths, less food surplus to sell): step back to the most hires the re-planned deal pays. Rare; each step is a
+        /// re-plan.
+        /// </summary>
+        private void FitPurse(PlanRow row, int before)
+        {
+            int lo = before, hi = row.Change; // lo pays (the deal could afford it), hi does not
+            while (hi - lo > 1)
+            {
+                int mid = lo + (hi - lo) / 2;
+                row.Change = mid;
+                Replan();
+                if (Totals.CannotAfford) hi = mid;
+                else lo = mid;
+            }
+            if (row.Change != lo)
+            {
+                row.Change = lo;
+                Replan();
+            }
+        }
+
+        /// <summary>
+        /// Plans the steward's rows again for the plan as it stands (the live re-plan, step 15): the planner runs on the same
+        /// snapshot, settings and price cache with every touched row pinned (<see cref="PlanPins"/>) — the party rows define
+        /// the party after the deal, the touched rows walk first —, the rows adopt what it made of them, and the walk settles
+        /// the prices, totals and transactions.
+        /// </summary>
+        private void Replan()
+        {
+            if (_inputs == null)
+                return;
+            var planned = StewardPlanner.Plan(_inputs.Snapshot, _inputs.Settings, _inputs.Oracle, _inputs.Mode,
+                PlanPins.From(Rows));
+            Adopt(planned);
             Settle();
         }
 
-        /// <summary>Would the plan work with this row at <paramref name="value"/>? None = yes; else why not.</summary>
+        /// <summary>Would the plan work with this row at <paramref name="value"/>? None = yes; else why not. The row is
+        /// walked as touched — it will be, once moved.</summary>
         private EditBlock Trial(PlanRow row, int value)
         {
-            var outcome = Walk(r => ReferenceEquals(r, row) ? value : r.Change);
+            var outcome = Walk(r => ReferenceEquals(r, row) ? value : r.Change, r => r.IsTouched || ReferenceEquals(r, row));
             var own = outcome.Of(row);
             if (own.IsShort)
                 return own.Short == EditBlock.None ? EditBlock.NeededByAnotherRow : own.Short;
             foreach (var other in outcome.Rows)
                 if (other.IsShort)
                     return SharedLimit(other.Short) ? other.Short : EditBlock.NeededByAnotherRow;
-            if (value > 0 && (outcome.GoldAfter < 0 || outcome.HireUnaffordable))
+            if (value > 0 && Unaffordable(outcome, row))
                 return EditBlock.NotEnoughGold;
             return EditBlock.None;
+        }
+
+        /// <summary>
+        /// The purse cannot pay the plan with this row moved. A row that changes the party re-plans the steward's rows, whose
+        /// purchases give way to the player's hand (the pinned rows' gold comes first, <see cref="PlanPins"/>) — so for it
+        /// only the player's own spending counts; <see cref="FitPurse"/> catches the rare rest.
+        /// </summary>
+        private static bool Unaffordable(WalkOutcome outcome, PlanRow row)
+        {
+            if (!PartyAfter.ChangesParty(row))
+                return outcome.GoldAfter < 0 || outcome.HireUnaffordable;
+            int giveWay = 0;
+            foreach (var o in outcome.Rows)
+            {
+                if (o.Row.IsTouched || ReferenceEquals(o.Row, row) || PartyAfter.ChangesParty(o.Row))
+                    continue;
+                foreach (var tally in o.Book.Tallies)
+                    if (tally.Direction == Pricing.TradeDirection.Buy)
+                        giveWay += tally.Gold;
+            }
+            return outcome.GoldAfter + giveWay < 0 || (outcome.HireUnaffordable && giveWay == 0);
         }
 
         /// <summary>A limit every row shares, worth naming when the edit would push ANOTHER row past it; the
@@ -303,7 +421,8 @@ namespace SmartSteward.Core.Planning
             Apply(outcome);
         }
 
-        private WalkOutcome Walk(Func<PlanRow, int> changeOf) => PlanReplay.Walk(_inputs!, Rows.ToList(), changeOf);
+        private WalkOutcome Walk(Func<PlanRow, int> changeOf, Func<PlanRow, bool>? touchedOf = null) =>
+            PlanReplay.Walk(_inputs!, Rows.ToList(), changeOf, touchedOf);
 
         private void Apply(WalkOutcome outcome)
         {
