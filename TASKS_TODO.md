@@ -21,7 +21,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deploy (the game was running at the end of step 13), then playtest — checklist in docs/PLAYTEST.md "Round 2 fixes"
 - [x] 14. Round 3, small — party limit never blocks hires (show 99/96), steward also on docking into a port, weight line now + change → after with land/sea capacity (red when over), the "Not now" button renamed "Close"
   - [ ] Deploy (the game was running at the end of step 14), then playtest — checklist in docs/PLAYTEST.md "Round 3 — small"
-- [ ] 15. Round 3, core — LIVE RE-PLAN: untouched food/mount/upgrade-horse rows follow every party change in the window (hires, recruits, dismissals, ransoms); edited rows stay — so Do it leaves nothing new to suggest
+- [x] 15. Round 3, core — LIVE RE-PLAN: untouched food/mount/upgrade-horse rows follow every party change in the window (hires, recruits, dismissals, ransoms); edited rows stay — so Do it leaves nothing new to suggest (+ the food goal in days)
+  - [ ] Deployed (the game was closed at the end of step 15 — the install carries steps 12–15), then playtest — checklist in docs/PLAYTEST.md "Round 3 — live re-plan"
 - [ ] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
 
 SHIPPING NEXT (done in main, NOT released yet):
