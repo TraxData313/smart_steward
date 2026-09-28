@@ -39,7 +39,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + TROOPS (Anton 2026.09.28): tier before every troop name ("T1 Vlandian Recruit"); MY troops ordered by tier, LOWEST on top;
     the COLLAPSED Troops line carries [-] [+] of its own: [-] dismisses from the lowest tier up, [+] recruits the highest tier on
     offer first (shift/ctrl steps as usual), and the line says what it does ("dismissing 1 T1 Vlandian Recruit, 1 T1 Imperial Peasant")
-- [ ] 19. Round 4 MOCKUP — the Suggestion tab as one spreadsheet (docs/feedback/2026-09-28-round4.md), an HTML mockup for Anton to approve BEFORE the build
+- [x] 19. Round 4 MOCKUP — the Suggestion tab as one spreadsheet (docs/feedback/2026-09-28-round4.md), an HTML mockup for Anton to approve BEFORE the build
+  - [ ] Anton: look at docs/mockups/*.png and answer the 10 "Choices for Anton" in docs/mockups/README.md (step 21 builds what he approves)
 - [ ] 20. Round 4 CORE — activation thresholds (food 2k, pack 2k, mounts 5k, war 20k), war horses 10, food multipliers ×2.0/×0.5,
   prisoner Lords/Others Keep|Ransom|Donate, the "Other goods" bulk line, per-row Denari/Souls/Land kg/Sea kg + section overviews
   + Total, troop aggregate lines (recruit best first, dismiss lowest first, re-add in reverse), overburden slowdown per terrain
