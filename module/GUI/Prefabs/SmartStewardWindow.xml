@@ -459,7 +459,7 @@
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38">
                                               <Children>
-                                                <!-- a small heading inside a group (Prisoners to ransom) -->
+                                                <!-- a small line inside a group (the troops ready to upgrade) -->
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@IsHeading">
                                                   <Children>
                                                     <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="30">
@@ -484,7 +484,7 @@
                                                         </Widget>
                                                         <Widget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="StretchToParent">
                                                           <Children>
-                                                            <!-- checkbox (on/off settings and the prisoner ticks) -->
+                                                            <!-- checkbox (on/off settings) -->
                                                             <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="SPOptions.Checkbox.Empty.Button" Command.Click="ExecuteToggle" IsVisible="@IsBool">
                                                               <Children>
                                                                 <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="SPOptions.Checkbox.Full.Button" IsVisible="@IsOn" DoNotAcceptEvents="true" />

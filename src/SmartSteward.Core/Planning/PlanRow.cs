@@ -115,9 +115,6 @@ namespace SmartSteward.Core.Planning
         public int RansomValue { get; internal set; }
         public double InfluencePerMan { get; internal set; }
         public bool IsHero { get; internal set; }
-
-        /// <summary>Unticked in "Prisoners to ransom" — never proposed, the player may still add by hand.</summary>
-        public bool IsExcluded { get; internal set; }
         public int RansomCount { get; internal set; }
         public int DonateCount { get; internal set; }
     }

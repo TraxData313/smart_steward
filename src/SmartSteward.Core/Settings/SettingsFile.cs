@@ -82,6 +82,9 @@ namespace SmartSteward.Core.Settings
                 ["WarMountsManualTarget"] = "upgrade horses are now set per kind (" + nameof(StewardSettings.WarMountsHorseTarget)
                                             + ", " + nameof(StewardSettings.WarMountsWarHorseTarget)
                                             + ") - both start automatic (-1)",
+                // The "Prisoners to ransom" tick-list: ransom is all or none now, "Include lords" the one choice left.
+                ["PrisonersExcluded"] = "every prisoner may be ransomed now; " + nameof(StewardSettings.RansomHeroPrisoners)
+                                        + " still decides the lords",
             };
 
         /// <summary>The explanation at the top of the file.</summary>
@@ -165,8 +168,6 @@ namespace SmartSteward.Core.Settings
                     return JsonConvert.ToString(e.Names[e.GetIndex(settings)]);
                 case PriceBookSetting p:
                     return PriceBookText(p.Get(settings));
-                case IdListSetting l:
-                    return IdListText(l.Get(settings));
                 default:
                     throw new InvalidOperationException("no file syntax for " + def.Key);
             }
@@ -196,17 +197,6 @@ namespace SmartSteward.Core.Settings
             sb.Append("  }");
             return sb.ToString();
         }
-
-        private static string IdListText(List<string> ids)
-        {
-            var clean = CleanIds(ids);
-            return clean.Count == 0 ? "[]" : "[ " + string.Join(", ", clean.Select(id => JsonConvert.ToString(id))) + " ]";
-        }
-
-        /// <summary>Trimmed, non-empty, each once, in ordinal order — the list's one spelling.</summary>
-        internal static List<string> CleanIds(IEnumerable<string?> ids) =>
-            ids.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id!.Trim())
-                .Distinct(StringComparer.Ordinal).OrderBy(id => id, StringComparer.Ordinal).ToList();
 
         /// <summary>Greedy word wrap; a word longer than the width gets a line of its own.</summary>
         internal static IEnumerable<string> Wrap(string text, int width)
@@ -359,10 +349,6 @@ namespace SmartSteward.Core.Settings
                 case PriceBookSetting p:
                     ReadPriceBook(p, token, result);
                     break;
-
-                case IdListSetting l:
-                    ReadIdList(l, token, result);
-                    break;
             }
         }
 
@@ -433,26 +419,6 @@ namespace SmartSteward.Core.Settings
                 }
                 if (!entry.IsEmpty) target[id] = entry;
             }
-        }
-
-        private static void ReadIdList(IdListSetting def, JToken token, SettingsParseResult result)
-        {
-            if (!(token is JArray array))
-            {
-                WrongType(def, token, "a list like [ \"looter\" ]", result);
-                return;
-            }
-            var ids = new List<string?>();
-            foreach (var element in array)
-            {
-                if (element.Type == JTokenType.String) ids.Add((string?)element);
-                else
-                    result.Problems.Add(At(element) + def.Key + ": " + Describe(element)
-                        + " is not an id in quotes - dropped");
-            }
-            var list = def.Get(result.Settings);
-            list.Clear();
-            list.AddRange(CleanIds(ids));
         }
 
         private static bool Is(string name, string field) => string.Equals(name, field, StringComparison.OrdinalIgnoreCase);

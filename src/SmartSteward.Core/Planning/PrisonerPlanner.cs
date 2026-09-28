@@ -7,8 +7,9 @@ namespace SmartSteward.Core.Planning
 {
     /// <summary>
     /// Prisoners (DESIGN §2.5): towns only. One row per troop, most valuable first. Locked prisoners are never
-    /// ransomed nor donated and get no row (like vanilla's "Ransom your prisoners"). Excluded troops and — unless
-    /// RansomHeroPrisoners — heroes get a row at 0, so the player may still add them by hand.
+    /// ransomed nor donated and get no row (like vanilla's "Ransom your prisoners"). Ransom is all or none
+    /// (step 12): every other troop is proposed; heroes — unless RansomHeroPrisoners — get a row at 0, so the player may
+    /// still add them by hand.
     /// </summary>
     /// <remarks>
     /// With DonatePrisonersWhenPossible and donating allowed here, prisoners fill the dungeon's room first —
@@ -54,14 +55,12 @@ namespace SmartSteward.Core.Planning
             if (!ransom && !donate)
                 return rows;
 
-            var excluded = new HashSet<string>(settings.PrisonersExcluded ?? new List<string>(), StringComparer.Ordinal);
             int room = DungeonRoom(ctx);
             var wanted = new List<int>();
             foreach (var prisoner in all.Where(p => !p.IsLocked)
                          .OrderByDescending(p => p.RansomValue).ThenBy(p => p.TroopId, StringComparer.Ordinal))
             {
-                bool isExcluded = excluded.Contains(prisoner.TroopId);
-                bool proposed = !isExcluded && (!prisoner.IsHero || settings.RansomHeroPrisoners);
+                bool proposed = !prisoner.IsHero || settings.RansomHeroPrisoners;
                 wanted.Add(proposed ? prisoner.Count : 0);
                 rows.Add(new PlanRow("prisoner:" + prisoner.TroopId, PlanSectionKind.Prisoners, RowType.Prisoner)
                 {
@@ -74,7 +73,6 @@ namespace SmartSteward.Core.Planning
                         RansomValue = prisoner.RansomValue,
                         InfluencePerMan = prisoner.InfluencePerMan,
                         IsHero = prisoner.IsHero,
-                        IsExcluded = isExcluded,
                     },
                 });
             }

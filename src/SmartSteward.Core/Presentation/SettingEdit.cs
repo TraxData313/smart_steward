@@ -13,14 +13,14 @@ namespace SmartSteward.Core.Presentation
     public static class SettingEdit
     {
         /// <summary>The groups in §7 order with their scalar settings in registry order — every scalar exactly once.
-        /// (The price book lives in the Prices tab; the prisoner list is the Prisoners group's tick-list.)</summary>
+        /// (The price book lives in the Prices tab.)</summary>
         public static IReadOnlyList<KeyValuePair<string, IReadOnlyList<SettingDefinition>>> Groups()
         {
             var groups = new List<KeyValuePair<string, IReadOnlyList<SettingDefinition>>>();
             foreach (var group in SettingsRegistry.Groups)
             {
                 var defs = SettingsRegistry.InGroup(group).Where(d => d.IsScalar).ToList();
-                if (defs.Count > 0 || group == SettingsRegistry.Prisoners)
+                if (defs.Count > 0)
                     groups.Add(new KeyValuePair<string, IReadOnlyList<SettingDefinition>>(group, defs));
             }
             return groups;
@@ -75,38 +75,5 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The next value of an enum setting (a click on its button cycles).</summary>
         public static int NextIndex(EnumSetting def, StewardSettings settings) =>
             (def.GetIndex(settings) + 1) % Math.Max(1, def.Names.Count);
-    }
-
-    /// <summary>The Instructions tab's "Prisoners to ransom" tick-list (DESIGN §1.2) — unticked troop ids are kept in
-    /// <c>PrisonersExcluded</c>.</summary>
-    public static class PrisonerTicks
-    {
-        public static bool IsTicked(StewardSettings settings, string troopId) =>
-            !(settings.PrisonersExcluded ?? new List<string>()).Contains(troopId, StringComparer.Ordinal);
-
-        public static void SetRansom(StewardSettings settings, string troopId, bool ticked)
-        {
-            if (settings == null) throw new ArgumentNullException(nameof(settings));
-            if (string.IsNullOrEmpty(troopId)) return;
-            var list = settings.PrisonersExcluded ??= new List<string>();
-            list.RemoveAll(id => string.Equals(id, troopId, StringComparison.Ordinal));
-            if (!ticked)
-                list.Add(troopId);
-        }
-
-        /// <summary>The troops the list shows: the prisoners held now (in the given order) and every troop unticked
-        /// earlier — so it can be ticked back — without duplicates.</summary>
-        public static IReadOnlyList<string> Rows(IEnumerable<string> heldTroopIds, StewardSettings settings)
-        {
-            var rows = new List<string>();
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var id in heldTroopIds ?? Enumerable.Empty<string>())
-                if (!string.IsNullOrEmpty(id) && seen.Add(id))
-                    rows.Add(id);
-            foreach (var id in (settings.PrisonersExcluded ?? new List<string>()).OrderBy(i => i, StringComparer.Ordinal))
-                if (!string.IsNullOrEmpty(id) && seen.Add(id))
-                    rows.Add(id);
-            return rows;
-        }
     }
 }

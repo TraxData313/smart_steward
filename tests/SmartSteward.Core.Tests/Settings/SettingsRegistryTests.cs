@@ -55,13 +55,14 @@ public class SettingsRegistryTests
     }
 
     [Fact]
-    public void Collections_are_the_price_book_and_the_prisoner_list_only()
+    public void The_only_collection_is_the_price_book()
     {
+        // The prisoner tick-list (PrisonersExcluded) is retired since step 12 - ransom is all or none.
         var collections = SettingsRegistry.All.Where(d => !d.IsScalar).ToList();
-        Assert.Equal(new[] { "PriceBook", "PrisonersExcluded" }, collections.Select(d => d.Key));
+        Assert.Equal(new[] { "PriceBook" }, collections.Select(d => d.Key));
         var settings = new StewardSettings();
         Assert.Same(settings.PriceBook, collections[0].GetValue(settings));
-        Assert.Same(settings.PrisonersExcluded, collections[1].GetValue(settings));
+        Assert.Null(SettingsRegistry.Find("PrisonersExcluded"));
     }
 
     [Fact]
@@ -184,8 +185,7 @@ public class SettingsRegistryTests
         var s = new StewardSettings { FoodPerMan = 3, SellLoot = true, SellLootOrder = SellLootOrder.MostExpensive };
         s.PriceBook["grain"] = new PriceBookEntry { BuyBase = 9 };
         s.PriceBook["fish"] = new PriceBookEntry(); // empty: not counted
-        s.PrisonersExcluded.Add("looter");
-        Assert.Equal("FoodPerMan=3.0, PriceBook: 1 item, PrisonersExcluded: looter, SellLoot=true, SellLootOrder=MostExpensive",
+        Assert.Equal("FoodPerMan=3.0, PriceBook: 1 item, SellLoot=true, SellLootOrder=MostExpensive",
             SettingsRegistry.DescribeNonDefaults(s));
     }
 

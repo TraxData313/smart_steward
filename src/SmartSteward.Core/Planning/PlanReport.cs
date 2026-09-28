@@ -122,7 +122,7 @@ namespace SmartSteward.Core.Planning
             if (row.Prisoner != null)
                 sb.Append(", ransom ").Append(row.Prisoner.RansomValue.ToString(Inv)).Append(" each (").Append(row.Prisoner.RansomCount.ToString(Inv))
                     .Append("), donate ").Append(row.Prisoner.DonateCount.ToString(Inv))
-                    .Append(row.Prisoner.IsHero ? ", hero" : "").Append(row.Prisoner.IsExcluded ? ", excluded" : "");
+                    .Append(row.Prisoner.IsHero ? ", hero" : "");
             if (row.Tavern != null)
                 sb.Append(", ").Append(row.Tavern.Kind).Append(" price ").Append(row.Tavern.UnitPrice.ToString(Inv))
                     .Append(", wage ").Append(row.Tavern.DailyWage.ToString(Inv))

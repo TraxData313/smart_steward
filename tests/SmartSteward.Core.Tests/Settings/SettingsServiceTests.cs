@@ -282,14 +282,12 @@ public class SettingsServiceTests
         {
             s.PriceBook["grain"] = new PriceBookEntry { BuyBase = -3, Sell = false };
             s.PriceBook["fish"] = new PriceBookEntry(); // nothing overridden
-            s.PrisonersExcluded.Add(" looter ");
         }));
 
         var book = _service.Current.PriceBook;
         Assert.Equal(0, book["grain"].BuyBase);
         Assert.False(book["grain"].Sell);
         Assert.False(book.ContainsKey("fish"));
-        Assert.Equal(new[] { "looter" }, _service.Current.PrisonersExcluded);
         Assert.Contains("\"grain\": { \"BuyBase\": 0, \"Sell\": false }", _storage.Text);
         Assert.Equal(1, _changes);
     }

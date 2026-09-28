@@ -202,16 +202,17 @@ public class PrisonerPlannerTests
     }
 
     [Fact]
-    public void Excluded_troops_get_a_row_at_zero()
+    public void Ransom_is_all_or_none_every_troop_is_proposed()
     {
+        // Step 12 (round 1): no per-troop exclusions any more - every unlocked non-lord prisoner goes.
         var s = new Scenario().Prisoner("looter", 10, 20).Prisoner("sea_raider", 4, 40);
-        s.Settings.PrisonersExcluded.Add("sea_raider");
         var plan = s.Plan();
-        var row = plan.Row("prisoner:sea_raider");
-        Assert.Equal(0, row.Change);
-        Assert.True(row.Prisoner!.IsExcluded);
+        Assert.Equal(-4, plan.Row("prisoner:sea_raider").Change);
         Assert.Equal(-10, plan.Row("prisoner:looter").Change);
-        Assert.Equal(4, plan.Totals.PrisonersAfter);
+        Assert.Equal(0, plan.Totals.PrisonersAfter);
+
+        s.Settings.RansomPrisoners = false; // none
+        Assert.DoesNotContain(s.Plan().Rows, r => r.Type == RowType.Prisoner);
     }
 
     [Fact]

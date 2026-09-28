@@ -15,7 +15,7 @@ public class SettingEditTests
         var shown = groups.SelectMany(g => g.Value).ToList();
         Assert.Equal(SettingsRegistry.All.Where(d => d.IsScalar), shown);
         Assert.All(groups, g => Assert.All(g.Value, d => Assert.Equal(g.Key, d.Group)));
-        Assert.DoesNotContain(shown, d => d.Kind == SettingKind.PriceBook || d.Kind == SettingKind.IdList);
+        Assert.DoesNotContain(shown, d => d.Kind == SettingKind.PriceBook);
     }
 
     [Fact]
@@ -62,27 +62,6 @@ public class SettingEditTests
         Assert.Equal(1, SettingEdit.NextIndex(order, s));
         order.SetIndex(s, 2);
         Assert.Equal(0, SettingEdit.NextIndex(order, s));
-    }
-
-    [Fact]
-    public void Unticking_a_prisoner_excludes_it_and_ticking_it_back_forgets_it()
-    {
-        var s = new StewardSettings();
-        Assert.True(PrisonerTicks.IsTicked(s, "looter"));
-        PrisonerTicks.SetRansom(s, "looter", false);
-        PrisonerTicks.SetRansom(s, "looter", false);
-        Assert.Equal(new[] { "looter" }, s.PrisonersExcluded);
-        Assert.False(PrisonerTicks.IsTicked(s, "looter"));
-        PrisonerTicks.SetRansom(s, "looter", true);
-        Assert.Empty(s.PrisonersExcluded);
-    }
-
-    [Fact]
-    public void The_tick_list_holds_the_prisoners_now_and_the_ones_unticked_before()
-    {
-        var s = new StewardSettings { PrisonersExcluded = new List<string> { "sea_raider", "looter" } };
-        var rows = PrisonerTicks.Rows(new[] { "looter", "bandit", "looter" }, s);
-        Assert.Equal(new[] { "looter", "bandit", "sea_raider" }, rows);
     }
 
     private sealed class MemoryStorage : ISettingsStorage

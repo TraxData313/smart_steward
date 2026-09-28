@@ -77,10 +77,6 @@ namespace SmartSteward.Core.Settings
                             if (entry != null && !entry.IsEmpty) items++;
                         if (items > 0) parts.Add(def.Key + ": " + items + (items == 1 ? " item" : " items"));
                         break;
-                    case IdListSetting list:
-                        var ids = SettingsFile.CleanIds(list.Get(settings));
-                        if (ids.Count > 0) parts.Add(def.Key + ": " + string.Join(" ", ids));
-                        break;
                     default:
                         var text = SettingsFile.ValueText(def, settings);
                         if (text != def.DefaultFileText) parts.Add(def.Key + "=" + text.Trim('"'));
@@ -254,10 +250,6 @@ namespace SmartSteward.Core.Settings
                 "In a town of your kingdom that is not your clan's, send prisoners to its dungeon for influence "
                 + "instead of gold. Those that do not fit are ransomed.",
                 s => s.DonatePrisonersWhenPossible, (s, v) => s.DonatePrisonersWhenPossible = v),
-            new IdListSetting(nameof(StewardSettings.PrisonersExcluded), Prisoners, "Prisoners never to ransom",
-                "Troop ids the steward never ransoms or donates - the ones unticked in the Instructions tab's "
-                + "Prisoners to ransom list.\nExample: [ \"looter\", \"sea_raiders_boss\" ]",
-                s => s.PrisonersExcluded, (s, v) => s.PrisonersExcluded = v),
 
             // ── Loot ─────────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.SellLoot), Loot, "Sell loot",

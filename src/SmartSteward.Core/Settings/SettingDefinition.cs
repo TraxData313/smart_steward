@@ -14,9 +14,6 @@ namespace SmartSteward.Core.Settings
 
         /// <summary>The price book (DESIGN §1.3): item id → the player's overrides. File + Prices tab only.</summary>
         PriceBook,
-
-        /// <summary>A list of ids (the prisoners never to ransom). File + Instructions tab only.</summary>
-        IdList,
     }
 
     /// <summary>
@@ -52,11 +49,11 @@ namespace SmartSteward.Core.Settings
         /// range are added by <see cref="Hint"/> and the file's comment, never written into this text.</summary>
         public string Help { get; }
 
-        /// <summary>A plain value with its own control (checkbox, number, dropdown). The price book and the
-        /// id list are edited in the Party Steward window's own lists and are never in MCM.</summary>
-        public bool IsScalar => Kind != SettingKind.PriceBook && Kind != SettingKind.IdList;
+        /// <summary>A plain value with its own control (checkbox, number, dropdown). The price book is edited in the
+        /// Party Steward window's Prices tab and is never in MCM.</summary>
+        public bool IsScalar => Kind != SettingKind.PriceBook;
 
-        /// <summary>The current value, boxed (bool, int, double, the enum, the dictionary or the list).</summary>
+        /// <summary>The current value, boxed (bool, int, double, the enum or the dictionary).</summary>
         public abstract object GetValue(StewardSettings settings);
 
         /// <summary>The value a fresh <see cref="StewardSettings"/> holds.</summary>
@@ -304,40 +301,6 @@ namespace SmartSteward.Core.Settings
 
         public override string RangeFileText =>
             "per item id, Buy and Sell true or false, BuyBase and SellBase 0 to " + FormatInt(MaxBase);
-
-        public override string DefaultUiText => "empty";
-    }
-
-    /// <summary>A list of game ids (troop ids for the prisoner exclusions).</summary>
-    public sealed class IdListSetting : SettingDefinition
-    {
-        private readonly Func<StewardSettings, List<string>?> _get;
-        private readonly Action<StewardSettings, List<string>> _set;
-
-        public IdListSetting(string key, string group, string label, string help,
-            Func<StewardSettings, List<string>?> get, Action<StewardSettings, List<string>> set)
-            : base(key, SettingKind.IdList, group, label, help)
-        {
-            _get = get;
-            _set = set;
-        }
-
-        public List<string> Get(StewardSettings settings)
-        {
-            var list = _get(settings);
-            if (list == null)
-            {
-                list = new List<string>();
-                _set(settings, list);
-            }
-            return list;
-        }
-
-        public override object GetValue(StewardSettings settings) => Get(settings);
-
-        public override string DefaultFileText => "[]";
-
-        public override string RangeFileText => "a list of ids in quotes";
 
         public override string DefaultUiText => "empty";
     }

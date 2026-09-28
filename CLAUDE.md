@@ -105,7 +105,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               PriceBook rules, MarketState + TradeLane/LaneCursor = the price walk
   Planning/                   StewardPlanner.Plan(snapshot, settings, oracle) → StewardPlan
                               (sections → rows with their lanes, totals, facts); one planner per job;
-                              PlanWalk = the picking rules the planner and the editor share; MoneyFloors + PlanMode =
+                              PlanWalk = the picking rules the planner and the editor share; UpgradeNeeds (step 12) = the
+                              upgrade horses per kind (ready count, fixed number or automatic); MoneyFloors + PlanMode =
                               the floors (window, or autonomous: raised to AutonomousMinGold, no tavern). The plan is
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor;
@@ -117,7 +118,7 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
-                              SettingEdit + PrisonerTicks (Instructions tab), ArrivalPopup (step 12: the popup's rule).
+                              SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule).
                               Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to

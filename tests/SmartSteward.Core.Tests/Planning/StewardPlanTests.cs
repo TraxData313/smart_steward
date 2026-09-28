@@ -222,7 +222,7 @@ public class StewardPlanTests
             Inventory = null!, Market = null!, Prisoners = null!, Upgrades = null!, AveragePrices = null!,
             Prison = null!, Party = null!, PlayerGold = 1_000,
         };
-        var plan = StewardPlanner.Plan(snapshot, new StewardSettings { PrisonersExcluded = null!, PriceBook = null! },
+        var plan = StewardPlanner.Plan(snapshot, new StewardSettings { PriceBook = null! },
             new FakeOracle());
         Assert.False(plan.HasChanges);
         Assert.Equal(1_000, plan.Totals.GoldAfter);

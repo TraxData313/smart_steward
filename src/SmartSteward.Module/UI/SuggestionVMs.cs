@@ -449,7 +449,6 @@ namespace SmartSteward.UI
             if (p != null)
             {
                 if (p.IsHero) parts.Add(UiText.S("ss_ui_detail_lord", "lord"));
-                if (p.IsExcluded) parts.Add(UiText.S("ss_ui_detail_excluded", "not ticked for ransom"));
                 if (p.DonateCount > 0)
                     parts.Add(UiText.S1("ss_ui_detail_donated", "{N} to the dungeon", "N", UiFormat.Money(p.DonateCount)));
             }

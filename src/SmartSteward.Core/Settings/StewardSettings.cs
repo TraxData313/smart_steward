@@ -140,8 +140,7 @@ namespace SmartSteward.Core.Settings
         /// <summary>Heroes (lords) are proposed at all — ransom or donation.</summary>
         public bool RansomHeroPrisoners { get; set; } = false;
         public bool DonatePrisonersWhenPossible { get; set; } = false;
-        /// <summary>Troop ids unticked in the Instructions tab's "Prisoners to ransom".</summary>
-        public List<string> PrisonersExcluded { get; set; } = new List<string>();
+        // (PrisonersExcluded is retired — ransom is all or none, RansomHeroPrisoners decides the lords: step 12.)
 
         // ── Loot (DESIGN §2.6) ───────────────────────────────────────────────────────────────────
         public bool SellLoot { get; set; } = false;

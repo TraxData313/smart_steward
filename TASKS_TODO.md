@@ -22,11 +22,12 @@ SHIPPING NEXT (done in main, NOT released yet):
 - No arrival popup where you cannot trade or the steward has no rows
 - A closed market says why in the window ("Market closed: …", the game's own words) and in the log
 - Upgrade horses set per kind: "Horses for upgrades" / "War horses for upgrades" (+ spares), the live ready count beside them; the old single number resets to automatic
+- Prisoners: ransom all or none — the "Prisoners to ransom" list is gone ("Include lords" stays)
 
 BUGS:
 - [ ] (R1) Prices tab: Item name must be the FIRST (leftmost) column
 - [x] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
-- [ ] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
+- [x] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
 - [x] (R1) Arrival popup opened at a village with NO TRADE and nothing to do (Hiblet) — must stay shut (the log: the popup stayed shut, the window came from the menu entry; now also never at a closed market)
 - [x] (R1) Closed market (war, crime…) shows an empty table — say the game's reason in the window instead
 - [x] (R1) TOP: after loading a save in the same game session, clicking towns/villages no longer entered them ("clan tier not high enough to request a meeting" shown) — a game RESTART cured it. Found: the game read Left Alt as HELD (Alt+Tab) → every click asked for a parley; not the mod — tap Left Alt (RESEARCH §17)

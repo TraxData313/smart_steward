@@ -1,18 +1,15 @@
-using System.Linq;
 using SmartSteward.Adapter;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Settings;
-using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
-using TaleWorlds.ObjectSystem;
 
 namespace SmartSteward.UI
 {
     /// <summary>
     /// The Instructions tab (DESIGN §1.2): every setting of the registry grouped as §7 — a checkbox, a number box
-    /// (with its range) or a button that cycles an enum — and the Prisoners group's "Prisoners to ransom" tick-list.
-    /// Labels and tooltips are MCM's (the same <c>ss_set_</c> / <c>ss_hint_</c> ids). Every change goes through the
+    /// (with its range) or a button that cycles an enum — plus the live "troops ready to upgrade" line in the War mounts
+    /// group (step 12; the old "Prisoners to ransom" tick-list is gone — ransom is all or none). Labels and tooltips are MCM's (the same <c>ss_set_</c> / <c>ss_hint_</c> ids). Every change goes through the
     /// settings service at once (clamped, saved, MCM shows the same value); the plan is re-made when the Suggestion
     /// tab shows again.
     /// </summary>
@@ -27,13 +24,12 @@ namespace SmartSteward.UI
                 "Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does.");
         }
 
-        /// <summary>Builds the groups (again after Do it: the prisoners held may have changed).</summary>
+        /// <summary>Builds the groups (again after Do it: the troops ready to upgrade may have changed).</summary>
         internal void EnsureBuilt(GameVisit visit)
         {
             if (_visit == visit && _groups.Count > 0)
                 return;
             _visit = visit;
-            var settings = SettingsHost.Current;
             var groups = new MBBindingList<SettingGroupVM>();
             foreach (var group in SettingEdit.Groups())
             {
@@ -43,19 +39,6 @@ namespace SmartSteward.UI
                     vm.Settings.Add(new SettingLineVM(def, this));
                     if (def.Key == nameof(StewardSettings.WarMountsWarHorseTarget))
                         vm.Settings.Add(ReadyToUpgradeLine(visit)); // the live need beside the two targets (round 1)
-                }
-                if (group.Key == SettingsRegistry.Prisoners)
-                {
-                    var list = SettingsRegistry.Find(nameof(StewardSettings.PrisonersExcluded));
-                    vm.Settings.Add(SettingLineVM.Heading(
-                        UiText.S("ss_ui_prisoners_to_ransom", "Prisoners to ransom"),
-                        list == null ? "" : UiText.S("ss_hint_" + list.Key, list.Hint)));
-                    var held = visit.Snapshot.Prisoners.Where(p => p != null).Select(p => p.TroopId).ToList();
-                    var rows = PrisonerTicks.Rows(held, settings);
-                    if (rows.Count == 0)
-                        vm.Settings.Add(SettingLineVM.Heading(UiText.S("ss_ui_no_prisoners", "(no prisoners now)"), ""));
-                    foreach (var troopId in rows)
-                        vm.Settings.Add(SettingLineVM.Prisoner(troopId, TroopName(troopId, visit), this));
                 }
                 groups.Add(vm);
             }
@@ -75,21 +58,6 @@ namespace SmartSteward.UI
                     "What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen."));
         }
 
-        private static string TroopName(string troopId, GameVisit visit)
-        {
-            var held = visit.Snapshot.Prisoners.FirstOrDefault(p => p != null && p.TroopId == troopId);
-            if (held != null && !string.IsNullOrEmpty(held.Name))
-                return held.Name;
-            try
-            {
-                return MBObjectManager.Instance?.GetObject<CharacterObject>(troopId)?.Name?.ToString() ?? troopId;
-            }
-            catch
-            {
-                return troopId;
-            }
-        }
-
         /// <summary>Every line reads the settings again; <paramref name="includeTexts"/> also rewrites the number
         /// boxes (when the tab is shown — never while the player may be typing in one).</summary>
         internal void RefreshAll(bool includeTexts)
@@ -104,14 +72,7 @@ namespace SmartSteward.UI
 
         internal void Toggle(SettingLineVM line)
         {
-            string? troopId = line.TroopId;
-            if (troopId != null)
-            {
-                bool tick = !line.IsOn;
-                SettingsHost.Service.Update(s => PrisonerTicks.SetRansom(s, troopId, tick));
-                ModLog.Info("window", "prisoners to ransom: " + troopId + (tick ? " ticked" : " unticked"));
-            }
-            else if (line.Definition is BoolSetting b)
+            if (line.Definition is BoolSetting b)
             {
                 SettingsHost.Service.Set(b, !b.Get(SettingsHost.Current));
                 ModLog.Info("window", "setting " + b.Key + " = " + b.Get(SettingsHost.Current));
@@ -168,7 +129,8 @@ namespace SmartSteward.UI
         [DataSourceProperty] public MBBindingList<SettingLineVM> Settings { get; }
     }
 
-    /// <summary>One line: a setting (checkbox / number box / enum button), a prisoner tick, or a small heading.</summary>
+    /// <summary>One line: a setting (checkbox / number box / enum button) or a small heading (the ready-to-upgrade
+    /// count).</summary>
     public sealed class SettingLineVM : ViewModel
     {
         private readonly InstructionsTabVM? _tab;
@@ -191,38 +153,21 @@ namespace SmartSteward.UI
             Refresh(SettingsHost.Current, includeTexts: true);
         }
 
-        private SettingLineVM(string label, string hint, string? troopId, InstructionsTabVM? tab)
+        private SettingLineVM(string label, string hint)
         {
-            _tab = tab;
-            TroopId = troopId;
             LabelText = label;
             Hint = new HintVM(hint);
             EnumHint = new HintVM();
             RangeText = "";
-            IsBool = troopId != null;
-            IsHeading = troopId == null;
-            if (troopId != null)
-                Refresh(SettingsHost.Current, includeTexts: true);
+            IsHeading = true;
         }
 
-        internal static SettingLineVM Heading(string label, string hint) => new SettingLineVM(label, hint, null, null);
-
-        internal static SettingLineVM Prisoner(string troopId, string name, InstructionsTabVM tab) =>
-            new SettingLineVM(name, UiText.S("ss_ui_prisoner_tick_hint", "Ticked: the steward may ransom (or donate) this troop."),
-                troopId, tab);
+        internal static SettingLineVM Heading(string label, string hint) => new SettingLineVM(label, hint);
 
         internal SettingDefinition? Definition { get; }
 
-        /// <summary>A line of the "Prisoners to ransom" list: the troop id.</summary>
-        internal string? TroopId { get; }
-
         internal void Refresh(StewardSettings settings, bool includeTexts)
         {
-            if (TroopId != null)
-            {
-                IsOn = PrisonerTicks.IsTicked(settings, TroopId);
-                return;
-            }
             switch (Definition)
             {
                 case BoolSetting b:
@@ -250,7 +195,7 @@ namespace SmartSteward.UI
 
         internal void SetValid(bool valid) => ValueColor = valid ? UiColors.Text : UiColors.Warning;
 
-        public void ExecuteToggle() => StewardWindowVM.Guard("setting toggle " + (Definition?.Key ?? TroopId), () => _tab?.Toggle(this));
+        public void ExecuteToggle() => StewardWindowVM.Guard("setting toggle " + Definition?.Key, () => _tab?.Toggle(this));
 
         public void ExecuteCycle() => StewardWindowVM.Guard("setting cycle " + Definition?.Key, () => _tab?.Cycle(this));
 

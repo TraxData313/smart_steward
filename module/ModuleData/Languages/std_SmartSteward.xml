@@ -70,7 +70,6 @@
     <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
     <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
-    <string id="ss_hint_PrisonersExcluded" text="Troop ids the steward never ransoms or donates - the ones unticked in the Instructions tab's Prisoners to ransom list. Example: [ &quot;looter&quot;, &quot;sea_raiders_boss&quot; ] Default: empty." />
     <string id="ss_hint_RansomHeroPrisoners" text="Also ransom (or donate) captured lords. A ransomed lord goes free. Default: off." />
     <string id="ss_hint_RansomPrisoners" text="Offer your prisoners to the town's ransom broker. Default: on." />
     <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
@@ -175,7 +174,6 @@
     <string id="ss_ui_col_sell" text="Sell" />
     <string id="ss_ui_col_type" text="Type" />
     <string id="ss_ui_detail_donated" text="{N} to the dungeon" />
-    <string id="ss_ui_detail_excluded" text="not ticked for ransom" />
     <string id="ss_ui_detail_frees" text="{KG} kg" />
     <string id="ss_ui_detail_lord" text="lord" />
     <string id="ss_ui_detail_need" text="needed for upgrades {N}" />
@@ -206,7 +204,6 @@
     <string id="ss_ui_mine_kept" text="(+{N} kept)" />
     <string id="ss_ui_mine_locked" text="(+{N} locked)" />
     <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
-    <string id="ss_ui_no_prisoners" text="(no prisoners now)" />
     <string id="ss_ui_not_now" text="Not now" />
     <string id="ss_ui_nothing_to_do" text="Nothing to do." />
     <string id="ss_ui_open_failed" text="Smart Steward: the window could not open - see smart_steward.log." />
@@ -218,8 +215,6 @@
     <string id="ss_ui_prices_pack" text="Pack animals" />
     <string id="ss_ui_prices_reset_hint" text="Clear your prices - the grey average applies again" />
     <string id="ss_ui_prices_war_mounts" text="War mounts" />
-    <string id="ss_ui_prisoner_tick_hint" text="Ticked: the steward may ransom (or donate) this troop." />
-    <string id="ss_ui_prisoners_to_ransom" text="Prisoners to ransom" />
     <string id="ss_ui_ready_to_upgrade" text="Troops ready to upgrade now: {HORSES} for a horse, {WAR_HORSES} for a war horse" />
     <string id="ss_ui_ready_to_upgrade_hint" text="What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen." />
     <string id="ss_ui_reset_all" text="Reset all" />

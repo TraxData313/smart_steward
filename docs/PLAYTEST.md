@@ -133,3 +133,6 @@ Bannerlord\logs\rgl_log_*.txt` with any report.
    `Troops ready to upgrade now: N for a horse, M for a war horse` — compare with the party screen. Set War horses for
    upgrades = 10 and look at the Suggestion tab: the war-horse row aims at 10, the plain-horse row stays at its automatic
    count. Are the three labels clear without reading the tooltips?
+5. **Prisoners: all or none.** Instructions → Prisoners has no "Prisoners to ransom" list any more. In a town with
+   prisoners every troop is proposed for ransom; lords only with "Include lords". An old settings.json's
+   `PrisonersExcluded` is ignored (the log says `is retired and ignored` once).

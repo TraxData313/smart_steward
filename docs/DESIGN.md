@@ -152,11 +152,12 @@ the footer shows it in red, but **Do it** still works — the player's hand over
 
 ### 1.2 Instructions tab — the settings
 
-Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). Plus
-one tick-list that does not fit MCM:
-- **Prisoners to ransom**: every troop type, ticked = the steward may ransom it.
-  **[decided: Claude, 2026.09.27 — step 7]** "Every troop type" is several hundred in vanilla, so the list shows the
-  prisoners held now plus every troop unticked before (so it can be ticked back); the settings file still takes any id.
+Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). The War
+mounts group also shows the live count "Troops ready to upgrade now: N for a horse, M for a war horse" beside its two
+targets (§2.4, step 12).
+- ~~**Prisoners to ransom**: a tick-list of troop types~~ — **REMOVED [Anton 2026.09.28, playtest round 1: "ransom all
+  or none"]**. The `RansomPrisoners` switch and `RansomHeroPrisoners` (lords) are the whole choice; an old settings
+  file's `PrisonersExcluded` is ignored (logged once).
 
 (The old *Food to keep* list moved into the Prices tab as the food rows' Buy ticks.)
 
@@ -322,8 +323,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
 ### 2.5 Prisoners — ransom or donate
 
 - Only in towns (villages have no ransom broker). `RansomPrisoners` default on.
-- Every ticked prisoner troop type is proposed for ransom; heroes (lords) never unless
-  `RansomHeroPrisoners` (default off).
+- Every prisoner is proposed for ransom — all or none **[Anton 2026.09.28, playtest round 1]**, no per-troop list;
+  heroes (lords) never unless `RansomHeroPrisoners` (default off). Locked prisoners are skipped, as vanilla does.
 - `DonatePrisonersWhenPossible` (default off): when the settlement belongs to the player's
   faction and the game allows donating there, prisoners go to the garrison prison (influence)
   instead of being ransomed (gold). Rules of "allowed" per RESEARCH (mercenary case included).
@@ -339,8 +340,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
     Military Coronae. Castles also take donations but are a non-goal (§9).
 - **[decided: Claude, 2026.09.27 — step 4]** Donations fill the room most valuable first (influence
   grows with the ransom value; the room is what runs out), the rest is ransomed. Heroes are not donated
-  either unless `RansomHeroPrisoners`. Excluded troops and heroes keep a row at 0 (the player may add them
-  by hand); locked prisoners get no row.
+  either unless `RansomHeroPrisoners`. Heroes keep a row at 0 (the player may add them by hand); locked prisoners get
+  no row.
 
 ### 2.6 Loot — sold in groups, cheapest first
 
@@ -648,7 +649,6 @@ expected unit prices.
 | Prisoners | RansomPrisoners | true | — | ransom prisoners in towns |
 | Prisoners | RansomHeroPrisoners | false | — | include lords |
 | Prisoners | DonatePrisonersWhenPossible | false | — | donate to own garrison (influence) instead |
-| Prisoners | PrisonersExcluded | [] | — | troop ids unticked in *Prisoners to ransom* |
 | Loot | SellLoot | false | — | sell other items |
 | Loot | SellLootEquipment | true | — | weapons, armour, shields, ammo |
 | Loot | SellLootMaxItemValue | 0 | 0–1,000,000 | never auto-sell items worth more per unit (0 = no cap) |

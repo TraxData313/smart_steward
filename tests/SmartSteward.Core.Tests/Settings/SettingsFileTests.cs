@@ -30,7 +30,6 @@ public class SettingsFileTests
         s.PriceBook["t2_battania_horse"] = new PriceBookEntry { Buy = true, BuyBase = 800, Sell = true, SellBase = 400 };
         s.PriceBook["mule"] = new PriceBookEntry { Buy = false };
         s.PriceBook["odd \"id\" \\ with quotes"] = new PriceBookEntry { SellBase = 0 };
-        s.PrisonersExcluded.AddRange(new[] { "sea_raiders_boss", "looter" });
         return s;
     }
 
@@ -107,12 +106,10 @@ public class SettingsFileTests
     }
 
     [Fact]
-    public void The_prisoner_list_is_written_cleaned_and_sorted()
+    public void The_retired_prisoner_list_is_never_written()
     {
-        var s = new StewardSettings();
-        s.PrisonersExcluded.AddRange(new[] { " looter ", "sea_raiders_boss", "looter", "", "   " });
-        Assert.Contains("  \"PrisonersExcluded\": [ \"looter\", \"sea_raiders_boss\" ],", SettingsFile.Generate(s));
-        Assert.Contains("  \"PrisonersExcluded\": [],", Defaults);
+        Assert.DoesNotContain("PrisonersExcluded", Defaults);
+        Assert.DoesNotContain("[", Defaults.Split(SettingsFile.NewLine).Where(l => !l.TrimStart().StartsWith("//")));
     }
 
     [Fact]
@@ -170,7 +167,6 @@ public class SettingsFileTests
             MinGoldAfterDeal = -40,
             PackAnimalsTarget = int.MaxValue,
             PriceBook = null!,
-            PrisonersExcluded = null!,
         };
         var parsed = SettingsFile.Parse(SettingsFile.Generate(s));
         Assert.False(parsed.Unreadable);
@@ -178,7 +174,6 @@ public class SettingsFileTests
         Assert.Equal(0, parsed.Settings.MinGoldAfterDeal);
         Assert.Equal(500, parsed.Settings.PackAnimalsTarget);
         Assert.Empty(parsed.Settings.PriceBook);
-        Assert.Empty(parsed.Settings.PrisonersExcluded);
     }
 
     // ── Reading: forgiving where a player's hand is ─────────────────────────────────────────
@@ -194,7 +189,7 @@ public class SettingsFileTests
               ""FOODPERMAN"": 3,
               ""PackAnimalsTarget"": 12.0,   // a whole number written as a decimal is fine
               ""PriceBook"": { ""grain"": { ""buybase"": 9, }, },
-              ""PrisonersExcluded"": [ ""looter"", ],
+              ""prisonersexcluded"": [ ""looter"", ],   // retired in step 12 - ignored, logged
             }
             // the end
             ";
@@ -205,7 +200,7 @@ public class SettingsFileTests
         Assert.Equal(3.0, parsed.Settings.FoodPerMan);
         Assert.Equal(12, parsed.Settings.PackAnimalsTarget);
         Assert.Equal(9, parsed.Settings.PriceBook["grain"].BuyBase);
-        Assert.Equal(new[] { "looter" }, parsed.Settings.PrisonersExcluded);
+        Assert.Single(parsed.Retired);
     }
 
     [Fact]
@@ -389,20 +384,19 @@ public class SettingsFileTests
     }
 
     [Fact]
-    public void The_prisoner_list_keeps_only_ids()
+    public void The_old_prisoner_list_is_dropped_and_logged_whatever_it_holds()
     {
-        var parsed = ParseOne("PrisonersExcluded", "[ \"looter\", 5, null, \" looter \", \"\", \"2012-01-01T00:00:00\", { } ]");
-        Assert.Equal(new[] { "2012-01-01T00:00:00", "looter" }, parsed.Settings.PrisonersExcluded); // a date-like id stays text
-        Assert.Equal(3, parsed.Problems.Count);
-        Assert.All(parsed.Problems, p => Assert.Contains("is not an id in quotes - dropped", p));
-    }
-
-    [Fact]
-    public void A_prisoner_list_that_is_not_a_list_is_empty_and_reported()
-    {
-        var parsed = ParseOne("PrisonersExcluded", "\"looter\"");
-        Assert.Empty(parsed.Settings.PrisonersExcluded);
-        Assert.Contains("PrisonersExcluded: expected a list", Assert.Single(parsed.Problems));
+        // Step 12 (round 1): ransom is all or none - an old file's tick-list is simply ignored.
+        foreach (var json in new[] { "[ \"looter\", \"sea_raiders_boss\" ]", "\"looter\"", "[]" })
+        {
+            var parsed = SettingsFile.Parse(Defaults.Replace("  \"DonatePrisonersWhenPossible\": false,",
+                "  \"DonatePrisonersWhenPossible\": false," + SettingsFile.NewLine + "  \"PrisonersExcluded\": " + json + ","));
+            Assert.Empty(parsed.Problems);
+            Assert.False(parsed.LosesSomething);
+            Assert.Contains("\"PrisonersExcluded\"", Assert.Single(parsed.Retired));
+            Assert.Contains("every prisoner may be ransomed now", parsed.Retired[0]);
+            Assert.DoesNotContain("PrisonersExcluded", SettingsFile.Generate(parsed.Settings));
+        }
     }
 
     // ── Renamed keys (step 8: AutoExecute became the Full-autonomous steward) ─────────────────

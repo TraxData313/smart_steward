@@ -121,8 +121,6 @@ public class StringsFileTests
                 Add("ss_set_" + def.Key, def.Label, "registry");
                 Add("ss_hint_" + def.Key, def.Hint, "registry");
             }
-            else if (def is IdListSetting)
-                Add("ss_hint_" + def.Key, def.Hint, "registry"); // the "Prisoners to ransom" heading's tooltip
             if (def is EnumSetting e)
                 for (int i = 0; i < e.Names.Count; i++)
                     Add("ss_opt_" + def.Key + "_" + e.Names[i], e.Labels[i], "registry");
