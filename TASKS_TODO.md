@@ -19,7 +19,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deploy (the game was running at the end of step 12), then playtest the fixes — checklist in docs/PLAYTEST.md "Round 1 fixes"
 - [x] 13. Playtest round 2 fixes — the BUGS lines marked (R2)
   - [ ] Deploy (the game was running at the end of step 13), then playtest — checklist in docs/PLAYTEST.md "Round 2 fixes"
-- [ ] 14. Round 3, small — party limit never blocks hires (show 99/96), steward also on docking into a port, weight line now + change → after with land/sea capacity (red when over), the "Not now" button renamed "Close"
+- [x] 14. Round 3, small — party limit never blocks hires (show 99/96), steward also on docking into a port, weight line now + change → after with land/sea capacity (red when over), the "Not now" button renamed "Close"
+  - [ ] Deploy (the game was running at the end of step 14), then playtest — checklist in docs/PLAYTEST.md "Round 3 — small"
 - [ ] 15. Round 3, core — LIVE RE-PLAN: untouched food/mount/upgrade-horse rows follow every party change in the window (hires, recruits, dismissals, ransoms); edited rows stay — so Do it leaves nothing new to suggest
 - [ ] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
 
@@ -95,3 +96,5 @@ NOTICED (things spotted during a step, left for later):
 - [ ] TrainingBattles' package.ps1 zips with Compress-Archive → backslash entry names (seen in TrainingBattles_v1.4.0.zip); ours writes '/' — port it there
 - [ ] Step 12: a stuck Left Alt (after Alt+Tab) blocks entering towns in vanilla too — tell the player in game ("tap Left Alt")? now log-only (InputWatch); Anton's call
 - [ ] Step 13: with "Locks protect food & horses" on, a food / animal row shows `40 (+40 locked)` — its Mine already counts the locked units (loot's Mine does not), so "+" reads as extra; say "(40 locked)" there?
+- [ ] Step 14: the footer grew a line (the weight line) — the table is ~30 px (one row) shorter; check the look at 1080p
+- [ ] Step 14: unverified whether a party docked at a port counts as IsCurrentlyAtSea (the party screen's capacity uses that live flag) — compare with the footer's land / sea in game

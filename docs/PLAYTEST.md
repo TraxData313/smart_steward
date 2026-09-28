@@ -156,3 +156,26 @@ Deploy (game closed). Send `smart_steward.log` with any report.
 3. **Armour and weapons keep their lock** — both ways of the switch. With **Sell loot** on, lock a piece of armour or a
    weapon: its group row shows `(+1 locked)`, the steward never proposes it, [-] all stops before it, and **Do it**
    leaves it in the inventory.
+
+## Round 3 — small (step 14)
+
+Deploy (game closed). Send `smart_steward.log` with any report.
+
+1. **Party limit is information.** In a town with a mercenary band, fill the party close to its limit and open Party
+   Steward. The footer shows `Party 94/96`; [+] (Shift, Ctrl) on the mercenaries goes past the limit — up to the whole band
+   — and `Party 104/96` turns red. A wanderer can be ticked with a full party too (only the companion limit stops him).
+   **Do it** hires them all; the party screen shows the party over its limit, like vanilla after a tavern hire.
+2. **Docking into a port (War Sails).** Sail into a coastal town (ships in the party) and dock. The port menu ("You are at
+   the port.") has **Party Steward** right after Trade, and the arrival popup comes on docking (same rules as a town:
+   only with suggestions, never at a closed market). Walk into the town and back: no second popup. Set sail without
+   opening it: the leave question comes. With the Full-autonomous steward on, docking runs it once (message-log report).
+   Without War Sails nothing changes (the log says nothing about a port).
+3. **Weight line.** The footer's second line reads like `Weight 1,000 +120 kg » 1,120 kg · capacity 1,500` — with ships
+   `capacity land 1,500 / sea 1,000`, plus `(1,620 kg at sea)` when horses make the load at sea heavier. Buy pack animals:
+   the land capacity climbs 100 each (more with pack perks); hire men: +20 each on land and at sea; sell mounts: −20 each.
+   Push it over (Ctrl [+] on food, or dismiss the pack animals): `+120 over on land` / `+620 over at sea` shows in red and
+   follows every click. Compare the numbers now with the party screen's capacity tooltip (land) — they should match.
+4. **Close.** The button next to Do it says **Close** (Escape still closes too).
+5. **Wanderer pages.** In a town you never visited the tavern district of, open Party Steward: the message log says
+   "You've learned about …" for each listed wanderer. Click a wanderer's name: the Encyclopedia page is complete (no
+   "???"). The mercenary troop's name opens its unit page as before.
