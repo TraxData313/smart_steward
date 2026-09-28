@@ -29,6 +29,8 @@ namespace SmartSteward.UI
         private string _footerMoneyText = "";
         private string _footerFoodText = "";
         private string _footerWeightText = "";
+        private string _footerOverText = "";
+        private bool _hasFooterOver;
         private string _footerPartyText = "";
         private string _footerPartyColor = UiColors.Text;
         private string _warningText = "";
@@ -91,8 +93,11 @@ namespace SmartSteward.UI
                 "NOW", UiFormat.Money(t.GoldNow), "AFTER", UiFormat.Money(t.GoldAfter), "CHANGE", UiFormat.SignedMoney(t.GoldChange));
             HeaderColor = UiColors.ForGoldChange(t.GoldChange);
 
-            FooterMoneyText = UiText.S2("ss_ui_footer_money", "Spent {SPENT}  ·  earned {EARNED}",
+            string money = UiText.S2("ss_ui_footer_money", "Spent {SPENT}  ·  earned {EARNED}",
                 "SPENT", UiFormat.Money(t.Spent), "EARNED", UiFormat.Money(t.Earned));
+            if (t.InfluenceGained > 0.05)
+                money += "  ·  " + UiText.S1("ss_ui_footer_influence", "Influence {INF}", "INF", UiFormat.SignedInfluence(t.InfluenceGained));
+            FooterMoneyText = money;
             FooterFoodText = t.FoodDaysAfter == null
                 ? UiText.S2("ss_ui_footer_food_nodays", "Food {NOW} » {AFTER}",
                     "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter))
@@ -102,10 +107,7 @@ namespace SmartSteward.UI
             FooterPartyText = UiText.S2("ss_ui_footer_party", "Party {AFTER}/{LIMIT}",
                 "AFTER", UiFormat.Money(t.MembersAfter), "LIMIT", UiFormat.Money(t.PartySizeLimit));
             FooterPartyColor = t.OverPartyLimit ? UiColors.Warning : UiColors.Text;
-            string weight = UiText.S1("ss_ui_footer_weight", "Weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
-            if (t.InfluenceGained > 0.05)
-                weight += "  ·  " + UiText.S1("ss_ui_footer_influence", "Influence {INF}", "INF", UiFormat.SignedInfluence(t.InfluenceGained));
-            FooterWeightText = weight;
+            RefreshWeightLine(t);
 
             var floors = plan.Floors; // the floors the flags were computed against
             var warnings = PlanFooter.Warnings(t);
@@ -116,6 +118,42 @@ namespace SmartSteward.UI
             EmptyText = closed ? MarketClosedText : _nothingToDoText;
             HasMarketNotice = closed && !IsEmpty;
             CanResetAll = plan.IsEdited;
+        }
+
+        /// <summary>The weight line (round 3), like the food line: the load now, the change and the load after, then the
+        /// capacity AFTER the deal — land, and sea when the party has ships (War Sails) — and, in red beside it, how far the
+        /// deal takes the load over a capacity. Without a capacity read (a failed read) only the change shows.</summary>
+        private void RefreshWeightLine(PlanTotals t)
+        {
+            var c = t.Carry;
+            if (!c.Known)
+            {
+                FooterWeightText = UiText.S1("ss_ui_footer_weight", "Weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
+                FooterOverText = "";
+                HasFooterOver = false;
+                return;
+            }
+            string line = UiFormat.SignedWeight(t.WeightChange) == "0"
+                ? UiText.S1("ss_ui_footer_load_same", "Weight {NOW} kg", "NOW", UiFormat.Kg(c.WeightNow))
+                : UiText.S3("ss_ui_footer_load", "Weight {NOW} {CHANGE} kg » {AFTER} kg",
+                    "NOW", UiFormat.Kg(c.WeightNow), "CHANGE", UiFormat.SignedWeight(t.WeightChange), "AFTER", UiFormat.Kg(c.WeightAfter));
+            line += "  ·  " + (c.ShowSea
+                ? UiText.S2("ss_ui_footer_capacity_sea", "capacity land {LAND} / sea {SEA}",
+                    "LAND", UiFormat.Kg(c.CapacityLandAfter), "SEA", UiFormat.Kg(c.CapacitySeaAfter))
+                : UiText.S1("ss_ui_footer_capacity", "capacity {LAND}", "LAND", UiFormat.Kg(c.CapacityLandAfter)));
+            if (c.SeaLoadDiffers)
+                line += " " + UiText.S1("ss_ui_footer_sea_load", "({KG} kg at sea)", "KG", UiFormat.Kg(c.WeightAtSeaAfter));
+            FooterWeightText = line;
+
+            var over = new List<string>();
+            if (c.OverLand > 0)
+                over.Add(c.ShowSea
+                    ? UiText.S1("ss_ui_footer_over_land", "{KG} over on land", "KG", UiFormat.KgOver(c.OverLand))
+                    : UiText.S1("ss_ui_footer_over", "{KG} over", "KG", UiFormat.KgOver(c.OverLand)));
+            if (c.OverSea > 0)
+                over.Add(UiText.S1("ss_ui_footer_over_sea", "{KG} over at sea", "KG", UiFormat.KgOver(c.OverSea)));
+            FooterOverText = string.Join("  ·  ", over);
+            HasFooterOver = over.Count > 0;
         }
 
         internal void SetStatus(string text)
@@ -231,6 +269,21 @@ namespace SmartSteward.UI
         {
             get => _footerWeightText;
             set { if (value != _footerWeightText) { _footerWeightText = value; OnPropertyChangedWithValue(value, nameof(FooterWeightText)); } }
+        }
+
+        /// <summary>The part of the load over a capacity after the deal: "+120 over at sea" (red).</summary>
+        [DataSourceProperty]
+        public string FooterOverText
+        {
+            get => _footerOverText;
+            set { if (value != _footerOverText) { _footerOverText = value; OnPropertyChangedWithValue(value, nameof(FooterOverText)); } }
+        }
+
+        [DataSourceProperty]
+        public bool HasFooterOver
+        {
+            get => _hasFooterOver;
+            set { if (value != _hasFooterOver) { _hasFooterOver = value; OnPropertyChangedWithValue(value, nameof(HasFooterOver)); } }
         }
 
         /// <summary>"Party 99/96" — the party after the deal against its size limit.</summary>

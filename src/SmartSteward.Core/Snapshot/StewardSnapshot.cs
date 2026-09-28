@@ -53,6 +53,62 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary>The tavern's offer; null when there is no tavern here or no access to it.</summary>
         public TavernInfo? Tavern { get; set; }
+
+        /// <summary>The party's load and carrying capacity now, on land and (with ships) at sea, and what one more member,
+        /// mount, pack animal or prisoner changes them by — the footer's weight line (round 3, RESEARCH §19).</summary>
+        public CarryInfo Carry { get; set; } = new CarryInfo();
+    }
+
+    /// <summary>
+    /// The party's load and carrying capacity as the game's <c>InventoryCapacityModel</c> counts them (RESEARCH §19) —
+    /// the numbers NOW, read from the model itself (so a mod's model is honoured), and the per-unit rates of the vanilla
+    /// formula (perks included) that let Core move them with the deal: <see cref="Planning.CarryTotals"/>. All zero =
+    /// not read (tests, a failed read): the footer then shows the weight change only.
+    /// </summary>
+    public sealed class CarryInfo
+    {
+        /// <summary>Load on land now: <c>CalculateTotalWeightCarried(party, false)</c> — items; animals weigh nothing.</summary>
+        public double WeightNow { get; set; }
+
+        /// <summary>Capacity on land now: <c>CalculateInventoryCapacity(party, false)</c>.</summary>
+        public double CapacityLandNow { get; set; }
+
+        /// <summary>Land capacity of one more healthy member (a hire): 20 × (1 + Arenicos' Horses) × (1 + Caravan Master).</summary>
+        public double LandPerMember { get; set; }
+
+        /// <summary>Land capacity of one more mount (any <c>IsMount</c> animal): 20 × (1 + Caravan Master).</summary>
+        public double LandPerMount { get; set; }
+
+        /// <summary>Land capacity of one more pack animal: 100 × (1 + the pack perks) × (1 + Caravan Master).</summary>
+        public double LandPerPackAnimal { get; set; }
+
+        /// <summary>Land capacity of one more healthy prisoner — 20 × (1 + Caravan Master) with Forced Labor, else 0.</summary>
+        public double LandPerPrisoner { get; set; }
+
+        /// <summary><c>PrisonRoster.TotalHealthyCount</c> — the prisoners Forced Labor counts (the wounded go first when
+        /// prisoners leave, so a ransom lowers this only once no wounded are left).</summary>
+        public int HealthyPrisoners { get; set; }
+
+        /// <summary>The party owns ships (War Sails): the sea part of the line is shown.</summary>
+        public bool HasShips { get; set; }
+
+        /// <summary>Load at sea now: <c>CalculateTotalWeightCarried(party, true)</c> — under War Sails animals weigh (mount
+        /// 50, pack animal 30, livestock 20 kg, perks aside) and so does each mounted troop's horse (50 kg).</summary>
+        public double WeightAtSeaNow { get; set; }
+
+        /// <summary>Capacity at sea now: <c>CalculateInventoryCapacity(party, true)</c> — base and members, no animals, plus
+        /// every ship's cargo (<c>Ship.InventoryCapacity</c>, War Sails).</summary>
+        public double CapacitySeaNow { get; set; }
+
+        /// <summary>Sea capacity of one more healthy member: 20 (no perk multiplies it at sea).</summary>
+        public double SeaPerMember { get; set; }
+
+        /// <summary>Sea capacity of one more healthy prisoner — 20 with Forced Labor (the game checks the party's LIVE
+        /// at-sea state for that perk), else 0.</summary>
+        public double SeaPerPrisoner { get; set; }
+
+        /// <summary>The model was read (a capacity above 0) — else the footer shows the weight change only.</summary>
+        public bool Known => CapacityLandNow > 0;
     }
 
     /// <summary>The party itself.</summary>
@@ -139,8 +195,12 @@ namespace SmartSteward.Core.Snapshot
         /// sellable; food and animals: managed like the rest unless LocksProtectFoodAndHorses (<c>Planning.LockRule</c>).</summary>
         public bool IsLocked { get; set; }
 
-        /// <summary>Carried weight of one unit as the game counts it (animals weigh 0).</summary>
+        /// <summary>Carried weight of one unit on land as the game counts it (animals weigh 0).</summary>
         public double UnitWeight { get; set; }
+
+        /// <summary>Weight of one unit at sea (<c>GetItemEffectiveWeight(…, isCurrentlyAtSea: true)</c>) — under War Sails
+        /// animals weigh too (mount 50, pack 30 kg, perks aside). Read only when the party has ships.</summary>
+        public double UnitWeightAtSea { get; set; }
 
         /// <summary><c>EquipmentElement.ItemValue</c> — modifier included (the loot value cap).</summary>
         public int UnitValue { get; set; }
@@ -252,5 +312,9 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary>How many of this troop the party already has (the row's Mine).</summary>
         public int InParty { get; set; }
+
+        /// <summary>What one man adds to the load at sea — his horse, when the troop rides (War Sails weighs every mounted
+        /// troop's horse at sea); 0 on foot or without ships.</summary>
+        public double SeaWeightPerMan { get; set; }
     }
 }

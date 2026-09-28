@@ -147,7 +147,18 @@ Buttons on Change:
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
 Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
-weight freed or added · buttons **Do it** and **Not now**.
+the weight line · buttons **Do it** and **Not now**.
+**The weight line** **[Anton 2026.09.28, playtest round 3 — "like the food line"]**, on its own footer line:
+`Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000` — the load now, the change and the load after, then
+the carrying capacity AFTER the deal: pack animals and mounts bought or sold and troops hired change it (the ransomed
+prisoners too, with the Forced Labor perk). The sea capacity (the fleet's cargo + the men) shows only when the party has
+ships (War Sails); without ships the line reads `capacity 1,500`. At sea the game also weighs every animal and every
+mounted troop's horse, so when the load at sea differs the line adds `(1,620 kg at sea)`. Any part over a capacity shows
+in red beside it — `+120 over on land`, `+620 over at sea` (without ships just `+120 over`), rounded up. It updates with
+every click. **[decided: Claude, 2026.09.28 — step 14]** The numbers NOW are the game's own (its capacity model, so a mod
+that changes it is honoured); the change is Core arithmetic at the vanilla formula's rates with the party's perks
+(RESEARCH §19, `Planning.CarryTotals`). Nothing is blocked by it — being over capacity only slows the party, like vanilla.
+If the capacity cannot be read, the line shows the weight change only (`Weight +120 kg`).
 **The party after the deal** **[Anton 2026.09.28, playtest round 3]**: `Party 99/96` — the members after every hire in
 the plan against the party size limit, red when over, live with every click. Information, never a wall (§2.7). When the player's edits break a money floor (§3),
 the footer shows it in red, but **Do it** still works — the player's hand overrides the steward.

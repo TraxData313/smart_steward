@@ -139,6 +139,18 @@ namespace SmartSteward.Core.Planning
             if (t.FoodDaysAfter != null)
                 sb.Append(" (~").Append(Math.Floor(t.FoodDaysAfter.Value).ToString(Inv)).Append(" days)");
             sb.Append(" | weight ").Append(t.WeightChange.ToString("+0.#;-0.#;0", Inv)).Append(" kg");
+            var c = t.Carry;
+            if (c.Known)
+            {
+                sb.Append(" (load ").Append(Kg(c.WeightNow)).Append(" -> ").Append(Kg(c.WeightAfter))
+                    .Append(", capacity land ").Append(Kg(c.CapacityLandNow)).Append(" -> ").Append(Kg(c.CapacityLandAfter));
+                if (c.ShowSea)
+                    sb.Append(", at sea ").Append(Kg(c.WeightAtSeaNow)).Append(" -> ").Append(Kg(c.WeightAtSeaAfter))
+                        .Append(" of ").Append(Kg(c.CapacitySeaNow)).Append(" -> ").Append(Kg(c.CapacitySeaAfter));
+                sb.Append(')');
+                if (c.OverLand > 0) sb.Append(" OVER on land by ").Append(Kg(Math.Ceiling(c.OverLand)));
+                if (c.OverSea > 0) sb.Append(" OVER at sea by ").Append(Kg(Math.Ceiling(c.OverSea)));
+            }
             if (t.InfluenceGained > 0)
                 sb.Append(" | influence +").Append(t.InfluenceGained.ToString("0.#", Inv));
             sb.Append(" | party ").Append(t.MembersAfter.ToString(Inv)).Append('/').Append(t.PartySizeLimit.ToString(Inv))
@@ -166,6 +178,8 @@ namespace SmartSteward.Core.Planning
             min == max ? min.ToString(Inv) : min.ToString(Inv) + ".." + max.ToString(Inv);
 
         private static string Money(int value) => value.ToString("N0", Inv);
+
+        private static string Kg(double kg) => Math.Round(kg).ToString("N0", Inv);
 
         private static string Signed(int value) => (value >= 0 ? "+" : "-") + Math.Abs(value).ToString("N0", Inv);
 

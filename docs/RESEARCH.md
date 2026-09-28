@@ -112,7 +112,7 @@ trade penalty of 0.06 (§8).
   animals outnumber men.
 - **Capacity** (`DefaultInventoryCapacityModel`): 10 base + 20 per healthy member + **20 per mount**
   + **100 per pack animal** (× Scouting.BeastWhisperer, Riding.DeeperSacks, Steward.ArenicosMules;
-  Trade.CaravanMaster on the total). Over capacity → up to −0.4 ("Overburdened").
+  Trade.CaravanMaster on the total). Over capacity → up to −0.4 ("Overburdened"). The full formula, at sea too: §19.
 - **Animals weigh 0** in carried weight (`GetItemEffectiveWeight` returns 0 for any
   `HasHorseComponent`) — selling a horse frees no weight.
 - **Quirk:** the incremental counters skip animals with an `ItemModifier` (lame, spirited…) —
@@ -925,6 +925,43 @@ menu behind: never do it blind). `GameMenu.AddOption` is internal. So the entry 
 (`GameMenuOpened` comes before `OnMenuCreate`, so it shows on that very opening), after `trade`
 (`IndexAfter(menuId, "trade")`), by id — no NavalDLC reference.
 
+## 19. Carrying capacity and load, on land and at sea (verified in step 14, 2026.09.28)
+
+For the footer's weight line (round 3). Base game `CS\...GameComponents\DefaultInventoryCapacityModel.cs`; War Sails
+`NavalDLC\NavalDLC.GameComponents\NavalDLCInventoryCapacityModel.cs` (it wraps the default — `base.BaseModel`).
+`MobileParty.InventoryCapacity` / `TotalWeightCarried` call the model with the party's LIVE `IsCurrentlyAtSea`.
+
+**Capacity** — `CalculateInventoryCapacity(party, isCurrentlyAtSea, …, additionalManOnFoot, additionalSpareMounts,
+additionalPackAnimals, includeFollowers)`; the default model IGNORES the three `additional…` parameters, so "the capacity
+after the deal" cannot be asked of the game — it is recomputed from the pieces:
+- `10` base (`Add(10)`) and a floor of 10 (`LimitMin(10)`).
+- **members**: `NumberOfHealthyMembers × 2 (TroopsFactor) × 10 (GetItemAverageWeight)` = **20 kg per healthy member**;
+  **Steward.ArenicosHorses** (PrimaryBonus 0.1) adds `Round(members × 0.1)` members — land only (`!isCurrentlyAtSea`);
+  **Steward.ForcedLabor** adds `PrisonRoster.TotalHealthyCount` members (after Arenicos — not multiplied) when the party is
+  not at sea NOW (`!mobileParty.IsCurrentlyAtSea` — the live flag, whichever capacity is asked).
+- land only (`!isCurrentlyAtSea`): **mounts** `NumberOfMounts × 2 × 10` = **20 kg per mount** (every `IsMount` animal,
+  ridden or not — the model's text says "Spare Mounts"); **pack animals** `NumberOfPackAnimals × 10 × 10` = **100 kg each** ×
+  (1 + Scouting.BeastWhisperer SecondaryBonus 0.1 [secondary role] + Riding.DeeperSacks 0.2 + Steward.ArenicosMules 0.2);
+  then **Trade.CaravanMaster** (PrimaryBonus 0.3) multiplies the whole land total.
+- `ExplainedNumber`: `Add` adds to the base, `AddFactor` sums factors, `ResultNumber = base × (1 + Σ factors)` clamped.
+- War Sails at sea adds **Σ `Ship.InventoryCapacity`** of the party's (and attached parties') ships (`ShipHull.InventoryCapacity
+  × (1 + the upgrades' InventoryCapacityBonusMultiplier)`). A deal never changes the ships.
+- `MobileParty.Ships` (base game, `Party.Ships`) is empty without War Sails — "has ships" is the soft test.
+
+**Load** — `CalculateTotalWeightCarried` = Σ `GetItemEffectiveWeight(element, party, atSea) × amount`:
+- default: any `HasHorseComponent` item weighs **0**, else `EquipmentElement.GetEquipmentElementWeight()`.
+- War Sails AT SEA: a mount **50 kg** (Boatswain.NavalHorde secondary), a pack animal **30**, livestock **20**
+  (Boatswain.Optimization), trade goods × Boatswain.GildedPurse; and `CalculateTotalWeightCarried` adds **50 kg per non-hero
+  troop whose equipment has a horse** (`!Character.Equipment.Horse.IsEmpty`) — the cavalry's own horses are cargo at sea.
+
+**How the steward uses it** (Module `SnapshotBuilder.ReadCarry`, Core `GameRules.SetCarryRates`, `Planning.CarryTotals`):
+the NOW numbers come from the model itself (land, and with ships sea) — a modded model is honoured; each stack's unit
+weight on land and at sea comes from `GetItemEffectiveWeight`; the per-unit rates (member, mount, pack animal, prisoner —
+with the party's perks read by `MobileParty.HasPerk` exactly as the model reads them) move the capacity with the deal:
+mounts and pack animals bought / sold (land), hires (land and sea), prisoners leaving (Forced Labor only; the wounded leave
+first). A mounted mercenary's sea weight is MEASURED — (load at sea − the items' sea weight) ÷ mounted non-hero men — or,
+with none mounted yet, the model's sea weight of the troop's own horse. Arenicos' rounding is left out (≤ one member).
+
 ---
 
 ## Gotchas (one line each)
@@ -1002,6 +1039,8 @@ menu behind: never do it blind). `GameMenu.AddOption` is internal. So the entry 
     (the town's own market); arrival logic keyed to `town` misses every docking (§18).
 57. **`CampaignGameStarter.AddGameMenuOption` creates a menu that does not exist** (`GetPresumedGameMenu`) — add to a DLC's
     menu only when it is there (at its first opening), never blind (§18).
+58. **The capacity model ignores its `additional…` parameters** — the capacity after a deal must be recomputed from the
+    formula's pieces (§19); at sea War Sails weighs every animal AND every mounted troop's horse.
 
 ---
 

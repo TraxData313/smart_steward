@@ -112,7 +112,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor;
                               PlanReport = the plan as text for the log; LockRule (step 13) = what an inventory lock
-                              guards (armour & weapons always, food & horses only with LocksProtectFoodAndHorses)
+                              guards (armour & weapons always, food & horses only with LocksProtectFoodAndHorses);
+                              CarryTotals (step 14) = the load and carrying capacity after the deal, land and sea (the
+                              game's numbers now + the formula's rates — GameRules.SetCarryRates, RESEARCH §19)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),

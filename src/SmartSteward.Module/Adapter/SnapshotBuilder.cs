@@ -5,6 +5,7 @@ using System.Linq;
 using SmartSteward.Core.Snapshot;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.Party;
@@ -51,11 +52,13 @@ namespace SmartSteward.Adapter
             snap.CanTrade = CanTradeNow(settlement, out string? closedReason);
             snap.TradeClosedReason = snap.CanTrade ? null : closedReason;
             ReadParty(snap, main);
-            ReadItems(main.ItemRoster, snap.Inventory, elements, InventoryLocks());
+            bool ships = HasShips(main);
+            ReadItems(main.ItemRoster, snap.Inventory, elements, InventoryLocks(), main, ships);
             if (snap.CanTrade)
-                ReadItems(settlement.ItemRoster, snap.Market, elements, null);
+                ReadItems(settlement.ItemRoster, snap.Market, elements, null, main, ships);
             else
                 snap.MarketGold = 0; // no access, no market rows (DESIGN §3.5)
+            ReadCarry(snap, main, ships);
             ReadAverages(snap, settlement, elements, main);
             ReadUpgrades(snap, main);
             ReadPrisoners(snap, settlement, main, hero);
@@ -167,6 +170,10 @@ namespace SmartSteward.Adapter
                    + "/" + s.Party.PartySizeLimit.ToString(inv) + " (footmen " + s.Party.Footmen.ToString(inv)
                    + ", companion slots " + s.Party.CompanionSlotsFree.ToString(inv) + ", food/day "
                    + s.Party.DailyFoodUse.ToString("0.##", inv) + ", livestock food " + s.Party.LivestockFoodUnits.ToString(inv)
+                   + "); load " + s.Carry.WeightNow.ToString("0", inv) + " kg, capacity land " + s.Carry.CapacityLandNow.ToString("0", inv)
+                   + (s.Carry.HasShips ? ", at sea " + s.Carry.WeightAtSeaNow.ToString("0", inv) + " of " + s.Carry.CapacitySeaNow.ToString("0", inv) : "")
+                   + " (per member " + s.Carry.LandPerMember.ToString("0.#", inv) + ", mount " + s.Carry.LandPerMount.ToString("0.#", inv)
+                   + ", pack " + s.Carry.LandPerPackAnimal.ToString("0.#", inv) + ", prisoner " + s.Carry.LandPerPrisoner.ToString("0.#", inv)
                    + "); inventory stacks/units [" + Kinds(s.Inventory) + "]; market [" + Kinds(s.Market) + "]; averages "
                    + s.AveragePrices.Count.ToString(inv) + "; upgrade stacks " + s.Upgrades.Count.ToString(inv)
                    + "; prisoners " + s.Prisoners.Sum(p => p.Count).ToString(inv) + " in " + s.Prisoners.Count.ToString(inv)
@@ -198,8 +205,9 @@ namespace SmartSteward.Adapter
         }
 
         private static void ReadItems(ItemRoster roster, List<ItemStack> into, Dictionary<string, EquipmentElement> elements,
-            HashSet<string>? locks)
+            HashSet<string>? locks, MobileParty main, bool ships)
         {
+            var capacity = Campaign.Current.Models.InventoryCapacityModel;
             for (int i = 0; i < roster.Count; i++)
             {
                 var element = roster.GetElementCopyAtIndex(i);
@@ -225,14 +233,112 @@ namespace SmartSteward.Adapter
                     LootGroup = kind == ItemKind.Equipment ? group : LootGroup.None,
                     Count = element.Amount,
                     IsLocked = locks != null && locks.Contains(GameRules.LockId(itemId, modifierId)),
-                    // DefaultInventoryCapacityModel.GetItemEffectiveWeight: animals weigh nothing carried
-                    UnitWeight = horse != null ? 0 : el.GetEquipmentElementWeight(),
+                    // the game's own model (DefaultInventoryCapacityModel: animals weigh nothing carried on land; War
+                    // Sails weighs them at sea — RESEARCH §19)
+                    UnitWeight = EffectiveWeight(capacity, el, main, false),
+                    UnitWeightAtSea = ships ? EffectiveWeight(capacity, el, main, true) : 0,
                     UnitValue = el.ItemValue,
                     // TownMarketData.OnTownInventoryUpdated moves InStoreValue by Item.Value per unit
                     StoreValueStep = item.Value,
                 });
                 if (!elements.ContainsKey(key))
                     elements[key] = el;
+            }
+        }
+
+        /// <summary>The party owns ships (War Sails) — <c>MobileParty.Ships</c> is the base game's, empty without the DLC.</summary>
+        private static bool HasShips(MobileParty main)
+        {
+            try
+            {
+                return main.Ships != null && main.Ships.Count > 0;
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading the fleet", ex);
+                return false;
+            }
+        }
+
+        /// <summary>One unit's weight as the capacity model counts it (<c>GetItemEffectiveWeight</c>); should the model
+        /// fail, the vanilla land rule (animals weigh nothing).</summary>
+        private static double EffectiveWeight(InventoryCapacityModel model, EquipmentElement element, MobileParty main, bool atSea)
+        {
+            try
+            {
+                return model.GetItemEffectiveWeight(element, main, atSea, out _);
+            }
+            catch
+            {
+                return element.Item?.HasHorseComponent == true ? 0 : element.GetEquipmentElementWeight();
+            }
+        }
+
+        /// <summary>
+        /// The load and the carrying capacity now (the game's <c>InventoryCapacityModel</c>, on land and — with ships —
+        /// at sea) and the vanilla formula's per-unit rates with the party's perks (RESEARCH §19,
+        /// <see cref="GameRules.SetCarryRates"/>), so Core can move them with the deal. A failure leaves them at zero: the
+        /// footer then shows the weight change only.
+        /// </summary>
+        private static void ReadCarry(StewardSnapshot snap, MobileParty main, bool ships)
+        {
+            try
+            {
+                var model = Campaign.Current.Models.InventoryCapacityModel;
+                var carry = snap.Carry;
+                carry.WeightNow = model.CalculateTotalWeightCarried(main, false).ResultNumber;
+                carry.CapacityLandNow = model.CalculateInventoryCapacity(main, false).ResultNumber;
+                carry.HealthyPrisoners = main.PrisonRoster.TotalHealthyCount;
+                // DefaultInventoryCapacityModel.CalculateInventoryCapacity's perks, read the way it reads them
+                float troops = main.HasPerk(DefaultPerks.Steward.ArenicosHorses) ? DefaultPerks.Steward.ArenicosHorses.PrimaryBonus : 0f;
+                float pack = (main.HasPerk(DefaultPerks.Scouting.BeastWhisperer, true) ? DefaultPerks.Scouting.BeastWhisperer.SecondaryBonus : 0f)
+                             + (main.HasPerk(DefaultPerks.Riding.DeeperSacks) ? DefaultPerks.Riding.DeeperSacks.PrimaryBonus : 0f)
+                             + (main.HasPerk(DefaultPerks.Steward.ArenicosMules) ? DefaultPerks.Steward.ArenicosMules.PrimaryBonus : 0f);
+                float caravan = main.HasPerk(DefaultPerks.Trade.CaravanMaster) ? DefaultPerks.Trade.CaravanMaster.PrimaryBonus : 0f;
+                bool forcedLabor = !main.IsCurrentlyAtSea && main.HasPerk(DefaultPerks.Steward.ForcedLabor);
+                GameRules.SetCarryRates(carry, troops, pack, caravan, forcedLabor);
+                carry.HasShips = ships;
+                if (ships)
+                {
+                    carry.WeightAtSeaNow = model.CalculateTotalWeightCarried(main, true).ResultNumber;
+                    carry.CapacitySeaNow = model.CalculateInventoryCapacity(main, true).ResultNumber;
+                }
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading the carrying capacity", ex);
+                snap.Carry = new CarryInfo();
+            }
+        }
+
+        /// <summary>
+        /// What one more man of <paramref name="troop"/> adds to the load at sea: War Sails weighs every mounted troop's horse
+        /// there (<c>NavalDLCInventoryCapacityModel.CalculateTotalWeightCarried</c>: non-hero troops whose equipment has a
+        /// horse — RESEARCH §19). Measured, not assumed: the load at sea minus the items' own sea weight, per mounted man; with
+        /// no mounted man in the party, the sea weight of the troop's own horse. 0 on foot, without ships or on a failure.
+        /// </summary>
+        private static double SeaWeightPerMan(StewardSnapshot snap, MobileParty main, CharacterObject troop)
+        {
+            try
+            {
+                if (!snap.Carry.HasShips || troop.IsHero || troop.Equipment == null || troop.Equipment.Horse.IsEmpty)
+                    return 0;
+                int mounted = 0;
+                foreach (var element in main.MemberRoster.GetTroopRoster())
+                    if (element.Character != null && !element.Character.IsHero && element.Character.Equipment != null
+                        && !element.Character.Equipment.Horse.IsEmpty)
+                        mounted += element.Number;
+                if (mounted > 0)
+                {
+                    double items = snap.Inventory.Sum(s => s.Count * s.UnitWeightAtSea);
+                    return Math.Max(0, (snap.Carry.WeightAtSeaNow - items) / mounted);
+                }
+                return Math.Max(0, EffectiveWeight(Campaign.Current.Models.InventoryCapacityModel, troop.Equipment.Horse, main, true));
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("snapshot", "reading a mounted man's weight at sea", ex);
+                return 0;
             }
         }
 
@@ -384,6 +490,7 @@ namespace SmartSteward.Adapter
                     PricePerMan = Campaign.Current.Models.PartyWageModel.GetTroopRecruitmentCost(troop, hero).RoundedResultNumber,
                     WagePerMan = troop.TroopWage,
                     InParty = main.MemberRoster.GetTroopCount(troop),
+                    SeaWeightPerMan = SeaWeightPerMan(snap, main, troop),
                 };
             }
             snap.Tavern = tavern;

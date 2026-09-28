@@ -139,5 +139,41 @@ namespace SmartSteward.Core.Snapshot
         /// more than the stack has), so the healthy ones are only moved once no wounded are left.</summary>
         public static int WoundedToMove(int count, int woundedInStack) =>
             Math.Max(0, Math.Min(Math.Max(0, count), Math.Max(0, woundedInStack)));
+
+        /// <summary>Carrying capacity of one healthy member: <c>TroopsFactor 2 × GetItemAverageWeight() 10</c>
+        /// (<c>DefaultInventoryCapacityModel</c>, RESEARCH §19).</summary>
+        public const double CapacityPerMember = 20;
+
+        /// <summary>… of one mount on land (<c>SpareMountsFactor 2 × 10</c> — every <c>IsMount</c> animal, ridden or not).</summary>
+        public const double CapacityPerMount = 20;
+
+        /// <summary>… of one pack animal on land (<c>PackAnimalsFactor 10 × 10</c>).</summary>
+        public const double CapacityPerPackAnimal = 100;
+
+        /// <summary>The model's base and its floor (<c>Add(10)</c>, <c>LimitMin(10)</c>).</summary>
+        public const double CapacityBase = 10;
+
+        /// <summary>
+        /// The per-unit rates of <c>DefaultInventoryCapacityModel.CalculateInventoryCapacity</c> (RESEARCH §19), perks
+        /// included — an <c>ExplainedNumber</c> is base × (1 + Σ factors): on land a member gives 20 × (1 + Arenicos'
+        /// Horses), a mount 20, a pack animal 100 × (1 + Beast Whisperer's secondary + Deeper Sacks + Arenicos' Mules), a
+        /// healthy prisoner 20 with Forced Labor (not multiplied by Arenicos' Horses), and Caravan Master multiplies the
+        /// whole land total; at sea only members (20) and Forced Labor's prisoners count — ships add a fixed cargo the deal
+        /// never changes. <paramref name="forcedLaborNow"/> = the perk AND the party not at sea right now (the game checks
+        /// the live state for that perk, whichever capacity it computes). The rounding of Arenicos' Horses
+        /// (<c>Round(members × bonus)</c>) is left out: at most one member's worth.
+        /// </summary>
+        public static void SetCarryRates(CarryInfo carry, double troopsBonus, double packBonus, double caravanBonus,
+            bool forcedLaborNow)
+        {
+            if (carry == null) throw new ArgumentNullException(nameof(carry));
+            double caravan = 1 + caravanBonus;
+            carry.LandPerMember = CapacityPerMember * (1 + troopsBonus) * caravan;
+            carry.LandPerMount = CapacityPerMount * caravan;
+            carry.LandPerPackAnimal = CapacityPerPackAnimal * (1 + packBonus) * caravan;
+            carry.LandPerPrisoner = forcedLaborNow ? CapacityPerMember * caravan : 0;
+            carry.SeaPerMember = CapacityPerMember;
+            carry.SeaPerPrisoner = forcedLaborNow ? CapacityPerMember : 0;
+        }
     }
 }

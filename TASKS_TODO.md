@@ -33,6 +33,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
 - The party size limit never blocks a hire — the footer shows the party after the deal (Party 99/96), red when over
 - Docking at a port (War Sails) brings the steward too: the arrival popup / autonomous run on docking, "Party Steward" in the port menu
+- Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000" — the capacity after the deal, the part over it in red
 
 BUGS:
 - [x] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
@@ -48,7 +49,7 @@ BUGS:
 NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [ ] (R3) TROOPS section right after the Tavern: the recruits on offer in this town/village (volunteers of its notables you may take) at the top, then the troops you have — one row per troop type, Mine / [-] [+] / Result / price / on offer; [+] recruits, [-] dismisses; never every troop in the game; starts at 0 like the tavern; names open the Encyclopedia
 - [ ] (R3) Live re-plan (Anton: "after I change the troops the mounts etc are not accurate… so when I hit Do it I won't see new suggestions"): untouched rows follow the party after the deal; touched rows stay
-- [ ] (R3) Weight line like the food: "1,000 +120 kg → 1,120 kg · capacity land 1,500 / sea 1,000" — capacity AFTER the deal (pack animals and troops add to it), the part over a capacity in red ("+120 over at sea")
+- [x] (R3) Weight line like the food: "1,000 +120 kg → 1,120 kg · capacity land 1,500 / sea 1,000" — capacity AFTER the deal (pack animals and troops add to it), the part over a capacity in red ("+120 over at sea")
 - [ ] (R3) The "Not now" button next to Do it is just "Close"
 - [x] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 

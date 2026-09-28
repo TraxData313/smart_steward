@@ -131,6 +131,9 @@ namespace SmartSteward.Core.Planning
         public int DailyWage { get; internal set; }
         public HireBlock Block { get; internal set; }
         public string? SkillTag { get; internal set; }
+
+        /// <summary>Mercenaries: what one man adds to the load at sea (his horse, when the troop rides — War Sails).</summary>
+        public double SeaWeightPerMan { get; internal set; }
     }
 
     /// <summary>

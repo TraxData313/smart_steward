@@ -77,6 +77,9 @@ namespace SmartSteward.Core.Planning
         public double WeightAdded { get; internal set; }
         public double WeightChange => WeightAdded - WeightFreed;
 
+        /// <summary>The load and carrying capacity after the deal, on land and at sea (round 3) — the footer's weight line.</summary>
+        public CarryTotals Carry { get; internal set; } = new CarryTotals();
+
         public double InfluenceGained { get; internal set; }
 
         /// <summary>The party after the deal (hires added) — against <see cref="PartySizeLimit"/> in the footer.</summary>
@@ -168,6 +171,7 @@ namespace SmartSteward.Core.Planning
             totals.FoodUnitsAfter = foodNow + foodChange;
             totals.MembersAfter = snapshot.Party.Members + hired;
             totals.PrisonersAfter = prisonersNow - prisonersMoved;
+            totals.Carry = CarryTotals.Compute(rows, snapshot.Carry, totals.WeightChange, prisonersNow, totals.PrisonersAfter);
             totals.BelowMinGoldAfterDeal = bought && totals.GoldAfter < floors.All;
             totals.BelowMinGoldForHorses = animalBought && totals.GoldAfter < floors.Animals;
 

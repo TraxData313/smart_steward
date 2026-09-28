@@ -74,7 +74,7 @@
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="40" VerticalAlignment="Top" MarginTop="120" Brush="Popup.Description.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@MutedColor" Text="@EmptyText" IsVisible="@IsEmpty" />
 
                     <!-- The table -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="80" MarginBottom="122" IsVisible="@ShowTable">
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="80" MarginBottom="152" IsVisible="@ShowTable">
                       <Children>
                         <ScrollablePanel Id="SuggestionScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="14" ClipRect="SuggestionClip" InnerPanel="SuggestionClip\SuggestionList" VerticalScrollbar="..\SuggestionScrollbar" AutoHideScrollBars="true">
                           <Children>
@@ -225,9 +225,10 @@
                       </Children>
                     </Widget>
 
-                    <!-- The footer: spent / earned, food after (days), the party after the deal vs its limit (red when over -
-                         round 3), weight; warnings in red; the last result -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="116" VerticalAlignment="Bottom">
+                    <!-- The footer: spent / earned (influence), food after (days), the party after the deal vs its limit (red
+                         when over - round 3); the weight line with the capacity after the deal, the part over it in red (round 3);
+                         warnings in red; the last result -->
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="146" VerticalAlignment="Bottom">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.25" />
                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" VerticalAlignment="Top" MarginTop="8" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -235,11 +236,16 @@
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterMoneyText" />
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="48" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterFoodText" />
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="48" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Brush.FontColor="@FooterPartyColor" Text="@FooterPartyText" />
-                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="48" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterWeightText" />
                           </Children>
                         </ListPanel>
-                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="40" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@WarningText" IsVisible="@HasWarnings" />
-                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="66" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@StatusColor" Text="@StatusText" IsVisible="@HasStatus" />
+                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" VerticalAlignment="Top" MarginTop="38" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                          <Children>
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterWeightText" />
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="24" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@FooterOverText" IsVisible="@HasFooterOver" />
+                          </Children>
+                        </ListPanel>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="70" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@WarningText" IsVisible="@HasWarnings" />
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="96" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@StatusColor" Text="@StatusText" IsVisible="@HasStatus" />
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" VerticalAlignment="Bottom" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="15" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ShortcutText" />
                       </Children>
                     </Widget>

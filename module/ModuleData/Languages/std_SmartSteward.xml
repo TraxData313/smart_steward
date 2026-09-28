@@ -189,11 +189,19 @@
     <string id="ss_ui_enum_hint" text="Click for the next choice" />
     <string id="ss_ui_expand_hint" text="Show the kinds of animal in this row" />
     <string id="ss_ui_failed" text="Smart Steward: something went wrong - the window closed. See smart_steward.log." />
+    <string id="ss_ui_footer_capacity" text="capacity {LAND}" />
+    <string id="ss_ui_footer_capacity_sea" text="capacity land {LAND} / sea {SEA}" />
     <string id="ss_ui_footer_food" text="Food {NOW} » {AFTER}  (~{DAYS} days)" />
     <string id="ss_ui_footer_food_nodays" text="Food {NOW} » {AFTER}" />
     <string id="ss_ui_footer_influence" text="Influence {INF}" />
+    <string id="ss_ui_footer_load" text="Weight {NOW} {CHANGE} kg » {AFTER} kg" />
+    <string id="ss_ui_footer_load_same" text="Weight {NOW} kg" />
     <string id="ss_ui_footer_money" text="Spent {SPENT}  ·  earned {EARNED}" />
+    <string id="ss_ui_footer_over" text="{KG} over" />
+    <string id="ss_ui_footer_over_land" text="{KG} over on land" />
+    <string id="ss_ui_footer_over_sea" text="{KG} over at sea" />
     <string id="ss_ui_footer_party" text="Party {AFTER}/{LIMIT}" />
+    <string id="ss_ui_footer_sea_load" text="({KG} kg at sea)" />
     <string id="ss_ui_footer_weight" text="Weight {KG} kg" />
     <string id="ss_ui_header" text="Gold {NOW} » {AFTER}   ({CHANGE})" />
     <string id="ss_ui_instructions_intro" text="Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does." />

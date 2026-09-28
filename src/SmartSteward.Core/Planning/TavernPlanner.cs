@@ -64,6 +64,7 @@ namespace SmartSteward.Core.Planning
                         Kind = TavernRowKind.Mercenaries,
                         UnitPrice = mercenaries.PricePerMan,
                         DailyWage = mercenaries.WagePerMan,
+                        SeaWeightPerMan = Math.Max(0, mercenaries.SeaWeightPerMan),
                     },
                 });
             }

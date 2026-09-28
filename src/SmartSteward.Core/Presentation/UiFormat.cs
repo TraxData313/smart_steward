@@ -62,6 +62,12 @@ namespace SmartSteward.Core.Presentation
             return (rounded > 0 ? "+" : Minus) + text;
         }
 
+        /// <summary>Whole kilos for the footer's weight line: <c>1,120</c> (rounded half away from zero).</summary>
+        public static string Kg(double kg) => Money((long)Math.Round(kg, MidpointRounding.AwayFromZero));
+
+        /// <summary>Kilos over a capacity, rounded UP — any part of a kilo over is over: <c>+120</c>.</summary>
+        public static string KgOver(double kg) => "+" + Money((long)Math.Ceiling(Math.Round(Math.Max(0, kg), 3)));
+
         /// <summary>Influence gained: <c>+2.4</c>.</summary>
         public static string SignedInfluence(double value)
         {
