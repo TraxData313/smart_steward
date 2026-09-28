@@ -16,7 +16,9 @@ namespace SmartSteward.Core.Execution
         /// the mercenary band changed or is gone).</summary>
         NotOnOffer,
 
-        /// <summary>Locked in the inventory / party screen since the plan was made — never sold or ransomed.</summary>
+        /// <summary>Locked in the inventory / party screen since the plan was made — never ransomed; never sold when the
+        /// lock guards the stack (armour and weapons; food and animals only with LocksProtectFoodAndHorses —
+        /// <see cref="ExecutionBudget.StoppedByLock"/>).</summary>
         Locked,
 
         /// <summary>The market cannot pay for the next unit (DESIGN §3.4: never a sale the market cannot pay).</summary>
@@ -163,6 +165,15 @@ namespace SmartSteward.Core.Execution
             }
             return n;
         }
+
+        /// <summary>
+        /// Does the inventory lock stop this item transaction at the click? Only a sale whose lock guards it
+        /// (<see cref="PlanTransaction.HonoursLock"/>: armour and weapons always, food and animals only with
+        /// LocksProtectFoodAndHorses) and only when the stack is locked now. The game's headless trade has no notion of
+        /// locks (vanilla honours one only in the trade screen's "transfer all" — RESEARCH §6), so this is the one check.
+        /// </summary>
+        public static bool StoppedByLock(PlanTransaction transaction, bool lockedNow) =>
+            transaction != null && lockedNow && transaction.Kind == TransactionKind.Sell && transaction.HonoursLock;
 
         /// <summary>The direction of an item transaction (Sell / Buy).</summary>
         public static TradeDirection DirectionOf(PlanTransaction transaction) =>

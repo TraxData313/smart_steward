@@ -9,7 +9,8 @@ namespace SmartSteward.Core.Planning
     /// <summary>
     /// Pack animals (DESIGN §2.2): keep PackAnimalsTarget. One role row. Buys the cheapest eligible (Buy-ticked,
     /// unmodified, within its price-book max AND PackAnimalMaxPrice); sells the surplus most expensive first.
-    /// Modified (lame…) and locked animals count as held; locked ones are never sold.
+    /// Modified (lame…) and locked animals count as held; a locked one is sold like any other unless
+    /// LocksProtectFoodAndHorses (<see cref="LockRule"/>).
     /// </summary>
     internal sealed class PackAnimalPlanner
     {
@@ -30,7 +31,7 @@ namespace SmartSteward.Core.Planning
                 return;
 
             var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                _held.Where(s => !s.IsLocked && ctx.Book(s)!.SellTicked)
+                _held.Where(s => !ctx.IsGuarded(s) && ctx.Book(s)!.SellTicked)
                     .Select(s => new LaneStack(s, s.Count, ctx.Book(s)!.FinalMinSell)));
             var buyLane = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
                 ctx.MarketStacks(ItemKind.PackAnimal)
@@ -46,7 +47,8 @@ namespace SmartSteward.Core.Planning
             {
                 Role = MountRole.Pack,
                 Mine = _heldCount,
-                Locked = _held.Sum(s => s.LockedCount),
+                Locked = _held.Where(ctx.IsGuarded).Sum(s => s.Count),
+                LocksGuard = ctx.LockGuards(ItemKind.PackAnimal),
                 Target = Target,
                 Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
                 MaxSell = sellLane.Capacity,

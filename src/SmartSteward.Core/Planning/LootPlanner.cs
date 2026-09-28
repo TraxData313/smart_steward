@@ -62,7 +62,7 @@ namespace SmartSteward.Core.Planning
             foreach (var group in LootGroups.All)
             {
                 var held = equipment.Where(s => s.LootGroup == group).ToList();
-                var sellable = held.Where(s => !s.IsLocked && (cap <= 0 || s.UnitValue <= cap)).ToList();
+                var sellable = held.Where(s => !ctx.IsGuarded(s) && (cap <= 0 || s.UnitValue <= cap)).ToList();
                 if (sellable.Count == 0)
                     continue;
                 sellable.Sort(_order);
@@ -72,8 +72,9 @@ namespace SmartSteward.Core.Planning
                 {
                     LootGroup = group,
                     Mine = lane.Capacity,
-                    Locked = held.Sum(s => s.LockedCount),
-                    OverValueCap = held.Where(s => !s.IsLocked && cap > 0 && s.UnitValue > cap).Sum(s => s.Count),
+                    Locked = held.Where(ctx.IsGuarded).Sum(s => s.Count),
+                    LocksGuard = ctx.LockGuards(ItemKind.Equipment), // always: locks keep guarding armour and weapons
+                    OverValueCap = held.Where(s => !ctx.IsGuarded(s) && cap > 0 && s.UnitValue > cap).Sum(s => s.Count),
                     Market = null,
                     MaxSell = lane.Capacity,
                     SellLane = lane,

@@ -10,7 +10,8 @@ namespace SmartSteward.Core.Planning
     /// <summary>
     /// Food (DESIGN §2.1): keep ceil(eaters × FoodPerMan) units, varied, fairly priced. One row per food
     /// item. Buying and selling never happen in one visit: food is sold only above the target plus the
-    /// tolerance, and bought only below the target.
+    /// tolerance, and bought only below the target. Locked food counts as held and is sold like any other unless
+    /// LocksProtectFoodAndHorses (<see cref="LockRule"/>).
     /// </summary>
     internal sealed class FoodPlanner
     {
@@ -80,7 +81,7 @@ namespace SmartSteward.Core.Planning
                     : TradeLane.Empty(TradeDirection.Buy);
                 var sellLane = book.SellTicked
                     ? new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                        item.Held.Where(s => !s.IsLocked).Select(s => new LaneStack(s, s.Count, book.FinalMinSell)))
+                        item.Held.Where(s => !ctx.IsGuarded(s)).Select(s => new LaneStack(s, s.Count, book.FinalMinSell)))
                     : TradeLane.Empty(TradeDirection.Sell);
 
                 int held = item.Held.Sum(s => s.Count);
@@ -93,7 +94,8 @@ namespace SmartSteward.Core.Planning
                     ItemId = item.Id,
                     CategoryId = item.First.CategoryId,
                     Mine = held,
-                    Locked = item.Held.Sum(s => s.LockedCount),
+                    Locked = item.Held.Where(ctx.IsGuarded).Sum(s => s.Count),
+                    LocksGuard = ctx.LockGuards(ItemKind.Food),
                     Market = item.Offered.Sum(s => s.Count),
                     MaxBuy = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
                     MaxSell = sellLane.Capacity,

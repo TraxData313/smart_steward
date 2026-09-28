@@ -163,8 +163,14 @@ namespace SmartSteward.Core.Planning
         /// <summary>What the party holds now (loot groups: the SELLABLE pieces; role rows: units in the role).</summary>
         public int Mine { get; internal set; }
 
-        /// <summary>Locked units shown apart ("+3 locked") — never sold.</summary>
+        /// <summary>Locked units whose lock guards them (<see cref="LockRule"/>), shown apart ("+3 locked") — never sold.
+        /// Food and animal rows: 0 unless LocksProtectFoodAndHorses (their locked units are managed like the rest).</summary>
         public int Locked { get; internal set; }
+
+        /// <summary>Item rows: a lock in the inventory keeps this row's stacks from sale (<see cref="LockRule"/>) — loot
+        /// always, food and animals only with LocksProtectFoodAndHorses. The executor re-checks the live locks of such a
+        /// row's sales (<see cref="PlanTransaction.HonoursLock"/>) and sells the others locked or not.</summary>
+        public bool LocksGuard { get; internal set; }
 
         /// <summary>Loot only: unlocked pieces above <c>SellLootMaxItemValue</c> — never sold, not in Mine.</summary>
         public int OverValueCap { get; internal set; }

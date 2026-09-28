@@ -58,7 +58,7 @@ public class PackAnimalPlannerTests
     }
 
     [Fact]
-    public void Surplus_is_sold_most_expensive_first_and_locked_ones_never()
+    public void Surplus_is_sold_most_expensive_first_and_locked_ones_never_when_locks_protect_them()
     {
         var s = new Scenario()
             .Pack("sumpter_horse", held: 8, sell: 70)
@@ -68,6 +68,7 @@ public class PackAnimalPlannerTests
         Assert.Equal(-4, row.Moved("sumpter_horse"));
 
         s.Snap.Inventory.Single(i => i.Key == "sumpter_horse").IsLocked = true;
+        s.Settings.LocksProtectFoodAndHorses = true; // the old way; off (the default) sells it - InventoryLockTests
         row = s.Plan().Row("mounts:pack");
         Assert.Equal(-4, row.Moved("mule"));
         Assert.Equal(8, row.Locked);
@@ -168,7 +169,13 @@ public class MountPlannerTests
         Assert.Equal(new[] { "war_a", "war_c" }, upgrade.Breakdown.Where(l => l.Mine > 0).Select(l => l.StackKey));
         var riding = plan.Row("mounts:riding");
         Assert.Equal(2, riding.Mine); // the locked charger and the dearest war_b
-        Assert.Equal(1, riding.Locked);
+        Assert.Equal(0, riding.Locked); // managed: locks guard horses only with LocksProtectFoodAndHorses
+
+        s.Settings.LocksProtectFoodAndHorses = true; // the reservation does not care - the game's order
+        plan = s.Plan();
+        Assert.Equal(new[] { "war_a", "war_c" },
+            plan.Row("mounts:upgrade:war_horse").Breakdown.Where(l => l.Mine > 0).Select(l => l.StackKey));
+        Assert.Equal(1, plan.Row("mounts:riding").Locked);
     }
 
     [Fact]
@@ -275,10 +282,18 @@ public class MountPlannerTests
         Assert.Equal(-1, row.Moved("charger"));
         Assert.Equal(2800, row.GoldDelta);
 
+        // A locked horse is managed like the rest (playtest round 2) - unless locks protect food and horses.
         s.Snap.Inventory.Single(i => i.Key == "noble").IsLocked = true;
+        row = s.Plan().Row("mounts:riding");
+        Assert.Equal(-1, row.Moved("noble"));
+        Assert.Equal(-1, row.Moved("charger"));
+        Assert.Equal(0, row.Locked);
+
+        s.Settings.LocksProtectFoodAndHorses = true;
         row = s.Plan().Row("mounts:riding");
         Assert.Equal(-1, row.Moved("charger"));
         Assert.Equal(-1, row.Moved("hunter"));
+        Assert.Equal(1, row.Locked);
 
         s.Settings.SellMountSurplus = false;
         Assert.Equal(0, s.Plan().Row("mounts:riding").Change);

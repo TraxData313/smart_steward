@@ -312,11 +312,17 @@ namespace SmartSteward.Adapter
                 o.Stop(selling ? SkipReason.NotHeld : SkipReason.NotOnOffer);
                 return 0;
             }
-            if (selling && locks.Contains(GameRules.LockId(element.Item.StringId, element.ItemModifier?.StringId)))
+            // The headless InventoryLogic knows nothing of locks (vanilla honours one only in the trade screen's
+            // "transfer all" — RESEARCH §6), so the lock is ours to check: it stops the sales it guards (armour and
+            // weapons; food and animals only with LocksProtectFoodAndHorses) and nothing else.
+            bool lockedNow = selling && locks.Contains(GameRules.LockId(element.Item.StringId, element.ItemModifier?.StringId));
+            if (ExecutionBudget.StoppedByLock(tx, lockedNow))
             {
                 o.Stop(SkipReason.Locked);
                 return 0;
             }
+            if (lockedNow)
+                Log("selling " + tx.StackKey + " although locked - locks guard food and horses only with LocksProtectFoodAndHorses");
             int? limit = ExecutionBudget.PriceLimitOf(plan, tx);
             int floor = selling ? 0 : ExecutionBudget.FloorOf(plan, tx); // the autonomous steward's purse floor
             int moved = 0;

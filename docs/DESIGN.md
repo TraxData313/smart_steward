@@ -256,6 +256,9 @@ pure Core logic fed a snapshot of the party and the market (§5).
   price (§1.3).
 - **[decided: Claude, 2026.09.27 — step 4]** The target counts only the prisoners who stay — those
   this visit ransoms or donates are not fed. Two types held equally when selling → the dearer goes first.
+- **Locked food is managed** **[Anton 2026.09.28, playtest round 2]**: food LOCKED in the inventory screen counts as held
+  and is sold as surplus by the rules above like any other (most-held type first, down to the target) — unless
+  `LocksProtectFoodAndHorses` (default **off**; on = locked food is counted but never sold, the old way). See §2.6.
 
 ### 2.2 Pack animals — keep X
 
@@ -266,6 +269,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **[research 2026.09.27]** Each pack animal adds ~100 carrying capacity (perks raise it); animals
   weigh nothing themselves. Selling any mount or pack animal carries a +0.8 trade penalty (it
   fetches about half its buy price) — the planner never sells and buys the same kind in one visit.
+- **Locked pack animals are managed** **[Anton 2026.09.28, playtest round 2]**: counted as held and sold as surplus, most
+  expensive first, locked or not — unless `LocksProtectFoodAndHorses` (§2.6).
 
 ### 2.3 Mounts — horses for the footmen
 
@@ -283,6 +288,10 @@ pure Core logic fed a snapshot of the party and the market (§5).
   **500**). Surplus sells under the same price-book rules as pack animals.
 - **Sell surplus** (`SellMountSurplus`, default on) above target, **most expensive first**, but
   never a war mount reserved for upgrades.
+- **Locked mounts are managed** **[Anton 2026.09.28, playtest round 2]**: riding mounts and upgrade horses LOCKED in the
+  inventory count as held and the riding surplus is sold most expensive first, locked or not; the horses reserved for
+  upgrades are still never sold by the steward (the player may, by hand). With `LocksProtectFoodAndHorses` on, locked
+  mounts are counted but never sold (§2.6). The reservation order stays the game's (unlocked first, §2.4) either way.
 
 ### 2.4 War mounts — ready for the upgrades
 
@@ -365,13 +374,23 @@ pure Core logic fed a snapshot of the party and the market (§5).
   | Ranged (Anton's "firing") | Bow, Crossbow, Sling, Thrown, Arrows, Bolts, SlingStones (+ Pistol, Musket, Bullets — unused in vanilla) | `SellLootEquipment` |
   | Shields | Shield | `SellLootEquipment` |
 
-- Never sold: items LOCKED in the inventory screen, food, animals (handled above), items above
+- Never sold: armour and weapons LOCKED in the inventory screen, food, animals (handled above), items above
   `SellLootMaxItemValue` per unit (default **0** = no cap).
   **[Anton 2026.09.27]** A LOCKED piece is never sold and **not even counted as sellable** (the row
   shows it apart as "+N locked"). **[research 2026.09.27]** Locks are read from
   `IViewDataTracker.GetInventoryLocks()`; a lock id is the item id + the modifier id, so a locked
   "rusty sword" does not lock a plain one (RESEARCH §6). Also never sold: livestock, banners,
   books, quest items, non-transferable items.
+- **What a lock guards** **[Anton 2026.09.28, playtest round 2 — "food and horses even if locked, manage them"]**: locks
+  keep guarding ARMOUR & WEAPONS exactly as above, whatever the settings. Food, pack animals, riding mounts and upgrade
+  horses are managed WHETHER LOCKED OR NOT — counted as held, sold as surplus by their own rules (§2.1–§2.4; reserved
+  upgrade horses are still never sold) — unless `LocksProtectFoodAndHorses` ("Locks protect food & horses", General,
+  default **off**): on, locked food and animals are counted but never sold and shown apart as "+N locked", the old way.
+  The planner and the executor share one rule (Core `Planning\LockRule`): each sale carries whether its lock guards it
+  (`PlanTransaction.HonoursLock`), and at the click only a guarded sale of a stack locked now is skipped (§5). The game's
+  own lock only works in the trade screen's "transfer all" (RESEARCH §6), so a locked stack sells through vanilla's
+  headless trade like any other; the lock itself stays set (it is kept per item id, so a stack bought back is locked again).
+  Upgrades by the game itself are unaffected — they take unlocked animals first, locked ones last (§2.4).
 - **Order within a group** **[Anton 2026.09.27]** — `SellLootOrder` replaces the old boolean
   `SellLootMassFirst`: **`Cheapest`** (default — the cheapest pieces go first; it gets rid of the
   most weight for the market's money), `LowestPricePerKg`, `MostExpensive` (vanilla's habit). The
@@ -512,7 +531,8 @@ expected unit prices.
 **[decided: Claude, 2026.09.27 — step 6]** How the executor behaves (`Module\Adapter\PlanExecutor`, Core `Execution\`):
 - Every unit is checked again at the click, the way the plan walked it: its live price (the trade logic's own) must
   pass its row's limit (max buy / min sell), a sale must fit the market's remaining gold (gross sales, the planner's
-  rule), a purchase the purse. What no longer fits — sold out, no longer held, locked since, no access any more, no
+  rule), a purchase the purse. What no longer fits — sold out, no longer held, locked since (a sale whose lock guards it: armour &
+  weapons; food and animals only with `LocksProtectFoodAndHorses` — §2.6), no access any more, no
   room in the dungeon or the party, no companion slot — is skipped and logged; the rest goes through. The money
   floors are not checked again: the player saw them and clicked. **[decided: Claude, 2026.09.27 — step 9]** Except
   for the Full-autonomous steward, whom nobody watched: each of its purchases must still leave the purse at its floor
@@ -618,6 +638,7 @@ expected unit prices.
 | General | PopupOnlyWithChanges | true | — | auto-open only when there is something to do |
 | General | WarnIfNotReviewed | true | — | ask before leaving with unreviewed suggestions |
 | General | AutonomousSteward | false | — | "Full-autonomous steward": plan and carry out on arrival, report in the message log (§6) — replaces `AutoExecute` **[Anton 2026.09.27]** |
+| General | LocksProtectFoodAndHorses | false | — | "Locks protect food & horses": off = locked food, pack animals and mounts are managed like the rest (counted, sold as surplus); on = left alone like locked armour & weapons (§2.6) **[Anton 2026.09.28, playtest round 2]** |
 | Money | MinGoldAfterDeal | 1000 | 0–1,000,000 | purse floor for all purchases |
 | Money | MinGoldForHorses | 5000 | 0–1,000,000 | purse floor for animal purchases |
 | Money | AutonomousMinGold | 100000 | 0–10,000,000 | purse floor while autonomous: both floors above rise to it (§6) **[Anton 2026.09.27]** |
@@ -688,8 +709,8 @@ float slider and the file agree on the same number). A value outside its range i
   **[research 2026.09.27 — step 5]** Format **"none"**, not the default "memory" (which throws on the
   first registration in MCM 5.12.3): MCM keeps and writes nothing, settings.json is the only store.
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
-  - Core: `SettingsRegistry` (the 45 §7 keys in table order: 43 scalars + the price book + the prisoner
-    list), `SettingsFile` (text in, text out), `SettingsService` (the live values). Module: `SettingsHost`
+  - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 13: 46 scalars + the price book; the
+    prisoner list is gone since step 12), `SettingsFile` (text in, text out), `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.
   - The file opens with a short header (how to edit, when it is re-read, delete to reset, where the
     fixes are logged) and has a `// ===== Group =====` heading per group; above every key sits

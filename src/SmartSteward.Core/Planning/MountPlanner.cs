@@ -19,6 +19,8 @@ namespace SmartSteward.Core.Planning
     ///    them: unlocked before locked, cheapest base value first (PartyScreenLogic.RemoveItemFromItemRoster).
     /// 3. Every other mount — war and noble horses and camels too — is a riding mount; its surplus is sold
     ///    most expensive first (a horse of an upgrade category only with SellWarMountSurplus).
+    /// Locked mounts count and are sold like any other unless LocksProtectFoodAndHorses (<see cref="LockRule"/>); the
+    /// reservation still takes unlocked horses first, since that is the order the game's upgrade consumes them in.
     /// The riding target counts the riding mounts plus, with WarMountsCountAsMounts, the reserved ones and
     /// the upgrade horses about to be bought (the man upgraded takes his horse: counting them twice buys a
     /// horse too many per upgrade).
@@ -105,7 +107,7 @@ namespace SmartSteward.Core.Planning
                 // such horses are plain riding mounts.)
                 bool sellWarSurplus = !settings.WarMountsEnabled || settings.SellWarMountSurplus;
                 var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                    _held.Where(s => !s.IsLocked && s.Count - ReservedOf(s) > 0 && ctx.Book(s)!.SellTicked
+                    _held.Where(s => !ctx.IsGuarded(s) && s.Count - ReservedOf(s) > 0 && ctx.Book(s)!.SellTicked
                                      && (sellWarSurplus || !inPlay.Contains(s.CategoryId)))
                         .Select(s => new LaneStack(s, s.Count - ReservedOf(s), ctx.Book(s)!.FinalMinSell)));
                 var buyLane = AnimalBuyLane(ctx, s => true, settings.MountMaxPrice);
@@ -113,7 +115,8 @@ namespace SmartSteward.Core.Planning
                 {
                     Role = MountRole.Riding,
                     Mine = pool,
-                    Locked = _held.Where(s => s.IsLocked).Sum(s => s.Count - ReservedOf(s)),
+                    Locked = _held.Where(ctx.IsGuarded).Sum(s => s.Count - ReservedOf(s)),
+                    LocksGuard = ctx.LockGuards(ItemKind.Mount),
                     Target = RidingTarget,
                     Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
                     MaxSell = sellLane.Capacity,
@@ -130,7 +133,7 @@ namespace SmartSteward.Core.Planning
                 string category = pair.Key;
                 var mine = _held.Where(s => s.CategoryId == category && ReservedOf(s) > 0).ToList();
                 var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                    mine.Where(s => !s.IsLocked && ctx.Book(s)!.SellTicked)
+                    mine.Where(s => !ctx.IsGuarded(s) && ctx.Book(s)!.SellTicked)
                         .Select(s => new LaneStack(s, ReservedOf(s), ctx.Book(s)!.FinalMinSell)));
                 var buyLane = AnimalBuyLane(ctx, s => s.CategoryId == category, settings.WarMountMaxPrice);
                 var row = new PlanRow("mounts:upgrade:" + category, PlanSectionKind.Mounts, RowType.WarMount)
@@ -138,7 +141,8 @@ namespace SmartSteward.Core.Planning
                     Role = MountRole.Upgrade,
                     CategoryId = category,
                     Mine = reserved[category],
-                    Locked = mine.Where(s => s.IsLocked).Sum(ReservedOf),
+                    Locked = mine.Where(ctx.IsGuarded).Sum(ReservedOf),
+                    LocksGuard = ctx.LockGuards(ItemKind.Mount),
                     Need = pair.Value,
                     Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
                     MaxSell = sellLane.Capacity,

@@ -45,6 +45,7 @@ namespace SmartSteward.Core.Planning
             ModifierId = stack?.ModifierId;
             TroopId = row.TroopId;
             HeroId = row.HeroId;
+            HonoursLock = kind == TransactionKind.Sell && row.LocksGuard;
         }
 
         public TransactionKind Kind { get; }
@@ -54,6 +55,13 @@ namespace SmartSteward.Core.Planning
         public string? StackKey { get; }
         public string? ItemId { get; }
         public string? ModifierId { get; }
+
+        /// <summary>
+        /// Sell: a lock on this stack in the inventory stops the sale at the click (<see cref="LockRule"/>) — armour and
+        /// weapons always, food and animals only with LocksProtectFoodAndHorses; false = the stack is sold locked or not
+        /// (the plan already counted it). Frozen at plan time from the row, like the rest of the plan.
+        /// </summary>
+        public bool HonoursLock { get; }
 
         /// <summary>Donate / Ransom / HireMercenaries: the troop.</summary>
         public string? TroopId { get; }

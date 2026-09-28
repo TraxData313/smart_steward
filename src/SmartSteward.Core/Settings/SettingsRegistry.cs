@@ -118,6 +118,10 @@ namespace SmartSteward.Core.Settings
                 + "log. It never hires in the tavern and never takes your purse below Keep while autonomous. "
                 + "The Party Steward menu entry stays, to look or adjust. When off, the steward only proposes and you click.",
                 s => s.AutonomousSteward, (s, v) => s.AutonomousSteward = v),
+            new BoolSetting(nameof(StewardSettings.LocksProtectFoodAndHorses), General, "Locks protect food & horses",
+                "Off: the steward manages food and horses even when you locked them in the inventory - your locks keep "
+                + "guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons.",
+                s => s.LocksProtectFoodAndHorses, (s, v) => s.LocksProtectFoodAndHorses = v),
 
             // ── Money ────────────────────────────────────────────────────────────────────────────
             new IntSetting(nameof(StewardSettings.MinGoldAfterDeal), Money, "Always keep (gold)",

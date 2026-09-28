@@ -110,12 +110,13 @@ public class FoodPlannerTests
     }
 
     [Fact]
-    public void Locked_food_counts_as_held_but_is_never_sold()
+    public void With_LocksProtectFoodAndHorses_locked_food_counts_as_held_but_is_never_sold()
     {
-        var plan = new Scenario().Party(10)
+        var s = new Scenario().Party(10)
             .Food("grain", held: 40, locked: true)
-            .Food("fish", held: 10)
-            .Plan();
+            .Food("fish", held: 10);
+        s.Settings.LocksProtectFoodAndHorses = true; // the old way; off (the default) sells it - InventoryLockTests
+        var plan = s.Plan();
         Assert.Equal(0, plan.Row("food:grain").Change);
         Assert.Equal(40, plan.Row("food:grain").Locked);
         Assert.Equal(-10, plan.Row("food:fish").Change); // 50 held, target 20: only the fish can go

@@ -82,7 +82,8 @@ nothing lost. Therefore:
 - **The player is always in control.** The steward proposes; nothing is bought, sold or
   ransomed without the player's click — unless the player explicitly turns on the Full-autonomous steward
   (DESIGN §6: its own purse floor, never a tavern hire, a message-log report).
-  Items the player LOCKED in the inventory screen are never sold.
+  Armour and weapons the player LOCKED in the inventory screen are never sold. Locked food and horses ARE managed
+  (counted, sold as surplus) unless the player turns on "Locks protect food & horses" (Anton 2026.09.28, DESIGN §2.6).
 - **Save-safe.** The mod stores nothing in the save game (settings are global, per-visit flags
   live in memory), so it can be added or removed mid-campaign.
 
@@ -110,9 +111,10 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               the floors (window, or autonomous: raised to AutonomousMinGold, no tavern). The plan is
                               edited in place (PlanEditing: Increase/Decrease/Reset, live EditBlock per
                               button; PlanReplay re-walks it) and yields Transactions for the executor;
-                              PlanReport = the plan as text for the log
+                              PlanReport = the plan as text for the log; LockRule (step 13) = what an inventory lock
+                              guards (armour & weapons always, food & horses only with LocksProtectFoodAndHorses)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
-                              floor, hire rules),
+                              floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
                               AutonomousReport (the autonomous steward's message-log lines, words from outside)
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number

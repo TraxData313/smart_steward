@@ -35,10 +35,10 @@ namespace SmartSteward.Core.Planning
         /// <summary>Every unit on offer the row may buy is already in the plan (a wanderer: already hired).</summary>
         AllOnOffer,
 
-        /// <summary>Nothing the row may sell (none held, all locked, or not Sell-ticked).</summary>
+        /// <summary>Nothing the row may sell (none held, all guarded by a lock — <see cref="LockRule"/> —, or not Sell-ticked).</summary>
         NothingToSell,
 
-        /// <summary>Every unit the row may sell is already in the plan (locked ones never are).</summary>
+        /// <summary>Every unit the row may sell is already in the plan (units a lock guards never are).</summary>
         AllSold,
 
         /// <summary>The next unit costs more than the row's max buy price (price book or role cap) — a town's

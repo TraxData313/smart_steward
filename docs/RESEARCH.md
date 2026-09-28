@@ -221,6 +221,14 @@ Also never sell: `EquipmentElement.IsQuestItem`, `!ItemObject.IsTransferable`
 - Only the player's side can be locked (`SPInventoryVM.ProcessLockItem`); the list is written back
   when the inventory screen closes (`SaveItemLockStates`). Vanilla's "transfer all" skips locked
   items (`!IsLocked`).
+- **A lock is a trade-SCREEN thing only** (verified step 13, 2026.09.28): `SPInventoryVM` reads `IsLocked` only in
+  `TransferAll` (the skip above), when it builds the item rows (`IsItemLocked`) and in `ProcessLockItem`; the single-item
+  sell (`ProcessSellItem` → `SellItem`) never checks it (the screen's widgets were not checked for a drag block).
+  `InventoryLogic` (`CS\TaleWorlds.CampaignSystem.Inventory\InventoryLogic.cs`) and everything else in that namespace
+  has no notion of locks at all, so the headless trade (§9) sells a locked stack like any other: the ONLY lock check is
+  ours (`PlanExecutor.TradeOne` → Core `ExecutionBudget.StoppedByLock`). Selling a locked stack leaves its id in
+  `_inventoryItemLocks` (nothing prunes it — the list is by id; `SPInventoryVM` marks a newly arrived player-side row
+  from it), so the same item bought back later shows locked again.
 
 **Sell penalties** (`DefaultTradeItemPriceFactorModel.GetTradePenalty`): base 0.06; +0.5 at war with
 the settlement; **selling equipment** (not trade good, not animal): +1.5 + 0.25×(tier−1)
@@ -939,6 +947,8 @@ TASKS_DONE step 12). Since step 12 `InputWatch` writes one log line when the map
     comes from the code's `{=id}English`, the root std file is the translators' source.
 54. **A map click with Left Alt held asks for a PARLEY, not a move** — a Left Alt stuck after Alt+Tab looks like "towns
     and villages cannot be entered" ("clan tier not high enough to request a meeting" on hostile towns); tap Left Alt.
+55. **`InventoryLogic` ignores inventory locks** — only the trade screen's "transfer all" honours them; a headless trade
+    sells a locked stack like any other, so any lock rule is the mod's own check (§6).
 
 ---
 

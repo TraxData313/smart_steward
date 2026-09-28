@@ -60,6 +60,7 @@
     <string id="ss_hint_FoodPerMan" text="Food units kept for every man. A man eats about one unit in 20 days, so 2 lasts about 40 days. Default: 2.0. Range: 0.1 to 10.0." />
     <string id="ss_hint_FoodStrategy" text="Balanced buys the kinds you hold least of first - every different food lifts morale. Cheapest always buys the cheapest kind. Default: Balanced (variety first)." />
     <string id="ss_hint_FoodSurplusTolerancePercent" text="How far above the target food may pile up before the steward sells: 25 sells only above 125% of the target. Default: 25. Range: 0 to 500." />
+    <string id="ss_hint_LocksProtectFoodAndHorses" text="Off: the steward manages food and horses even when you locked them in the inventory - your locks keep guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons. Default: off." />
     <string id="ss_hint_MinGoldAfterDeal" text="No purchase takes your purse below this many denars. Default: 1,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MinGoldForHorses" text="No horse, mule or camel purchase takes your purse below this. Food only answers to the floor above - food comes first. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_ModEnabled" text="Master switch. When off, the steward stays out of the way: no window, no menu entry, no warnings, nothing done on its own. Default: on." />
@@ -117,6 +118,7 @@
     <string id="ss_set_FoodPerMan" text="Food per man" />
     <string id="ss_set_FoodStrategy" text="Food buying" />
     <string id="ss_set_FoodSurplusTolerancePercent" text="Surplus tolerance (%)" />
+    <string id="ss_set_LocksProtectFoodAndHorses" text="Locks protect food &amp; horses" />
     <string id="ss_set_MinGoldAfterDeal" text="Always keep (gold)" />
     <string id="ss_set_MinGoldForHorses" text="Keep before buying animals (gold)" />
     <string id="ss_set_ModEnabled" text="Steward on" />

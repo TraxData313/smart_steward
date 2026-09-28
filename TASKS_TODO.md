@@ -29,11 +29,12 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Upgrade horses set per kind: "Horses for upgrades" / "War horses for upgrades" (+ spares), the live ready count beside them; the old single number resets to automatic
 - Prisoners: ransom all or none — the "Prisoners to ransom" list is gone ("Include lords" stays)
 - Prices tab: the item name is the first column
+- Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
 
 BUGS:
 - [ ] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
 - [ ] (R3) Docking into a port (War Sails) must trigger the steward too — popup + menu entry at the port, not only the town menu
-- [ ] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)
+- [x] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)
 - [x] (R1) Prices tab: Item name must be the FIRST (leftmost) column
 - [x] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
 - [x] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
@@ -69,7 +70,7 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Vanilla's donate screen sizes the dungeon room by prisoner stacks, not men — we use NumberOfPrisoners
 - [ ] TrainingBattles + ImmersiveAI list MCM only in DependedModuleMetadatas — the vanilla launcher ignores that; add an Optional DependedModule (RESEARCH §12)
 - [x] Step 8: War Sails' port/sail menus must exist before the leave-wrap — wrapped lazily (War Sails builds them in OnAfterSessionLaunched: no load order could help)
-- [ ] Playtest: Mod Options page (10 groups, 44 settings) never seen in game yet — gold sliders run 0–1,000,000 (Keep while autonomous 0–10,000,000), are they usable?
+- [ ] Playtest: Mod Options page (10 groups, 46 settings) never seen in game yet — gold sliders run 0–1,000,000 (Keep while autonomous 0–10,000,000), are they usable?
 - [x] Step 8: remove the TEMPORARY debug door (DebugDoor.cs + its OnSessionLaunched hook in SmartStewardBehavior) — gone
 - [ ] Step 7: a wanderer's hire price is re-read at Do it (the trades move the town's prices) — the row may show a slightly different number
 - [x] Step 8: the "Party Steward" menu entry already exists (StewardMenu, step 7) — step 8 added the popup, leave warning and autonomy
@@ -84,3 +85,4 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 10: the release ships no PDBs (like TrainingBattles) — with them a player's log would carry line numbers (~100 KB); Anton's call
 - [ ] TrainingBattles' package.ps1 zips with Compress-Archive → backslash entry names (seen in TrainingBattles_v1.4.0.zip); ours writes '/' — port it there
 - [ ] Step 12: a stuck Left Alt (after Alt+Tab) blocks entering towns in vanilla too — tell the player in game ("tap Left Alt")? now log-only (InputWatch); Anton's call
+- [ ] Step 13: with "Locks protect food & horses" on, a food / animal row shows `40 (+40 locked)` — its Mine already counts the locked units (loot's Mine does not), so "+" reads as extra; say "(40 locked)" there?

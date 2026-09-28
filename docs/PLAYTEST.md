@@ -17,7 +17,7 @@ Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load
    popup's (the log also has a `price self-check` line — it should say *all equal*).
 4. **Execute**: open the door again, press **Execute**. A message sums it up ("Steward: N of N done…").
    Check: gold changed by about the popup's amount; the inventory has the new food/horses and lost the sold loot;
-   the prisoners are gone and the gold came in; locked items were not sold. Any "cut short" or "skipped"? The log
+   the prisoners are gone and the gold came in; locked armour and weapons were not sold. Any "cut short" or "skipped"? The log
    says why.
 5. **Tavern**: in a town with wanderers or mercenaries, use **Party Steward (debug, + tavern hires)** — it adds the
    first wanderer and the whole mercenary band. Execute, then check the clan screen (new companion) and the party
@@ -138,3 +138,21 @@ Bannerlord\logs\rgl_log_*.txt` with any report.
    `PrisonersExcluded` is ignored (the log says `is retired and ignored` once).
 6. **Prices tab.** The item name is the first column, lined up under the Pack animals / Mounts / War mounts
    sub-headers; Buy, Max buy, Sell, Min sell and ⟲ follow. Long names fit? Nothing overlaps?
+
+## Round 2 fixes (step 13)
+
+Deploy (game closed). Send `smart_steward.log` with any report.
+
+1. **Locked food and horses are managed.** In the inventory lock a food you hold plenty of and a spare horse or mule
+   (the lock button on the item's row). Ride into a town where both are surplus (food above ~2.5 per man, more pack
+   animals than "Pack animals to keep", or more riding horses than your footmen need). The Suggestion tab sells them —
+   the most-held food first, the dearest animal first — with no "(+N locked)" beside Mine. Press **Do it**: they are
+   sold (the log says `selling … although locked`), and gold and the market's goods change as on any sale. The lock
+   stays in the game's list, so the same item bought back shows locked again — fine.
+2. **The switch.** Instructions → General → **Locks protect food & horses** on (or MCM, or settings.json
+   `"LocksProtectFoodAndHorses": true`). Open the steward again with the same locked food and horse: they are counted
+   (no food or horse bought for them) but never sold, not even with [-] — their rows show `(+N locked)`, the way it was
+   before round 2. Turn it off again afterwards.
+3. **Armour and weapons keep their lock** — both ways of the switch. With **Sell loot** on, lock a piece of armour or a
+   weapon: its group row shows `(+1 locked)`, the steward never proposes it, [-] all stops before it, and **Do it**
+   leaves it in the inventory.

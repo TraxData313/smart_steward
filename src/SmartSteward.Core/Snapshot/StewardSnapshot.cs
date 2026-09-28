@@ -136,7 +136,8 @@ namespace SmartSteward.Core.Snapshot
 
         public int Count { get; set; }
 
-        /// <summary>Party side only: locked in the inventory screen — never sold, not even counted as sellable.</summary>
+        /// <summary>Party side only: locked in the inventory screen. Armour and weapons: never sold, not even counted as
+        /// sellable; food and animals: managed like the rest unless LocksProtectFoodAndHorses (<c>Planning.LockRule</c>).</summary>
         public bool IsLocked { get; set; }
 
         /// <summary>Carried weight of one unit as the game counts it (animals weigh 0).</summary>

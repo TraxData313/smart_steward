@@ -50,6 +50,12 @@ namespace SmartSteward.Core.Planning
         /// <summary>No animal purchase takes the purse below this — animals answer to both floors.</summary>
         public int AnimalFloor => Math.Max(Floors.All, Floors.Animals);
 
+        /// <summary>Does a lock guard stacks of this kind from sale (<see cref="LockRule"/>)?</summary>
+        public bool LockGuards(ItemKind kind) => LockRule.Guards(kind, Settings);
+
+        /// <summary>Locked and guarded by its lock: never sold, not counted as sellable (<see cref="LockRule"/>).</summary>
+        public bool IsGuarded(ItemStack stack) => LockRule.IsGuarded(stack, Settings);
+
         public IEnumerable<ItemStack> Inventory(ItemKind kind) =>
             ByKey((Snapshot.Inventory ?? new List<ItemStack>()).Where(s => s != null && s.Kind == kind && s.Count > 0));
 

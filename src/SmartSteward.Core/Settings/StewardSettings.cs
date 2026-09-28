@@ -70,6 +70,11 @@ namespace SmartSteward.Core.Settings
         /// warning, a message-log report — under <see cref="AutonomousMinGold"/>. Replaces the old AutoExecute key (a
         /// settings file that still has it carries its value over once).</summary>
         public bool AutonomousSteward { get; set; } = false;
+        /// <summary>Inventory locks guard food and animals too (DESIGN §7, Anton 2026.09.28 — playtest round 2). Off (the
+        /// default): locked food, pack animals and mounts are counted and sold as surplus like any other — the locks keep
+        /// guarding armour and weapons only (<c>Planning.LockRule</c>). On: locked food and animals are never sold, the
+        /// old way.</summary>
+        public bool LocksProtectFoodAndHorses { get; set; } = false;
 
         // ── Money (DESIGN §3) ────────────────────────────────────────────────────────────────────
         /// <summary>No purchase takes the purse below this.</summary>
