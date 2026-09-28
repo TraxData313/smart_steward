@@ -83,6 +83,9 @@ namespace SmartSteward.UI
             return plan;
         }
 
+        /// <summary>The window is on screen (StewardWindow.Open, after the popup's verdict).</summary>
+        internal void OnShown() => Guard("shown", Suggestion.MarkShown);
+
         /// <summary>The settlement the window plans for.</summary>
         internal Settlement Settlement => _settlement;
 

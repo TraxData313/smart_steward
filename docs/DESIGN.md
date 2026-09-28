@@ -445,7 +445,14 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
   **on**) toggle its halves.
 - **Names are clickable** **[Anton 2026.09.27]**: a wanderer's name opens that hero's Encyclopedia
   page; the mercenary troop's name opens that unit's Encyclopedia page. Closing the Encyclopedia
-  returns to the Party Steward window as it was. **[research 2026.09.27]** Opened with
+  returns to the Party Steward window as it was.
+- **The Tavern section is the tavern district** **[Anton 2026.09.28, playtest round 3: an unmet wanderer's page showed
+  "???" until he opened the tavern district]**: vanilla learns about every hero in the tavern the moment the player stands
+  in the district (RESEARCH §20). The steward does the same for the wanderers it lists — when the window is on screen (not
+  for an arrival popup that stays shut), and again before a name opens the Encyclopedia — so the page is complete. The game
+  says "You've learned about …" in the message log, as in the district. **[decided: Claude, 2026.09.28 — step 14]** At
+  show, not only at the click: the window already shows their names, skills and prices. Mercenary pages are unit pages —
+  never hidden. **[research 2026.09.27]** Opened with
   `EncyclopediaManager.GoToLink(hero.EncyclopediaLink / troop.EncyclopediaLink)`; the Encyclopedia
   draws at layer order 310 and takes focus only from lower layers, so the window must sit below
   it (order ~305) and re-take focus when the Encyclopedia closes (RESEARCH §7).

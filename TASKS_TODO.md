@@ -35,8 +35,10 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Docking at a port (War Sails) brings the steward too: the arrival popup / autonomous run on docking, "Party Steward" in the port menu
 - Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000" — the capacity after the deal, the part over it in red
 - The "Not now" button is "Close"
+- A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
 
 BUGS:
+- [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
 - [x] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
 - [x] (R3) Docking into a port (War Sails) must trigger the steward too — popup + menu entry at the port, not only the town menu
 - [x] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)

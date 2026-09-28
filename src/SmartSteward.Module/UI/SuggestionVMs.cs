@@ -44,6 +44,9 @@ namespace SmartSteward.UI
         private bool _hasMarketNotice;
         private readonly string _nothingToDoText;
 
+        /// <summary>The window is on screen: the wanderers it lists are learned about (round 3, <see cref="Adapter.TavernKnowledge"/>).</summary>
+        private bool _shown;
+
         internal SuggestionTabVM(Action onPlanChanged)
         {
             _onPlanChanged = onPlanChanged;
@@ -77,6 +80,16 @@ namespace SmartSteward.UI
                 sections.Add(new SectionVM(section, plan, this));
             Sections = sections;
             Refresh();
+            if (_shown)
+                Adapter.TavernKnowledge.LearnAboutListed(_settlement, plan);
+        }
+
+        /// <summary>The window is on screen now (not an arrival popup that stayed shut): the player sees the tavern
+        /// section's wanderers — as the tavern district would show them, the game learns about them (RESEARCH §20).</summary>
+        internal void MarkShown()
+        {
+            _shown = true;
+            Adapter.TavernKnowledge.LearnAboutListed(_settlement, _plan);
         }
 
         /// <summary>After any edit: every row, the header and the footer read the plan again.</summary>
@@ -207,7 +220,10 @@ namespace SmartSteward.UI
         {
             string? link = null;
             if (row.Tavern?.Kind == TavernRowKind.Wanderer && row.HeroId != null)
+            {
+                Adapter.TavernKnowledge.Learn(_settlement, row.HeroId); // a known hero's page, never "???" (round 3)
                 link = _settlement?.HeroesWithoutParty.FirstOrDefault(h => h != null && h.StringId == row.HeroId)?.EncyclopediaLink;
+            }
             else if (row.TroopId != null)
                 link = MBObjectManager.Instance?.GetObject<CharacterObject>(row.TroopId)?.EncyclopediaLink;
             ModLog.Info("window", "encyclopedia for " + row.Id + ": " + (link ?? "no link"));

@@ -962,6 +962,37 @@ mounts and pack animals bought / sold (land), hires (land and sea), prisoners le
 first). A mounted mercenary's sea weight is MEASURED — (load at sea − the items' sea weight) ÷ mounted non-hero men — or,
 with none mounted yet, the model's sea weight of the troop's own horse. Arenicos' rounding is left out (≤ one member).
 
+## 20. Who the player "knows" — the tavern district and the Encyclopedia (verified in step 14, 2026.09.28)
+
+Anton's round-3 finding: a wanderer's name clicked in the Tavern section opened an Encyclopedia page of "???"; after he
+opened the town's tavern district menu, the same click showed the full page.
+
+- **The Encyclopedia hides a hero** when `CampaignUIHelper.IsHeroInformationHidden` ("You haven't met this hero yet.") —
+  `EncyclopediaHeroPageVM` sets `IsInformationHidden` from it — i.e. `!InformationRestrictionModel.DoesPlayerKnowDetailsOf(
+  hero)`: `DefaultInformationRestrictionModel` answers false for a hero NOT of the player's clan, alive, not a kingdom's
+  ruler, and **`!hero.IsKnownToPlayer`** (unless the fog-of-war cheat). A clanless wanderer is known only by that flag.
+- **`Hero.IsKnownToPlayer`** (`CS\TaleWorlds.CampaignSystem\Hero.cs`) — public get/set; the setter, on a change, fires
+  `CampaignEventDispatcher.OnPlayerLearnsAboutHero` → `HeroKnownInformationCampaignBehavior.OnPlayerLearnsAboutHero`:
+  `UpdateHeroLocation` (last known closest settlement) and, for a hero outside the player's clan, the message-log line
+  "You've learned about {HERO}." (`{=oSghSUxp}`). `HasMet` (`SetHasMet()`, a conversation) is a different, stronger flag —
+  meeting sets known too (`OnPlayerMetHero`), knowing does not set met.
+- **What the tavern district does** — no talk needed: `town_backstreet`'s init (`PlayerTownVisitCampaignBehavior.
+  town_backstreet_on_init` → `UpdateMenuLocations`) puts the settlement's **"tavern"** location in
+  `GameMenuManager.MenuLocations`; `HeroKnownInformationCampaignBehavior` listens to **`GameMenuOpened`** (`OnGameMenuChanged`)
+  and, for every location in `MenuLocations`, `LearnAboutLocationCharacters`: each `LocationCharacter` that is a hero with
+  `CurrentSettlement == Settlement.CurrentSettlement` gets `IsKnownToPlayer = true`. (The `town` menu itself lists center,
+  arena and the houses — not the tavern; missions do the same on `AfterMissionStarted` for their location.) Wanderers sit in
+  the tavern location: `HeroAgentSpawnCampaignBehavior` places every `HeroesWithoutParty` hero on `SettlementEntered` where
+  `HeroAgentLocationModel.GetLocationForHero` says (a wanderer → "tavern", RESEARCH §7).
+- **Unit pages** (`EncyclopediaUnitPageVM`, the mercenary troop's link) never consult the restriction model — only the hero
+  page, hero tooltips (`HeroVM`, `HeroViewModel`, `TooltipRefresherCollection`) and the marriage popup do. Nothing to learn.
+- **The steward** (`Module\Adapter\TavernKnowledge`): its Tavern section is the tavern district for the player, so it
+  learns about the wanderers it LISTS the moment the window is on screen (not for an arrival popup that stays shut; the
+  autonomous steward never lists the tavern), after every re-plan while open, and once more before a wanderer's name opens
+  the Encyclopedia — through the same public setter, so vanilla's event, location and message follow. [decided: Claude,
+  2026.09.28 — step 14] Why at show and not only at the click: vanilla reveals on standing in the district, before any
+  click; the window names them, shows their skills and prices — the game's knowledge should match what is on screen.
+
 ---
 
 ## Gotchas (one line each)
@@ -1041,6 +1072,8 @@ with none mounted yet, the model's sea weight of the troop's own horse. Arenicos
     menu only when it is there (at its first opening), never blind (§18).
 58. **The capacity model ignores its `additional…` parameters** — the capacity after a deal must be recomputed from the
     formula's pieces (§19); at sea War Sails weighs every animal AND every mounted troop's horse.
+59. **An unknown clanless hero's Encyclopedia page is all "???"** — `Hero.IsKnownToPlayer`; vanilla sets it for the tavern's
+    heroes when the tavern district menu opens (`GameMenuOpened` + `MenuLocations`), no talk needed (§20).
 
 ---
 

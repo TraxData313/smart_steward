@@ -105,6 +105,7 @@ namespace SmartSteward.UI
                 _escapeGuardFrames = 2;
                 ModLog.Info("window", "opened at " + vm.Settlement.Name + " (" + source + ")");
                 StewardTriggers.MarkReviewed(vm.Settlement);
+                vm.OnShown();
                 return true;
             }
             catch (Exception ex)

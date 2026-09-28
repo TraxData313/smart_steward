@@ -134,7 +134,8 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               SnapshotBuilder (live game → StewardSnapshot + GameVisit), GamePriceOracle (the
                               game's model; SelfCheck vs the trade screen), PlanExecutor (Transactions through
                               vanilla's paths — headless InventoryLogic, SellPrisonersAction, donate, hires),
-                              StewardMerchantListener, PriceBookCatalog (the Prices tab's items + placeholders), GameVisit
+                              StewardMerchantListener, PriceBookCatalog (the Prices tab's items + placeholders), GameVisit,
+                              TavernKnowledge (step 14: the listed wanderers become known, as the tavern district does it)
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
                               command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, UiText/UiLabels (TextObject ids —
