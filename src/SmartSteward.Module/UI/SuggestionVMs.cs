@@ -143,7 +143,7 @@ namespace SmartSteward.UI
             WarningText = string.Join("   ", warnings.Select(w => UiLabels.Warning(w, floors.All, floors.Animals)));
             HasWarnings = warnings.Count > 0;
             bool closed = MarketClosedText.Length > 0;
-            IsEmpty = plan.Sections.Count == 0 || (closed && !plan.HasChanges);
+            IsEmpty = !PlanFooter.ShowsTable(plan, closed); // a closed market keeps the rows you can still act on (step 16)
             EmptyText = closed ? MarketClosedText : _nothingToDoText;
             HasMarketNotice = closed && !IsEmpty;
             CanResetAll = plan.IsEdited;

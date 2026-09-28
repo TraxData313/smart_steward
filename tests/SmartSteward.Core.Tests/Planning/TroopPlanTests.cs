@@ -72,6 +72,24 @@ public class TroopPlanTests
         Assert.DoesNotContain(s.Plan().Rows, r => r.Type == RowType.Troop);
     }
 
+    [Fact]
+    public void A_closed_market_keeps_the_table_while_troops_can_be_managed()
+    {
+        // A village with nothing on sale: the game shuts its market ("There are no available products right now."), but its
+        // headman still offers volunteers and the party can always dismiss — the table stays, the reason above it.
+        var s = new Scenario().Village().Food("grain", held: 10).Troop("a", onOffer: 3);
+        s.Snap.CanTrade = false;
+        s.Snap.Market.Clear();
+        Assert.True(PlanFooter.ShowsTable(s.Plan(), marketClosed: true));
+
+        s.Snap.Troops.Clear();                                                // nothing anyone can click: the reason alone
+        s.Troop("c", inParty: 4, canDismiss: false);
+        Assert.False(PlanFooter.ShowsTable(s.Plan(), marketClosed: true));
+
+        s.Troop("d", inParty: 2);                                            // one troop to dismiss is enough
+        Assert.True(PlanFooter.ShowsTable(s.Plan(), marketClosed: true));
+    }
+
     // ── The clamps ───────────────────────────────────────────────────────────────────────────────────
 
     [Fact]

@@ -147,6 +147,25 @@ namespace SmartSteward.Core.Presentation
             return list;
         }
 
+        /// <summary>
+        /// The Suggestion tab shows its table (DESIGN §1.1): unless the plan has no row at all — or the market is closed and
+        /// nothing can be done: no row moves and no button is live. At a closed market the rows the player can still act on
+        /// — the troops section (recruiting has its own gate, dismissing needs none), a wanderer — keep the table, with the
+        /// market's reason above it [decided: Claude, 2026.09.28 — step 16; until then a closed market hid every row at 0].
+        /// </summary>
+        public static bool ShowsTable(StewardPlan plan, bool marketClosed)
+        {
+            if (plan == null) throw new ArgumentNullException(nameof(plan));
+            if (plan.Sections.Count == 0)
+                return false;
+            if (!marketClosed || plan.HasChanges)
+                return true;
+            foreach (var row in plan.Rows)
+                if (row.CanIncrease || row.CanDecrease)
+                    return true;
+            return false;
+        }
+
         /// <summary>Do it works when there is something to do and the purse can pay for it (DESIGN §1.1, the 4b
         /// note); the floors never stop it.</summary>
         public static bool CanExecute(StewardPlan plan)
