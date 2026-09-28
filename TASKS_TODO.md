@@ -14,11 +14,18 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
   - [ ] Playtest the review fixes: big clicks, ▸ breakdown, autonomous floor, log — checklist in docs/PLAYTEST.md "Step 9"
 - [x] 10. Packaging — package.ps1, Steam description + workshop files, README
-- [ ] 11. Anton's first playtest
+- [ ] 11. Anton's first playtest — round 1 done 2026.09.28 (findings under BUGS)
+- [ ] 12. Playtest round 1 fixes — the five BUGS lines marked (R1)
 
 SHIPPING NEXT (done in main, NOT released yet):
 
 BUGS:
+- [ ] (R1) Prices tab: Item name must be the FIRST (leftmost) column
+- [ ] (R1) Upgrade horses unclear: "to keep" = 10 bought 10 horses AND 10 war horses — split per kind, clear labels, show the live need
+- [ ] (R1) Drop the "Prisoners to ransom" tick-list (+ PrisonersExcluded): ransom all or none, the lords switch is enough
+- [ ] (R1) Arrival popup opened at a village with NO TRADE and nothing to do (Hiblet) — must stay shut
+- [ ] (R1) Closed market (war, crime…) shows an empty table — say the game's reason in the window instead
+- [ ] (R1) Town wouldn't let Anton in ("clan tier not high enough to request a meeting") — that is vanilla's town_outside menu (hostile/crime); confirm the mod cannot cause it
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
