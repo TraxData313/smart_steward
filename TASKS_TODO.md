@@ -50,6 +50,12 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   Total row, header denari + influence, footer weight table with the vanilla speed icon, colours by meaning, "denari" everywhere,
   hint moved to Instructions, Prices tab cheapest first, prisoner tiers + Encyclopedia
   - [ ] Deployed at the end of step 21 (the game was closed — the install carries steps 12–21), then playtest — checklist in docs/PLAYTEST.md "Step 21 — the spreadsheet"
+- [ ] 22. Round 5 CORE — the GOAL (docs/feedback/2026-09-28-round5.md): a Goal per line (troops = party limit, prisoners/other 0,
+  food + pack/riding/war typed by hand = STANDING orders in settings.json until ⟲, the policy fills the rest, "-*" below a job's
+  threshold), [-]/[+] on food & horse rows edit the goal, "Goals you set by hand" switches (thresholds / purse floor / price caps),
+  weight without "kg" — DESIGN first, then Core + settings + tests
+- [ ] 23. Round 5 WINDOW — columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight;
+  typed goal boxes with ⟲, the "-*" hover, troops Mine red over the limit, the Instructions info lines + the new group; deploy + PLAYTEST
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
