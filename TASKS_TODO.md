@@ -17,8 +17,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [ ] 11. Anton's first playtest — round 1 done 2026.09.28 (findings under BUGS)
 - [x] 12. Playtest round 1 fixes — the six BUGS lines marked (R1), the save-load bug first
   - [ ] Deploy (the game was running at the end of step 12), then playtest the fixes — checklist in docs/PLAYTEST.md "Round 1 fixes"
-- [ ] 13. Playtest round 2 fixes — the BUGS lines marked (R2)
-- [ ] 14. Round 3, small — party limit never blocks hires (show 99/96), steward also on docking into a port, weight line now + change → after with land/sea capacity (red when over)
+- [x] 13. Playtest round 2 fixes — the BUGS lines marked (R2)
+  - [ ] Deploy (the game was running at the end of step 13), then playtest — checklist in docs/PLAYTEST.md "Round 2 fixes"
+- [ ] 14. Round 3, small — party limit never blocks hires (show 99/96), steward also on docking into a port, weight line now + change → after with land/sea capacity (red when over), the "Not now" button renamed "Close"
 - [ ] 15. Round 3, core — LIVE RE-PLAN: untouched food/mount/upgrade-horse rows follow every party change in the window (hires, recruits, dismissals, ransoms); edited rows stay — so Do it leaves nothing new to suggest
 - [ ] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
 
@@ -46,6 +47,7 @@ NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [ ] (R3) TROOPS section right after the Tavern: the recruits on offer in this town/village (volunteers of its notables you may take) at the top, then the troops you have — one row per troop type, Mine / [-] [+] / Result / price / on offer; [+] recruits, [-] dismisses; never every troop in the game; starts at 0 like the tavern; names open the Encyclopedia
 - [ ] (R3) Live re-plan (Anton: "after I change the troops the mounts etc are not accurate… so when I hit Do it I won't see new suggestions"): untouched rows follow the party after the deal; touched rows stay
 - [ ] (R3) Weight line like the food: "1,000 +120 kg → 1,120 kg · capacity land 1,500 / sea 1,000" — capacity AFTER the deal (pack animals and troops add to it), the part over a capacity in red ("+120 over at sea")
+- [ ] (R3) The "Not now" button next to Do it is just "Close"
 - [ ] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
