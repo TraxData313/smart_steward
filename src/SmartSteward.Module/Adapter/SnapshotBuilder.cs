@@ -297,7 +297,7 @@ namespace SmartSteward.Adapter
                              + (s.Tavern.Mercenaries.IsMounted ? " (mounted)" : " (on foot)")))
                    + "; troops " + s.Troops.Count.ToString(inv) + " types, on offer ["
                    + string.Join(", ", s.Troops.Where(t => t.OnOffer > 0).Select(t => t.OnOffer.ToString(inv) + " " + t.TroopId
-                       + " at " + t.PricePerMan.ToString(inv) + (t.IsMounted ? " (mounted)" : "")))
+                       + " T" + t.Tier.ToString(inv) + " at " + t.PricePerMan.ToString(inv) + (t.IsMounted ? " (mounted)" : "")))
                    + "], in the party " + s.Troops.Sum(t => t.InParty).ToString(inv) + " men ("
                    + s.Troops.Sum(t => t.Wounded).ToString(inv) + " wounded)";
         }

@@ -79,8 +79,11 @@ namespace SmartSteward.UI
                 Kinds = UiText.S("ss_ui_sum_kinds", "kinds"),
                 Sold = UiText.S("ss_ui_sum_sold", "sold"),
                 Hired = UiText.S("ss_ui_sum_hired", "hired"),
-                Recruited = UiText.S("ss_ui_sum_recruited", "recruited"),
-                Dismissed = UiText.S("ss_ui_sum_dismissed", "dismissed"),
+                Recruiting = UiText.S("ss_ui_sum_recruiting", "recruiting"),
+                Dismissing = UiText.S("ss_ui_sum_dismissing", "dismissing"),
+                Type = UiText.S("ss_ui_sum_type", "type"),
+                Types = UiText.S("ss_ui_sum_types", "types"),
+                TierPrefix = UiText.S("ss_ui_tier_prefix", "T"),
                 Ransomed = UiText.S("ss_ui_sum_ransomed", "ransomed"),
                 ToDungeon = UiText.S("ss_ui_sum_to_dungeon", "to the dungeon"),
                 Influence = UiText.S("ss_ui_sum_influence", "influence"),
@@ -144,6 +147,27 @@ namespace SmartSteward.UI
                 if (section.Group == clicked.Group)
                     section.SetCollapsed(collapse);
             ModLog.Info("window", (collapse ? "folded " : "unfolded ") + clicked.Group);
+        }
+
+        /// <summary>
+        /// The folded Troops line's own [−] / [+] (step 18 — Anton 2026.09.28): [−] dismisses from the lowest tier up, [+]
+        /// recruits the highest tier on offer first; click 1, shift 5, ctrl all. Ordinary row edits underneath (Core
+        /// <see cref="StewardPlan.DismissLowest"/> / <see cref="StewardPlan.RecruitBest"/>): touched rows, the live re-plan,
+        /// the same transactions.
+        /// </summary>
+        internal void EditTroops(int direction)
+        {
+            var plan = _plan;
+            if (plan == null)
+                return;
+            var size = StewardWindow.CurrentEditSize;
+            var facts = plan.Facts;
+            var results = direction > 0 ? plan.RecruitBest(size) : plan.DismissLowest(size);
+            ModLog.Info("window", "troops line " + (direction > 0 ? "[+] " : "[-] ") + size + ": "
+                                  + (results.Count == 0 ? "nothing to move"
+                                      : string.Join(", ", results.Select(r => r.RowId + " " + r.Before + " -> " + r.After
+                                                                              + (r.Block == EditBlock.None ? "" : " (" + r.Block + ")")))));
+            AfterEdit(facts);
         }
 
         /// <summary>The window is on screen now (not an arrival popup that stayed shut): the player sees the tavern
@@ -561,6 +585,8 @@ namespace SmartSteward.UI
         private string _detailText = "";
         private string _summaryText = "";
         private bool _isCollapsed;
+        private bool _canBulkDecrease;
+        private bool _canBulkIncrease;
 
         internal SectionVM(PlanSection section, StewardPlan plan, SuggestionTabVM tab, bool isGroupHead, ISet<string>? open = null)
         {
@@ -573,6 +599,8 @@ namespace SmartSteward.UI
             _titleText = _sectionTitle;
             _isCollapsed = WindowStateHost.IsCollapsed(Group);
             ToggleHint = new HintVM();
+            BulkDecreaseHint = new HintVM();
+            BulkIncreaseHint = new HintVM();
             Rows = new MBBindingList<SuggestionRowVM>();
             foreach (var row in section.Rows)
                 Rows.Add(new SuggestionRowVM(row, tab) { IsExpanded = open != null && open.Contains(row.Id) });
@@ -587,6 +615,7 @@ namespace SmartSteward.UI
         internal void SetCollapsed(bool collapsed)
         {
             IsCollapsed = collapsed;
+            OnPropertyChanged(nameof(HasBulkButtons));
             Refresh();
         }
 
@@ -601,6 +630,20 @@ namespace SmartSteward.UI
                 TitleText = Group == SectionGroup.Troops ? UiText.S("ss_ui_sec_troops_group", "Troops") : _sectionTitle;
                 SummaryText = IsGroupHead ? SectionSummary.Of(_plan, Group, _tab.Words) : "";
                 DetailText = "";
+                if (HasBulkButtons)
+                {
+                    // The folded Troops line's own [-] [+] (step 18): greyed with the reason, like a row's.
+                    var decrease = _plan.DismissLowestBlock;
+                    var increase = _plan.RecruitBestBlock;
+                    CanBulkDecrease = decrease == EditBlock.None;
+                    CanBulkIncrease = increase == EditBlock.None;
+                    BulkDecreaseHint.Text = decrease == EditBlock.None
+                        ? UiText.S("ss_ui_troops_minus_hint", "Dismiss from the lowest tier up: your own troops first, then the men of the types on offer. Shift 5, Ctrl all.")
+                        : UiLabels.Block(decrease);
+                    BulkIncreaseHint.Text = increase == EditBlock.None
+                        ? UiText.S("ss_ui_troops_plus_hint", "Recruit the highest tier on offer first. Shift 5, Ctrl all.")
+                        : UiLabels.Block(increase);
+                }
                 return;
             }
             TitleText = _sectionTitle;
@@ -634,6 +677,10 @@ namespace SmartSteward.UI
         // ── commands ─────────────────────────────────────────────────────────────────────────────────────
 
         public void ExecuteToggle() => StewardWindowVM.Guard("fold " + Group, () => _tab.ToggleGroup(this));
+
+        public void ExecuteBulkDecrease() => StewardWindowVM.Guard("troops line [-]", () => _tab.EditTroops(-1));
+
+        public void ExecuteBulkIncrease() => StewardWindowVM.Guard("troops line [+]", () => _tab.EditTroops(+1));
 
         // ── bound properties ─────────────────────────────────────────────────────────────────────────────
 
@@ -689,6 +736,26 @@ namespace SmartSteward.UI
 
         /// <summary>A folded group shows only its head (the troops' second half hides).</summary>
         [DataSourceProperty] public bool ShowSection => IsGroupHead || !_isCollapsed;
+
+        /// <summary>The folded Troops line carries its own [−] [+] (step 18).</summary>
+        [DataSourceProperty] public bool HasBulkButtons => _isCollapsed && IsGroupHead && Group == SectionGroup.Troops;
+
+        [DataSourceProperty] public HintVM BulkDecreaseHint { get; }
+        [DataSourceProperty] public HintVM BulkIncreaseHint { get; }
+
+        [DataSourceProperty]
+        public bool CanBulkDecrease
+        {
+            get => _canBulkDecrease;
+            set { if (value != _canBulkDecrease) { _canBulkDecrease = value; OnPropertyChangedWithValue(value, nameof(CanBulkDecrease)); } }
+        }
+
+        [DataSourceProperty]
+        public bool CanBulkIncrease
+        {
+            get => _canBulkIncrease;
+            set { if (value != _canBulkIncrease) { _canBulkIncrease = value; OnPropertyChangedWithValue(value, nameof(CanBulkIncrease)); } }
+        }
     }
 
     /// <summary>
@@ -718,7 +785,8 @@ namespace SmartSteward.UI
         {
             _row = row;
             _tab = tab;
-            NameText = UiLabels.RowName(row);
+            // Step 18: a troop's tier before its name - "T1 Vlandian Recruit" (the game's tier, RESEARCH §24).
+            NameText = row.Type == RowType.Troop ? SectionSummary.TroopName(row, tab.Words) : UiLabels.RowName(row);
             TypeText = UiLabels.Type(row.Type);
             IsLink = row.Type == RowType.Tavern || row.Type == RowType.Troop; // troop names open their unit page (step 16)
             IsPlainName = !IsLink;

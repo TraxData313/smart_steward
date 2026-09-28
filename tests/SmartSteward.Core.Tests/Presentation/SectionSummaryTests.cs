@@ -155,10 +155,11 @@ public class SectionSummaryTests
         plan.Increase("troops:vlandian_recruit", EditSize.One);
         plan.Increase("troops:vlandian_recruit", EditSize.One);
         plan.Increase("troops:vlandian_recruit", EditSize.One);
-        Assert.Equal("+3 recruited " + M + "60", SectionSummary.Of(plan, SectionGroup.Troops));
+        Assert.Equal("recruiting 3 T0 vlandian_recruit " + M + "60", SectionSummary.Of(plan, SectionGroup.Troops));
         plan.Decrease("troops:legionary", EditSize.One);
         plan.Decrease("troops:legionary", EditSize.One);
-        Assert.Equal("+3 recruited " + M + "60 " + UiFormat.Dot + " 2 dismissed", SectionSummary.Of(plan, SectionGroup.Troops));
+        Assert.Equal("dismissing 2 T0 legionary " + UiFormat.Dot + " recruiting 3 T0 vlandian_recruit " + M + "60",
+            SectionSummary.Of(plan, SectionGroup.Troops));
     }
 
     [Fact]

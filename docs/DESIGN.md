@@ -81,7 +81,9 @@ line … the state is REMEMBERED per section across windows, towns and game rest
   section's name and ONE line of what it will do with its gold, live with every click. The troops section's two halves fold
   together as **Troops** (the folded line sits on the first of them). Lines, and the neutral line when nothing is queued:
   - Tavern — `+3 hired –1,450` / `nobody hired`
-  - Troops — `+12 recruited –640 · 3 dismissed` / `nobody recruited or dismissed`
+  - Troops — `dismissing 1 T1 Imperial Peasant, 1 T1 Vlandian Recruit · recruiting 2 T3 Vlandian Footman –160` (past three
+    types a count: `recruiting 12 (5 types) –640`) / `nobody recruited or dismissed` — and the folded Troops line carries its
+    own `[-] [+]` (§2.8)
   - Food — `+29 (5 kinds), 12 sold –510 · 64 » 71 days` / `no change · 64 days` (the days as the footer counts them)
   - Mounts — `+10 (2 kinds), 3 sold –1,200` / `no change`
   - Armour & weapons — `41 sold +2,132 · –380 kg` / `nothing sold`
@@ -666,7 +668,28 @@ too); castles have no market and no steward. One row per troop type — never ev
   that when you move men out of your party (RESEARCH §21), and it keeps the men who can fight now — and carry: healthy men
   add capacity, wounded do not, so the weight line's capacity drops only once no wounded of the type are left. (The brief
   said "healthy first unless research says otherwise"; research said otherwise.)
-- **Order within each half** **[decided: Claude, 2026.09.28 — step 16]**: by name — predictable, like the wanderers.
+- ~~**Order within each half** **[decided: Claude, 2026.09.28 — step 16]**: by name — predictable, like the wanderers.~~ —
+  **BY TIER [Anton 2026.09.28 — PLAN step 18: "MY troops ordered by tier, LOWEST on top"]**: **Your troops** lowest tier
+  first (what a dismissal takes first sits on top); **Recruits on offer** HIGHEST tier first — they are what Anton takes
+  **[decided: Claude, 2026.09.28 — step 18; Anton can flip it to lowest first]**; ties by name, then id (Core
+  `TroopPlanner`, `DismissOrder` / `RecruitOrder`).
+- **The tier before every name** **[Anton 2026.09.28 — step 18]**: `T1 Vlandian Recruit` — the game's own tier
+  (`CharacterObject.Tier`: 0–6 in vanilla, RESEARCH §24; a tier-0 troop shows `T0`, where the game's screens show no icon).
+  The `T` is a translatable word (`ss_ui_tier_prefix`); the folded Troops line uses the same names.
+- **The folded Troops line's own `[-] [+]`** **[Anton 2026.09.28 — step 18: "[-] dismisses from the lowest tier up, [+]
+  recruits the highest tier on offer first (shift/ctrl steps as usual), and the line says what it does"]** (Core
+  `StewardPlan.DismissLowest` / `RecruitBest`, `DismissLowestBlock` / `RecruitBestBlock`): click 1 man, shift 5, ctrl every
+  man.
+  - `[-]` takes men out of the party after the deal, lowest tier first: the party's own troops (Your troops) from the lowest
+    tier up, then the men of the types on offer by the same order; a type with recruits queued gives those back first (they
+    are the men of that type the deal would bring). Greyed when nobody is left who may go.
+  - `[+]` recruits the highest tier on offer first, spilling to the next type when one runs out; a type the purse cannot pay
+    is passed for the next (a lower tier costs less); a type with dismissals queued takes those back first. Greyed with the
+    reason (nobody offers a troop here, every volunteer already in the plan, not enough gold).
+  - They are ORDINARY row edits underneath (each moves troop rows with `SetChange`): the rows are touched (⟲ shows when
+    unfolded), the food and horses re-plan live, Do it runs the same Dismiss and Recruit transactions — no new executor path.
+    The line then says what the section does: `dismissing 1 T1 Imperial Peasant, 1 T1 Vlandian Recruit · recruiting 2 T3
+    Vlandian Footman –160`.
 - **Names are clickable**: a troop's name opens its unit page in the Encyclopedia (like the mercenaries — unit pages are never
   hidden).
 - `ShowTroops` (default **on**, the Tavern group — "Show the troops") shows the section.

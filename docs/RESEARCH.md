@@ -1163,6 +1163,19 @@ counter may disagree until a reload, §22), livestock as held (never traded); an
 (`SnapshotBuilder.ReadAttached`). Red when H > R. The log's footer line carries every number (`horses H of R before the herd
 slows (herd … vs … men; …)`).
 
+## 24. Troop tiers (verified in step 18, 2026.09.28)
+
+For "T1 Vlandian Recruit" and the troops section's order (DESIGN §2.8). Read in `game-decompiled-1.4.8`:
+- `CharacterObject.Tier => Campaign.Current.Models.CharacterStatsModel.GetTier(this)` (`CS\CharacterObject.cs`).
+- `DefaultCharacterStatsModel.GetTier`: a hero → 0; a troop → `min(max(ceil((Level − 5) / 5), 0), MaxCharacterTier)`, and
+  `MaxCharacterTier => 6` — so **0–6 in vanilla** (level ≤ 5 → T0, 6–10 → T1, 11–15 → T2, … 31+ → T6). A mod's stats model
+  may change both; the steward shows whatever `Tier` says.
+- The game's own screens draw the tier as an icon (`CampaignUIHelper.GetCharacterTierData`: `General\TroopTierIcons\
+  icon_tier_{n}`, nothing for tier ≤ 0 or > 7); the steward writes `T{n}` — the fonts have the letters, and a text needs no
+  sprite category. A T0 troop (looters, some bandits) reads `T0`.
+- The snapshot already carried it since step 16 (`TroopStack.Tier`, read in `SnapshotBuilder.ReadTroops`); step 18 puts it on
+  the row (`TroopRowInfo.Tier`) and in the log's offer list.
+
 ---
 
 ## Gotchas (one line each)

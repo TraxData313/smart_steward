@@ -125,7 +125,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               TroopPlanner (step 16) = the troops section: "Recruits on offer" + "Your troops", one row per
                               troop type ([+] recruits, [-] dismisses), party rows of the live re-plan;
                               HerdTotals (step 18) = the footer's herd line: horses after the deal vs the most before the herd
-                              slows the party (the game's rule, RESEARCH §23)
+                              slows the party (the game's rule, RESEARCH §23);
+                              TroopBulk (step 18) = the folded Troops line's [-] (DismissLowest) / [+] (RecruitBest) - ordinary
+                              row edits; troop rows ordered by tier (TroopPlanner.DismissOrder / RecruitOrder)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),

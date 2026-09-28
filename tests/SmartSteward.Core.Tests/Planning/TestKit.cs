@@ -156,12 +156,13 @@ internal sealed class Scenario
     /// <summary>A troop type of the troops section (step 16): <paramref name="inParty"/> men in the party (dismissable unless
     /// said), <paramref name="onOffer"/> volunteers the notables offer the player at <paramref name="price"/> a man.</summary>
     public Scenario Troop(string id, int inParty = 0, int onOffer = 0, int price = 20, bool mounted = false, int wounded = 0,
-        bool canDismiss = true, int wage = 2, double seaWeight = 0)
+        bool canDismiss = true, int wage = 2, double seaWeight = 0, int tier = 0, string? name = null)
     {
         Snap.Troops.Add(new TroopStack
         {
             TroopId = id,
-            Name = id,
+            Name = name ?? id,
+            Tier = tier,
             InParty = inParty,
             Wounded = wounded,
             CanDismiss = canDismiss && inParty > 0,

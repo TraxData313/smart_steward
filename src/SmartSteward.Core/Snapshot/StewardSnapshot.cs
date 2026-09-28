@@ -358,7 +358,8 @@ namespace SmartSteward.Core.Snapshot
         public string TroopId { get; set; } = "";
         public string Name { get; set; } = "";
 
-        /// <summary><c>CharacterObject.Tier</c> — for the log only.</summary>
+        /// <summary><c>CharacterObject.Tier</c> — the game's tier (0–6 in vanilla: <c>ceil((level − 5) / 5)</c> clamped to
+        /// <c>MaxCharacterTier</c>, RESEARCH §24): shown before the troop's name and the troops section's order (step 18).</summary>
         public int Tier { get; set; }
 
         /// <summary>Men of this type in the party now, wounded included (<c>TroopRosterElement.Number</c>) — the row's Mine.</summary>

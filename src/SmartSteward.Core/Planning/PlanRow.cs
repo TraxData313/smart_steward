@@ -161,6 +161,10 @@ namespace SmartSteward.Core.Planning
     /// <summary>Troop row facts (step 16, DESIGN §2.8): a positive change recruits volunteers, a negative one dismisses men.</summary>
     public sealed class TroopRowInfo
     {
+        /// <summary>The game's tier of the troop (<c>CharacterObject.Tier</c>: 0–6 in vanilla, RESEARCH §24) — shown before the
+        /// name (<c>T1 Vlandian Recruit</c>) and the order of the troops section (step 18).</summary>
+        public int Tier { get; internal set; }
+
         /// <summary>The recruitment cost per man (0 when the type is not on offer here).</summary>
         public int UnitPrice { get; internal set; }
 

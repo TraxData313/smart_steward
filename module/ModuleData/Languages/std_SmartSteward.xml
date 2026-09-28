@@ -256,7 +256,7 @@
     <string id="ss_ui_sec_troops_group" text="Troops" />
     <string id="ss_ui_shortcuts" text="Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia" />
     <string id="ss_ui_sum_days" text="days" />
-    <string id="ss_ui_sum_dismissed" text="dismissed" />
+    <string id="ss_ui_sum_dismissing" text="dismissing" />
     <string id="ss_ui_sum_hired" text="hired" />
     <string id="ss_ui_sum_influence" text="influence" />
     <string id="ss_ui_sum_kg" text="kg" />
@@ -268,13 +268,18 @@
     <string id="ss_ui_sum_nobody_ransomed" text="nobody ransomed" />
     <string id="ss_ui_sum_nothing_sold" text="nothing sold" />
     <string id="ss_ui_sum_ransomed" text="ransomed" />
-    <string id="ss_ui_sum_recruited" text="recruited" />
+    <string id="ss_ui_sum_recruiting" text="recruiting" />
     <string id="ss_ui_sum_sold" text="sold" />
     <string id="ss_ui_sum_to_dungeon" text="to the dungeon" />
+    <string id="ss_ui_sum_type" text="type" />
+    <string id="ss_ui_sum_types" text="types" />
     <string id="ss_ui_tab_instructions" text="Instructions" />
     <string id="ss_ui_tab_prices" text="Prices" />
     <string id="ss_ui_tab_suggestion" text="Suggestion" />
+    <string id="ss_ui_tier_prefix" text="T" />
     <string id="ss_ui_title" text="Party Steward — {SETTLEMENT}" />
+    <string id="ss_ui_troops_minus_hint" text="Dismiss from the lowest tier up: your own troops first, then the men of the types on offer. Shift 5, Ctrl all." />
+    <string id="ss_ui_troops_plus_hint" text="Recruit the highest tier on offer first. Shift 5, Ctrl all." />
     <string id="ss_ui_type_food" text="Food" />
     <string id="ss_ui_type_loot" text="Loot" />
     <string id="ss_ui_type_mount" text="Mount" />

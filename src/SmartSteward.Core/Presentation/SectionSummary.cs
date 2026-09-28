@@ -73,8 +73,13 @@ namespace SmartSteward.Core.Presentation
         public string Kinds { get; set; } = "kinds";
         public string Sold { get; set; } = "sold";
         public string Hired { get; set; } = "hired";
-        public string Recruited { get; set; } = "recruited";
-        public string Dismissed { get; set; } = "dismissed";
+        public string Recruiting { get; set; } = "recruiting";
+        public string Dismissing { get; set; } = "dismissing";
+        public string Type { get; set; } = "type";
+        public string Types { get; set; } = "types";
+
+        /// <summary>Before a troop's tier: <c>T</c> + 1 = <c>T1 Vlandian Recruit</c> (step 18) — the table's rows use it too.</summary>
+        public string TierPrefix { get; set; } = "T";
         public string Ransomed { get; set; } = "ransomed";
         public string ToDungeon { get; set; } = "to the dungeon";
         public string Influence { get; set; } = "influence";
@@ -92,7 +97,8 @@ namespace SmartSteward.Core.Presentation
     /// the plan as it stands — so it follows every click. Nothing queued → a short neutral line. Examples:
     /// <list type="bullet">
     /// <item>Tavern — <c>+3 hired –1,450</c> / <c>nobody hired</c></item>
-    /// <item>Troops — <c>+12 recruited –640 · 3 dismissed</c> / <c>nobody recruited or dismissed</c></item>
+    /// <item>Troops — <c>dismissing 1 T1 Vlandian Recruit, 1 T1 Imperial Peasant · recruiting 2 T3 Vlandian Footman –640</c>
+    /// (more than three types: <c>recruiting 12 (5 types) –640</c>) / <c>nobody recruited or dismissed</c></item>
     /// <item>Food — <c>+29 (5 kinds), 12 sold –510 · 64 » 71 days</c> / <c>no change · 64 days</c></item>
     /// <item>Mounts — <c>+10 (2 kinds), 3 sold –1,200</c> / <c>no change</c></item>
     /// <item>Armour &amp; weapons — <c>41 sold +2,132 · –380 kg</c> / <c>nothing sold</c></item>
@@ -126,18 +132,36 @@ namespace SmartSteward.Core.Presentation
             return WithGold("+" + UiFormat.Money(hired) + " " + words.Hired, rows.Sum(r => r.GoldDelta));
         }
 
+        /// <summary>The folded Troops line says what it does (Anton 2026.09.28, step 18): who leaves, lowest tier first, then who
+        /// joins, highest tier first, with the recruits' gold — in the order the line's own [−] and [+] take them.</summary>
         private static string Troops(List<PlanRow> rows, SummaryWords words)
         {
-            int recruited = rows.Sum(r => Math.Max(0, r.Change));
-            int dismissed = rows.Sum(r => Math.Max(0, -r.Change));
-            if (recruited == 0 && dismissed == 0)
+            var leaving = TroopPlanner.DismissOrder(rows).Where(r => r.Change < 0).ToList();
+            var joining = TroopPlanner.RecruitOrder(rows).Where(r => r.Change > 0).ToList(); // only types on offer recruit
+            if (leaving.Count == 0 && joining.Count == 0)
                 return words.NoTroopChange;
             var parts = new List<string>();
-            if (recruited > 0)
-                parts.Add(WithGold("+" + UiFormat.Money(recruited) + " " + words.Recruited, rows.Sum(r => r.GoldDelta)));
-            if (dismissed > 0)
-                parts.Add(UiFormat.Money(dismissed) + " " + words.Dismissed);
+            if (leaving.Count > 0)
+                parts.Add(words.Dismissing + " " + Men(leaving, r => -r.Change, words));
+            if (joining.Count > 0)
+                parts.Add(WithGold(words.Recruiting + " " + Men(joining, r => r.Change, words), joining.Sum(r => r.GoldDelta)));
             return string.Join(Separator, parts);
+        }
+
+        /// <summary><c>1 T1 Vlandian Recruit, 1 T1 Imperial Peasant</c> — or, past three types, <c>12 (5 types)</c>.</summary>
+        private static string Men(List<PlanRow> rows, Func<PlanRow, int> men, SummaryWords words)
+        {
+            if (rows.Count > 3)
+                return UiFormat.Money(rows.Sum(men)) + " (" + UiFormat.Money(rows.Count) + " " + words.Types + ")";
+            return string.Join(", ", rows.Select(r => UiFormat.Money(men(r)) + " " + TroopName(r, words)));
+        }
+
+        /// <summary>A troop row's name with its tier before it: <c>T1 Vlandian Recruit</c> (step 18 — the table's rows too).</summary>
+        public static string TroopName(PlanRow row, SummaryWords? words = null)
+        {
+            if (row == null) throw new ArgumentNullException(nameof(row));
+            string name = string.IsNullOrEmpty(row.Name) ? row.Id : row.Name;
+            return row.Troop == null ? name : (words ?? new SummaryWords()).TierPrefix + UiFormat.Money(row.Troop.Tier) + " " + name;
         }
 
         private static string Food(StewardPlan plan, List<PlanRow> rows, SummaryWords words)

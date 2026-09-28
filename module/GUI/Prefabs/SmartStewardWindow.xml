@@ -106,6 +106,32 @@
                                                     <HintWidget DataSource="{ToggleHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                                                   </Children>
                                                 </ButtonWidget>
+                                                <!-- the folded Troops line's own [-] [+] (step 18): [-] dismisses from the lowest tier up, [+] recruits the
+                                                     highest tier on offer first; click 1, shift 5, ctrl all -->
+                                                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="16" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasBulkButtons">
+                                                  <Children>
+                                                  <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="36" SuggestedHeight="28" VerticalAlignment="Center">
+                                                    <Children>
+                                                      <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="ExecuteBulkDecrease" IsEnabled="@CanBulkDecrease" UpdateChildrenStates="true">
+                                                        <Children>
+                                                          <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="24" Text="&#x2013;" />
+                                                        </Children>
+                                                      </ButtonWidget>
+                                                      <HintWidget DataSource="{BulkDecreaseHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                    </Children>
+                                                  </Widget>
+                                                  <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="36" SuggestedHeight="28" VerticalAlignment="Center" MarginLeft="8">
+                                                    <Children>
+                                                      <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="ExecuteBulkIncrease" IsEnabled="@CanBulkIncrease" UpdateChildrenStates="true">
+                                                        <Children>
+                                                          <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="24" Text="+" />
+                                                        </Children>
+                                                      </ButtonWidget>
+                                                      <HintWidget DataSource="{BulkIncreaseHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                    </Children>
+                                                  </Widget>
+                                                  </Children>
+                                                </ListPanel>
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="18" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="#8E8A80FF" Text="@DetailText" IsVisible="@IsExpanded" />
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="18" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Brush.FontColor="@TextColor" Text="@SummaryText" IsVisible="@IsCollapsed" />
                                               </Children>

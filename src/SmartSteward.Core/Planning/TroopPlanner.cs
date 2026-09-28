@@ -20,8 +20,11 @@ namespace SmartSteward.Core.Planning
     /// never blocks: the footer shows the party after the deal against it.
     /// </summary>
     /// <remarks>
-    /// Order within each half [decided: Claude, 2026.09.28 — step 16]: by name (ordinal), then id — the same predictable
-    /// order as the wanderers; the Encyclopedia link and the Mine column carry the rest.
+    /// Order within each half — by TIER (Anton 2026.09.28, PLAN step 18: "MY troops ordered by tier, LOWEST on top"): the
+    /// party's own troops lowest tier first — what a dismissal takes first sits on top —, the recruits on offer HIGHEST tier
+    /// first — what Anton takes [decided: Claude, 2026.09.28 — step 18; Anton can flip it] —; ties by name (ordinal), then
+    /// id. (Step 16 ordered both halves by name.) <see cref="DismissOrder"/> and <see cref="RecruitOrder"/> are the same
+    /// orders for the folded Troops line's [−] and [+] (<see cref="StewardPlan.DismissLowest"/>).
     /// </remarks>
     internal static class TroopPlanner
     {
@@ -39,6 +42,7 @@ namespace SmartSteward.Core.Planning
                 .Select(Merge)
                 .Where(t => t.OnOffer > 0 || (t.InParty > 0 && t.CanDismiss))
                 .OrderBy(t => t.OnOffer > 0 ? 0 : 1)
+                .ThenBy(t => t.OnOffer > 0 ? -t.Tier : t.Tier)
                 .ThenBy(t => t.Name, StringComparer.Ordinal)
                 .ThenBy(t => t.TroopId, StringComparer.Ordinal);
             foreach (var t in types)
@@ -55,6 +59,7 @@ namespace SmartSteward.Core.Planning
                     MaxSell = t.CanDismiss ? Math.Max(0, t.InParty) : 0,
                     Troop = new TroopRowInfo
                     {
+                        Tier = Math.Max(0, t.Tier),
                         UnitPrice = onOffer ? Math.Max(0, t.PricePerMan) : 0,
                         DailyWage = Math.Max(0, t.WagePerMan),
                         OnOffer = Math.Max(0, t.OnOffer),
@@ -66,6 +71,24 @@ namespace SmartSteward.Core.Planning
             }
             return rows;
         }
+
+        /// <summary>The folded Troops line's [+] order (step 18): the types on offer, highest tier first, ties by name, then id.</summary>
+        internal static List<PlanRow> RecruitOrder(IEnumerable<PlanRow> rows) =>
+            rows.Where(r => r.Type == RowType.Troop && r.Troop != null && r.MaxBuy > 0)
+                .OrderByDescending(r => r.Troop!.Tier)
+                .ThenBy(r => r.Name, StringComparer.Ordinal)
+                .ThenBy(r => r.Id, StringComparer.Ordinal)
+                .ToList();
+
+        /// <summary>The folded Troops line's [−] order (step 18 — Anton: "dismisses from the lowest tier up"): the party's own
+        /// troops (not on offer here) lowest tier first, then the types on offer by the same order; ties by name, then id.</summary>
+        internal static List<PlanRow> DismissOrder(IEnumerable<PlanRow> rows) =>
+            rows.Where(r => r.Type == RowType.Troop && r.Troop != null)
+                .OrderBy(r => r.Troop!.OnOffer > 0 ? 1 : 0)
+                .ThenBy(r => r.Troop!.Tier)
+                .ThenBy(r => r.Name, StringComparer.Ordinal)
+                .ThenBy(r => r.Id, StringComparer.Ordinal)
+                .ToList();
 
         /// <summary>One entry per troop type (a hand-built snapshot might repeat one): counts add up, the facts are the first's.</summary>
         private static TroopStack Merge(IEnumerable<TroopStack> same)
