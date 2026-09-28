@@ -52,8 +52,8 @@ One Gauntlet window, opened from the settlement menu (§6) or automatically on a
 
 **THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
 standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,
-`Planning\Overburden` —, step 21 builds the window on it; where this block and the older text below disagree, this block wins —
-the older text describes the window as built until step 21). Anton: *"why dont you add new cols Land Weight and Sea Weight,
+`Planning\Overburden` —, step 21 BUILT the window on it (2026.09.28, "As built" below); where this block and the older text
+below disagree, this block wins — the older text describes the window as it was until step 21 and is kept for its reasons). Anton: *"why dont you add new cols Land Weight and Sea Weight,
 Denari and Souls, and have one most lower line type Total that aggregates the totals … Think about all our data we have and for a
 way to present it and expand it nicely, easyly trackable, this way I can see all metrics and expand to see where they come from"*.
 - **Columns**, left to right: **Market** · Item · Mine · Change `[-] n [+] [⟲]` · Result · **Denari** · **Party** · **Prisoners** ·
@@ -97,6 +97,43 @@ way to present it and expand it nicely, easyly trackable, this way I can see all
 - The `Click ±1 · Shift ±5 · Ctrl all · names in gold open the Encyclopedia` hint moves to the top of the Instructions tab.
   **"denari"** everywhere in the GUI, never "gold".
 - **Fit** (choice 10): the window stays 1580 × 960, rows 32 px; Total + the weight table pinned, the table scrolls.
+- **As built (PLAN step 21, 2026.09.28)** [decided: Claude — where the mockup and Gauntlet part, or the mockup left it open]:
+  - **Core decides, the window copies.** `Presentation\SheetView.Build(plan, words, isFolded)` turns `SuggestionSheet` into the
+    lines on screen — every cell as text and colour, the note after each name, the Denari tooltip, every button's live block
+    (the editor's reasons) — built again after every click; the Module's `SheetItemVM` per line is updated in place while its
+    key stays, and a fold inserts / removes only the lines it opens or closes. A folded part is never asked for its blocks
+    (no trial walks): the late-game benchmark clicks in 0–15 ms with EVERYTHING open (`PlanPerformanceTests`).
+  - **Widths** (px, one table in `tools/gen-suggestion-tab.py`): Market 70 · Item 426 (+16) · Mine 70 · Change 214 (+10) ·
+    Result 70 · Denari 230 (+10) · Party 76 · Prisoners 100 · Land kg 106 · Sea kg 106 = 1504 of the 1506 the scroll lane
+    leaves. Title lines 38 px, lines 32, breakdown lines 26 (small, grey, no buttons). The **Sea kg column hides** without
+    ships (it would be all blanks).
+  - **Folds** (`SheetFolds`, remembered in window_state.json under `"Folded"`): Food, Horses, Prisoners, Other (a section
+    folded = its title line + Lords / Others), Recruits and Your troops (the Troops title folds or opens both — ▾ while either
+    is open), the five horse role rows' ▸ and the Other goods ▸. **With no file the everyday view of the approved mockup**
+    (Recruits, Your troops, Food, the prisoner rows and every ▸ folded; Horses and Other open) — until step 21 no file meant
+    everything open. A step-18/20 file (`"CollapsedSections"`) is read once in its own terms (Troops = both lines, Mounts =
+    Horses, Tavern = nothing).
+  - **A troop row under its line shows only its side** (choice 8): under Recruits Mine / Result "–", Change = its recruits,
+    Market = on offer; under Your troops only its dismissals; [+] / [−] that would cross to the other side grey with "Men of
+    this type are being dismissed under Your troops / recruited under Recruits — take that back there first"
+    (`EditBlock.DismissingThisType / RecruitingThisType`). The lines' ⟲ hands back the rows moved on that side.
+  - **Unit price** after the name = the prices the deal pays or gets (`30–33 each`) — a row the deal does not move shows none
+    (DEVIATION: the mockup shows `11 each` on untouched food; the next unit's price is known only to a trial walk — one more per
+    row per click). Troops, wanderers, mercenaries and prisoners always show theirs (`17 each`, `444 to hire`, `ransom 24 each`).
+    Role rows say `keep 10` (pack, war), noble `sell only · <names>`, lame `sell only · replaced by healthy ones`; loot `2
+    locked`, `3 kept`; a waiting job `starts at 2,000 denari`. The Denari tooltip: `8 × 30–33 = –252 · your max 60` (buys), `your
+    min` (sales), `4 to the dungeon +3.6 influence` (prisoners).
+  - **Keep | Ransom | Donate** = three `ButtonSimpleBrush` buttons with a gold fill (`#B8893E`) on the chosen one (DEVIATION: the
+    brush's own Selected style is BLUE, `#0099FF` — so the fill is a child widget); a click saves `LordPrisonerAction` /
+    `PrisonerAction` through the settings service and the window re-plans at once (touched rows carried over). Donate greys
+    where the game forbids donating here; Keep and Ransom always work (the order stands for the towns ahead).
+  - **The speed icons**: SandBox's own brush `Map.Party.Speed.Indicator` — Land a `BrushWidget` (Default style = Native's
+    `General\Icons\Speed@2x`, the party bar's horse), Sea a `BoolStateChangerWidget BooleanCheck="true" TrueState="Sailing"`
+    (vanilla's nameplate pattern; the style draws War Sails' `Map\ship_speed`, never named by us). `tools\check-gui.ps1`
+    accepts an official DLC's sprite ONLY through a vanilla brush's own style.
+  - **The warnings box** is a plain panel right of the weight table (DEVIATION: no dashed border — Gauntlet draws no dashes
+    without a sprite); warnings red, the last result in the text colour.
+  - **Market column**: blank for troops under Your troops and for prisoners (no market), `–` where the market has none.
 
 Built for glancing, not reading: fixed columns, aligned numbers, colour for direction (buy =
 green-ish, sell = red-ish, untouched = grey). One row per item (or prisoner troop) the steward
@@ -125,7 +162,8 @@ reason above it. (Until step 16 a closed market hid every row at 0 — the taver
 7. *(LATER — not V1)* **Others** of the price book — trade goods bought and sold by price (§1.3.1); round 4's Other goods line
    (§2.6) only SELLS them in bulk, without prices
 
-**Folded sections** **[Anton 2026.09.28 — PLAN step 18: "each section header expands/collapses; collapsed = ONE summary
+**Folded sections** (step 18 — SUPERSEDED by the spreadsheet's folds in step 21, above: a folded section now shows its title
+line with the subtotal, never a summary sentence) **[Anton 2026.09.28 — PLAN step 18: "each section header expands/collapses; collapsed = ONE summary
 line … the state is REMEMBERED per section across windows, towns and game restarts (stays collapsed until Anton expands it)
 — kept in our settings folder, never in the save"]** (Core `Presentation\SectionSummary`, `WindowState`):
 - A click on a section's header (its ▸/▾ collapser icon or its name) folds it: the rows hide and the header shows the
@@ -179,7 +217,7 @@ row: **Mine** = sellable pieces in the group, with the locked ones shown apart (
 locked)`); **Change** = `−N` with `[-] [+]` (click ±1, shift ±5, ctrl all); **Price** = what those
 N pieces fetch; the **weight they free** is shown on the row; Market = `—`; Item = the group name.
 
-**Header line, at the very top of the tab** (Anton, 2026.09.27 — round 4: `Denari …` and the influence, above): the **total money change** if
+**Header line, at the very top of the tab** (Anton, 2026.09.27 — round 4: `Denari …` and the influence, above; until step 21 it read `Gold …`): the **total money change** if
 every queued action is confirmed — e.g. `Gold 12,400 → 10,930  (−1,470)` — green when the deal
 earns, red when it costs; updates live with every click.
 
@@ -322,6 +360,10 @@ the footer shows it in red, but **Do it** still works — the player's hand over
 
 ### 1.2 Instructions tab — the settings
 
+**At the top (round 4, step 21 — Anton 2026.09.28: "move the tooltip about the shift+click on the top of the Instructions,
+the players will see it once there and not cram space anymore in the working tab")**: `Click ±1 · Shift ±5 · Ctrl all ·
+names in gold open the Encyclopedia` (the Suggestion tab no longer carries it).
+
 Every setting from §7, grouped as in §7, editable in place (checkboxes, number steppers). ~~The War
 mounts group also shows the live count "Troops ready to upgrade now: N for a horse, M for a war horse" beside its two
 targets (§2.4, step 12).~~ **[Anton 2026.09.28, step 17]** "Horses per 100 footmen" and "War horses to keep" each show
@@ -344,9 +386,10 @@ multipliers scale them all — **since round 4 one pair for FOOD and one for HOR
 multipliers set from 0.5 to 2, gain costs 10 up to 20 id be happy to buy"]**: food ×2.0 / ×0.5, horses (pack animals, riding,
 war and noble horses) ×1.2 / ×0.8 (`PriceBook.BuyMultiplier` / `SellMultiplier` by group). The old `BuyPriceMultiplier` /
 `SellPriceMultiplier` are the horse pair renamed (`HorseBuyPriceMultiplier` / `HorseSellPriceMultiplier`) — an old settings
-file carries its values over to them once, logged. (Until step 21 gives the Food group boxes of its own, the Prices tab's
-two boxes at the top are the horse pair; the food pair is in the Instructions tab and MCM; every line shows its own
-group's multiplier.)
+file carries its values over to them once, logged. **Step 21**: the tab's top line holds BOTH pairs — `Food  buy × [2.0]  sell
+× [0.5]      Horses  buy × [1.2]  sell × [0.8]` (hover a word for the setting's help; typed like every box: a number saves at
+once, clamped, anything else turns the box red); every line shows its own group's multiplier. (Until step 21 the two boxes
+were the horse pair only and the food pair lived in the Instructions tab and MCM.)
 
 Groups, each collapsible: **Food**, **Horses** (sub-headers Pack animals · Mounts · War mounts · **Noble horses — sell
 only**, step 17: no buy column there, the sell placeholder always filled).
@@ -1143,15 +1186,17 @@ float slider and the file agree on the same number). A value outside its range i
   bug reports.
 - **The window's remembered state** **[decided: Claude, 2026.09.28 — PLAN step 18]**: which Suggestion sections are folded
   (§1.1) lives in its OWN small file beside the settings, `Configs\SmartSteward\window_state.json` (Core `WindowState`,
-  Module `UI\WindowStateHost`) — `// comments` explaining it, then `"CollapsedSections": ["Food", "Mounts"]` (names: Tavern,
-  Troops, Food, Mounts, Other, Prisoners — `Other` was `ArmourAndWeapons` until round 4, the old name still reads; step 21
-  may key the spreadsheet's folds its own way); written on every fold or unfold (beside and swapped in, like the
+  Module `UI\WindowStateHost`) — `// comments` explaining it, then **since step 21** `"Folded": ["Recruits", "YourTroops", …]`
+  (the spreadsheet's fold keys, `Presentation\SheetFolds`: Recruits, YourTroops, Food, Horses, PackAnimals, RidingHorses,
+  WarHorses, NobleHorses, LameHorses, Prisoners, Other, OtherGoods; no file = the approved mockup's everyday view). The step-18/20
+  key `"CollapsedSections"` (Tavern, Troops, Food, Mounts, Other/ArmourAndWeapons, Prisoners) is read once in its own terms and
+  never written again; written on every fold or unfold (beside and swapped in, like the
   settings), read at the first window and again whenever it changed on disk. Why not a key in settings.json: a fold is not
   a setting — settings.json is generated from the §7 registry, a change there raises the service's `Changed` and re-plans
   the open window, shows in MCM and the Instructions tab, and an unknown key is a logged problem with a `.bak`; a fold must
   do none of that, and writing it on every click must never put the settings file at risk. Deleting settings.json keeps the
-  folds; deleting window_state.json unfolds everything. Unreadable, a wrong shape or unknown names → every section unfolded
-  (unknown names dropped), one log line; never an exception. Never in the save, never in MCM.
+  folds; deleting window_state.json brings back the everyday view. Unreadable or a wrong shape → the everyday view, unknown
+  names dropped, one log line; never an exception. Never in the save, never in MCM.
 
 ---
 

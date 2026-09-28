@@ -12,6 +12,8 @@ recorded here and in DESIGN §1.1; the PNGs are NOT re-rendered — step 21 buil
 2. **The Market column moves to the far LEFT** ("in the game the market is always on the left"): Market · Item · Mine · Change ·
    Result · Denari · Party · Prisoners · Land kg · Sea kg. A window layout matter for step 21.
 
+**BUILT in PLAN step 21 (2026.09.28)** — the window follows this file; where it differs (and why) is in DESIGN §1.1 "As built".
+
 Anton also said the final may differ a bit and more polish rounds will follow — the Core model (step 20) is built to be easy
 to adjust.
 

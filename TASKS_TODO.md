@@ -39,16 +39,17 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + TROOPS (Anton 2026.09.28): tier before every troop name ("T1 Vlandian Recruit"); MY troops ordered by tier, LOWEST on top;
     the COLLAPSED Troops line carries [-] [+] of its own: [-] dismisses from the lowest tier up, [+] recruits the highest tier on
     offer first (shift/ctrl steps as usual), and the line says what it does ("dismissing 1 T1 Vlandian Recruit, 1 T1 Imperial Peasant")
+  - [ ] Deploy (the game was running at the end of step 18), then playtest — checklist in docs/PLAYTEST.md "Step 18"
 - [x] 19. Round 4 MOCKUP — the Suggestion tab as one spreadsheet (docs/feedback/2026-09-28-round4.md), an HTML mockup for Anton to approve BEFORE the build
   - [x] Anton: look at docs/mockups/*.png and answer the 10 "Choices for Anton" in docs/mockups/README.md → APPROVED 2026.09.28 ("beautiful"), all ten stand + two changes: "Souls" → Party (members only) + a Prisoners column; the Market column far LEFT (README, DESIGN §1.1)
 - [x] 20. Round 4 CORE — activation thresholds (food 2k, pack 2k, mounts 5k, war 20k), war horses 10, food multipliers ×2.0/×0.5,
   prisoner Lords/Others Keep|Ransom|Donate, the "Other goods" bulk line, per-row Denari/Souls/Land kg/Sea kg + section overviews
   + Total, troop aggregate lines (recruit best first, dismiss lowest first, re-add in reverse), overburden slowdown per terrain
   - [ ] Deployed at the end of step 20 (the game was closed — the install carries steps 12–20), then playtest — checklist in docs/PLAYTEST.md "Step 20" (the new window is step 21)
-- [ ] 21. Round 4 WINDOW — build the approved spreadsheet: sections with overview lines, combined Troops, Prisoners lines, Other,
+- [x] 21. Round 4 WINDOW — build the approved spreadsheet: sections with overview lines, combined Troops, Prisoners lines, Other,
   Total row, header denari + influence, footer weight table with the vanilla speed icon, colours by meaning, "denari" everywhere,
   hint moved to Instructions, Prices tab cheapest first, prisoner tiers + Encyclopedia
-  - [ ] Deploy (the game was running at the end of step 18), then playtest — checklist in docs/PLAYTEST.md "Step 18"
+  - [ ] Deployed at the end of step 21 (the game was closed — the install carries steps 12–21), then playtest — checklist in docs/PLAYTEST.md "Step 21 — the spreadsheet"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -62,15 +63,15 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
 - The party size limit never blocks a hire — the footer shows the party after the deal (Party 99/96), red when over
 - Docking at a port (War Sails) brings the steward too: the arrival popup / autonomous run on docking, "Party Steward" in the port menu
-- ~~Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000"~~ → two lines: "Land: weight 1,000 +120 » 1,120 kg · capacity 1,500 » 1,900" and (with ships) "Sea: …", each with its overflow in red
+- ~~Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000"~~ → ~~two lines "Land: …" / "Sea: …"~~ → the footer's weight table (step 21)
 - The "Not now" button is "Close"
 - A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
 - Live re-plan: hires and prisoners kept or ransomed re-plan the food and horses at once — your own rows (⟲ shown) stay and go first
 - Food goal in days: "Keep food for [40] days (~2.0 per soul)" at your party's own rate, perks included; an old "Food per man" converts once (× 20)
 - Troops section right after the Tavern (towns and villages): the recruits the notables offer you, then your own troops — [+] recruits, [-] dismisses (the wounded first), past the party limit; food and horses follow
 - A closed market keeps the table for what you can still do there (troops, wanderers), the reason above it
-- Click a section's name to fold it to one line ("Food +29 (5 kinds) –510 · 64 » 71 days") — it stays folded across towns and restarts (window_state.json, never the save)
-- Herd line: "Horses 110 / 200 before the herd slows you" — the game's own rule, the party after the deal, red when over
+- ~~Click a section's name to fold it to one line~~ → fold a section to its title line (its subtotals) — it stays folded across towns and restarts (window_state.json, never the save)
+- Herd: "110 / 200 before the herd slows you" — the game's own rule, the party after the deal, red when over (the Horses title line since step 21)
 - Troops show their tier ("T1 Vlandian Recruit"): yours lowest tier first, recruits on offer highest first; the folded Troops line has its own [-] (lowest tier out) and [+] (best recruits in)
 - Jobs switch on as you get richer: food and pack animals from 2,000 denari, riding horses from 5,000, war horses from 20,000 (settings; below it the steward leaves the job alone) — and 10 war horses kept by default
 - Food has price multipliers of its own (×2.0 buy / ×0.5 sell — grain at 10 bought up to 20); the old pair are the horse multipliers now (your values carried over)
@@ -78,6 +79,13 @@ SHIPPING NEXT (done in main, NOT released yet):
 - "Armour & weapons" is now "Other", with an Other goods row: wool, salt, pottery, jewelry… sold in bulk, cheapest first ("Sell other goods")
 - Prices tab: cheapest first inside each group
 - Troops: "Your troops" [-] drops the lowest tier first and [+] brings them back in reverse; "Recruits" [+] hires the best tier first (the lines of the new window, step 21)
+- The Suggestion tab is ONE spreadsheet: Market · Item · Mine · Change · Result · Denari · Party · Prisoners · Land kg · Sea kg — every section's title line is its subtotal, a Total line under the table that never scrolls
+- Header "Denari 69,358 » 89,189 (+19,831)" + small green influence; colours by meaning (green in, red out), zeros blank
+- Troops in one section: each wanderer, the mercenaries, Recruits and Your troops — each opens its rows by tier (a type on offer that you hold shows under both, each side on its own)
+- Prisoners: "Lords" and "Others" lines with Keep | Ransom | Donate — the toggle is your standing order (Donate greyed where the game forbids it); prisoner rows show their tier, lowest first, names open the Encyclopedia
+- Footer = only the weight table: Land / Sea × before · change · after · capacity · left · slowdown, with the game's own speed icon (the horse; the ship at sea)
+- Every fold remembered (sections, Recruits, Your troops, each horse row, Other goods); the first window opens in the everyday view
+- "denari" in every money text; the "Click ±1 · Shift ±5 · Ctrl all" hint moved to the top of the Instructions tab; the Prices tab has Food's own multiplier boxes beside the horses'
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -140,7 +148,7 @@ NOTICED (things spotted during a step, left for later):
 - [ ] TrainingBattles' package.ps1 zips with Compress-Archive → backslash entry names (seen in TrainingBattles_v1.4.0.zip); ours writes '/' — port it there
 - [ ] Step 12: a stuck Left Alt (after Alt+Tab) blocks entering towns in vanilla too — tell the player in game ("tap Left Alt")? now log-only (InputWatch); Anton's call
 - [ ] Step 13: with "Locks protect food & horses" on, a food / animal row shows `40 (+40 locked)` — its Mine already counts the locked units (loot's Mine does not), so "+" reads as extra; say "(40 locked)" there?
-- [ ] Step 14: the footer grew a line (the weight line) — the table is ~30 px (one row) shorter; check the look at 1080p
+- [x] Step 14: the footer grew a line (the weight line) — the table is ~30 px (one row) shorter; check the look at 1080p → step 21 replaced the footer (weight table + pinned Total)
 - [ ] Step 14: unverified whether a party docked at a port counts as IsCurrentlyAtSea (the party screen's capacity uses that live flag) — compare with the footer's land / sea in game
 - [x] Step 15: a village has no tavern and no ransom, so the live re-plan's promise is tested in towns (walking and flat prices) — step 16: add a village case with recruits to LivePlanTests (done: 3 village cases)
 - [ ] Step 16: with PopupOnlyWithChanges OFF the arrival popup now opens at nearly every open market — the "Your troops" rows count as rows (at 0 they never count as changes); fine by that switch's meaning?
@@ -148,11 +156,17 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 17: War horses to keep defaults to 0 (Anton's number) — so every unlocked war horse a party holds is proposed for sale on the first visit after the update; say so in the release notes?
 - [ ] Step 17: a lame horse only counts for the game's speed from the next load (the roster's live counter skips modified animals, RESEARCH §22) — the steward counts it at once; harmless, but the party screen's speed may disagree until a reload
 - [ ] Step 18: the Steam page and README say nothing of folding sections, the herd line or tiers — add a line each at release (Steam page 6,066 of 8,000 bytes)
-- [ ] Step 18: the footer grew again (146 → 176 px, the land / sea / herd lines) — the table is one more row shorter; folding sections gives it back — check the look at 1080p
-- [ ] Step 20: SuggestionSheet's words (SheetWords) are English defaults in Core — step 21 must fill them from TextObjects (ss_ui_sheet_*) like SummaryWords, so the strings file gathers them
-- [ ] Step 20: the Prices tab's two top boxes are the HORSE multipliers now; the food pair is only in Instructions/MCM until step 21 gives the Food group boxes of its own
-- [ ] Step 20: the old window shows no prisoner tiers and keeps its step-18 footer; its folded Troops line [-]/[+] follow the new "own side only" rule — all replaced by step 21
-- [ ] Step 20: the spreadsheet's folds (Recruits ▸, Your troops ▸, the role rows' ▸, Other goods ▸) need keys in window_state.json — step 21 (SectionGroup still names the old sections; "ArmourAndWeapons" reads as Other)
+- [x] Step 18: the footer grew again (146 → 176 px, the land / sea / herd lines) — the table is one more row shorter; folding sections gives it back — check the look at 1080p → step 21 replaced the footer
+- [x] Step 20: SuggestionSheet's words (SheetWords) are English defaults in Core — step 21 must fill them from TextObjects (ss_ui_sheet_*) like SummaryWords, so the strings file gathers them → UiLabels.SheetText (step 21)
+- [x] Step 20: the Prices tab's two top boxes are the HORSE multipliers now; the food pair is only in Instructions/MCM until step 21 gives the Food group boxes of its own → both pairs on the top line (step 21)
+- [x] Step 20: the old window shows no prisoner tiers and keeps its step-18 footer; its folded Troops line [-]/[+] follow the new "own side only" rule — all replaced by step 21
+- [x] Step 20: the spreadsheet's folds (Recruits ▸, Your troops ▸, the role rows' ▸, Other goods ▸) need keys in window_state.json — step 21 (SectionGroup still names the old sections; "ArmourAndWeapons" reads as Other) → SheetFolds, key "Folded" (step 21)
 - [ ] Step 20: an army's SEA slowdown adds the attached parties' live TotalWeightCarried (their land weight while in a settlement) — an approximation, the game weighs them at sea
 - [ ] Step 20: the mockup's Horses line says "92 on foot, 101 horses to keep" but the rule gives ceil(92 × 110 / 100) = 102 — the mockup's numbers were drawn by hand; the Core is right
 - [ ] Release day: the Steam page and README still say "Armour & weapons", "Ransom prisoners / Include lords / Donate", one buy/sell multiplier — update with the round-4 names
+- [ ] Step 21: a food / horse / loot row the deal does not move shows no unit price (the mockup drew "11 each") — the next unit's price is known only to a trial walk, one more per row per click; add a cached quote if Anton misses it
+- [ ] Step 21: RowCells, SectionSummary.Of + SummaryWords and UiColors.ForGoldChange are unused by the window since step 21 (tests only, TroopName still serves) — drop them in a cleanup
+- [ ] Step 21: the Your troops note ("dropping 2 T0 Empire Peasant, 1 T1 …") can clip at three long type names in the 426 px Item cell — Core's Men() counts past three types; maybe past two
+- [ ] Step 21: "names in gold open the Encyclopedia" keeps "gold" — the colour of the names, not the money (every money text says denari)
+- [ ] Step 21: a closed market's notice (560 px, right of the header line) may touch a long centred Denari header — check at 1080p
+- [ ] Step 21: never seen in game — the Denari-cell tooltip rides a HintWidget on a plain Widget (the Prices tab labels' pattern); check it shows

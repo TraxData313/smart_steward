@@ -141,11 +141,16 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
                               SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule); SectionSummary (step 18: the
-                              folded section's one line + SectionGroup), WindowState (step 18: window_state.json - the folds);
+                              folded line + SectionGroup; since step 21 only TroopName serves), WindowState (window_state.json - the folds,
+                              keyed by SheetFolds since step 21);
                               SuggestionSheet (step 20) = the round-4 spreadsheet the step-21 window binds: SheetGroup sections in the
                               mockup's order with overview lines, SheetLines (tavern rows, Recruits, Your troops, Lords, Others),
                               detail rows, PlanMetrics per line/section/Total, the header texts, the weight table with slowdown -
-                              SheetWords = its English words (the window fills them); PriceBookOrder (step 20) = cheapest first.
+                              SheetWords = its English words (the window fills them — UiLabels.SheetText); PriceBookOrder (step 20) =
+                              cheapest first; SheetView (step 21) = the lines ON SCREEN built from the sheet after every click: every
+                              cell as text + colour, the notes after the names, the Denari tooltips, every button's live block (a troop
+                              row under its line shows only its side), the folds applied — a folded part is never asked for blocks;
+                              SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults.
                               Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
@@ -162,8 +167,11 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               TavernKnowledge (step 14: the listed wanderers become known, as the tavern district does it)
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
-                              command), SuggestionVMs, PricesVMs, InstructionsVMs, HintVM, WindowStateHost (step 18: the folds on disk), UiText/UiLabels (TextObject ids —
-                              every English ONE literal per UiText call: StringsFileTests reads them from the source)
+                              command), SuggestionVMs (step 21: the spreadsheet — SuggestionTabVM, SheetSectionVM per title line,
+                              SheetItemVM per line updated in place by key, SheetTotalVM, WeightRowVM), PricesVMs (+ MultiplierBoxVM: the
+                              food and horse pairs), InstructionsVMs (the clicks' hint on top), HintVM, WindowStateHost (the folds on
+                              disk), UiText/UiLabels (TextObject ids — every English ONE literal per UiText call: StringsFileTests reads
+                              them from the source)
   StewardMenu.cs              "Party Steward" in the town and village menus (+ War Sails' port menu, added by id at its first
                               opening — step 14) → opens the window
   StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map, the leave warning (LeaveGuard wraps
@@ -189,7 +197,10 @@ tools/deploy.ps1              build + install as Modules\SmartSteward.Dev ("Smar
 tools/check-soft-deps.ps1     the game loader's GetTypes() test without MCM (Windows PowerShell = .NET Framework;
                               resolves the game bin + SandBox's, like the game at our load)
 tools/check-gui.ps1           the prefab gate: every tag, attribute, value, brush, sprite category and VM binding
-                              against the game and the built DLL — run it after touching a prefab or a view model
+                              against the game and the built DLL — run it after touching a prefab or a view model (an official
+                              DLC's sprite passes ONLY through a vanilla brush's own style — step 21's sea speed icon)
+tools/gen-suggestion-tab.py   (step 21) writes the prefab's Suggestion tab from ONE table of column widths — change widths there,
+                              run it, then check-gui
 tools/McmProbe/               drives MCM's real fluent builder with the built bridge, outside the game
                               (not in the .sln; `dotnet run` it in Release after a Release build)
 tools/package.ps1             (step 10) the release gate + layout: clean build (warnings fail), tests, check-soft-deps,

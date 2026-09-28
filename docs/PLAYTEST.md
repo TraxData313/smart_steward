@@ -324,3 +324,33 @@ The log (`smart_steward.log`) has the rest.
 6. **Prices tab.** Inside each group the cheapest item is on top.
 7. **Slowdown in the log.** Overload the party (buy goods past your capacity) and open the window: the log's footer line says
    `(land speed -12%, -0.40)` — compare with the party speed tooltip's "Overburdened" line.
+
+## Step 21 — the spreadsheet (deployed 2026.09.28)
+
+The round-4 window as approved in the mockup (docs/mockups/suggestion_v2_folded.png — with Market far LEFT and a Prisoners
+column). Close to the mockup, not a copy: more polish rounds follow — say what reads badly. The log has every click.
+
+1. **The look.** Open the window in a town: `Denari 69,358 » 89,189 (+19,831)` on top (the change green / red, influence small
+   and green), columns Market · Item · Mine · Change · Result · Denari · Party · Prisoners · Land kg · Sea kg (Sea only with
+   ships). Do the columns line up — heads, title lines, rows, the Total? Anything cut off at 1080p?
+2. **Title lines are subtotals.** Each section's line carries its sums in every number column; Troops says `104/101` (red when
+   over the limit), Food / Horses / Prisoners / Other their overview. The pinned **Total** under the table never scrolls.
+3. **Folds.** First window (no window_state.json yet): Recruits, Your troops, Food and the prisoner rows folded, Horses and
+   Other open, every ▸ closed. Click titles and ▸s (a horse role row, Other goods, Recruits, Your troops, the Troops title
+   folds both); close and reopen, restart the game — the folds stay.
+4. **Troops.** Recruits [+] takes the best tier on offer, [−] gives the last back; Your troops [−] drops the lowest tier
+   (`dropping 2 T0 …`), [+] brings them back in reverse; Shift 5, Ctrl all. Open both: a type you hold that is also on offer
+   shows under both, each side on its own (the other side's button greys with why). Names open the Encyclopedia.
+5. **Prisoners.** Lords / Others: Keep | Ransom | Donate — the chosen one lit gold. Click another: the rows change at once,
+   and the Instructions tab / Mod Options show the same choice. In a town where you may not donate, Donate is grey (hover
+   says why). Open the prisoner rows: tiers, lowest first, lords last, names open the Encyclopedia.
+6. **Cells.** Denari green in / red out, zeros blank; hover a Denari cell of a bought food: `8 × 30–33 = –252 · your max 60`.
+   A food, horse or loot row that does not move shows no unit price (known deviation — say if you miss it).
+7. **Footer.** Only the weight table: Land (and Sea with ships) × before, change, after, capacity, left (red when over),
+   slowdown with the game's horse icon (the ship at sea) — compare with the party speed tooltip's "Overburdened"; warnings
+   and the last result in the box beside it. The spent / earned / food / party / herd lines are gone.
+8. **Words.** Every money text says denari (greyed buttons' reasons, warnings, the Do it message, the autonomous message
+   line). The `Click ±1 · Shift ±5 · Ctrl all` hint is at the top of the Instructions tab now.
+9. **Prices tab.** The top line: `Food buy × [2] sell × [0.5]   Horses buy × [1.2] sell × [0.8]` — type in each; the food lines
+   follow the food pair, the horse lines the horse pair. Cheapest first inside each group.
+10. **Speed.** Open Your troops with a big party and click fast: no stutter (the benchmark says 0–15 ms a click).

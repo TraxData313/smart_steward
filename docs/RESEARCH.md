@@ -1215,6 +1215,31 @@ overburdened over land or sea"). Read in `game-decompiled-1.4.8`: `CS\...GameCom
 
 ---
 
+## 26. The spreadsheet window — verified in step 21 (2026.09.28)
+
+Read in `game-decompiled-1.4.8` (`TaleWorlds.MountAndBlade.GauntletUI.Widgets\BoolStateChangerWidget.cs`), the older
+`game-decompiled` (`TaleWorlds.GauntletUI.Data\GauntletView.cs`, `TaleWorlds.Library\MBBindingList.cs` — unchanged API) and the
+game's GUI data (`Modules\SandBox\GUI\Brushes\Nameplates.xml`, `Prefabs\Nameplate\Party*NameplateItem.xml`,
+`Modules\Native\GUI\Brushes\Brush.xml`, `Modules\NavalDLC\GUI\NavalDLCSpriteData.xml`, `Modules\NavalDLC\SubModule.xml`).
+
+- **The party-speed icon** is the SandBox brush `Map.Party.Speed.Indicator`: style `Default` = `General\Icons\Speed@2x` (Native,
+  `ui_group1`, always loaded — the party bar's horse), style `Sailing` = `Map\ship_speed` (NavalDLC, `ui_naval_common`, AlwaysLoad).
+  Vanilla's nameplates switch it with `<BoolStateChangerWidget BooleanCheck="@IsCurrentlyAtSea" TrueState="Sailing"
+  FalseState="Default" Brush="Map.Party.Speed.Indicator" />`. `BoolStateChangerWidget` (a BrushWidget) marks itself dirty on any
+  of its properties and in `OnUpdate` calls `AddState(state)` + `SetState(state)` on itself (or `TargetWidget`) — so a literal
+  `BooleanCheck="true"` gives a permanent ship. We never name `Map\ship_speed`: without War Sails the brush's Sailing layer
+  simply has no sprite, and our Sea row only shows with ships.
+- **War Sails is `ModuleType OfficialOptional`** in its SubModule.xml (the base modules have no such line) — check-gui reads
+  that to know an official DLC's sprite data.
+- **`ButtonSimpleBrush`'s `Selected` style is BLUE** (`Color="#0099FFFF"`, ColorFactor 2.0), not gold — a "lit gold" button is a
+  child `BlankWhiteSquare_9` widget coloured gold over the button's own look (children draw above the brush).
+- **A list edited in place**: `MBBindingList` is a `Collection<T>` firing `ItemAdded` (index) on `Insert`, `ItemBeforeDeleted` +
+  `ItemDeleted` on `RemoveAt`, `Reset` on `Clear`; `GauntletView.OnViewModelBindingListChanged` builds ONE item widget at that
+  index (`AddItemToList` → `SetSiblingIndex` of the rest) and removes one on delete — the others keep their widgets and bindings.
+  So a fold that inserts / removes a few lines costs only those lines (the step-21 window keys its lines and syncs in place).
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -1313,6 +1338,11 @@ overburdened over land or sea"). Read in `game-decompiled-1.4.8`: `CS\...GameCom
     army's attached parties pool in, and at sea (War Sails) there is no herd at all (§23).
 68. **Overburdened is ADDED to the base speed, not a factor** (`AddFromExplainedNumber` → `BaseNumber += …`): −0.4 (land) /
     −1.0 (sea) × over / capacity speed points, uncapped, before the factors multiply — the share lost is penalty / base (§25).
+69. **`ButtonSimpleBrush` Selected = blue** (#0099FF) — for a gold "chosen" look draw a gold child widget over the button (§26).
+70. **A DLC sprite only through a vanilla brush**: `Map.Party.Speed.Indicator`'s Sailing style draws War Sails' ship — switch it
+    with `BoolStateChangerWidget`, never name `Map\ship_speed`; check-gui fails a directly named DLC sprite (§26).
+71. **Insert / RemoveAt on an MBBindingList** rebuild only that item's widgets (`GauntletView.AddItemToList(index)`); replacing the
+    whole list (or `Clear`) rebuilds every item — sync by key for folds (§26).
 
 ---
 
