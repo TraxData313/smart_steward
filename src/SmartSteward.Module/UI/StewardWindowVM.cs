@@ -86,8 +86,15 @@ namespace SmartSteward.UI
         /// <summary>The settlement the window plans for.</summary>
         internal Settlement Settlement => _settlement;
 
-        /// <summary>The steward suggests something (PopupOnlyWithChanges opens the window only then).</summary>
-        internal bool HasChanges => Suggestion.Plan?.HasChanges ?? false;
+        /// <summary>Would the arrival popup open on this plan (DESIGN §6: market open, rows, and — with PopupOnlyWithChanges
+        /// — something to suggest)?</summary>
+        internal PopupVerdict PopupVerdict(bool onlyWithChanges)
+        {
+            var plan = Suggestion.Plan;
+            return plan == null
+                ? Core.Presentation.PopupVerdict.NothingPlanned
+                : ArrivalPopup.Decide(plan, _visit.Snapshot.CanTrade, onlyWithChanges);
+        }
 
         /// <summary>Every frame while open: the window closes itself when the party is no longer where it planned.</summary>
         internal void Tick()

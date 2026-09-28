@@ -553,6 +553,13 @@ expected unit prices.
     management screen — so it never fights the game's own arrival popups (an "entering town" incident waits first).
   - **"Changes"** (PopupOnlyWithChanges, the leave warning) = at least one row that moves something; the tavern's rows at
     0 do not count. The leave warning plans afresh at the click, so trading by hand in vanilla's screens counts.
+  - **No popup at a closed market or on an empty plan** **[decided: Claude, 2026.09.28 — step 12, playtest round 1]**: the
+    arrival popup opens only when the game lets the player trade here, the plan has at least one row, and — with
+    `PopupOnlyWithChanges` — something moves (Core `Presentation\ArrivalPopup`). A closed market wins even with
+    `PopupOnlyWithChanges` off: the window could only say why it is closed. The menu entry always opens the window. (Round
+    1's Hiblet — a village with nothing on offer — had logged "nothing to suggest - not opened"; the window seen two
+    seconds later came from the Party Steward menu entry, the only door that did not name itself in the log then. Every
+    open now logs its door.)
   - The warning's buttons: **Review** opens the window (also from War Sails' port); **Leave anyway** carries out the
     leave the player clicked, the vanilla way (the game's leaving incidents roll then, not on the click that asked).
     Escape on the question = Leave anyway — the player had clicked Leave. Opening the window at all (even Not now)

@@ -117,7 +117,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
-                              SettingEdit + PrisonerTicks (Instructions tab). Planning/PlanCarryOver = edits kept over a re-plan
+                              SettingEdit + PrisonerTicks (Instructions tab), ArrivalPopup (step 12: the popup's rule).
+                              Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
                               StewardTriggers), ModLog, SettingsHost (the one

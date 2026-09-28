@@ -119,3 +119,7 @@ Bannerlord\logs\rgl_log_*.txt` with any report.
    meeting" on hostile towns and does nothing at all elsewhere; a Left Alt stuck after Alt+Tab looks exactly like the
    bug. Say whether the tap cured it. The log says `the map's follow modifier … has read as held` when the game believes
    Alt is down.
+2. **No popup with nothing to do.** Ride into a village that sells nothing (the Trade/Buy products option greyed) or a
+   town where you cannot trade: no window pops up, even with "Only open with suggestions" unticked. The log says `no
+   popup at … - the market is closed (arrival popup)`. A place with suggestions still pops up. Each `opened at …` line
+   now ends with its door: `(arrival popup)`, `(the Party Steward menu entry)` or `(Review on the leave question)`.

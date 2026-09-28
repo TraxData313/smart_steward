@@ -334,7 +334,8 @@ namespace SmartSteward
                 return;
             ModLog.Info("trigger", "arrival popup at " + settlement.Name
                 + (settings.PopupOnlyWithChanges ? " (only with suggestions)" : ""));
-            StewardWindow.Open(settlement, "arrival popup", onlyWithChanges: settings.PopupOnlyWithChanges, quiet: true);
+            StewardWindow.Open(settlement, "arrival popup", asPopup: true, onlyWithChanges: settings.PopupOnlyWithChanges,
+                quiet: true);
         }
 
         private static bool IsLootedVillage(Settlement settlement) =>

@@ -63,10 +63,12 @@ namespace SmartSteward.UI
         public static EditSize CurrentEditSize => UiInput.EditSizeFor(FiveStackHeld, EntireStackHeld);
 
         /// <summary>Opens the window for the settlement the party stands in — from the menu entry, the leave warning's
-        /// Review, or the arrival popup (<paramref name="source"/> says which, in the log; <paramref name="onlyWithChanges"/>:
-        /// PopupOnlyWithChanges — a plan with nothing to suggest opens nothing; <paramref name="quiet"/>: no "nothing to
-        /// plan here" message). True when it opened; an opened window marks the visit reviewed (no leave warning).</summary>
-        public static bool Open(Settlement? settlement, string source, bool onlyWithChanges = false, bool quiet = false)
+        /// Review, or the arrival popup (<paramref name="source"/> says which, in the log). <paramref name="asPopup"/>: the
+        /// arrival popup's rule decides (<see cref="ArrivalPopup"/> — a closed market, no rows, or with
+        /// <paramref name="onlyWithChanges"/> nothing to suggest opens nothing); <paramref name="quiet"/>: no "nothing to
+        /// plan here" message. True when it opened; an opened window marks the visit reviewed (no leave warning).</summary>
+        public static bool Open(Settlement? settlement, string source, bool asPopup = false, bool onlyWithChanges = false,
+            bool quiet = false)
         {
             if (IsOpen)
                 Close();
@@ -75,11 +77,16 @@ namespace SmartSteward.UI
                 var vm = StewardWindowVM.Create(settlement, quiet);
                 if (vm == null)
                     return false; // it said why (or kept quiet)
-                if (onlyWithChanges && !vm.HasChanges)
+                if (asPopup)
                 {
-                    ModLog.Info("window", "nothing to suggest at " + vm.Settlement.Name + " - not opened (" + source + ")");
-                    vm.OnFinalize();
-                    return false;
+                    var verdict = vm.PopupVerdict(onlyWithChanges);
+                    if (verdict != PopupVerdict.Open)
+                    {
+                        ModLog.Info("window", "no popup at " + vm.Settlement.Name + " - " + ArrivalPopup.Describe(verdict)
+                                              + " (" + source + ")");
+                        vm.OnFinalize();
+                        return false;
+                    }
                 }
                 _vm = vm;
                 _generation = CampaignSession.Generation;
