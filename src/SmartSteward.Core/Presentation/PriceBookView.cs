@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SmartSteward.Core.Pricing;
 using SmartSteward.Core.Settings;
 using SmartSteward.Core.Snapshot;
@@ -57,6 +58,40 @@ namespace SmartSteward.Core.Presentation
                 book.Remove(itemId);
             else
                 book[itemId] = entry;
+        }
+    }
+
+    /// <summary>
+    /// The Prices tab's order (PLAN step 20 — Anton 2026.09.28, round 4: "order all items in the Prices tab in each type by
+    /// ascending price, cheapest on top pricier at the bottom"): by group (Food, Pack animals, Mounts, War mounts, Noble horses),
+    /// then by ASCENDING price — the item's average buy price (what it costs in an average town, DESIGN §4.2), the average SELL
+    /// price for the sell-only noble horses —, ties by name then id; items with no price known go last, by name.
+    /// [decided: Claude, 2026.09.28 — step 20] The average is used whether or not the group auto-fills its placeholder: only the
+    /// order shows, never the number.
+    /// </summary>
+    public static class PriceBookOrder
+    {
+        /// <summary>The price a line sorts by; null = none known (it goes last).</summary>
+        public static int? SortPrice(PriceBookGroup group, AveragePrices? averages)
+        {
+            if (averages == null)
+                return null;
+            int price = group == PriceBookGroup.NobleHorses ? averages.Sell : averages.Buy;
+            return price > 0 ? price : (int?)null;
+        }
+
+        /// <summary>The lines in the tab's order (see the class comment).</summary>
+        public static List<T> Sort<T>(IEnumerable<T> items, Func<T, PriceBookGroup> group, Func<T, AveragePrices?> averages,
+            Func<T, string> name, Func<T, string> id)
+        {
+            if (items == null) throw new ArgumentNullException(nameof(items));
+            return items
+                .OrderBy(group)
+                .ThenBy(i => SortPrice(group(i), averages(i)) == null ? 1 : 0)
+                .ThenBy(i => SortPrice(group(i), averages(i)) ?? 0)
+                .ThenBy(name, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(id, StringComparer.Ordinal)
+                .ToList();
         }
     }
 

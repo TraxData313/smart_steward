@@ -394,8 +394,12 @@ One row per item:
 - Only the player's changes are stored (§8); placeholders are live averages, recomputed each visit.
 - **Which items the tab lists** **[decided: Claude, 2026.09.27 — step 7]**: every food, pack animal and riding animal
   of the game that is merchandise (livestock, quest and non-transferable items left out, as the steward classifies
-  them), plus anything the party or this market holds; sorted by name within Food / Pack animals / Mounts / War
-  mounts. Ticking an item back on or clearing a base removes the stored override.
+  them), plus anything the party or this market holds; ~~sorted by name within Food / Pack animals / Mounts / War
+  mounts~~ — **cheapest first [Anton 2026.09.28, round 4 — "order all items in the Prices tab in each type by ascending price,
+  cheapest on top pricier at the bottom"]**: within each group by the item's average buy price (the noble horses by their
+  average sell price — they are only sold), ties by name; an item with no known price last, by name (Core
+  `PriceBookOrder` — [decided: Claude, 2026.09.28 — step 20] the average is used whether or not the group auto-fills: only the
+  order shows, never the number). Ticking an item back on or clearing a base removes the stored override.
 
 #### 1.3.1 LATER (not V1) — the Others group **[Anton 2026.09.27: "leave wood, jewelry etc for later"]**
 

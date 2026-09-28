@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Pricing;
 using SmartSteward.Core.Snapshot;
 using TaleWorlds.CampaignSystem.Extensions;
@@ -70,11 +71,8 @@ namespace SmartSteward.Adapter
                     ModLog.Error("prices", "reading item " + (item?.StringId ?? "?"), ex);
                 }
             }
-            return result
-                .OrderBy(i => i.Group)
-                .ThenBy(i => i.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ThenBy(i => i.ItemId, StringComparer.Ordinal)
-                .ToList();
+            // Cheapest first within each group (round 4, Anton 2026.09.28) - the Core's order.
+            return PriceBookOrder.Sort(result, i => i.Group, i => i.Averages, i => i.Name, i => i.ItemId);
         }
     }
 }
