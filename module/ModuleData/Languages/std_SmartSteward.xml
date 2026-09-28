@@ -22,7 +22,7 @@
     <string id="ss_auto_donated" text="donated" />
     <string id="ss_auto_failed" text="Smart Steward: the autonomous steward failed - see smart_steward.log." />
     <string id="ss_auto_food" text="food" />
-    <string id="ss_auto_gold" text="gold" />
+    <string id="ss_auto_gold" text="denari" />
     <string id="ss_auto_head" text="Steward at {SETTLEMENT}:" />
     <string id="ss_auto_head_short" text="Steward:" />
     <string id="ss_auto_influence" text="influence" />
@@ -175,8 +175,8 @@
     <string id="ss_ui_block_companions" text="Your clan's companion limit is reached." />
     <string id="ss_ui_block_dismissing_type" text="Men of this type are being dismissed under Your troops - take that back there first." />
     <string id="ss_ui_block_dungeon_full" text="The dungeon has no more room." />
-    <string id="ss_ui_block_gold" text="You do not have the gold for it." />
-    <string id="ss_ui_block_market_gold" text="The market has no gold left to pay for more." />
+    <string id="ss_ui_block_gold" text="You do not have the denari for it." />
+    <string id="ss_ui_block_market_gold" text="The market has no denari left to pay for more." />
     <string id="ss_ui_block_min_sell" text="The next one would fetch less than its min sell price - a town's prices fall as you sell." />
     <string id="ss_ui_block_none_eligible" text="Nothing on offer the steward may buy: none in the market, unticked in the Prices tab, or dearer than its max buy price." />
     <string id="ss_ui_block_none_to_dismiss" text="None of these in your party to dismiss." />
@@ -204,7 +204,7 @@
     <string id="ss_ui_col_sea_kg" text="Sea kg" />
     <string id="ss_ui_col_sell" text="Sell" />
     <string id="ss_ui_do_it" text="Do it" />
-    <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Gold {BEFORE} » {AFTER}." />
+    <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
     <string id="ss_ui_done_abort" text="Steward: nothing was done - see smart_steward.log." />
     <string id="ss_ui_done_partly" text="{CUT} cut short, {SKIPPED} skipped - see smart_steward.log." />
     <string id="ss_ui_empty" text="Nothing for the steward to do here." />
@@ -226,13 +226,15 @@
     <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
     <string id="ss_ui_nothing_to_do" text="Nothing to do." />
     <string id="ss_ui_open_failed" text="Smart Steward: the window could not open - see smart_steward.log." />
+    <string id="ss_ui_prices_buy_times" text="buy ×" />
     <string id="ss_ui_prices_food" text="Food" />
     <string id="ss_ui_prices_horses" text="Horses" />
-    <string id="ss_ui_prices_intro" text="Final = your base price × the multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold." />
+    <string id="ss_ui_prices_intro_pairs" text="Final = your base price × its group's multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold. Cheapest first." />
     <string id="ss_ui_prices_mounts" text="Mounts" />
     <string id="ss_ui_prices_noble" text="Noble horses — sell only" />
     <string id="ss_ui_prices_pack" text="Pack animals" />
     <string id="ss_ui_prices_reset_hint" text="Clear your prices - the grey average applies again" />
+    <string id="ss_ui_prices_sell_times" text="sell ×" />
     <string id="ss_ui_prices_war_mounts" text="War mounts" />
     <string id="ss_ui_recruits_minus_hint" text="Give back the last recruits. Shift 5, Ctrl all." />
     <string id="ss_ui_recruits_plus_hint" text="Recruit the best tier on offer first. Shift 5, Ctrl all." />
@@ -324,8 +326,8 @@
     <string id="ss_ui_unfold_line_hint" text="Show the rows behind this line. The steward remembers it." />
     <string id="ss_ui_warn_cannot_afford" text="You cannot afford this deal - take something back." />
     <string id="ss_ui_warn_market_gold" text="The market cannot pay for all the sales." />
-    <string id="ss_ui_warn_min_gold" text="Below the gold you always keep ({GOLD})." />
-    <string id="ss_ui_warn_min_gold_horses" text="Below the gold you keep before buying animals ({GOLD})." />
+    <string id="ss_ui_warn_min_gold" text="Below the denari you always keep ({GOLD})." />
+    <string id="ss_ui_warn_min_gold_horses" text="Below the denari you keep before buying animals ({GOLD})." />
     <string id="ss_ui_weight_after" text="after" />
     <string id="ss_ui_weight_before" text="before" />
     <string id="ss_ui_weight_capacity" text="capacity" />

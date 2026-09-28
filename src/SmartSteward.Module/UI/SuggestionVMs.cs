@@ -63,7 +63,6 @@ namespace SmartSteward.UI
             HeaderLabel = UiText.S("ss_ui_header_denari", "Denari");
             _nothingToDoText = UiText.S("ss_ui_empty", "Nothing for the steward to do here.");
             _emptyText = _nothingToDoText;
-            ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             ResetAllText = UiText.S("ss_ui_reset_all", "Reset all");
             Total = new SheetTotalVM(UiText.S("ss_ui_total", "Total"));
             LandRow = new WeightRowVM(UiText.S("ss_ui_weight_land", "Land"));
@@ -317,7 +316,6 @@ namespace SmartSteward.UI
         [DataSourceProperty] public string ColLand { get; }
         [DataSourceProperty] public string ColSea { get; }
         [DataSourceProperty] public string HeaderLabel { get; }
-        [DataSourceProperty] public string ShortcutText { get; }
         [DataSourceProperty] public string ResetAllText { get; }
         [DataSourceProperty] public string WarningColor => UiColors.Warning;
         [DataSourceProperty] public string MutedColor => UiColors.Muted;

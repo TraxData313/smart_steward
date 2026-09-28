@@ -9,37 +9,34 @@ using TaleWorlds.Library;
 namespace SmartSteward.UI
 {
     /// <summary>
-    /// The Prices tab (DESIGN §1.3): the two multipliers at the top, then the price book in collapsible groups — Food,
-    /// and Horses with its sub-headers Pack animals · Mounts · War mounts · Noble horses — sell only (step 17: no buy
-    /// column there, the sell placeholder always filled). Per item: Buy tick, max-buy base × the buy
-    /// multiplier » final, Sell tick, min-sell base × the sell multiplier » final, ⟲. Every change goes through the
-    /// settings service at once (saved to settings.json, Changed raised — the plan is re-made when the Suggestion tab
-    /// shows again). A typed box keeps what the player typed; the rest of the row refreshes around it.
+    /// The Prices tab (DESIGN §1.3): the multipliers at the top — Food's own pair and the horses' pair (round 4, step 21) —,
+    /// then the price book in collapsible groups, cheapest first inside each (step 20) — Food, and Horses with its sub-headers
+    /// Pack animals · Mounts · War mounts · Noble horses — sell only (step 17: no buy column there, the sell placeholder always
+    /// filled). Per item: Buy tick, max-buy base × its group's buy multiplier » final, Sell tick, min-sell base × its group's
+    /// sell multiplier » final, ⟲. Every change goes through the settings service at once (saved to settings.json, Changed
+    /// raised — the plan is re-made when the Suggestion tab shows again). A typed box keeps what the player typed; the rest of
+    /// the row refreshes around it.
     /// </summary>
     public sealed class PricesTabVM : ViewModel
     {
-        private readonly FloatSetting? _buyMultiplier;
-        private readonly FloatSetting? _sellMultiplier;
         private GameVisit? _visit;
         private bool _built;
-        private string _buyMultiplierText = "";
-        private string _sellMultiplierText = "";
-        private string _buyMultiplierColor = UiColors.Text;
-        private string _sellMultiplierColor = UiColors.Text;
         private MBBindingList<PriceGroupVM> _groups = new MBBindingList<PriceGroupVM>();
 
         internal PricesTabVM()
         {
-            // Step 20: the two boxes at the top are the HORSE multipliers (food got its own pair - Instructions tab and MCM
-            // until step 21 gives the Food group boxes of its own); every line shows its own group's multiplier.
-            _buyMultiplier = SettingsRegistry.Find(nameof(StewardSettings.HorseBuyPriceMultiplier)) as FloatSetting;
-            _sellMultiplier = SettingsRegistry.Find(nameof(StewardSettings.HorseSellPriceMultiplier)) as FloatSetting;
-            BuyMultiplierLabel = SettingLabel(_buyMultiplier);
-            SellMultiplierLabel = SettingLabel(_sellMultiplier);
-            BuyMultiplierHint = new HintVM(SettingHint(_buyMultiplier));
-            SellMultiplierHint = new HintVM(SettingHint(_sellMultiplier));
-            IntroText = UiText.S("ss_ui_prices_intro",
-                "Final = your base price × the multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold.");
+            // Round 4 (Anton 2026.09.28: "food prices multipliers set from 0.5 to 2"): food has a pair of its own (step 20); the
+            // step-7 pair became the horses' - both pairs sit at the top now (step 21).
+            FoodLabel = UiText.S("ss_ui_prices_food", "Food");
+            HorsesLabel = UiText.S("ss_ui_prices_horses", "Horses");
+            string buy = UiText.S("ss_ui_prices_buy_times", "buy ×");
+            string sell = UiText.S("ss_ui_prices_sell_times", "sell ×");
+            FoodBuy = new MultiplierBoxVM(nameof(StewardSettings.FoodBuyPriceMultiplier), buy);
+            FoodSell = new MultiplierBoxVM(nameof(StewardSettings.FoodSellPriceMultiplier), sell);
+            HorseBuy = new MultiplierBoxVM(nameof(StewardSettings.HorseBuyPriceMultiplier), buy);
+            HorseSell = new MultiplierBoxVM(nameof(StewardSettings.HorseSellPriceMultiplier), sell);
+            IntroText = UiText.S("ss_ui_prices_intro_pairs",
+                "Final = your base price × its group's multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold. Cheapest first.");
             ColBuy = UiText.S("ss_ui_col_buy", "Buy");
             ColMaxBuy = UiText.S("ss_ui_col_max_buy", "Max buy price");
             ColSell = UiText.S("ss_ui_col_sell", "Sell");
@@ -98,12 +95,8 @@ namespace SmartSteward.UI
         {
             var settings = SettingsHost.Current;
             if (includeTypedTexts)
-            {
-                BuyMultiplierText = UiFormat.Decimal(settings.HorseBuyPriceMultiplier);
-                SellMultiplierText = UiFormat.Decimal(settings.HorseSellPriceMultiplier);
-                BuyMultiplierColor = UiColors.Text;
-                SellMultiplierColor = UiColors.Text;
-            }
+                foreach (var box in new[] { FoodBuy, FoodSell, HorseBuy, HorseSell })
+                    box.RefreshText(settings);
             foreach (var group in Groups)
                 foreach (var line in group.Lines)
                     line.Refresh(settings, includeTypedTexts);
@@ -152,23 +145,14 @@ namespace SmartSteward.UI
             line.Refresh(SettingsHost.Current, includeTypedTexts: true);
         }
 
-        private void TypedMultiplier(FloatSetting? def, string text, bool buy)
-        {
-            if (def == null)
-                return;
-            bool ok = UiFormat.TryParseDecimal(text, out double value);
-            if (buy) BuyMultiplierColor = ok ? UiColors.Text : UiColors.Warning;
-            else SellMultiplierColor = ok ? UiColors.Text : UiColors.Warning;
-            if (ok)
-                SettingsHost.Service.Set(def, value); // clamped by the registry; Changed refreshes the rows
-        }
-
         // ── bound properties ───────────────────────────────────────────────────────────────────────────
 
-        [DataSourceProperty] public string BuyMultiplierLabel { get; }
-        [DataSourceProperty] public string SellMultiplierLabel { get; }
-        [DataSourceProperty] public HintVM BuyMultiplierHint { get; }
-        [DataSourceProperty] public HintVM SellMultiplierHint { get; }
+        [DataSourceProperty] public string FoodLabel { get; }
+        [DataSourceProperty] public string HorsesLabel { get; }
+        [DataSourceProperty] public MultiplierBoxVM FoodBuy { get; }
+        [DataSourceProperty] public MultiplierBoxVM FoodSell { get; }
+        [DataSourceProperty] public MultiplierBoxVM HorseBuy { get; }
+        [DataSourceProperty] public MultiplierBoxVM HorseSell { get; }
         [DataSourceProperty] public string IntroText { get; }
         [DataSourceProperty] public string ColBuy { get; }
         [DataSourceProperty] public string ColMaxBuy { get; }
@@ -179,52 +163,77 @@ namespace SmartSteward.UI
         [DataSourceProperty] public string HeadingColor => UiColors.Heading;
 
         [DataSourceProperty]
-        public string BuyMultiplierText
-        {
-            get => _buyMultiplierText;
-            set
-            {
-                if (value == _buyMultiplierText) return;
-                _buyMultiplierText = value ?? "";
-                OnPropertyChangedWithValue(_buyMultiplierText, nameof(BuyMultiplierText));
-                string text = _buyMultiplierText;
-                StewardWindowVM.Guard("buy multiplier", () => TypedMultiplier(_buyMultiplier, text, buy: true));
-            }
-        }
-
-        [DataSourceProperty]
-        public string SellMultiplierText
-        {
-            get => _sellMultiplierText;
-            set
-            {
-                if (value == _sellMultiplierText) return;
-                _sellMultiplierText = value ?? "";
-                OnPropertyChangedWithValue(_sellMultiplierText, nameof(SellMultiplierText));
-                string text = _sellMultiplierText;
-                StewardWindowVM.Guard("sell multiplier", () => TypedMultiplier(_sellMultiplier, text, buy: false));
-            }
-        }
-
-        [DataSourceProperty]
-        public string BuyMultiplierColor
-        {
-            get => _buyMultiplierColor;
-            set { if (value != _buyMultiplierColor) { _buyMultiplierColor = value; OnPropertyChangedWithValue(value, nameof(BuyMultiplierColor)); } }
-        }
-
-        [DataSourceProperty]
-        public string SellMultiplierColor
-        {
-            get => _sellMultiplierColor;
-            set { if (value != _sellMultiplierColor) { _sellMultiplierColor = value; OnPropertyChangedWithValue(value, nameof(SellMultiplierColor)); } }
-        }
-
-        [DataSourceProperty]
         public MBBindingList<PriceGroupVM> Groups
         {
             get => _groups;
             set { if (value != _groups) { _groups = value; OnPropertyChangedWithValue(value, nameof(Groups)); } }
+        }
+    }
+
+    /// <summary>One multiplier box at the top of the Prices tab (the food pair and the horse pair — step 21): its setting's
+    /// value, typed in place; a number saves at once (clamped by the registry), anything else turns the box red.</summary>
+    public sealed class MultiplierBoxVM : ViewModel
+    {
+        private readonly FloatSetting? _def;
+        private string _valueText = "";
+        private string _valueColor = UiColors.Text;
+
+        internal MultiplierBoxVM(string key, string label)
+        {
+            _def = SettingsRegistry.Find(key) as FloatSetting;
+            Key = key;
+            LabelText = label;
+            Hint = new HintVM(PricesTabVM.SettingLabel(_def) + ". " + PricesTabVM.SettingHint(_def));
+        }
+
+        internal string Key { get; }
+
+        /// <summary>The box shows the saved value again (when the tab is shown — never while the player may be typing in it).</summary>
+        internal void RefreshText(StewardSettings settings)
+        {
+            if (_def == null)
+                return;
+            string text = UiFormat.Decimal(_def.Get(settings));
+            if (text != _valueText)
+            {
+                _valueText = text;
+                OnPropertyChangedWithValue(text, nameof(ValueText));
+            }
+            ValueColor = UiColors.Text;
+        }
+
+        private void Typed(string text)
+        {
+            if (_def == null)
+                return;
+            bool ok = UiFormat.TryParseDecimal(text, out double value);
+            ValueColor = ok ? UiColors.Text : UiColors.Warning;
+            if (ok)
+                SettingsHost.Service.Set(_def, value); // clamped by the registry; Changed refreshes the rows
+        }
+
+        [DataSourceProperty] public string LabelText { get; }
+        [DataSourceProperty] public HintVM Hint { get; }
+
+        [DataSourceProperty]
+        public string ValueText
+        {
+            get => _valueText;
+            set
+            {
+                if (value == _valueText) return;
+                _valueText = value ?? "";
+                OnPropertyChangedWithValue(_valueText, nameof(ValueText));
+                string text = _valueText;
+                StewardWindowVM.Guard("multiplier " + Key, () => Typed(text));
+            }
+        }
+
+        [DataSourceProperty]
+        public string ValueColor
+        {
+            get => _valueColor;
+            set { if (value != _valueColor) { _valueColor = value; OnPropertyChangedWithValue(value, nameof(ValueColor)); } }
         }
     }
 

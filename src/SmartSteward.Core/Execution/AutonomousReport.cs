@@ -62,7 +62,7 @@ namespace SmartSteward.Core.Execution
         public string Ransomed { get; set; } = "ransomed";
         public string Donated { get; set; } = "donated";
         public string Influence { get; set; } = "influence";
-        public string Gold { get; set; } = "gold";
+        public string Gold { get; set; } = "denari";
         public string CutShort { get; set; } = "cut short";
         public string Skipped { get; set; } = "skipped";
         public string NothingDone { get; set; } = "nothing was done";
@@ -84,7 +84,7 @@ namespace SmartSteward.Core.Execution
     /// The Full-autonomous steward's report (DESIGN §6): after the deal, a short summary for the game's message log —
     /// one entry per job that did something, then the purse:
     /// <c>Steward at Sargot: food +24 (5 kinds) –310 · mounts +3 –540 · armour &amp; weapons 41 sold +2,130 · prisoners
-    /// 12 ransomed +980 · gold 312,400 » 314,660</c>; skipped or cut-short transactions get a line of their own
+    /// 12 ransomed +980 · denari 312,400 » 314,660</c>; skipped or cut-short transactions get a line of their own
     /// (<c>Steward: 2 skipped — see smart_steward.log</c>); nothing happened → no lines at all. The full detail goes to
     /// the log file (<see cref="ExecutionReport.LogLines"/>).
     /// </summary>

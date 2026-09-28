@@ -75,7 +75,7 @@ namespace SmartSteward
             Ransomed = UiText.S("ss_auto_ransomed", "ransomed"),
             Donated = UiText.S("ss_auto_donated", "donated"),
             Influence = UiText.S("ss_auto_influence", "influence"),
-            Gold = UiText.S("ss_auto_gold", "gold"),
+            Gold = UiText.S("ss_auto_gold", "denari"),
             CutShort = UiText.S("ss_auto_cut_short", "cut short"),
             Skipped = UiText.S("ss_auto_skipped", "skipped"),
             NothingDone = UiText.S("ss_auto_nothing_done", "nothing was done"),

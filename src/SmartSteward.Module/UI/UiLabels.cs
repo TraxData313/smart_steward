@@ -123,8 +123,8 @@ namespace SmartSteward.UI
                     return UiText.S("ss_ui_block_min_sell",
                         "The next one would fetch less than its min sell price - a town's prices fall as you sell.");
                 case EditBlock.MarketOutOfGold:
-                    return UiText.S("ss_ui_block_market_gold", "The market has no gold left to pay for more.");
-                case EditBlock.NotEnoughGold: return UiText.S("ss_ui_block_gold", "You do not have the gold for it.");
+                    return UiText.S("ss_ui_block_market_gold", "The market has no denari left to pay for more.");
+                case EditBlock.NotEnoughGold: return UiText.S("ss_ui_block_gold", "You do not have the denari for it.");
                 case EditBlock.NeededByAnotherRow:
                     return UiText.S("ss_ui_block_other_row", "What is left is already planned for another row.");
                 case EditBlock.CompanionLimit:
@@ -157,10 +157,10 @@ namespace SmartSteward.UI
                 case PlanWarning.CannotAfford:
                     return UiText.S("ss_ui_warn_cannot_afford", "You cannot afford this deal - take something back.");
                 case PlanWarning.BelowMinGoldAfterDeal:
-                    return UiText.S1("ss_ui_warn_min_gold", "Below the gold you always keep ({GOLD}).", "GOLD",
+                    return UiText.S1("ss_ui_warn_min_gold", "Below the denari you always keep ({GOLD}).", "GOLD",
                         UiFormat.Money(minGoldAfterDeal));
                 case PlanWarning.BelowMinGoldForHorses:
-                    return UiText.S1("ss_ui_warn_min_gold_horses", "Below the gold you keep before buying animals ({GOLD}).",
+                    return UiText.S1("ss_ui_warn_min_gold_horses", "Below the denari you keep before buying animals ({GOLD}).",
                         "GOLD", UiFormat.Money(minGoldForHorses));
                 case PlanWarning.ExceedsMarketGold:
                     return UiText.S("ss_ui_warn_market_gold", "The market cannot pay for all the sales.");

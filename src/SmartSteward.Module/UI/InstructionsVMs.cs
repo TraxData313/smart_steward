@@ -22,6 +22,9 @@ namespace SmartSteward.UI
 
         internal InstructionsTabVM()
         {
+            // Round 4 (Anton 2026.09.28): the clicks' hint lives here now - "the players will see it once there and not cram
+            // space anymore in the working tab".
+            ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             IntroText = UiText.S("ss_ui_instructions_intro",
                 "Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does.");
         }
@@ -118,7 +121,11 @@ namespace SmartSteward.UI
         }
 
         [DataSourceProperty] public string IntroText { get; }
+
+        /// <summary>The Suggestion tab's clicks, told once at the top (moved here in round 4).</summary>
+        [DataSourceProperty] public string ShortcutText { get; }
         [DataSourceProperty] public string MutedColor => UiColors.Muted;
+        [DataSourceProperty] public string HeadingColor => UiColors.Heading;
 
         [DataSourceProperty]
         public MBBindingList<SettingGroupVM> Groups

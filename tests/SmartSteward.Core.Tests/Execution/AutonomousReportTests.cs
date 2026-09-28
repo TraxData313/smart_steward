@@ -56,7 +56,7 @@ public class AutonomousReportTests
 
         Assert.Equal(
             "Steward at Sargot: food +20 (2 kinds) –220 · mounts +4 –720 · other 41 sold +2,132 · "
-            + "prisoners 12 ransomed +960 · gold 312,400 » 314,552",
+            + "prisoners 12 ransomed +960 · denari 312,400 » 314,552",
             Assert.Single(lines));
         Assert.Equal(new[] { StewardJob.Food, StewardJob.Mounts, StewardJob.Other, StewardJob.Prisoners },
             summary.Jobs.Select(j => j.Job));
@@ -95,7 +95,7 @@ public class AutonomousReportTests
         var lines = summary.Lines("Steward at Sargot:", "Steward:");
 
         Assert.Equal(2, lines.Count);
-        Assert.Equal("Steward at Sargot: other 30 sold +1,560 · prisoners 12 ransomed +960 · gold 312,400 » 314,920",
+        Assert.Equal("Steward at Sargot: other 30 sold +1,560 · prisoners 12 ransomed +960 · denari 312,400 » 314,920",
             lines[0]);
         int buys = plan.Transactions.Count(t => t.Kind == TransactionKind.Buy);
         Assert.Equal("Steward: 1 cut short, " + buys + " skipped — see smart_steward.log", lines[1]);

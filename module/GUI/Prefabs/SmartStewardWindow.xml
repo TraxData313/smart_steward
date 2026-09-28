@@ -488,31 +488,89 @@
                 <Widget DataSource="{Prices}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
 
-                    <!-- The two multipliers -->
+                    <!-- The multipliers (round 4, step 21): Food's own pair, then the horses' pair - hover a word for what it does -->
                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="38" VerticalAlignment="Top" MarginLeft="6" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent">
+                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Title.Text" Brush.FontSize="22" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@FoodLabel" />
+                        <Widget DataSource="{FoodBuy}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="16">
                           <Children>
-                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@BuyMultiplierLabel" />
-                            <HintWidget DataSource="{BuyMultiplierHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@LabelText" />
+                                    <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="80" HeightSizePolicy="Fixed" SuggestedHeight="32" VerticalAlignment="Center" MarginLeft="10">
+                                  <Children>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+                                    <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@ValueColor" RealText="@ValueText" MaxLength="6" />
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ListPanel>
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="90" HeightSizePolicy="Fixed" SuggestedHeight="32" VerticalAlignment="Center" MarginLeft="14">
+                        <Widget DataSource="{FoodSell}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="24">
                           <Children>
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
-                            <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@BuyMultiplierColor" RealText="@BuyMultiplierText" MaxLength="6" />
+                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@LabelText" />
+                                    <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="80" HeightSizePolicy="Fixed" SuggestedHeight="32" VerticalAlignment="Center" MarginLeft="10">
+                                  <Children>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+                                    <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@ValueColor" RealText="@ValueText" MaxLength="6" />
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ListPanel>
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="70">
+                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="80" Brush="Popup.Title.Text" Brush.FontSize="22" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@HorsesLabel" />
+                        <Widget DataSource="{HorseBuy}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="16">
                           <Children>
-                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@SellMultiplierLabel" />
-                            <HintWidget DataSource="{SellMultiplierHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@LabelText" />
+                                    <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="80" HeightSizePolicy="Fixed" SuggestedHeight="32" VerticalAlignment="Center" MarginLeft="10">
+                                  <Children>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+                                    <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@ValueColor" RealText="@ValueText" MaxLength="6" />
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ListPanel>
                           </Children>
                         </Widget>
-                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="90" HeightSizePolicy="Fixed" SuggestedHeight="32" VerticalAlignment="Center" MarginLeft="14">
+                        <Widget DataSource="{HorseSell}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="24">
                           <Children>
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
-                            <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@SellMultiplierColor" RealText="@SellMultiplierText" MaxLength="6" />
+                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                              <Children>
+                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@LabelText" />
+                                    <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="80" HeightSizePolicy="Fixed" SuggestedHeight="32" VerticalAlignment="Center" MarginLeft="10">
+                                  <Children>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+                                    <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="6" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Brush.FontColor="@ValueColor" RealText="@ValueText" MaxLength="6" />
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ListPanel>
                           </Children>
                         </Widget>
                       </Children>
@@ -675,9 +733,12 @@
                 <Widget DataSource="{Instructions}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
 
-                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@IntroText" />
+                    <!-- The Suggestion tab's clicks, told once here (round 4 - Anton: "move the tooltip about the shift+click on the
+                         top of the Instructions, the players will see it once there") -->
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@ShortcutText" />
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginTop="30" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@IntroText" />
 
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="36">
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="66">
                       <Children>
                         <ScrollablePanel Id="InstructionsScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="14" ClipRect="InstructionsClip" InnerPanel="InstructionsClip\InstructionsList" VerticalScrollbar="..\InstructionsScrollbar" AutoHideScrollBars="true">
                           <Children>
