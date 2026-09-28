@@ -136,3 +136,5 @@ Bannerlord\logs\rgl_log_*.txt` with any report.
 5. **Prisoners: all or none.** Instructions → Prisoners has no "Prisoners to ransom" list any more. In a town with
    prisoners every troop is proposed for ransom; lords only with "Include lords". An old settings.json's
    `PrisonersExcluded` is ignored (the log says `is retired and ignored` once).
+6. **Prices tab.** The item name is the first column, lined up under the Pack animals / Mounts / War mounts
+   sub-headers; Buy, Max buy, Sell, Min sell and ⟲ follow. Long names fit? Nothing overlaps?

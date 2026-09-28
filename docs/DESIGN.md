@@ -178,9 +178,11 @@ groups of §2.6 — never bought, no per-item prices, no averages computed for t
 
 One row per item:
 
-| Buy | Max buy price | Sell | Min sell price | Item |
+| Item | Buy | Max buy price | Sell | Min sell price |
 |---|---|---|---|---|
-| ☑ | `[ 11 ] × 1.2 → 13` | ☑ | `[ 7 ] × 0.8 → 6` | Grain |
+| Grain | ☑ | `[ 11 ] × 1.2 → 13` | ☑ | `[ 7 ] × 0.8 → 6` |
+
+(The item name is the FIRST column **[Anton 2026.09.28, playtest round 1]**; the `⟲` sits after the min sell price.)
 
 - **Buy tick** — the steward may buy this item. **Sell tick** — the steward may sell it.
 - **Base prices** are editable. When empty they show a grey **placeholder**: the item's average

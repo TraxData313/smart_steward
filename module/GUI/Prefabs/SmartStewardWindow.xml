@@ -284,14 +284,14 @@
                     </ListPanel>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="24" VerticalAlignment="Top" MarginTop="44" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@IntroText" />
 
-                    <!-- Column heads -->
+                    <!-- Column heads: the item first (round 1, Anton), then buy, sell -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="78" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="420" HeightSizePolicy="StretchToParent" MarginLeft="40" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColItem" />
                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColBuy" />
                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="300" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColMaxBuy" />
                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" MarginLeft="30" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColSell" />
                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="300" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColMinSell" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="StretchToParent" MarginLeft="80" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColItem" />
                       </Children>
                     </ListPanel>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" MarginTop="106" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.25" />
@@ -338,6 +338,8 @@
                                                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="2" MarginBottom="2" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.04" />
                                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                           <Children>
+                                                            <!-- Item - the first column (round 1), under the sub-headers -->
+                                                            <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="420" HeightSizePolicy="StretchToParent" MarginLeft="40" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Text="@NameText" />
                                                             <!-- Buy tick -->
                                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent">
                                                               <Children>
@@ -396,8 +398,6 @@
                                                                 </ButtonWidget>
                                                               </Children>
                                                             </Widget>
-                                                            <!-- Item -->
-                                                            <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Text="@NameText" />
                                                           </Children>
                                                         </ListPanel>
                                                       </Children>
