@@ -64,6 +64,8 @@ namespace SmartSteward.Core.Snapshot
         /// <summary><c>PartyBase.NumberOfMenWithoutHorse</c> — heroes and wounded included (RESEARCH §3).</summary>
         public int Footmen { get; set; }
 
+        /// <summary><c>PartyBase.PartySizeLimit</c> — information only: nothing is blocked by it (round 3); the footer
+        /// shows the party after the deal against it, red when over.</summary>
         public int PartySizeLimit { get; set; }
 
         /// <summary><c>Clan.CompanionLimit</c> minus the clan's companions.</summary>
@@ -75,9 +77,6 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>Food the game counts in livestock meat (<c>TotalFood</c> minus the food items) — in the
         /// footer's days, never in the steward's target (livestock is not food to the steward).</summary>
         public int LivestockFoodUnits { get; set; }
-
-        /// <summary>Free places under the party size limit (never negative).</summary>
-        public int Room => Math.Max(0, PartySizeLimit - Members);
     }
 
     public enum ItemKind

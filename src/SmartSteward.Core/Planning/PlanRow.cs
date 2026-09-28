@@ -51,8 +51,10 @@ namespace SmartSteward.Core.Planning
     public enum HireBlock
     {
         None,
+
+        /// <summary>The clan's companion limit is reached (vanilla enforces it). The party size limit never blocks a
+        /// hire (Anton 2026.09.28, playtest round 3).</summary>
         CompanionLimit,
-        PartyFull,
     }
 
     /// <summary>Units one row moved from one stack in one direction, with what they cost or fetched.</summary>

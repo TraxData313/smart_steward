@@ -29,6 +29,8 @@ namespace SmartSteward.UI
         private string _footerMoneyText = "";
         private string _footerFoodText = "";
         private string _footerWeightText = "";
+        private string _footerPartyText = "";
+        private string _footerPartyColor = UiColors.Text;
         private string _warningText = "";
         private bool _hasWarnings;
         private string _statusText = "";
@@ -96,6 +98,10 @@ namespace SmartSteward.UI
                     "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter))
                 : UiText.S3("ss_ui_footer_food", "Food {NOW} » {AFTER}  (~{DAYS} days)",
                     "NOW", UiFormat.Money(t.FoodUnitsNow), "AFTER", UiFormat.Money(t.FoodUnitsAfter), "DAYS", UiFormat.Days(t.FoodDaysAfter));
+            // The party after the deal against its size limit — information, never a wall (round 3): red when over.
+            FooterPartyText = UiText.S2("ss_ui_footer_party", "Party {AFTER}/{LIMIT}",
+                "AFTER", UiFormat.Money(t.MembersAfter), "LIMIT", UiFormat.Money(t.PartySizeLimit));
+            FooterPartyColor = t.OverPartyLimit ? UiColors.Warning : UiColors.Text;
             string weight = UiText.S1("ss_ui_footer_weight", "Weight {KG} kg", "KG", UiFormat.SignedWeight(t.WeightChange));
             if (t.InfluenceGained > 0.05)
                 weight += "  ·  " + UiText.S1("ss_ui_footer_influence", "Influence {INF}", "INF", UiFormat.SignedInfluence(t.InfluenceGained));
@@ -225,6 +231,22 @@ namespace SmartSteward.UI
         {
             get => _footerWeightText;
             set { if (value != _footerWeightText) { _footerWeightText = value; OnPropertyChangedWithValue(value, nameof(FooterWeightText)); } }
+        }
+
+        /// <summary>"Party 99/96" — the party after the deal against its size limit.</summary>
+        [DataSourceProperty]
+        public string FooterPartyText
+        {
+            get => _footerPartyText;
+            set { if (value != _footerPartyText) { _footerPartyText = value; OnPropertyChangedWithValue(value, nameof(FooterPartyText)); } }
+        }
+
+        /// <summary>Red when the party after the deal is over its size limit.</summary>
+        [DataSourceProperty]
+        public string FooterPartyColor
+        {
+            get => _footerPartyColor;
+            set { if (value != _footerPartyColor) { _footerPartyColor = value; OnPropertyChangedWithValue(value, nameof(FooterPartyColor)); } }
         }
 
         [DataSourceProperty]

@@ -119,8 +119,8 @@ Buttons on Change:
   - Toward zero (buy less, sell less) always works. Away from zero goes as far as it can **without taking
     what another row already has** — the market's stock, its gold, the price room under a row's max in a
     shared category. The button greys with the reason: nothing eligible, all on offer / all sold, price limit,
-    below min sell, market out of gold, not enough gold, needed by another row, companion limit, party full,
-    dungeon full, sell-only / hire-only.
+    below min sell, market out of gold, not enough gold, needed by another row, companion limit,
+    dungeon full, sell-only / hire-only. (~~party full~~ — gone since round 3: the party size limit never blocks, §2.7.)
   - **Shift and Ctrl stop at zero**: one click never flips a row from selling to buying; a plain click crosses
     zero where the row does both (food, the mount role rows). Loot and prisoners only sell; tavern rows only hire.
   - The floors never block (red flags). An **empty purse does**: a buy or hire the purse cannot pay is refused
@@ -146,8 +146,10 @@ Buttons on Change:
   - Typed numbers (price bases, multipliers, settings) are saved on every key that leaves a valid number; anything
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
-Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · weight freed
-or added · buttons **Do it** and **Not now**. When the player's edits break a money floor (§3),
+Footer: gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
+weight freed or added · buttons **Do it** and **Not now**.
+**The party after the deal** **[Anton 2026.09.28, playtest round 3]**: `Party 99/96` — the members after every hire in
+the plan against the party size limit, red when over, live with every click. Information, never a wall (§2.7). When the player's edits break a money floor (§3),
 the footer shows it in red, but **Do it** still works — the player's hand overrides the steward.
 
 ### 1.2 Instructions tab — the settings
@@ -415,11 +417,16 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 - **Wanderers** (companions for hire sitting in this town's tavern): one row each — name,
   hire price, daily wage (and their best skills as a short tag, if cheap to show). Change is
   `[-] 0 [+]` — a 0/1 toggle. **Do it** hires them outright (gold paid, joins the clan and the
-  party) with no dialogue. Blocked (greyed, tooltip says why) when the clan's companion limit
-  or the party size limit is reached.
+  party) with no dialogue. Blocked (greyed, tooltip says why) only when the clan's companion limit
+  is reached — vanilla enforces that one too.
 - **Mercenaries** (the tavern's mercenary band): one row — troop name, how many are on offer,
   price per man, daily wage per man. Change is `[-] 0 [+]` with the usual shift/ctrl steps,
-  clamped to what is on offer and to the party size limit.
+  clamped to what is on offer.
+- **The party size limit is information, not a wall** **[Anton 2026.09.28, playtest round 3 — "hire past it, just show
+  the party after the deal"]**: no hire is ever clamped or blocked by it — not in the plan, not by the executor — exactly
+  like vanilla. The footer shows `Party 99/96` (§1.1), red when the deal takes the party over its limit. (Until round 3 the
+  steward blocked hires at the limit; the `party full` edit block and skip reason are gone.) Recruits (the LATER troops
+  section) follow the same rule.
 - Tavern hires count in the header total and the footer like any purchase, but sit OUTSIDE the
   money floors' priority chain (the player chose them by hand; a floor breach shows red, §1.1).
 - `ShowTavern` (default **on**) shows the section; `ShowWanderers`, `ShowMercenaries` (default
@@ -439,7 +446,7 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
   - Mercenaries = the town's `TownMercenaryData` (one troop type + count). Price per man = the
     game's recruitment cost; wage = the troop's tier wage ×1.5 for mercenaries. Hired like the
     tavern dialogue does it (count, roster, gold, the recruit event that gives Leadership XP).
-  - Vanilla itself never checks the party size limit for either — the block above is ours.
+  - Vanilla itself never checks the party size limit for either — and since round 3 neither do we.
 
 ---
 
@@ -510,7 +517,7 @@ ready troops and their required war-mount category), prisoners (with ransom valu
 (item id, count, weight, type, locked flag), market (item id, stock, buy price walk, sell price
 walk), market gold, player gold, daily food consumption, settlement kind (town/village), whether
 donating prisoners is allowed, the tavern (wanderers with hire price and wage; the mercenary
-troop, count on offer, price and wage), the party size limit and room for companions. Core returns a **StewardPlan**: rows (item or troop, change,
+troop, count on offer, price and wage), the party size limit (shown, never a block) and room for companions. Core returns a **StewardPlan**: rows (item or troop, change,
 unit prices, total), and footer numbers. The Module's executor performs a plan with the game's
 own trade/ransom/donate actions so gold, stock, prices and skill XP behave as in vanilla.
 
@@ -533,7 +540,7 @@ expected unit prices.
   pass its row's limit (max buy / min sell), a sale must fit the market's remaining gold (gross sales, the planner's
   rule), a purchase the purse. What no longer fits — sold out, no longer held, locked since (a sale whose lock guards it: armour &
   weapons; food and animals only with `LocksProtectFoodAndHorses` — §2.6), no access any more, no
-  room in the dungeon or the party, no companion slot — is skipped and logged; the rest goes through. The money
+  room in the dungeon, no companion slot — is skipped and logged (the party size limit is no reason, §2.7); the rest goes through. The money
   floors are not checked again: the player saw them and clicked. **[decided: Claude, 2026.09.27 — step 9]** Except
   for the Full-autonomous steward, whom nobody watched: each of its purchases must still leave the purse at its floor
   (max(MinGoldAfterDeal, AutonomousMinGold) for food, the animal floor for the horses) at the LIVE price, so a price
@@ -545,7 +552,7 @@ expected unit prices.
 - Ransom: one vanilla call per prisoner row. Donation: vanilla's donate screen without the screen, one influence
   event for all. Moved prisoners take the wounded first.
 - A wanderer is hired at his LIVE price (the trades may have moved the town's prices, and his gear's value with
-  them); the log shows the difference. Mercenaries: what is still on offer, capped by the party's room and the purse.
+  them); the log shows the difference. Mercenaries: what is still on offer, capped by the purse (never by the party size limit).
 - Every run is logged — gold before, each transaction with its real unit prices and its drift from the plan, gold
   after — and the player gets a one-line summary.
 

@@ -38,7 +38,6 @@ namespace SmartSteward.Core.Execution
         NotAllowedHere,
 
         DungeonFull,
-        PartyFull,
         CompanionLimit,
 
         /// <summary>The game's own logic refused (the trade screen's DoneLogic said no, a transfer did not move).</summary>
@@ -128,23 +127,21 @@ namespace SmartSteward.Core.Execution
         }
 
         /// <summary>Why a wanderer cannot be hired right now (DESIGN §2.7, vanilla's hire dialogue): a free
-        /// companion slot, room in the party (our rule — vanilla has none) and gold strictly MORE than his price
-        /// (<c>Hero.MainHero.Gold &gt; price</c>). <see cref="SkipReason.None"/> = hire him.</summary>
-        public static SkipReason WandererBlock(int gold, int price, int companionSlotsFree, int partyRoom)
+        /// companion slot and gold strictly MORE than his price (<c>Hero.MainHero.Gold &gt; price</c>). The party size
+        /// limit is no reason (round 3 — vanilla has none either). <see cref="SkipReason.None"/> = hire him.</summary>
+        public static SkipReason WandererBlock(int gold, int price, int companionSlotsFree)
         {
             if (companionSlotsFree <= 0) return SkipReason.CompanionLimit;
-            if (partyRoom <= 0) return SkipReason.PartyFull;
             if (gold <= price) return SkipReason.NotEnoughGold;
             return SkipReason.None;
         }
 
         /// <summary>
-        /// How many of the tavern's mercenaries to hire now: what the plan wants, capped by what is on offer, by
-        /// the party's room (our rule — vanilla never checks it) and by the purse (the tavern menu's
-        /// <c>min(Number, Gold / price)</c>); <paramref name="reason"/> names the last cap that bit.
+        /// How many of the tavern's mercenaries to hire now: what the plan wants, capped by what is on offer and by
+        /// the purse (the tavern menu's <c>min(Number, Gold / price)</c>) — never by the party size limit (round 3;
+        /// vanilla never checks it); <paramref name="reason"/> names the last cap that bit.
         /// </summary>
-        public static int MercenaryCount(int wanted, int available, int partyRoom, int gold, int pricePerMan,
-            out SkipReason reason)
+        public static int MercenaryCount(int wanted, int available, int gold, int pricePerMan, out SkipReason reason)
         {
             reason = SkipReason.None;
             int n = System.Math.Max(0, wanted);
@@ -152,11 +149,6 @@ namespace SmartSteward.Core.Execution
             {
                 n = System.Math.Max(0, available);
                 reason = SkipReason.NotOnOffer;
-            }
-            if (partyRoom < n)
-            {
-                n = System.Math.Max(0, partyRoom);
-                reason = SkipReason.PartyFull;
             }
             if (pricePerMan > 0 && System.Math.Max(0, gold) / pricePerMan < n)
             {

@@ -120,7 +120,6 @@ namespace SmartSteward.UI
                     return UiText.S("ss_ui_block_other_row", "What is left is already planned for another row.");
                 case EditBlock.CompanionLimit:
                     return UiText.S("ss_ui_block_companions", "Your clan's companion limit is reached.");
-                case EditBlock.PartyFull: return UiText.S("ss_ui_block_party_full", "Your party is full.");
                 case EditBlock.DungeonFull: return UiText.S("ss_ui_block_dungeon_full", "The dungeon has no more room.");
                 default: return block.ToString();
             }

@@ -900,7 +900,8 @@ TASKS_DONE step 12). Since step 12 `InputWatch` writes one log line when the map
 15. **Hero prisoners ransomed at the broker are freed**, paid at hero value.
 16. **Donating in your own clan's fief is not offered and gives no influence**; mercenaries can donate.
 17. **Vanilla donate-room uses the prisoner STACK count** — use `NumberOfPrisoners`.
-18. **Vanilla hires companions and mercenaries past the party size limit** (our design blocks it).
+18. **Vanilla hires companions and mercenaries past the party size limit** — and since round 3 (2026.09.28) so do we: the
+    limit is shown (`Party 99/96`), never a block.
 19. **Companion hire needs `Gold > price`** (strict) and a free companion slot.
 20. **Tavern menu recruit skips `OnUnitRecruited`** — mirror the dialogue path `BuyMercenaries`.
 21. **`GameMenuOpened` re-fires on every return to the menu** — keep a per-visit flag.

@@ -225,7 +225,8 @@
                       </Children>
                     </Widget>
 
-                    <!-- The footer: spent / earned, food after (days), weight; warnings in red; the last result -->
+                    <!-- The footer: spent / earned, food after (days), the party after the deal vs its limit (red when over -
+                         round 3), weight; warnings in red; the last result -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="116" VerticalAlignment="Bottom">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.25" />
@@ -233,6 +234,7 @@
                           <Children>
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterMoneyText" />
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="48" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterFoodText" />
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="48" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Brush.FontColor="@FooterPartyColor" Text="@FooterPartyText" />
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="48" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Center" Text="@FooterWeightText" />
                           </Children>
                         </ListPanel>

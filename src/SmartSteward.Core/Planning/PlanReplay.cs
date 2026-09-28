@@ -24,7 +24,6 @@ namespace SmartSteward.Core.Planning
             Ransom = ransom;
             Donate = donate;
             DungeonRoom = dungeonRoom;
-            PartyRoom = snapshot.Party.Room;
             CompanionSlots = snapshot.Party.CompanionSlotsFree;
         }
 
@@ -38,7 +37,6 @@ namespace SmartSteward.Core.Planning
         public bool Ransom { get; }
         public bool Donate { get; }
         public int DungeonRoom { get; }
-        public int PartyRoom { get; }
         public int CompanionSlots { get; }
     }
 
@@ -177,9 +175,10 @@ namespace SmartSteward.Core.Planning
                         : EditBlock.NothingToSell;
             }
 
-            // 4. The tavern — hires after the trades, wanderers then mercenaries; the party's room and the
-            //    clan's companion slots are shared by every hire.
-            int slots = inputs.CompanionSlots, room = inputs.PartyRoom;
+            // 4. The tavern — hires after the trades, wanderers then mercenaries; the clan's companion slots are
+            //    shared by the wanderers. The party size limit never blocks a hire (round 3 — vanilla has no such
+            //    check either): the footer shows the party after the deal against it.
+            int slots = inputs.CompanionSlots;
             foreach (var o in Of(RowType.Tavern))
             {
                 var info = o.Row.Tavern!;
@@ -191,8 +190,6 @@ namespace SmartSteward.Core.Planning
                     {
                         if (slots <= 0)
                             o.Short = EditBlock.CompanionLimit;
-                        else if (room <= 0)
-                            o.Short = EditBlock.PartyFull;
                         else
                         {
                             hired = 1;
@@ -207,13 +204,12 @@ namespace SmartSteward.Core.Planning
                 else
                 {
                     int available = Math.Max(0, o.Row.Market ?? 0);
-                    hired = Math.Min(want, Math.Min(available, room));
+                    hired = Math.Min(want, available);
                     if (hired < want)
-                        o.Short = room < available ? EditBlock.PartyFull : EditBlock.AllOnOffer;
+                        o.Short = EditBlock.AllOnOffer;
                 }
                 if (o.Requested < 0)
                     o.Short = EditBlock.BuyOnly;
-                room -= hired;
                 walk.Gold -= hired * info.UnitPrice;
                 o.Realized = hired;
             }

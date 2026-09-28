@@ -31,9 +31,10 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Prisoners: ransom all or none — the "Prisoners to ransom" list is gone ("Include lords" stays)
 - Prices tab: the item name is the first column
 - Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
+- The party size limit never blocks a hire — the footer shows the party after the deal (Party 99/96), red when over
 
 BUGS:
-- [ ] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
+- [x] (R3) Party size limit must NOT block mercenaries or recruits — hire past it, just show the party after the deal (e.g. 99/96, red when over)
 - [ ] (R3) Docking into a port (War Sails) must trigger the steward too — popup + menu entry at the port, not only the town menu
 - [x] (R2) Locked food and horses are left alone — Anton wants them managed anyway; locks keep guarding armour & weapons (new switch LocksProtectFoodAndHorses, default off)
 - [x] (R1) Prices tab: Item name must be the FIRST (leftmost) column
@@ -48,7 +49,7 @@ NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [ ] (R3) Live re-plan (Anton: "after I change the troops the mounts etc are not accurate… so when I hit Do it I won't see new suggestions"): untouched rows follow the party after the deal; touched rows stay
 - [ ] (R3) Weight line like the food: "1,000 +120 kg → 1,120 kg · capacity land 1,500 / sea 1,000" — capacity AFTER the deal (pack animals and troops add to it), the part over a capacity in red ("+120 over at sea")
 - [ ] (R3) The "Not now" button next to Do it is just "Close"
-- [ ] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
+- [x] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)

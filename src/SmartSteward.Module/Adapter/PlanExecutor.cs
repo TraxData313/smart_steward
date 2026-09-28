@@ -400,8 +400,7 @@ namespace SmartSteward.Adapter
                 }
                 var hero = Hero.MainHero;
                 int price = Campaign.Current.Models.CompanionHiringPriceCalculationModel.GetCompanionHiringPrice(wanderer);
-                var block = ExecutionBudget.WandererBlock(hero.Gold, price, SnapshotBuilder.CompanionSlotsFree(),
-                    SnapshotBuilder.PartyRoom(main));
+                var block = ExecutionBudget.WandererBlock(hero.Gold, price, SnapshotBuilder.CompanionSlotsFree());
                 if (block != SkipReason.None)
                 {
                     o.Stop(block, "price " + price.ToString(Inv) + ", gold " + hero.Gold.ToString(Inv));
@@ -443,8 +442,7 @@ namespace SmartSteward.Adapter
                 var hero = Hero.MainHero;
                 var troop = data.TroopType;
                 int price = Campaign.Current.Models.PartyWageModel.GetTroopRecruitmentCost(troop, hero).RoundedResultNumber;
-                int n = ExecutionBudget.MercenaryCount(tx.Count, data.Number, SnapshotBuilder.PartyRoom(main), hero.Gold,
-                    price, out var reason);
+                int n = ExecutionBudget.MercenaryCount(tx.Count, data.Number, hero.Gold, price, out var reason);
                 if (reason != SkipReason.None)
                     o.Stop(reason, "price " + price.ToString(Inv) + ", on offer " + data.Number.ToString(Inv));
                 if (n <= 0)

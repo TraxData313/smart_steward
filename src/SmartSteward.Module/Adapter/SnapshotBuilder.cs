@@ -132,10 +132,6 @@ namespace SmartSteward.Adapter
         public static int DungeonRoom(Settlement settlement) =>
             settlement.Party == null ? 0 : Math.Max(0, settlement.Party.PrisonerSizeLimit - settlement.Party.NumberOfPrisoners);
 
-        /// <summary>Free places under the party size limit.</summary>
-        public static int PartyRoom(MobileParty main) =>
-            Math.Max(0, main.Party.PartySizeLimit - main.MemberRoster.TotalManCount);
-
         public static int CompanionSlotsFree()
         {
             var clan = Clan.PlayerClan;
@@ -168,7 +164,7 @@ namespace SmartSteward.Adapter
             return s.SettlementKind + (s.CanTrade ? "" : " (NO TRADE: " + (s.TradeClosedReason ?? "no reason given") + ")")
                    + ", gold " + s.PlayerGold.ToString("N0", inv)
                    + ", market gold " + s.MarketGold.ToString("N0", inv) + "; party " + s.Party.Members.ToString(inv)
-                   + " (footmen " + s.Party.Footmen.ToString(inv) + ", room " + s.Party.Room.ToString(inv)
+                   + "/" + s.Party.PartySizeLimit.ToString(inv) + " (footmen " + s.Party.Footmen.ToString(inv)
                    + ", companion slots " + s.Party.CompanionSlotsFree.ToString(inv) + ", food/day "
                    + s.Party.DailyFoodUse.ToString("0.##", inv) + ", livestock food " + s.Party.LivestockFoodUnits.ToString(inv)
                    + "); inventory stacks/units [" + Kinds(s.Inventory) + "]; market [" + Kinds(s.Market) + "]; averages "

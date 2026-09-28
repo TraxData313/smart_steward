@@ -141,6 +141,8 @@ namespace SmartSteward.Core.Planning
             sb.Append(" | weight ").Append(t.WeightChange.ToString("+0.#;-0.#;0", Inv)).Append(" kg");
             if (t.InfluenceGained > 0)
                 sb.Append(" | influence +").Append(t.InfluenceGained.ToString("0.#", Inv));
+            sb.Append(" | party ").Append(t.MembersAfter.ToString(Inv)).Append('/').Append(t.PartySizeLimit.ToString(Inv))
+                .Append(t.OverPartyLimit ? " (over the limit)" : "");
             sb.Append(" | ").Append(plan.Transactions.Count.ToString(Inv)).Append(" transactions");
             return sb.ToString();
         }

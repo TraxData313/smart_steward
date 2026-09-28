@@ -174,29 +174,27 @@ public class ExecutionTests
     }
 
     [Theory]
-    [InlineData(701, 700, 1, 1, SkipReason.None)]
-    [InlineData(700, 700, 1, 1, SkipReason.NotEnoughGold)] // vanilla wants MORE than the price
-    [InlineData(5000, 700, 0, 1, SkipReason.CompanionLimit)]
-    [InlineData(5000, 700, 1, 0, SkipReason.PartyFull)]
-    public void A_wanderer_needs_a_slot_room_and_more_gold_than_his_price(int gold, int price, int slots, int room,
+    [InlineData(701, 700, 1, SkipReason.None)]
+    [InlineData(700, 700, 1, SkipReason.NotEnoughGold)] // vanilla wants MORE than the price
+    [InlineData(5000, 700, 0, SkipReason.CompanionLimit)]
+    public void A_wanderer_needs_a_slot_and_more_gold_than_his_price_never_party_room(int gold, int price, int slots,
         SkipReason expected)
     {
-        Assert.Equal(expected, ExecutionBudget.WandererBlock(gold, price, slots, room));
+        Assert.Equal(expected, ExecutionBudget.WandererBlock(gold, price, slots));
     }
 
     [Theory]
-    [InlineData(8, 8, 100, 10_000, 100, 8, SkipReason.None)]
-    [InlineData(8, 5, 100, 10_000, 100, 5, SkipReason.NotOnOffer)]    // the band shrank
-    [InlineData(8, 8, 3, 10_000, 100, 3, SkipReason.PartyFull)]
-    [InlineData(8, 8, 100, 450, 100, 4, SkipReason.NotEnoughGold)]    // the tavern menu's Gold / price
-    [InlineData(8, 8, 100, 50, 100, 0, SkipReason.NotEnoughGold)]
-    [InlineData(8, 0, 100, 10_000, 100, 0, SkipReason.NotOnOffer)]
-    [InlineData(0, 8, 100, 10_000, 100, 0, SkipReason.None)]
-    [InlineData(8, 8, 100, 0, 0, 8, SkipReason.None)]                 // free men (a mod): no purse cap
-    public void Mercenaries_are_capped_by_offer_room_and_purse(int wanted, int available, int room, int gold,
+    [InlineData(8, 8, 10_000, 100, 8, SkipReason.None)]
+    [InlineData(8, 5, 10_000, 100, 5, SkipReason.NotOnOffer)]    // the band shrank
+    [InlineData(8, 8, 450, 100, 4, SkipReason.NotEnoughGold)]    // the tavern menu's Gold / price
+    [InlineData(8, 8, 50, 100, 0, SkipReason.NotEnoughGold)]
+    [InlineData(8, 0, 10_000, 100, 0, SkipReason.NotOnOffer)]
+    [InlineData(0, 8, 10_000, 100, 0, SkipReason.None)]
+    [InlineData(8, 8, 0, 0, 8, SkipReason.None)]                 // free men (a mod): no purse cap
+    public void Mercenaries_are_capped_by_offer_and_purse_never_party_room(int wanted, int available, int gold,
         int price, int expected, SkipReason expectedReason)
     {
-        Assert.Equal(expected, ExecutionBudget.MercenaryCount(wanted, available, room, gold, price, out var reason));
+        Assert.Equal(expected, ExecutionBudget.MercenaryCount(wanted, available, gold, price, out var reason));
         Assert.Equal(expectedReason, reason);
     }
 

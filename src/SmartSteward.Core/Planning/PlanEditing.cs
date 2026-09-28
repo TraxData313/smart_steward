@@ -59,11 +59,9 @@ namespace SmartSteward.Core.Planning
         /// price limit in the same category).</summary>
         NeededByAnotherRow,
 
-        /// <summary>The clan's companion limit is reached.</summary>
+        /// <summary>The clan's companion limit is reached. (The party size limit never blocks — round 3: the footer shows
+        /// the party after the deal against it.)</summary>
         CompanionLimit,
-
-        /// <summary>The party size limit is reached.</summary>
-        PartyFull,
 
         /// <summary>Only donation is possible here and the dungeon has no more room.</summary>
         DungeonFull,
@@ -286,8 +284,7 @@ namespace SmartSteward.Core.Planning
         /// <summary>A limit every row shares, worth naming when the edit would push ANOTHER row past it; the
         /// rest (stock, a category's price room) reads "another row needs it".</summary>
         private static bool SharedLimit(EditBlock block) =>
-            block == EditBlock.MarketOutOfGold || block == EditBlock.PartyFull
-            || block == EditBlock.CompanionLimit || block == EditBlock.DungeonFull;
+            block == EditBlock.MarketOutOfGold || block == EditBlock.CompanionLimit || block == EditBlock.DungeonFull;
 
         /// <summary>Walks the plan at the rows' quantities, cuts any row the market can no longer serve in full,
         /// and writes the walk into the rows, the totals and the transactions.</summary>
@@ -363,11 +360,8 @@ namespace SmartSteward.Core.Planning
                     case RowType.Prisoner:
                         return EditBlock.SellOnly;
                     case RowType.Tavern:
-                        var info = row.Tavern!;
-                        if (row.MaxBuy == 0)
-                            return info.Block == HireBlock.CompanionLimit ? EditBlock.CompanionLimit : EditBlock.PartyFull;
-                        return info.Kind == TavernRowKind.Mercenaries && row.MaxBuy < (row.Market ?? 0)
-                            ? EditBlock.PartyFull
+                        return row.MaxBuy == 0 && row.Tavern!.Block == HireBlock.CompanionLimit
+                            ? EditBlock.CompanionLimit
                             : EditBlock.AllOnOffer;
                     default:
                         return row.MaxBuy == 0 ? EditBlock.NoneEligible : EditBlock.AllOnOffer;

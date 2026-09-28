@@ -78,7 +78,17 @@ namespace SmartSteward.Core.Planning
         public double WeightChange => WeightAdded - WeightFreed;
 
         public double InfluenceGained { get; internal set; }
+
+        /// <summary>The party after the deal (hires added) — against <see cref="PartySizeLimit"/> in the footer.</summary>
         public int MembersAfter { get; internal set; }
+
+        /// <summary>The party size limit — information, never a wall (Anton 2026.09.28, playtest round 3: hire past it,
+        /// just show <c>Party 99/96</c>, red when over).</summary>
+        public int PartySizeLimit { get; internal set; }
+
+        /// <summary>The party after the deal is bigger than its size limit (shown red; blocks nothing).</summary>
+        public bool OverPartyLimit => PartySizeLimit > 0 && MembersAfter > PartySizeLimit;
+
         public int PrisonersAfter { get; internal set; }
 
         /// <summary>Something is bought or hired and the purse ends below MinGoldAfterDeal — the plan's
@@ -101,6 +111,7 @@ namespace SmartSteward.Core.Planning
             {
                 GoldNow = snapshot.PlayerGold,
                 MarketGold = snapshot.MarketGold,
+                PartySizeLimit = Math.Max(0, snapshot.Party.PartySizeLimit),
                 LivestockFoodUnits = Math.Max(0, snapshot.Party.LivestockFoodUnits),
             };
 

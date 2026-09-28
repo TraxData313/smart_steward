@@ -381,7 +381,7 @@ public class PlanEditingTests
     // ── The tavern ───────────────────────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void Wanderers_toggle_and_share_the_companion_slots_and_the_party_room()
+    public void Wanderers_toggle_and_share_the_companion_slots_never_the_party_room()
     {
         var plan = Tavern().Plan();
         var arn = plan.Row("tavern:wanderer:w1");
@@ -396,17 +396,21 @@ public class PlanEditingTests
         Assert.Equal(EditBlock.CompanionLimit, bea.IncreaseBlock); // the one free slot is Arn's
         Assert.Equal(EditBlock.CompanionLimit, plan.Increase(bea.Id).Block);
 
+        // Room 5 - but the party size limit is information, not a wall (round 3): all 20 on offer.
         var mercs = plan.Increase(merc.Id, EditSize.All);
-        Assert.Equal(4, mercs.After);                              // room 5, Arn took one
-        Assert.Equal(EditBlock.PartyFull, mercs.Block);
-        Assert.Equal(-480, merc.GoldDelta);
+        Assert.Equal(20, mercs.After);
+        Assert.Equal(EditBlock.AllOnOffer, merc.IncreaseBlock);
+        Assert.Equal(-2400, merc.GoldDelta);
+        Assert.Equal(31, plan.Totals.MembersAfter);
+        Assert.Equal(15, plan.Totals.PartySizeLimit);
+        Assert.True(plan.Totals.OverPartyLimit);
 
         Assert.Equal(0, plan.Decrease(arn.Id).After);
-        Assert.Equal(4, merc.Change);                              // stays as edited
-        Assert.Equal(5, plan.Increase(merc.Id).After);
-        Assert.Equal(EditBlock.PartyFull, arn.IncreaseBlock);
-        Assert.Equal(EditBlock.PartyFull, bea.IncreaseBlock);
-        Assert.Equal(15, plan.Totals.MembersAfter);
+        Assert.Equal(20, merc.Change);                             // stays as edited
+        Assert.Equal(EditBlock.AllOnOffer, plan.Increase(merc.Id).Block);
+        Assert.Equal(EditBlock.None, arn.IncreaseBlock);           // the slot is free again; the room never mattered
+        Assert.Equal(EditBlock.None, bea.IncreaseBlock);
+        Assert.Equal(30, plan.Totals.MembersAfter);
     }
 
     [Theory]
@@ -421,13 +425,25 @@ public class PlanEditingTests
     }
 
     [Fact]
-    public void A_full_party_blocks_every_hire()
+    public void A_full_party_blocks_no_hire_and_the_totals_say_it_is_over()
     {
         var s = Tavern();
         s.Snap.Party.PartySizeLimit = 10;
         var plan = s.Plan();
-        Assert.Equal(EditBlock.PartyFull, plan.Row("tavern:mercenaries").IncreaseBlock);
-        Assert.Equal(EditBlock.PartyFull, plan.Increase("tavern:wanderer:w1").Block);
+        Assert.False(plan.Totals.OverPartyLimit);                  // 10/10: at the limit is not over
+        Assert.Equal(EditBlock.None, plan.Row("tavern:mercenaries").IncreaseBlock);
+        var hire = plan.Increase("tavern:wanderer:w1");
+        Assert.True(hire.Moved);
+        Assert.Equal(EditBlock.None, hire.Block);
+        Assert.Equal(5, plan.Increase("tavern:mercenaries", EditSize.Five).After);
+        Assert.Equal(16, plan.Totals.MembersAfter);                // 10 + Arn + 5 mercenaries
+        Assert.True(plan.Totals.OverPartyLimit);
+        Assert.Contains(plan.Transactions, t => t.Kind == TransactionKind.HireMercenaries && t.Count == 5);
+        Assert.Contains(PlanReport.Full(plan), line => line.Contains("party 16/10 (over the limit)"));
+
+        Assert.Equal(0, plan.Decrease("tavern:mercenaries", EditSize.All).After);
+        Assert.Equal(0, plan.Decrease("tavern:wanderer:w1").After);
+        Assert.False(plan.Totals.OverPartyLimit);
     }
 
     // ── Prisoners ────────────────────────────────────────────────────────────────────────────────────
@@ -512,7 +528,7 @@ public class PlanEditingTests
         s.Snap.Prison = new PrisonInfo { CanRansom = true, DonateAllowed = true, DungeonRoom = 3 };
         var plan = s.Plan();
         plan.Increase("tavern:wanderer:w1");
-        plan.Increase("tavern:mercenaries", EditSize.Five);  // room 5 − Arn = 4
+        plan.Increase("tavern:mercenaries", EditSize.Five);  // room 5 − Arn = 4, but the limit never clamps (round 3)
 
         var list = plan.Transactions;
         Assert.Equal(
@@ -528,7 +544,7 @@ public class PlanEditingTests
         Assert.Equal(("rags", 10, 80), (list[3].StackKey, list[3].Count, list[3].Gold));
         Assert.Equal(("mule", 10, 1_500), (list[4].StackKey, list[4].Count, list[4].Gold));
         Assert.Equal(("w1", 1, 700), (list[5].HeroId, list[5].Count, list[5].Gold));
-        Assert.Equal(("merc", 4, 480), (list[6].TroopId, list[6].Count, list[6].Gold));
+        Assert.Equal(("merc", 5, 600), (list[6].TroopId, list[6].Count, list[6].Gold));
         Assert.All(list.Where(t => t.Kind != TransactionKind.Donate), t => Assert.Equal(t.Count, t.UnitPrices.Count));
         Assert.Equal(plan.Totals.GoldChange,
             list.Sum(t => t.Kind is TransactionKind.Ransom or TransactionKind.Sell ? t.Gold : -t.Gold));

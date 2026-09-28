@@ -317,7 +317,7 @@ public class TavernPlannerTests
     }
 
     [Fact]
-    public void Wanderers_are_blocked_by_the_companion_limit_then_the_party_size()
+    public void Wanderers_are_blocked_by_the_companion_limit_never_by_the_party_size()
     {
         var s = WithTavern();
         s.Snap.Party.CompanionSlotsFree = 0;
@@ -325,24 +325,26 @@ public class TavernPlannerTests
         Assert.Equal(HireBlock.CompanionLimit, row.Tavern!.Block);
         Assert.Equal(0, row.MaxBuy);
 
+        // Round 3 (Anton 2026.09.28): the party size limit is information, not a wall.
         s.Snap.Party.CompanionSlotsFree = 1;
         s.Snap.Party.PartySizeLimit = s.Snap.Party.Members;
         row = s.Plan().Row("tavern:wanderer:w1");
-        Assert.Equal(HireBlock.PartyFull, row.Tavern!.Block);
-        Assert.Equal(0, row.MaxBuy);
+        Assert.Equal(HireBlock.None, row.Tavern!.Block);
+        Assert.Equal(1, row.MaxBuy);
     }
 
     [Theory]
-    [InlineData(20, 15, 5, HireBlock.None)]   // clamped to the party's room
-    [InlineData(3, 15, 3, HireBlock.None)]    // clamped to the offer
-    [InlineData(20, 10, 0, HireBlock.PartyFull)]
-    public void Mercenaries_are_clamped_to_the_offer_and_the_room(int available, int sizeLimit, int max, HireBlock block)
+    [InlineData(20, 15, 20)] // past the room under the limit - the limit never clamps (round 3)
+    [InlineData(3, 15, 3)]   // clamped to the offer
+    [InlineData(20, 10, 20)] // a full party still hires
+    [InlineData(20, 5, 20)]  // already over the limit
+    public void Mercenaries_are_clamped_to_the_offer_only(int available, int sizeLimit, int max)
     {
         var s = WithTavern(available);
         s.Snap.Party.PartySizeLimit = sizeLimit; // 10 members
         var row = s.Plan().Row("tavern:mercenaries");
         Assert.Equal(max, row.MaxBuy);
-        Assert.Equal(block, row.Tavern!.Block);
+        Assert.Equal(HireBlock.None, row.Tavern!.Block);
     }
 
     [Fact]
