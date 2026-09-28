@@ -72,6 +72,37 @@ namespace SmartSteward.Core.Settings
                 ["AutoExecute"] = nameof(StewardSettings.AutonomousSteward),
             };
 
+        /// <summary>A key whose value changes its unit on the way to its new name.</summary>
+        public sealed class KeyConversion
+        {
+            internal KeyConversion(string newKey, Func<double, double> convert, string how)
+            {
+                NewKey = newKey;
+                Convert = convert;
+                How = how;
+            }
+
+            public string NewKey { get; }
+
+            /// <summary>Old value → new value (then read like any value of the new key: rounded, clamped).</summary>
+            public Func<double, double> Convert { get; }
+
+            /// <summary>The log's words for the conversion.</summary>
+            public string How { get; }
+        }
+
+        /// <summary>Keys replaced by a key in another unit (old names case-insensitive): a file that still has the old one
+        /// gets its value converted into the new key, once — logged, not a problem (nothing is lost), and the rewrite has
+        /// only the new key. The new key written too wins. FoodPerMan (food units per man) became FoodDays (days of food)
+        /// — Anton 2026.09.28: at vanilla's rate one food lasts a man 20 days, so 2.0 per man = 40 days.</summary>
+        public static readonly IReadOnlyDictionary<string, KeyConversion> ConvertedKeys =
+            new Dictionary<string, KeyConversion>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["FoodPerMan"] = new KeyConversion(nameof(StewardSettings.FoodDays),
+                    perMan => perMan * Planning.FoodGoal.DaysPerFoodPerMan,
+                    "x " + Planning.FoodGoal.DaysPerFoodPerMan + " - one food lasts a man about 20 days at the game's rate"),
+            };
+
         /// <summary>Keys that are gone (old names case-insensitive → what the log says instead): a file that still has one
         /// loses its value on purpose, once — logged, not a problem, and the rewrite drops it (playtest round 1, step 12).
         /// </summary>
@@ -242,6 +273,7 @@ namespace SmartSteward.Core.Settings
 
             var seen = new HashSet<string>(StringComparer.Ordinal);
             var renamed = new List<(JProperty Old, SettingDefinition New)>();
+            var converted = new List<(JProperty Old, SettingDefinition New, KeyConversion How)>();
             foreach (var property in root.Properties())
             {
                 var def = SettingsRegistry.Find(property.Name);
@@ -249,6 +281,9 @@ namespace SmartSteward.Core.Settings
                 {
                     if (RenamedKeys.TryGetValue(property.Name.Trim(), out var newKey) && SettingsRegistry.Find(newKey) is { } renamedTo)
                         renamed.Add((property, renamedTo));
+                    else if (ConvertedKeys.TryGetValue(property.Name.Trim(), out var conversion)
+                             && SettingsRegistry.Find(conversion.NewKey) is { } convertedTo)
+                        converted.Add((property, convertedTo, conversion));
                     else if (RetiredKeys.TryGetValue(property.Name.Trim(), out var instead))
                         result.Retired.Add(At(property) + "\"" + property.Name.Trim() + "\" (" + Describe(property.Value)
                             + ") is retired and ignored - " + instead);
@@ -275,6 +310,29 @@ namespace SmartSteward.Core.Settings
                 if (result.Problems.Count == problems)
                     result.Renamed.Add(At(old) + "\"" + old.Name + "\" is now " + def.Key + " - its value "
                         + ValueText(def, result.Settings) + " carried over");
+            }
+            // An old key in another unit is converted into its new key — unless the new key is written too (it wins).
+            foreach (var (old, def, how) in converted)
+            {
+                if (seen.Contains(def.Key))
+                {
+                    result.Problems.Add(At(old) + "\"" + old.Name + "\" (replaced by " + def.Key + ") ignored - "
+                        + def.Key + " is set");
+                    continue;
+                }
+                seen.Add(def.Key);
+                if (!(old.Value.Type == JTokenType.Integer || old.Value.Type == JTokenType.Float)
+                    || double.IsNaN((double)old.Value) || double.IsInfinity((double)old.Value))
+                {
+                    WrongType(def, old.Value, "a number", result);
+                    continue;
+                }
+                double value = how.Convert((double)old.Value);
+                int problems = result.Problems.Count;
+                Read(def, new JValue(Math.Round(value, MidpointRounding.AwayFromZero)), result);
+                if (result.Problems.Count == problems)
+                    result.Renamed.Add(At(old) + "\"" + old.Name + "\" (" + Describe(old.Value) + ") is now " + def.Key + " = "
+                        + ValueText(def, result.Settings) + " (" + how.How + ")");
             }
             foreach (var def in SettingsRegistry.All)
                 if (!seen.Contains(def.Key))

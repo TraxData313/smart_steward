@@ -36,7 +36,9 @@ namespace SmartSteward.UI
                 var vm = new SettingGroupVM(UiText.S("ss_grp_" + group.Key.Replace(" ", ""), SettingsRegistry.GroupLabel(group.Key)));
                 foreach (var def in group.Value)
                 {
-                    vm.Settings.Add(new SettingLineVM(def, this));
+                    // The food goal in days shows what it means per man for this party, live (Anton 2026.09.28).
+                    vm.Settings.Add(new SettingLineVM(def, this,
+                        def.Key == nameof(StewardSettings.FoodDays) ? settings => FoodDaysNote(def, settings, visit) : null));
                     if (def.Key == nameof(StewardSettings.WarMountsWarHorseTarget))
                         vm.Settings.Add(ReadyToUpgradeLine(visit)); // the live need beside the two targets (round 1)
                 }
@@ -57,6 +59,12 @@ namespace SmartSteward.UI
                 UiText.S("ss_ui_ready_to_upgrade_hint",
                     "What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen."));
         }
+
+        /// <summary>After the days box: "days (~2.0 per soul)  ·  1–365" — the food units the goal keeps per man for this
+        /// party at the game's own rate, perks included (<see cref="FoodGoal.PerSoul"/>).</summary>
+        private static string FoodDaysNote(SettingDefinition def, StewardSettings settings, GameVisit visit) =>
+            UiText.S2("ss_ui_food_days_note", "days (~{PER} per soul)  ·  {RANGE}",
+                "PER", UiFormat.Decimal(FoodGoal.PerSoul(settings, visit.Snapshot), 1), "RANGE", SettingEdit.Range(def));
 
         /// <summary>Every line reads the settings again; <paramref name="includeTexts"/> also rewrites the number
         /// boxes (when the tab is shown — never while the player may be typing in one).</summary>
@@ -134,21 +142,24 @@ namespace SmartSteward.UI
     public sealed class SettingLineVM : ViewModel
     {
         private readonly InstructionsTabVM? _tab;
+        private readonly System.Func<StewardSettings, string>? _rangeOf;
+        private string _rangeText = "";
         private bool _isOn;
         private string _valueText = "";
         private string _valueColor = UiColors.Text;
         private string _enumText = "";
 
-        internal SettingLineVM(SettingDefinition def, InstructionsTabVM tab)
+        internal SettingLineVM(SettingDefinition def, InstructionsTabVM tab, System.Func<StewardSettings, string>? rangeOf = null)
         {
             Definition = def;
             _tab = tab;
+            _rangeOf = rangeOf;
             LabelText = PricesTabVM.SettingLabel(def);
             Hint = new HintVM(PricesTabVM.SettingHint(def));
             IsBool = def.Kind == SettingKind.Bool;
             IsNumber = def.Kind == SettingKind.Int || def.Kind == SettingKind.Float;
             IsEnum = def.Kind == SettingKind.Enum;
-            RangeText = SettingEdit.Range(def);
+            _rangeText = SettingEdit.Range(def);
             EnumHint = new HintVM(IsEnum ? UiText.S("ss_ui_enum_hint", "Click for the next choice") : "");
             Refresh(SettingsHost.Current, includeTexts: true);
         }
@@ -158,7 +169,6 @@ namespace SmartSteward.UI
             LabelText = label;
             Hint = new HintVM(hint);
             EnumHint = new HintVM();
-            RangeText = "";
             IsHeading = true;
         }
 
@@ -179,6 +189,8 @@ namespace SmartSteward.UI
                     break;
                 case IntSetting _:
                 case FloatSetting _:
+                    if (_rangeOf != null)
+                        RangeText = _rangeOf(settings); // a live note after the box (the food goal's per-soul figure)
                     if (includeTexts)
                     {
                         string text = SettingEdit.Text(Definition, settings);
@@ -207,7 +219,13 @@ namespace SmartSteward.UI
         [DataSourceProperty] public bool IsEnum { get; }
         [DataSourceProperty] public bool IsHeading { get; }
         [DataSourceProperty] public bool IsControlRow => !IsHeading;
-        [DataSourceProperty] public string RangeText { get; }
+        /// <summary>The muted words after a number box: its range — or, for the food goal, what it means per man now.</summary>
+        [DataSourceProperty]
+        public string RangeText
+        {
+            get => _rangeText;
+            set { if (value != _rangeText) { _rangeText = value; OnPropertyChangedWithValue(value, nameof(RangeText)); } }
+        }
         [DataSourceProperty] public string MutedColor => UiColors.Muted;
         [DataSourceProperty] public string HeadingColor => UiColors.Heading;
 

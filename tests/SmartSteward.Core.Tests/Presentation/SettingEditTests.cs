@@ -23,10 +23,10 @@ public class SettingEditTests
     {
         var s = new StewardSettings();
         var gold = (IntSetting)SettingsRegistry.Find("MinGoldAfterDeal")!;
-        var food = (FloatSetting)SettingsRegistry.Find("FoodPerMan")!;
+        var food = (FloatSetting)SettingsRegistry.Find("BuyPriceMultiplier")!;
         var manual = (IntSetting)SettingsRegistry.Find("WarMountsHorseTarget")!;
         Assert.Equal("1000", SettingEdit.Text(gold, s));
-        Assert.Equal("2", SettingEdit.Text(food, s));
+        Assert.Equal("1.2", SettingEdit.Text(food, s));
         Assert.Equal("-1", SettingEdit.Text(manual, s));
         Assert.Equal("0–1,000,000", SettingEdit.Range(gold));
         Assert.Equal("0.1–10", SettingEdit.Range(food));
@@ -38,7 +38,7 @@ public class SettingEditTests
     public void Typed_values_are_read_and_the_service_clamps_them()
     {
         var gold = SettingsRegistry.Find("MinGoldAfterDeal")!;
-        var food = SettingsRegistry.Find("FoodPerMan")!;
+        var food = SettingsRegistry.Find("BuyPriceMultiplier")!;
         Assert.True(SettingEdit.TryRead(gold, "2,500", out var g));
         Assert.Equal(2500L, g);
         Assert.True(SettingEdit.TryRead(food, "1,5", out var f));

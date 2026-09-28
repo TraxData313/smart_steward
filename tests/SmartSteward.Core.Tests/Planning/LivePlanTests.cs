@@ -446,6 +446,7 @@ public class LivePlanTests
     private static void ApplyDoIt(Scenario s, StewardPlan plan)
     {
         var snap = s.Snap;
+        double perEater = FoodGoal.PerEaterPerDay(snap); // the game's rate per eater (perks) stays; the eaters change
         foreach (var tx in plan.Transactions)
         {
             switch (tx.Kind)
@@ -496,14 +497,18 @@ public class LivePlanTests
         snap.Inventory.RemoveAll(x => x.Count <= 0);
         snap.Market.RemoveAll(x => x.Count <= 0);
         snap.Prisoners.RemoveAll(p => p.Count <= 0);
+        // The game's FoodChange after the deal, as the next snapshot reads it: (members + prisoners/2) at the same rate.
+        snap.Party.DailyFoodUse = perEater * PlanTotals.GameEaters(snap.Party.Members, snap.Prisoners.Sum(p => p.Count));
     }
 
     /// <summary>Hires men by hand after the deal (the control case: no re-plan saw them).</summary>
     private static void HireByHand(Scenario s, string troop, int count)
     {
         var band = s.Snap.Tavern!.Mercenaries!;
+        double perEater = FoodGoal.PerEaterPerDay(s.Snap);
         band.Available -= count;
         s.Snap.Party.Members += count;
+        s.Snap.Party.DailyFoodUse = perEater * PlanTotals.GameEaters(s.Snap.Party.Members, s.Snap.Prisoners.Sum(p => p.Count));
         if (!band.IsMounted) s.Snap.Party.Footmen += count;
         s.Snap.Upgrades.Add(new UpgradeStack
         {

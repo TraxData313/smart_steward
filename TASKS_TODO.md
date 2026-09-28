@@ -37,6 +37,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000" — the capacity after the deal, the part over it in red
 - The "Not now" button is "Close"
 - A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
+- Food goal in days: "Keep food for [40] days (~2.0 per soul)" at your party's own rate, perks included; an old "Food per man" converts once (× 20)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -61,7 +62,7 @@ NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — 
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
 
 NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
-- [ ] Food 2 per man = ~40 days of food — heavy on the cart; keep, or think in days?
+- [x] Food 2 per man = ~40 days of food — heavy on the cart; keep, or think in days? → Anton 2026.09.28: DAYS — "Keep food for [40] days (~2.0 per soul)" (DESIGN §2.1)
 - [ ] Pack animals: fixed 10 by default — or scale with party size?
 - [ ] Shift/Ctrl steps stop at zero — one click never flips a row from selling to buying (DESIGN §1.1)
 - [ ] Livestock (cows, sheep…) — the game counts it as food; proposed: steward ignores it (see RESEARCH "Design impact")

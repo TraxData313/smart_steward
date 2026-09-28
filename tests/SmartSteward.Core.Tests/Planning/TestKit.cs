@@ -71,8 +71,15 @@ internal sealed class Scenario
     {
         Snap.Party.Members = members;
         Snap.Party.Footmen = footmen;
+        VanillaDailyFood();
         return this;
     }
+
+    /// <summary>The party eats at vanilla's rate — (members + prisoners/2) / 20 a day — so the food goal in days
+    /// (FoodDays 40) keeps 2 food per eater, like the old FoodPerMan 2.0. A test that wants another rate sets
+    /// <c>Snap.Party.DailyFoodUse</c> after building.</summary>
+    private void VanillaDailyFood() =>
+        Snap.Party.DailyFoodUse = PlanTotals.GameEaters(Snap.Party.Members, Snap.Prisoners.Sum(p => p.Count)) / 20.0;
 
     /// <summary>A food item. Averages default to the prices (so the auto-filled book allows buying at up to
     /// 1.2 × buy and selling at down to 0.8 × sell); pass <paramref name="noAverage"/> to leave them out.</summary>
@@ -140,6 +147,7 @@ internal sealed class Scenario
             IsLocked = locked,
             InfluencePerMan = influence,
         });
+        VanillaDailyFood();
         return this;
     }
 

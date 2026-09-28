@@ -87,8 +87,9 @@ namespace SmartSteward.Core.Settings
 
         // ── Food (DESIGN §2.1) ───────────────────────────────────────────────────────────────────
         public bool FoodEnabled { get; set; } = true;
-        /// <summary>Food units kept per eater: target = ceil(eaters × FoodPerMan).</summary>
-        public double FoodPerMan { get; set; } = 2.0;
+        /// <summary>Days of food kept for the party after the deal, at the game's own rate (Anton 2026.09.28 — replaces
+        /// FoodPerMan): target = ceil(days × daily use per eater × eaters) (<c>Planning.FoodGoal</c>).</summary>
+        public int FoodDays { get; set; } = 40;
         /// <summary>Prisoners count as eaters — half each, like the game.</summary>
         public bool FoodCountPrisoners { get; set; } = true;
         public FoodStrategy FoodStrategy { get; set; } = FoodStrategy.Balanced;

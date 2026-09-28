@@ -89,22 +89,22 @@ public class SettingsServiceTests
         Assert.Equal(650, _service.Current.MountMaxPrice);
         Assert.Null(_storage.Backup);
         Assert.Contains("\"MountMaxPrice\": 650,", _storage.Text);
-        Assert.Contains("\"FoodPerMan\": 2.0,", _storage.Text);
+        Assert.Contains("\"FoodDays\": 40,", _storage.Text);
         Assert.Contains(_log, l => l.Contains("had no ModEnabled"));
     }
 
     [Fact]
     public void Values_out_of_range_are_clamped_logged_backed_up_and_rewritten()
     {
-        var original = "{ \"FoodPerMan\": 50, \"Colour\": \"red\" }";
+        var original = "{ \"BuyPriceMultiplier\": 50, \"Colour\": \"red\" }";
         _storage.EditOutside(original);
         _service.Load();
 
-        Assert.Equal(10.0, _service.Current.FoodPerMan);
+        Assert.Equal(10.0, _service.Current.BuyPriceMultiplier);
         Assert.Equal(original, _storage.Backup);
-        Assert.Contains("\"FoodPerMan\": 10.0,", _storage.Text);
+        Assert.Contains("\"BuyPriceMultiplier\": 10.0,", _storage.Text);
         Assert.DoesNotContain("Colour", _storage.Text);
-        Assert.Contains(_log, l => l.Contains("FoodPerMan") && l.Contains("above the maximum"));
+        Assert.Contains(_log, l => l.Contains("BuyPriceMultiplier") && l.Contains("above the maximum"));
         Assert.Contains(_log, l => l.Contains("unknown key \"Colour\""));
     }
 
@@ -246,7 +246,7 @@ public class SettingsServiceTests
         var writes = _storage.Writes;
 
         Assert.False(_service.Set(Def("ModEnabled"), true));
-        Assert.False(_service.Set(Def("FoodPerMan"), 2.0));
+        Assert.False(_service.Set(Def("BuyPriceMultiplier"), 1.2));
         Assert.False(_service.Set(Def("FoodStrategy"), FoodStrategy.Balanced));
 
         Assert.Equal(writes, _storage.Writes);

@@ -39,7 +39,7 @@ public class PlanCarryOverTests
         plan.SetChange("food:grain", 30);
         var carry = PlanCarryOver.Capture(plan);
 
-        s.Settings.FoodPerMan = 4.0; // the steward now wants more food
+        s.Settings.FoodDays = 80; // the steward now wants more food: 4 per man
         var fresh = s.Plan();
         Assert.Equal(1, carry.ApplyTo(fresh));
         Assert.Equal(30, fresh.Row("food:grain").Change);         // the player's hand

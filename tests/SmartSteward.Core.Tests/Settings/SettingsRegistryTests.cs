@@ -69,8 +69,8 @@ public class SettingsRegistryTests
     public void Keys_are_unique_and_found_ignoring_case()
     {
         Assert.Equal(SettingsRegistry.All.Count, SettingsRegistry.All.Select(d => d.Key).Distinct().Count());
-        Assert.Same(SettingsRegistry.Find("FoodPerMan"), SettingsRegistry.Find(" foodperman "));
-        Assert.Null(SettingsRegistry.Find("FoodPerMen"));
+        Assert.Same(SettingsRegistry.Find("FoodDays"), SettingsRegistry.Find(" fooddays "));
+        Assert.Null(SettingsRegistry.Find("FoodPerMan")); // replaced by FoodDays (2026.09.28) - the file converts it
     }
 
     [Fact]
@@ -106,8 +106,10 @@ public class SettingsRegistryTests
         var gold = (IntSetting)SettingsRegistry.Find("MinGoldAfterDeal")!;
         Assert.Equal(gold.Help + " Default: 1,000. Range: 0 to 1,000,000.", gold.Hint);
 
-        var food = (FloatSetting)SettingsRegistry.Find("FoodPerMan")!;
-        Assert.EndsWith(" Default: 2.0. Range: 0.1 to 10.0.", food.Hint);
+        var multiplier = (FloatSetting)SettingsRegistry.Find("BuyPriceMultiplier")!;
+        Assert.EndsWith(" Default: 1.2. Range: 0.1 to 10.0.", multiplier.Hint);
+        var days = (IntSetting)SettingsRegistry.Find("FoodDays")!;
+        Assert.EndsWith(" Default: 40. Range: 1 to 365.", days.Hint);
 
         var popup = SettingsRegistry.Find("AutonomousSteward")!;
         Assert.EndsWith(" Default: off.", popup.Hint);
@@ -182,10 +184,10 @@ public class SettingsRegistryTests
     {
         Assert.Equal("all defaults", SettingsRegistry.DescribeNonDefaults(new StewardSettings()));
 
-        var s = new StewardSettings { FoodPerMan = 3, SellLoot = true, SellLootOrder = SellLootOrder.MostExpensive };
+        var s = new StewardSettings { FoodDays = 60, SellLoot = true, SellLootOrder = SellLootOrder.MostExpensive };
         s.PriceBook["grain"] = new PriceBookEntry { BuyBase = 9 };
         s.PriceBook["fish"] = new PriceBookEntry(); // empty: not counted
-        Assert.Equal("FoodPerMan=3.0, PriceBook: 1 item, SellLoot=true, SellLootOrder=MostExpensive",
+        Assert.Equal("FoodDays=60, PriceBook: 1 item, SellLoot=true, SellLootOrder=MostExpensive",
             SettingsRegistry.DescribeNonDefaults(s));
     }
 

@@ -56,8 +56,8 @@
     <string id="ss_hint_BuyPriceMultiplier" text="Max buy price = the item's base price (Prices tab) times this. 1.2 pays up to 20% over the average. Richer now? Raise it. Default: 1.2. Range: 0.1 to 10.0." />
     <string id="ss_hint_DonatePrisonersWhenPossible" text="In a town of your kingdom that is not your clan's, send prisoners to its dungeon for influence instead of gold. Those that do not fit are ransomed. Default: off." />
     <string id="ss_hint_FoodCountPrisoners" text="Count your prisoners when working out the food target - half a man each, as the game feeds them. Default: on." />
+    <string id="ss_hint_FoodDays" text="How many days of food the steward keeps for your party as it will be after the deal - at the game's own rate, perks included (a man eats one food in about 20 days, a prisoner half as much), so 40 days is about 2 food per man. The Instructions tab shows what your days mean per man right now. Default: 40. Range: 1 to 365." />
     <string id="ss_hint_FoodEnabled" text="Buy food up to the target and sell what is far above it. Default: on." />
-    <string id="ss_hint_FoodPerMan" text="Food units kept for every man. A man eats about one unit in 20 days, so 2 lasts about 40 days. Default: 2.0. Range: 0.1 to 10.0." />
     <string id="ss_hint_FoodStrategy" text="Balanced buys the kinds you hold least of first - every different food lifts morale. Cheapest always buys the cheapest kind. Default: Balanced (variety first)." />
     <string id="ss_hint_FoodSurplusTolerancePercent" text="How far above the target food may pile up before the steward sells: 25 sells only above 125% of the target. Default: 25. Range: 0 to 500." />
     <string id="ss_hint_LocksProtectFoodAndHorses" text="Off: the steward manages food and horses even when you locked them in the inventory - your locks keep guarding armour and weapons. On: locked food and horses are left alone, like armour and weapons. Default: off." />
@@ -114,8 +114,8 @@
     <string id="ss_set_BuyPriceMultiplier" text="Buy price multiplier" />
     <string id="ss_set_DonatePrisonersWhenPossible" text="Donate when possible" />
     <string id="ss_set_FoodCountPrisoners" text="Feed prisoners too" />
+    <string id="ss_set_FoodDays" text="Keep food for (days)" />
     <string id="ss_set_FoodEnabled" text="Manage food" />
-    <string id="ss_set_FoodPerMan" text="Food per man" />
     <string id="ss_set_FoodStrategy" text="Food buying" />
     <string id="ss_set_FoodSurplusTolerancePercent" text="Surplus tolerance (%)" />
     <string id="ss_set_LocksProtectFoodAndHorses" text="Locks protect food &amp; horses" />
@@ -190,6 +190,7 @@
     <string id="ss_ui_enum_hint" text="Click for the next choice" />
     <string id="ss_ui_expand_hint" text="Show the kinds of animal in this row" />
     <string id="ss_ui_failed" text="Smart Steward: something went wrong - the window closed. See smart_steward.log." />
+    <string id="ss_ui_food_days_note" text="days (~{PER} per soul)  ·  {RANGE}" />
     <string id="ss_ui_footer_capacity" text="capacity {LAND}" />
     <string id="ss_ui_footer_capacity_sea" text="capacity land {LAND} / sea {SEA}" />
     <string id="ss_ui_footer_food" text="Food {NOW} » {AFTER}  (~{DAYS} days)" />

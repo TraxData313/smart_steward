@@ -289,9 +289,23 @@ pure Core logic fed a snapshot of the party and the market (§5).
 
 ### 2.1 Food — enough, varied, fairly priced
 
-- **Target** = `ceil(eaters × FoodPerMan)`. Eaters = party members (+ prisoners if
-  `FoodCountPrisoners`). `FoodPerMan` default **2.0** (Anton's number — at vanilla consumption
-  of about 1 food per 20 men per day that is ~40 days; the window shows the days).
+- ~~**Target** = `ceil(eaters × FoodPerMan)`.~~ Eaters = party members (+ prisoners if
+  `FoodCountPrisoners`). ~~`FoodPerMan` default **2.0** (Anton's number — at vanilla consumption
+  of about 1 food per 20 men per day that is ~40 days; the window shows the days).~~
+- **The goal is DAYS** **[Anton 2026.09.28, playtest round 3 — "you are showing the food as days to last very nicely, it is
+  better than my idea food barrels/soldier — can you make the instruction for the steward as DAYS to last as the goal, and in
+  brackets show the food barrels per soldier that requires, like: keep food [40] days (keeps 2 barrels per soul)"]**:
+  **Target** = `ceil(FoodDays × daily use per eater × eaters after the deal)`, `FoodDays` default **40**. The daily use per
+  eater is the game's own: the party's `−MobileParty.FoodChange` (perks included) over its eaters now — members + prisoners/2,
+  the game's integer halves, at least 1 (RESEARCH §2); vanilla's 1/20 when it was not read. So 40 days = 2 food per man at
+  vanilla's rate (the old default, unchanged for a perkless party), and a Warrior's Diet party keeps less for the same days.
+  The eaters are the party after the deal — hires, recruits and dismissals, prisoners kept (half each) or not — so the goal
+  follows the live re-plan (§1.1). **[decided: Claude, 2026.09.28 — step 15]** `FoodDays` is a whole number of days, 1–365
+  (0 would sell every ration as surplus); the Instructions tab shows after the box what it means for this party right now —
+  `Keep food for (days) [40] days (~2.0 per soul)` (the fonts have no ≈); MCM and the settings file cannot know the party, so
+  their help gives vanilla's equivalence (40 days ≈ 2 per man). The footer keeps its `(~N days)`. An old settings file's
+  `FoodPerMan` becomes `FoodDays = FoodPerMan × 20` once (logged, not a problem; the rewritten file has only `FoodDays`;
+  `FoodDays` written too wins) — `SettingsFile.ConvertedKeys`, Core `Planning\FoodGoal`.
   **[research 2026.09.27]** The game feeds a prisoner **half** a man's ration
   (`(members + prisoners/2) / 20` per day), so a prisoner counts as **half an eater**; members
   include heroes and the wounded.
@@ -731,7 +745,7 @@ expected unit prices.
 | Money | MinGoldForHorses | 5000 | 0–1,000,000 | purse floor for animal purchases |
 | Money | AutonomousMinGold | 100000 | 0–10,000,000 | purse floor while autonomous: both floors above rise to it (§6) **[Anton 2026.09.27]** |
 | Food | FoodEnabled | true | — | manage food |
-| Food | FoodPerMan | 2.0 | 0.1–10 | food units kept per eater |
+| Food | FoodDays | 40 | 1–365 | "Keep food for (days)": days of food kept for the party after the deal, at the game's own rate (≈ 2 per man at vanilla's) — replaces `FoodPerMan` (2.0, 0.1–10: food units per eater; an old file's value converts once, × 20) **[Anton 2026.09.28]** |
 | Food | FoodCountPrisoners | true | — | prisoners count as eaters (half each, like the game) |
 | Food | FoodStrategy | Balanced | Balanced / Cheapest | Balanced (variety first) or Cheapest |
 | Food | SellFoodSurplus | true | — | sell food above target + tolerance |
@@ -772,7 +786,8 @@ Keys are final names for the settings file and code; UI labels can be friendlier
 
 **Ranges** **[decided: Claude, 2026.09.27 — step 5]** (only the two multipliers were Anton's): wide enough for any
 play style, narrow enough that a typo cannot break a plan — gold up to one million, a role price cap up to
-100,000, `FoodPerMan` at least 0.1 (0 would sell every ration as surplus). Decimal settings keep 2 places (MCM's
+100,000, `FoodPerMan` at least 0.1 (0 would sell every ration as surplus; since 2026.09.28 `FoodDays` at least 1 for the same
+reason). Decimal settings keep 2 places (MCM's
 float slider and the file agree on the same number). A value outside its range is clamped wherever it comes from
 (file, MCM, Instructions tab).
 

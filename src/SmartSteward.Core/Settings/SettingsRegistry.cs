@@ -140,9 +140,11 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.FoodEnabled), Food, "Manage food",
                 "Buy food up to the target and sell what is far above it.",
                 s => s.FoodEnabled, (s, v) => s.FoodEnabled = v),
-            new FloatSetting(nameof(StewardSettings.FoodPerMan), Food, "Food per man",
-                "Food units kept for every man. A man eats about one unit in 20 days, so 2 lasts about 40 days.",
-                0.1, 10, 2, s => s.FoodPerMan, (s, v) => s.FoodPerMan = v),
+            new IntSetting(nameof(StewardSettings.FoodDays), Food, "Keep food for (days)",
+                "How many days of food the steward keeps for your party as it will be after the deal - at the game's own "
+                + "rate, perks included (a man eats one food in about 20 days, a prisoner half as much), so 40 days is about "
+                + "2 food per man. The Instructions tab shows what your days mean per man right now.",
+                1, 365, s => s.FoodDays, (s, v) => s.FoodDays = v),
             new BoolSetting(nameof(StewardSettings.FoodCountPrisoners), Food, "Feed prisoners too",
                 "Count your prisoners when working out the food target - half a man each, as the game feeds them.",
                 s => s.FoodCountPrisoners, (s, v) => s.FoodCountPrisoners = v),

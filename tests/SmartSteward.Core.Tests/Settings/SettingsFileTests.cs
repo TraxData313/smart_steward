@@ -163,14 +163,14 @@ public class SettingsFileTests
     {
         var s = new StewardSettings
         {
-            FoodPerMan = double.NaN,
+            BuyPriceMultiplier = double.NaN,
             MinGoldAfterDeal = -40,
             PackAnimalsTarget = int.MaxValue,
             PriceBook = null!,
         };
         var parsed = SettingsFile.Parse(SettingsFile.Generate(s));
         Assert.False(parsed.Unreadable);
-        Assert.Equal(2.0, parsed.Settings.FoodPerMan);
+        Assert.Equal(1.2, parsed.Settings.BuyPriceMultiplier);
         Assert.Equal(0, parsed.Settings.MinGoldAfterDeal);
         Assert.Equal(500, parsed.Settings.PackAnimalsTarget);
         Assert.Empty(parsed.Settings.PriceBook);
@@ -186,7 +186,7 @@ public class SettingsFileTests
             {
               /* I like it cheap */
               ""foodstrategy"": ""cheapest"",
-              ""FOODPERMAN"": 3,
+              ""FOODDAYS"": 60,
               ""PackAnimalsTarget"": 12.0,   // a whole number written as a decimal is fine
               ""PriceBook"": { ""grain"": { ""buybase"": 9, }, },
               ""prisonersexcluded"": [ ""looter"", ],   // retired in step 12 - ignored, logged
@@ -197,7 +197,7 @@ public class SettingsFileTests
         Assert.False(parsed.Unreadable);
         Assert.Empty(parsed.Problems);
         Assert.Equal(FoodStrategy.Cheapest, parsed.Settings.FoodStrategy);
-        Assert.Equal(3.0, parsed.Settings.FoodPerMan);
+        Assert.Equal(60, parsed.Settings.FoodDays);
         Assert.Equal(12, parsed.Settings.PackAnimalsTarget);
         Assert.Equal(9, parsed.Settings.PriceBook["grain"].BuyBase);
         Assert.Single(parsed.Retired);
@@ -219,11 +219,43 @@ public class SettingsFileTests
         Assert.Equal(Defaults, SettingsFile.Generate(empty.Settings));
     }
 
+    [Theory]
+    [InlineData("{ \"FoodPerMan\": 2.5 }", 50)]
+    [InlineData("{ \"foodperman\": 3 }", 60)]
+    [InlineData("{ \"FoodPerMan\": 2.04 }", 41)]
+    public void An_old_food_per_man_becomes_days_of_food_once(string text, int days)
+    {
+        // Anton 2026.09.28: the goal is days now. One food lasts a man 20 days at the game's rate, so per man × 20.
+        var parsed = SettingsFile.Parse(text);
+        Assert.Equal(days, parsed.Settings.FoodDays);
+        Assert.Empty(parsed.Problems);
+        Assert.False(parsed.LosesSomething);                   // nothing lost: no backup
+        var note = Assert.Single(parsed.Renamed);
+        Assert.Contains("is now FoodDays = " + days, note);
+        Assert.DoesNotContain("FoodPerMan", SettingsFile.Generate(parsed.Settings)); // the rewrite has only the new key
+    }
+
+    [Fact]
+    public void An_old_food_per_man_gives_way_to_food_days_and_is_read_like_any_value()
+    {
+        var both = SettingsFile.Parse("{ \"FoodDays\": 30, \"FoodPerMan\": 3 }");
+        Assert.Equal(30, both.Settings.FoodDays);
+        Assert.Contains(both.Problems, p => p.Contains("\"FoodPerMan\" (replaced by FoodDays) ignored"));
+
+        var huge = SettingsFile.Parse("{ \"FoodPerMan\": 50 }");            // 1,000 days → the most, 365
+        Assert.Equal(365, huge.Settings.FoodDays);
+        Assert.Contains(huge.Problems, p => p.Contains("FoodDays") && p.Contains("above the maximum"));
+
+        var words = SettingsFile.Parse("{ \"FoodPerMan\": \"lots\" }");    // not a number → the default
+        Assert.Equal(40, words.Settings.FoodDays);
+        Assert.Single(words.Problems);
+    }
+
     [Fact]
     public void Unknown_keys_are_ignored_and_reported()
     {
-        var parsed = SettingsFile.Parse("{ \"FoodPerMen\": 5, \"SellLootMassFirst\": true, \"FoodPerMan\": 4 }");
-        Assert.Equal(4.0, parsed.Settings.FoodPerMan);
+        var parsed = SettingsFile.Parse("{ \"FoodPerMen\": 5, \"SellLootMassFirst\": true, \"FoodDays\": 30 }");
+        Assert.Equal(30, parsed.Settings.FoodDays);
         Assert.Equal(2, parsed.Problems.Count);
         Assert.Contains(parsed.Problems, p => p.Contains("unknown key \"FoodPerMen\" ignored"));
         Assert.Contains(parsed.Problems, p => p.Contains("unknown key \"SellLootMassFirst\" ignored"));
@@ -249,8 +281,8 @@ public class SettingsFileTests
     }
 
     [Theory]
-    [InlineData("FoodPerMan", "0", 0.1, "below the minimum")]
-    [InlineData("FoodPerMan", "12.5", 10.0, "above the maximum")]
+    [InlineData("BuyPriceMultiplier", "0", 0.1, "below the minimum")]
+    [InlineData("SellPriceMultiplier", "12.5", 10.0, "above the maximum")]
     [InlineData("SellPriceMultiplier", "-1", 0.0, "below the minimum")]
     [InlineData("BuyPriceMultiplier", "1e9", 10.0, "above the maximum")]
     public void Decimals_out_of_range_are_clamped_and_reported(string key, string json, double expected, string why)
@@ -278,9 +310,9 @@ public class SettingsFileTests
     [InlineData("MinGoldAfterDeal", "10.5")]
     [InlineData("MinGoldAfterDeal", "true")]
     [InlineData("MinGoldAfterDeal", "[ 1 ]")]
-    [InlineData("FoodPerMan", "\"2\"")]
-    [InlineData("FoodPerMan", "NaN")]
-    [InlineData("FoodPerMan", "{ }")]
+    [InlineData("BuyPriceMultiplier", "\"2\"")]
+    [InlineData("BuyPriceMultiplier", "NaN")]
+    [InlineData("BuyPriceMultiplier", "{ }")]
     [InlineData("FoodStrategy", "1")]
     [InlineData("FoodStrategy", "\"Fancy\"")]
     [InlineData("SellLootOrder", "null")]

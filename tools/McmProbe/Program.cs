@@ -109,7 +109,7 @@ static class Program
         Check(general.GroupNameRaw == "{=ss_grp_General}General", "group name " + general.GroupNameRaw);
         var target = props.Single(p => p.Id == "WarMountsWarHorseTarget");
         Check(target.MinValue == -1 && target.MaxValue == 500, "int range " + target.MinValue + ".." + target.MaxValue);
-        Console.WriteLine("  sample hint: " + props.Single(p => p.Id == "FoodPerMan").HintText);
+        Console.WriteLine("  sample hint: " + props.Single(p => p.Id == "FoodDays").HintText);
 
         ISettingsPropertyDefinition P(string key) => props.Single(p => p.Id == key);
 
@@ -120,8 +120,10 @@ static class Program
         P("BuyPriceMultiplier").PropertyReference.Value = 1.5f;
         Check(service.Current.BuyPriceMultiplier == 1.5 && (float)P("BuyPriceMultiplier").PropertyReference.Value == 1.5f,
             "float write, read back as float");
-        P("FoodPerMan").PropertyReference.Value = 1.2f;
-        Check(service.Current.FoodPerMan == 1.2, "float 1.2f is stored as 1.2 (" + service.Current.FoodPerMan + ")");
+        P("SellPriceMultiplier").PropertyReference.Value = 0.7f;
+        Check(service.Current.SellPriceMultiplier == 0.7, "float 0.7f is stored as 0.7 (" + service.Current.SellPriceMultiplier + ")");
+        P("FoodDays").PropertyReference.Value = 55;
+        Check(service.Current.FoodDays == 55 && storage.Text.Contains("\"FoodDays\": 55"), "the food goal in days: an int");
         P("PackAnimalsTarget").PropertyReference.Value = 9999;
         Check(service.Current.PackAnimalsTarget == 500, "int write is clamped");
 
@@ -150,7 +152,7 @@ static class Program
         var values = (IDictionary<string, object>)presetBuilder.GetType().GetProperty("PropertyValues", any).GetValue(presetBuilder);
         Check(values.Count == scalars.Count, values.Count + " preset values");
         Check((int)values["MountMaxPrice"] == 500, "Default preset: MountMaxPrice 500 (current was 777)");
-        Check((float)values["FoodPerMan"] == 2.0f, "Default preset: FoodPerMan 2.0");
+        Check((int)values["FoodDays"] == 40, "Default preset: FoodDays 40");
         Check(((Dropdown<string>)values["FoodStrategy"]).SelectedIndex == 0, "Default preset: FoodStrategy Balanced");
         Check((bool)values["SellLoot"] == false, "Default preset: SellLoot off (current was on)");
         foreach (var pair in values)

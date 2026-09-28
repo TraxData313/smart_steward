@@ -11,7 +11,7 @@ Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load
 1. **Enter a town** with some food, horses, loot and prisoners. The town menu has **Party Steward (debug)** right
    after Trade. Click it.
 2. **Read the popup**: gold now -> after, then the rows it would change (food, mounts, armour & weapons, prisoners).
-   Does it make sense for your party? (Food toward 2 per man, pack animals toward 10, a horse per footman + 10%,
+   Does it make sense for your party? (Food toward 40 days (~2 per man), pack animals toward 10, a horse per footman + 10%,
    upgrade horses for troops ready to upgrade, loot sold cheapest first, prisoners ransomed.)
 3. **Compare prices**: press **Cancel**, open the vanilla Trade screen, and check a few first-unit prices against the
    popup's (the log also has a `price self-check` line — it should say *all equal*).
@@ -55,7 +55,7 @@ looks broken, press Escape — and send the log.
    Change the buy multiplier at the top — every final follows. Back on Suggestion: the plan follows your changes, but
    rows you edited by hand keep your number (as far as the new limits allow).
 10. **Instructions tab.** Every setting from Mod Options, grouped the same way; hover a name for its help. Tick
-   Sell loot, change Food per man, cycle Food buying. In the Prisoners group, untick a prisoner under "Prisoners to
+   Sell loot, change Keep food for (days), cycle Food buying. In the Prisoners group, untick a prisoner under "Prisoners to
    ransom" — back on Suggestion his row stays at 0. Mod Options (if you have MCM) and settings.json show the same values.
 11. **Village.** Repeat 2–3 and 8 in a village (no tavern, no prisoners there).
 12. **Look.** Anything clipped, overlapping, unreadable, or in a wrong colour? A screenshot helps most.

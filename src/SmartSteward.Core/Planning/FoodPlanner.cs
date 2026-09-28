@@ -8,7 +8,8 @@ using SmartSteward.Core.Snapshot;
 namespace SmartSteward.Core.Planning
 {
     /// <summary>
-    /// Food (DESIGN §2.1): keep ceil(eaters × FoodPerMan) units, varied, fairly priced. One row per food
+    /// Food (DESIGN §2.1): keep FoodDays days of food — ceil(days × the game's daily use per eater × eaters after the deal)
+    /// units (<see cref="FoodGoal"/>), varied, fairly priced. One row per food
     /// item. Buying and selling never happen in one visit: food is sold only above the target plus the
     /// tolerance, and bought only below the target. Locked food counts as held and is sold like any other unless
     /// LocksProtectFoodAndHorses (<see cref="LockRule"/>).
@@ -49,7 +50,8 @@ namespace SmartSteward.Core.Planning
             // hires eat from today (the party after the deal — the live re-plan, step 15).
             Eaters = Math.Max(0, ctx.Party.Members)
                      + (settings.FoodCountPrisoners ? Math.Max(0, prisonersAfter) / 2 : 0);
-            Target = PlanMath.Ceiling(Eaters * Math.Max(0, settings.FoodPerMan));
+            // FoodDays days of food at the game's own rate per eater (perks included) — Anton 2026.09.28 (FoodGoal).
+            Target = FoodGoal.Target(settings.FoodDays, FoodGoal.PerEaterPerDay(ctx.Snapshot), Eaters);
             SellAbove = Math.Round(Target * (1 + Math.Max(0, settings.FoodSurplusTolerancePercent) / 100.0), 6);
 
             _active = settings.FoodEnabled && ctx.Snapshot.CanTrade;

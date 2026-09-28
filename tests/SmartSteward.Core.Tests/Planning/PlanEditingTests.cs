@@ -250,7 +250,7 @@ public class PlanEditingTests
     public void Town_prices_climbing_past_the_max_buy_stop_a_row()
     {
         var s = new Scenario().Party(1).Food("grain", market: 100, buy: 100);
-        s.Settings.FoodPerMan = 3;
+        s.Settings.FoodDays = 60; // 3 food for the one man
         s.Oracle.Slope = 0.001; // 100, 110, 120, 130 — the max buy is 120
         var plan = s.Plan();
         Assert.Equal(3, plan.Row("food:grain").Change);
