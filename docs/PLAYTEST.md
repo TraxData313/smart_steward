@@ -204,3 +204,32 @@ Deploy (game closed). Send `smart_steward.log` with any report — every re-plan
    bracket shows ~3.0 (less with Warrior's Diet — it is your party's own rate), and the Suggestion tab's food target follows.
    An old `settings.json` with `"FoodPerMan": 2.5` comes back as `"FoodDays": 50` (one log line, no `.bak`).
 7. **Speed.** Clicks on the mercenaries or a prisoner row should feel as quick as any other click, even on a big party.
+
+## Round 3 — troops (step 16)
+
+Deployed at the end of step 16 (the game was closed). Send `smart_steward.log` with any report — the snapshot line ends
+with `troops N types, on offer [5 imperial_recruit at 20, …], in the party … men (… wounded)`, every Do it logs
+`Dismiss …` / `Recruit …` lines.
+
+1. **What is listed.** In a town, open Party Steward: right after the Tavern come **Recruits on offer** (the troops the
+   notables offer YOU — compare with the town's "Recruit troops" screen: the same types and counts you could click there,
+   locked slots left out) and **Your troops** (every other regular troop type in your party, none of your companions). Mine =
+   how many you have; Market = how many are on offer; the price at 0 is the price per man (same as the recruit screen).
+   Every row starts at 0. Names in gold open the unit's Encyclopedia page.
+2. **A village.** Do the same in a village: its headman's and rural notables' volunteers are listed. In a village with
+   nothing on sale (market closed), the table still shows the troops, "Market closed: …" above it.
+3. **Recruit past the limit.** Ctrl [+] a recruit row: it stops at what is on offer; Party goes past its limit (`Party
+   104/96` in red) — nothing blocks it. With a thin purse [+] greys out ("You do not have the gold for it.").
+4. **Dismiss.** [−] on a row of Your troops dismisses (Ctrl: all of them; Shift: 5); on a recruit row [−] dismisses your own
+   men of that type. The row's detail says how many are wounded — they go first, so the weight line's capacity drops only
+   after them. Party and the food/mount rows follow at once.
+5. **The live re-plan.** Recruit foot soldiers: the food target and "men on foot · riding target" grow, the steward buys more.
+   Dismiss men who are ready to upgrade (the Instructions tab's "Troops ready to upgrade now" and the upgrade-horse row's
+   "needed for upgrades" drop). Recruits whose upgrade needs a horse bring the upgrade-horse row if you keep a fixed number.
+6. **Do it.** Recruit some, dismiss some, **Do it**: the party screen shows the new men and the dismissed ones gone (wounded
+   first); the recruit screen shows those slots empty; the gold dropped by the recruits' price; your Leadership gains XP
+   for the recruits (as from vanilla's recruit screen — check the character screen). The window plans afresh: nothing new for food and
+   horses.
+7. **Settings.** Instructions tab (Tavern group) or MCM: **Show the troops** off hides the section; the Full-autonomous
+   steward never recruits or dismisses.
+8. **Speed.** A big party lists many troop types: clicks should feel as quick as before.

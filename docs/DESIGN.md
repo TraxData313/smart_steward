@@ -13,6 +13,8 @@ settings, and exactly five jobs:
 3. **Horses** — pack animals, riding mounts, upgrade and war horses (§2.2–2.4)
 4. **Armour & weapons selling** — in bulk groups (§2.6)
 5. **Prisoners** — ransom, or send to a friendly jail (§2.5) (Anton re-added them the same day)
+6. **Troops** — the recruits on offer and your own troops: recruit and dismiss by hand (§2.8) **[Anton 2026.09.28, playtest
+   round 3]**
 
 **LATER** (designed here so a later update starts from a spec, but NOT built for V1 — marked
 *LATER* where it appears): the price book's **Others** (trade goods, §1.3.1). Build steps must not implement LATER parts; keep the code open for them
@@ -53,15 +55,20 @@ can add by hand).
 the player trade here, the tab shows `Market closed: <reason>` in the game's own words (the disabled Trade option's text:
 war, crime, a raid, nothing on offer, disguise — or ours where the game gives none: looted, being raided) — in place of
 the table when nothing can be done, else on the header line's right above it. The log's snapshot line carries the same
-reason (`Village (NO TRADE: …)`).
+reason (`Village (NO TRADE: …)`). **[decided: Claude, 2026.09.28 — step 16]** "Nothing can be done" = no row moves AND no
+button is live (Core `PlanFooter.ShowsTable`): the troops section has its own gate (a village with nothing on sale still
+offers volunteers, dismissing needs none), so at a closed market the table stays for the rows you can still act on, the
+reason above it. (Until step 16 a closed market hid every row at 0 — the tavern's too.)
 
 **Section order** **[Anton 2026.09.27]** — each section under its own header row:
 1. **Tavern** — wanderers, then mercenaries (§2.7)
-2. **Food** — one row per food item (variety matters, so food stays itemised)
-3. **Mounts** — ROLE rows, not one row per horse type (§1.1.1)
-4. **Armour & weapons** — the loot group rows (§2.6)
-5. **Prisoners** (§2.5) — last, with the other selling **[decided: Claude, 2026.09.27]**
-6. *(LATER — not V1)* **Others** — the trade goods the player ticked in the Prices tab (§1.3.1)
+2. **Troops** — right after the Tavern **[Anton 2026.09.28, playtest round 3]**, in two halves under their own header rows:
+   **Recruits on offer** (the troop types the notables offer you here), then **Your troops** (the party's other regulars) (§2.8)
+3. **Food** — one row per food item (variety matters, so food stays itemised)
+4. **Mounts** — ROLE rows, not one row per horse type (§1.1.1)
+5. **Armour & weapons** — the loot group rows (§2.6)
+6. **Prisoners** (§2.5) — last, with the other selling **[decided: Claude, 2026.09.27]**
+7. *(LATER — not V1)* **Others** — the trade goods the player ticked in the Prices tab (§1.3.1)
 
 #### 1.1.1 Mount rows are grouped by role **[Anton 2026.09.27 — "don't show each type of mount"]**
 
@@ -99,7 +106,7 @@ earns, red when it costs; updates live with every click.
 | Price | per-unit price and the row total: `11 ea · 77` (buy) or `+240` (sell) |
 | Market | how many the settlement has in stock |
 | Item | item name (prisoners: troop name) |
-| Type | Food / Pack / Mount / War mount / Prisoner / Loot / Tavern |
+| Type | Food / Pack / Mount / War mount / Prisoner / Loot / Tavern / Troop |
 
 Buttons on Change:
 - click **±1**, **shift+click ±5**, **ctrl+click ±all** (all = up to market stock or budget when
@@ -123,7 +130,8 @@ Buttons on Change:
     touches it, and it stays touched — even when clicks bring it back to the steward's number — until ⟲. The ⟲ shows exactly
     on touched rows (that is the subtle mark of "yours"; no prefab change). Untouched rows are the steward's.
   - **What re-plans.** An edit of a party-changing row — a tavern hire (wanderers, mercenaries), a prisoner row (a prisoner
-    ransomed or donated stops eating, one kept eats half a ration), and step 16's recruit and dismiss rows — re-derives the
+    ransomed or donated stops eating, one kept eats half a ration), and the troops section's recruit and dismiss rows (§2.8,
+    step 16) — re-derives the
     party after the deal and runs the SAME planners in the SAME walk, order, money chain and floors on the same snapshot,
     with every touched row pinned at its quantity. Every UNTOUCHED item row — food, pack animals, riding mounts, upgrade and
     war horses, and armour & weapons (whose share of the market's gold moves with the food sales) — takes what the planners
@@ -132,10 +140,11 @@ Buttons on Change:
   - **The party after the deal.** Members = now + hires (+ recruits − dismissals). Eaters = members + half the prisoners who
     stay (the game's integer halves). Footmen = now + every man hired who is not mounted, by the game's own rule
     (`CharacterObject.IsMounted`: a troop by its default formation class, cavalry / horse archer; a hero by his battle
-    equipment's horse slot — RESEARCH §3), carried per troop type in the snapshot (the mercenary band, each wanderer; step
-    16's recruits the same field). New men are never ready to upgrade (no XP yet), but a troop whose upgrade needs a kind of
+    equipment's horse slot — RESEARCH §3), carried per troop type in the snapshot (the mercenary band, each wanderer, every
+    troop type of §2.8). New men are never ready to upgrade (no XP yet), but a troop whose upgrade needs a kind of
     horse puts that kind in play (a fixed "horses for upgrades" number or the spares then apply); men who leave a stack take
-    its ready count down with them. The footer's facts (food target and eaters, footmen, riding target) follow.
+    its ready count down with them (dismissing upgrade-ready men lowers the upgrade-horse need). The footer's facts (food
+    target and eaters, footmen, riding target), the party line and the capacity follow.
   - **Precedence** (`PlanPins`): in every phase of the walk — food sales · animal sales · loot sales · food buys · animal
     buys — the player's touched rows go FIRST, then the steward's; so the player's rows take the market's stock, its gold and
     a category's price room before the steward's. And because a phase only sees what came before it, the steward's rows
@@ -204,8 +213,8 @@ every click. **[decided: Claude, 2026.09.28 — step 14]** The numbers NOW are t
 that changes it is honoured); the change is Core arithmetic at the vanilla formula's rates with the party's perks
 (RESEARCH §19, `Planning.CarryTotals`). Nothing is blocked by it — being over capacity only slows the party, like vanilla.
 If the capacity cannot be read, the line shows the weight change only (`Weight +120 kg`).
-**The party after the deal** **[Anton 2026.09.28, playtest round 3]**: `Party 99/96` — the members after every hire in
-the plan against the party size limit, red when over, live with every click. Information, never a wall (§2.7). When the player's edits break a money floor (§3),
+**The party after the deal** **[Anton 2026.09.28, playtest round 3]**: `Party 99/96` — the members after every hire,
+recruit and dismissal in the plan (§2.8) against the party size limit, red when over, live with every click. Information, never a wall (§2.7). When the player's edits break a money floor (§3),
 the footer shows it in red, but **Do it** still works — the player's hand overrides the steward.
 
 ### 1.2 Instructions tab — the settings
@@ -501,8 +510,8 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 - **The party size limit is information, not a wall** **[Anton 2026.09.28, playtest round 3 — "hire past it, just show
   the party after the deal"]**: no hire is ever clamped or blocked by it — not in the plan, not by the executor — exactly
   like vanilla. The footer shows `Party 99/96` (§1.1), red when the deal takes the party over its limit. (Until round 3 the
-  steward blocked hires at the limit; the `party full` edit block and skip reason are gone.) Recruits (the LATER troops
-  section) follow the same rule.
+  steward blocked hires at the limit; the `party full` edit block and skip reason are gone.) Recruits (the troops section,
+  §2.8) follow the same rule.
 - Tavern hires count in the header total and the footer like any purchase, but sit OUTSIDE the
   money floors' priority chain (the player chose them by hand; a floor breach shows red, §1.1).
   **[step 15]** They come FIRST for the purse: the steward's own food and horses — planned live for the party with the hires
@@ -533,6 +542,50 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
     tavern dialogue does it (count, roster, gold, the recruit event that gives Leadership XP).
   - Vanilla itself never checks the party size limit for either — and since round 3 neither do we.
 
+### 2.8 Troops — recruits on offer and your troops (Anton, 2026.09.28 — playtest round 3)
+
+Anton: *"since recruiting works so nice, list me all the recruits available in the town — don't worry about the troop
+limit, just show me that I'm above it — and add all my troops like with the goods, but don't list every possible troop:
+list what is on offer at the top and what I have, so I can manage them, drop some of mine and recruit new."*
+
+The tavern's sibling, right after it (§1.1). **Towns and villages** (a village's headman and rural notables have volunteers
+too); castles have no market and no steward. One row per troop type — never every troop in the game, never a hero:
+- **Recruits on offer** (the first half, its own header row): every troop type the settlement's notables offer YOU now —
+  the game's own recruit screen, exactly: each notable who can have recruits, each of his six volunteer slots the game's
+  volunteer model opens to you (relation, faction, war, perks — RESEARCH §21), behind the game's "Recruit troops" gate (a
+  hostile or raided village: none). Columns: **Mine** = the men of that type in your party; **Change** `[-] 0 [+]` — [+]
+  recruits (click / shift / ctrl steps, clamped to what is on offer), [−] dismisses your own men of the type (down to −Mine);
+  **Result**; **Price** = the price per man (the game's recruitment cost, your perks included) at 0, `3 × 20 = –60` when
+  recruiting; **Market** = how many are on offer. Detail: the daily wage per man, the wounded.
+- **Your troops** (the second half, its own header row): every other regular troop type in the party the party screen lets
+  go (a quest-bound troop is not listed unless it is on offer too — and then never dismissed). Mine, Change `[-] 0 [+]` where
+  [−] **dismisses** (clamped to the men held; [+] is grey: "No notable here offers you this troop."), Result; Market "—", no
+  price (dismissing is free).
+- **Every row starts at 0** — the steward never recruits or dismisses by itself; the Full-autonomous steward never even lists
+  the section (like the tavern). Shift/Ctrl stop at zero; a plain click steps through it (a row on offer recruits and
+  dismisses). ⟲ hands the row back (to 0).
+- **The party size limit never blocks** — the footer's `Party 99/96` counts recruits in and dismissed men out, red when over
+  (§1.1, §2.7). Only an empty purse stops a recruit (vanilla's rule: the cart's total ≤ your gold).
+- **Party-changing rows** (§1.1, the live re-plan): a recruit or a dismissal re-plans every untouched row — the eaters, the
+  footmen (a recruit on foot needs a riding mount; the game's own rule, RESEARCH §3), the capacity, and the upgrades: new men
+  are never ready but put their kind of upgrade horse in play; dismissing upgrade-ready men lowers the upgrade-horse need.
+  Their gold comes first for the purse, like the hires: the steward's own buys give way.
+- **Dismissing takes the WOUNDED first** **[decided: Claude, 2026.09.28 — step 16]**: vanilla's party screen does exactly
+  that when you move men out of your party (RESEARCH §21), and it keeps the men who can fight now — and carry: healthy men
+  add capacity, wounded do not, so the weight line's capacity drops only once no wounded of the type are left. (The brief
+  said "healthy first unless research says otherwise"; research said otherwise.)
+- **Order within each half** **[decided: Claude, 2026.09.28 — step 16]**: by name — predictable, like the wanderers.
+- **Names are clickable**: a troop's name opens its unit page in the Encyclopedia (like the mercenaries — unit pages are never
+  hidden).
+- `ShowTroops` (default **on**, the Tavern group — "Show the troops") shows the section.
+- **Do it** **[decided: Claude, 2026.09.28 — step 16]** (the executor, §5; RESEARCH §21): **dismissals right after the
+  prisoners** — men leave before any goods move; free, and nothing in the trade depends on them — through the party screen's
+  own roster move (the wounded first; no gold, no event); **recruits last**, after the trades (their proceeds fund them) and
+  the tavern's hires (the table's order), through the recruit screen's own steps (the notable's slot emptied, the man added,
+  `OnUnitRecruited` — the Leadership XP — and the gold paid once per row). Everything is re-checked at the click: the recruit
+  gate, the slots still holding the troop and still open to you (taken in the recruit screen's order), the live price, the
+  purse; the men still held.
+
 ---
 
 ## 3. Money — the order and the floors
@@ -542,8 +595,8 @@ The steward never proposes a hire by itself — every tavern row starts at 0; th
 2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts (LATER → Others, the
    price-book trading of §1.3.1, answering to `MinGoldAfterDeal`).
 3. **Floors**:
-   - **[step 15]** The player's own rows (touched rows and hires) come before the chain: the steward's buys leave their gold
-     first (§1.1, the live re-plan).
+   - **[step 15]** The player's own rows (touched rows and hires — and since step 16 recruits, §2.8) come before the chain:
+     the steward's buys leave their gold first (§1.1, the live re-plan).
    - `MinGoldAfterDeal` (default **1000**): no purchase takes the purse below this.
    - `MinGoldForHorses` (default **5000**): no ANIMAL purchase (pack, mount, war mount) takes the
      purse below this. Food only answers to `MinGoldAfterDeal` — food outranks horses.
@@ -605,7 +658,9 @@ ready troops and their required war-mount category), prisoners (with ransom valu
 walk), market gold, player gold, daily food consumption, settlement kind (town/village), whether
 donating prisoners is allowed, the tavern (wanderers with hire price and wage; the mercenary
 troop, count on offer, price and wage — **[step 15]** and for each, whether he rides (`IsMounted`) and, for the band, the kinds of
-upgrade horse its upgrades need), the party size limit (shown, never a block) and room for companions. Core returns a **StewardPlan**: rows (item or troop, change,
+upgrade horse its upgrades need), the party size limit (shown, never a block) and room for companions; **[step 16]** the
+troops (§2.8: per troop type the men held and wounded, whether they may be dismissed, the volunteers on offer to the player,
+the price and wage per man, `IsMounted`, the upgrade kinds). Core returns a **StewardPlan**: rows (item or troop, change,
 unit prices, total), and footer numbers. The Module's executor performs a plan with the game's
 own trade/ransom/donate actions so gold, stock, prices and skill XP behave as in vanilla.
 
@@ -618,10 +673,10 @@ own trade/ransom/donate actions so gold, stock, prices and skill XP behave as in
 the click.
 
 **[decided: Claude, 2026.09.27 — step 4b]** Core hands the executor `StewardPlan.Transactions`, in the order
-to run them: donations and ransoms (the ransom funds the buys), every sale, every purchase (the walk's own
-order, grouped by item category — which never changes a price, since a town's price walks per category), then
-the wanderers, then the mercenaries; each with the stack (item + modifier) / troop / hero, the count and the
-expected unit prices.
+to run them: donations and ransoms (the ransom funds the buys), **[step 16]** the dismissals, every sale, every purchase
+(the walk's own order, grouped by item category — which never changes a price, since a town's price walks per category),
+then the wanderers, then the mercenaries, **[step 16]** then the recruits (§2.8); each with the stack (item + modifier) /
+troop / hero, the count and the expected unit prices.
 
 **[decided: Claude, 2026.09.27 — step 6]** How the executor behaves (`Module\Adapter\PlanExecutor`, Core `Execution\`):
 - Every unit is checked again at the click, the way the plan walked it: its live price (the trade logic's own) must
@@ -706,6 +761,7 @@ expected unit prices.
   - **The window ignores AutonomousMinGold**: with the autonomous steward on, the menu entry still opens the normal
     window with the normal floors — the player's own hand. Only the steward's own runs answer to the autonomous floor.
   - **The autonomous plan never even lists the tavern** (not only "never hires"): nothing to hire, nothing to report.
+    **[step 16]** Nor the troops section (§2.8): the steward never recruits or dismisses by itself.
   - `AutonomousMinGold` sits in the **Money** group with the other floors; its range tops out at 10,000,000.
   - **The report** is one message line — jobs joined by ` · `, as the example above, in the fonts' glyphs (en-dash minus,
     `»`) — plus the trouble line `Steward: 1 cut short, 2 skipped — see smart_steward.log` (or `nothing was done` when the
@@ -813,7 +869,7 @@ float slider and the file agree on the same number). A value outside its range i
   **[research 2026.09.27 — step 5]** Format **"none"**, not the default "memory" (which throws on the
   first registration in MCM 5.12.3): MCM keeps and writes nothing, settings.json is the only store.
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
-  - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 13: 46 scalars + the price book; the
+  - Core: `SettingsRegistry` (the §7 keys in table order — 48 since step 16: 47 scalars + the price book; the
     prisoner list is gone since step 12), `SettingsFile` (text in, text out), `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.
   - The file opens with a short header (how to edit, when it is re-read, delete to reset, where the

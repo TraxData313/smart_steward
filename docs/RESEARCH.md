@@ -1004,6 +1004,76 @@ opened the town's tavern district menu, the same click showed the full page.
 
 ---
 
+## 21. Recruits and dismissals — the troops section (verified in step 16, 2026.09.28)
+
+Anton's round-3 wish: the recruits on offer in the town (or village) at the top, the party's own troops below, recruit and
+dismiss with the steward's buttons. Read in `game-decompiled-1.4.8` (`CSVM\...GameMenu.Recruitment\`, `CS\Helpers\`,
+`CS\...GameComponents\DefaultVolunteerModel.cs`, `DefaultPartyWageModel.cs`, `DefaultSettlementAccessModel.cs`,
+`CS\...Party\PartyScreenLogic.cs`, `CSVM\...Party\PartyVM.cs`).
+
+**Where the volunteers live**
+- On the **notables**: `public CharacterObject[] Hero.VolunteerTypes` (6 slots, `new CharacterObject[6]`; a null slot is
+  empty). The settlement's notables are `Settlement.Notables`. A notable offers recruits when `Hero.CanHaveRecruits` →
+  `VolunteerModel.CanHaveRecruits`: occupation Mercenary, Artisan, Merchant, Preacher, Headman, GangLeader or RuralNotable
+  (enum values 2 and 17–22). **Towns and villages both** — a village's headman and rural notables have volunteers;
+  castles have no notables. The slots refill daily (`RecruitmentCampaignBehavior`, `GetDailyVolunteerProductionProbability`).
+- **Vanilla's recruit screen** (`RecruitmentVM.RefreshScreen`): for each notable with `CanHaveRecruits`,
+  `HeroHelper.GetVolunteerTroopsOfHeroForRecruitment(notable)` (the 6 slots; empty unless `IsAlive`); a slot can be recruited
+  when its troop is not null and **`HeroHelper.HeroCanRecruitFromHero(Hero.MainHero, notable, index)`** = `index <=
+  VolunteerModel.MaximumIndexHeroCanRecruitFromHero(buyer, seller)` (`RecruitVolunteerVM` constructor).
+- **Which slots the PLAYER may take** — `DefaultVolunteerModel.MaximumIndexHeroCanRecruitFromHero` = min(6, base + relation
+  + faction + (AI +1) + war + perks): base = 1 + the difficulty's `GetPlayerRecruitSlotBonus()` (+ Roguery.OneOfTheFamily for a
+  gang leader in the player's fief with such a governor); relation with the notable: < 0 → −1, 0–4 → 0, ≥ 5 → 1, ≥ 10 → 2,
+  ≥ 20 → 3, ≥ 40 → 4, ≥ 60 → 5, ≥ 80 → 6, ≥ 100 → 7; +1 when the notable's settlement is of the player's map faction; −1 at
+  war with it (−2 for an AI; a minor-faction hero in a village: 0); perks Trade.ArtisanCommunity (merchants), Leadership.
+  CombatTips (same culture), Charm.Firebrand (rural), Charm.FlexibleEthics (urban), Engineering.EngineeringGuilds (artisans).
+  NB the player's check is `index <= max` while AI parties use `index < max` (and get +1): the same reach. The recruit
+  screen's "needs relation N" tooltip loops `index < Max(…, i)` — a display off-by-one, not the rule.
+- **The gate** — the menus' "Recruit troops" option (`town/recruit_volunteers`, `village/recruit_volunteers`,
+  `PlayerTownVisitCampaignBehavior`) = `SettlementAccessModel.CanMainHeroDoSettlementAction(settlement, RecruitTroops, …)` →
+  `DefaultSettlementAccessModel.CanMainHeroRecruitTroops`: a village at war with the player → "You cannot recruit troops
+  from a hostile village."; a village not in `VillageStates.Normal` → no; a town → always (war lowers the slots through the
+  volunteer model instead). It reads `Settlement.CurrentSettlement` — call it in the settlement. Trade access plays no part.
+
+**The price per man** — `PartyWageModel.GetTroopRecruitmentCost(troop, Hero.MainHero).RoundedResultNumber`
+(`DefaultPartyWageModel`, the recruit screen's `RecruitVolunteerTroopVM.Cost`): by level 10 (≤1) / 20 (≤6) / 50 (≤11) /
+100 (≤16) / 200 (≤21) / 400 (≤26) / 600 (≤31) / 1000 (≤36) / 1500; + 150 (+500 from level 26) when the troop's equipment has
+a horse; × 3 base for mercenary / gangster / caravan-guard occupations; factors: Throwing.HeadHunter (tier ≥ 2),
+OneHanded.ChinkInTheArmor / TwoHanded.ShowOfStrength / Polearm.HardyFrontline (infantry), Bow.RenownedArcher /
+Crossbow.Piercer (ranged), the Khuzait cultural feat (mounted), Steward.Frugal (party leader), Trade.SwordForBarter /
+Charm.SlickNegotiator (mercenary kinds); at least 1. The same for every man of a type, whichever notable offers him — one
+flat price per row. Wage: `CharacterObject.TroopWage`.
+
+**What vanilla does when you recruit** (`RecruitmentVM.OnDone`): refuses when the cart's total > `Hero.MainHero.Gold`
+(so total ≤ gold is fine); over the party limit it only asks "Over Limit" (Yes goes on). Then per man:
+`notable.VolunteerTypes[index] = null`; `MobileParty.MainParty.MemberRoster.AddToCounts(troop, 1)`;
+`CampaignEventDispatcher.Instance.OnUnitRecruited(troop, 1)`; then ONE `GiveGoldAction.ApplyBetweenCharacters(Hero.MainHero,
+null, total, disableNotification: true)` (the gold goes to nobody — no notable is paid) and a "gold removed" message.
+`OnUnitRecruited` → `RecruitmentCampaignBehavior.OnUnitRecruited`: Leadership XP (`amount × tier × 2`), the Famous Commander
+XP on the new men, bandit recruits' skill XP; `StatisticsCampaignBehavior` counts; the tutorial listens. The player path does
+NOT fire `OnTroopRecruited` (that is the AI's `ApplyInternal`, whose listeners are the nameplate notice and the army overlay).
+`OnPlayerStartRecruitment` fires when a man is put in the cart (a tutorial hook) — nothing to mirror.
+
+**What vanilla does when you dismiss** (the normal party screen, `PartyScreenHelper.OpenPartyScreen`): `IsDismissMode = true`,
+the right roster is the party's LIVE `MemberRoster`, the left one a dummy roster; moving men left = dismissing.
+`PartyVM.OnTransferTroop` with `TransferHealthiesGetWoundedsFirst = false` moves **the wounded first** from the party's
+side (`woundedNumber = min(wounded, amount)`); `PartyScreenLogic.TransferTroop` → `AddToCounts(troop, −n, false, −wounded)` on
+the party's roster — its XP pool stays with the men who remain (so the stack's ready count is at most the men left; XP is
+clamped to Number × the dearest upgrade only on the next XP change, `PartyBase.OnXpChanged`). Done → `DefaultDoneHandler`
+(prisoner release/take only) — the dummy roster is simply dropped: **no gold, no event, no morale**. Only regulars that are
+not `IsNotTransferableInPartyScreen` (quest-bound) may go (`TroopTransferableDelegate`); heroes follow other rules (the
+steward never lists them). Healthy men carry (20 capacity each, §19), wounded do not; at sea War Sails weighs every mounted
+non-hero man's horse, wounded too (`item.Number`).
+
+**The steward** (DESIGN §2.8): `SnapshotBuilder.ReadTroops` + `VolunteerSlots` read exactly the recruit screen's offer behind
+`CanRecruitNow` (the RecruitTroops gate) and the party's regulars; `PlanExecutor.Recruit` / `Dismiss` do exactly the above,
+re-checked at Do it (the gate, the slot still holding the troop and still open to the player, the live price, the purse;
+the men still held). [decided: Claude, 2026.09.28 — step 16] The recruit's gold is paid once per row with the notification
+on (the window's summary names the gold too); the slots are taken in the recruit screen's order (notables in order, slots
+0–5) — no price difference between notables.
+
+---
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -1086,6 +1156,12 @@ opened the town's tavern district menu, the same click showed the full page.
 60. **A troop's "man with a horse" is its formation class, not its gear** — `CharacterObject.IsMounted` (what
     `NumberOfMenWithoutHorse` counts) = the XML `default_group` is cavalry / horse archer; only heroes are judged by the horse
     slot. War Sails' sea weight uses the gear instead (§3, §19).
+61. **Volunteers live on the notables** (`Hero.VolunteerTypes[6]`), not the settlement — towns AND villages; the player may
+    take slot `index <= MaximumIndexHeroCanRecruitFromHero` (`HeroHelper.HeroCanRecruitFromHero`; AI parties use `<`) (§21).
+62. **The player's recruit path fires `OnUnitRecruited`, not `OnTroopRecruited`** — the latter is the AI's; the recruit gold
+    goes to nobody (§21).
+63. **Vanilla's party screen dismisses the WOUNDED first** (`TransferHealthiesGetWoundedsFirst` false) — no gold, no event;
+    the stack's XP stays with the men who remain (§21).
 
 ---
 
