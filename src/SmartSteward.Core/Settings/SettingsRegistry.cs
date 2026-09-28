@@ -221,12 +221,19 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.WarMountsEnabled), WarMounts, "Manage upgrade horses",
                 "Keep the horses your troops need to upgrade into cavalry.",
                 s => s.WarMountsEnabled, (s, v) => s.WarMountsEnabled = v),
-            new IntSetting(nameof(StewardSettings.WarMountsManualTarget), WarMounts, "Upgrade horses to keep",
-                "-1 keeps as many as your troops can use for upgrades right now. 0 or more keeps exactly that many "
-                + "of each kind your troops need.",
-                -1, 500, s => s.WarMountsManualTarget, (s, v) => s.WarMountsManualTarget = v),
-            new IntSetting(nameof(StewardSettings.WarMountsExtra), WarMounts, "Spare upgrade horses",
-                "Extra horses on top of the automatic count, for each kind your troops upgrade into.",
+            new IntSetting(nameof(StewardSettings.WarMountsHorseTarget), WarMounts, "Horses for upgrades",
+                "Horses kept for troops whose upgrade needs a plain horse (the party screen's upgrade tooltip says "
+                + "\"Required: Horse\"). -1 = automatic: as many as your troops ready to upgrade need right now, plus the "
+                + "spares below. 0 or more = keep exactly that many.",
+                -1, 500, s => s.WarMountsHorseTarget, (s, v) => s.WarMountsHorseTarget = v),
+            new IntSetting(nameof(StewardSettings.WarMountsWarHorseTarget), WarMounts, "War horses for upgrades",
+                "War horses kept for troops whose upgrade needs one (the tooltip says \"Required: War Horse\"). "
+                + "-1 = automatic: as many as your troops ready to upgrade need right now, plus the spares below. "
+                + "0 or more = keep exactly that many.",
+                -1, 500, s => s.WarMountsWarHorseTarget, (s, v) => s.WarMountsWarHorseTarget = v),
+            new IntSetting(nameof(StewardSettings.WarMountsExtra), WarMounts, "Spare upgrade horses (each kind)",
+                "Extra horses kept on top of the automatic count - this many horses AND this many war horses, for "
+                + "the kinds your troops upgrade into. Not added to a kind you gave a fixed number above.",
                 0, 100, s => s.WarMountsExtra, (s, v) => s.WarMountsExtra = v),
             new IntSetting(nameof(StewardSettings.WarMountMaxPrice), WarMounts, "Max price per upgrade horse",
                 "Never pay more than this for one upgrade horse, whatever the price book says. 0 = no cap. "

@@ -35,6 +35,10 @@ namespace SmartSteward.Core.Planning
         /// WarMountsCountAsMounts).</summary>
         public int RidingCounted { get; internal set; }
 
+        /// <summary>Troops ready to upgrade now, per category their target needs (only categories in play).</summary>
+        public IReadOnlyDictionary<string, int> UpgradeReady { get; internal set; } =
+            new Dictionary<string, int>(StringComparer.Ordinal);
+
         /// <summary>Upgrade horses needed per category (only categories the party's troops upgrade into).</summary>
         public IReadOnlyDictionary<string, int> UpgradeNeed { get; internal set; } =
             new Dictionary<string, int>(StringComparer.Ordinal);

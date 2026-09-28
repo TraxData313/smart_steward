@@ -122,9 +122,14 @@ namespace SmartSteward.Core.Settings
 
         // ── War mounts (DESIGN §2.4) ─────────────────────────────────────────────────────────────
         public bool WarMountsEnabled { get; set; } = true;
-        /// <summary>-1 = count upgrade-ready troops; ≥ 0 = keep exactly this many per upgrade category.</summary>
-        public int WarMountsManualTarget { get; set; } = -1;
-        /// <summary>Buffer on top of the automatic count.</summary>
+        /// <summary>Plain horses ("horse" category) kept for upgrades: -1 = automatic (the troops ready now +
+        /// <see cref="WarMountsExtra"/>); ≥ 0 = exactly this many. Replaces half of the old WarMountsManualTarget
+        /// (playtest round 1: one number for both kinds bought 10 of each).</summary>
+        public int WarMountsHorseTarget { get; set; } = -1;
+        /// <summary>War horses ("war_horse" category) kept for upgrades: -1 = automatic; ≥ 0 = exactly this many.</summary>
+        public int WarMountsWarHorseTarget { get; set; } = -1;
+        /// <summary>Spares on top of the automatic count, for each kind the troops upgrade into (not added to a fixed
+        /// number).</summary>
         public int WarMountsExtra { get; set; } = 0;
         /// <summary>Role cap per upgrade horse (0 = none; not scaled).</summary>
         public int WarMountMaxPrice { get; set; } = 2000;

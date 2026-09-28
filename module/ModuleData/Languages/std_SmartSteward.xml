@@ -88,8 +88,9 @@
     <string id="ss_hint_WarMountMaxPrice" text="Never pay more than this for one upgrade horse, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 2,000. Range: 0 to 100,000." />
     <string id="ss_hint_WarMountsCountAsMounts" text="Horses kept for troop upgrades also count as riding horses for the footmen until the upgrade takes them. Default: on." />
     <string id="ss_hint_WarMountsEnabled" text="Keep the horses your troops need to upgrade into cavalry. Default: on." />
-    <string id="ss_hint_WarMountsExtra" text="Extra horses on top of the automatic count, for each kind your troops upgrade into. Default: 0. Range: 0 to 100." />
-    <string id="ss_hint_WarMountsManualTarget" text="-1 keeps as many as your troops can use for upgrades right now. 0 or more keeps exactly that many of each kind your troops need. Default: -1. Range: -1 to 500." />
+    <string id="ss_hint_WarMountsExtra" text="Extra horses kept on top of the automatic count - this many horses AND this many war horses, for the kinds your troops upgrade into. Not added to a kind you gave a fixed number above. Default: 0. Range: 0 to 100." />
+    <string id="ss_hint_WarMountsHorseTarget" text="Horses kept for troops whose upgrade needs a plain horse (the party screen's upgrade tooltip says &quot;Required: Horse&quot;). -1 = automatic: as many as your troops ready to upgrade need right now, plus the spares below. 0 or more = keep exactly that many. Default: -1. Range: -1 to 500." />
+    <string id="ss_hint_WarMountsWarHorseTarget" text="War horses kept for troops whose upgrade needs one (the tooltip says &quot;Required: War Horse&quot;). -1 = automatic: as many as your troops ready to upgrade need right now, plus the spares below. 0 or more = keep exactly that many. Default: -1. Range: -1 to 500." />
     <string id="ss_hint_WarnIfNotReviewed" text="Ask before you leave a town or village whose suggestions you never looked at. Default: on." />
     <string id="ss_leave_anyway" text="Leave anyway" />
     <string id="ss_leave_review" text="Review" />
@@ -144,8 +145,9 @@
     <string id="ss_set_WarMountMaxPrice" text="Max price per upgrade horse" />
     <string id="ss_set_WarMountsCountAsMounts" text="Upgrade horses carry footmen" />
     <string id="ss_set_WarMountsEnabled" text="Manage upgrade horses" />
-    <string id="ss_set_WarMountsExtra" text="Spare upgrade horses" />
-    <string id="ss_set_WarMountsManualTarget" text="Upgrade horses to keep" />
+    <string id="ss_set_WarMountsExtra" text="Spare upgrade horses (each kind)" />
+    <string id="ss_set_WarMountsHorseTarget" text="Horses for upgrades" />
+    <string id="ss_set_WarMountsWarHorseTarget" text="War horses for upgrades" />
     <string id="ss_set_WarnIfNotReviewed" text="Warn before leaving" />
     <string id="ss_ui_block_all_on_offer" text="Everything on offer is already in the plan." />
     <string id="ss_ui_block_all_sold" text="Everything that may go is already in the plan. Locked ones never are." />
@@ -218,6 +220,8 @@
     <string id="ss_ui_prices_war_mounts" text="War mounts" />
     <string id="ss_ui_prisoner_tick_hint" text="Ticked: the steward may ransom (or donate) this troop." />
     <string id="ss_ui_prisoners_to_ransom" text="Prisoners to ransom" />
+    <string id="ss_ui_ready_to_upgrade" text="Troops ready to upgrade now: {HORSES} for a horse, {WAR_HORSES} for a war horse" />
+    <string id="ss_ui_ready_to_upgrade_hint" text="What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen." />
     <string id="ss_ui_reset_all" text="Reset all" />
     <string id="ss_ui_reset_hint" text="Back to the steward's suggestion" />
     <string id="ss_ui_role_pack" text="Pack animals" />

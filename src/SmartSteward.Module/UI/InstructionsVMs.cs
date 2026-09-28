@@ -1,5 +1,6 @@
 using System.Linq;
 using SmartSteward.Adapter;
+using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Settings;
 using TaleWorlds.CampaignSystem;
@@ -38,7 +39,11 @@ namespace SmartSteward.UI
             {
                 var vm = new SettingGroupVM(UiText.S("ss_grp_" + group.Key.Replace(" ", ""), SettingsRegistry.GroupLabel(group.Key)));
                 foreach (var def in group.Value)
+                {
                     vm.Settings.Add(new SettingLineVM(def, this));
+                    if (def.Key == nameof(StewardSettings.WarMountsWarHorseTarget))
+                        vm.Settings.Add(ReadyToUpgradeLine(visit)); // the live need beside the two targets (round 1)
+                }
                 if (group.Key == SettingsRegistry.Prisoners)
                 {
                     var list = SettingsRegistry.Find(nameof(StewardSettings.PrisonersExcluded));
@@ -55,6 +60,19 @@ namespace SmartSteward.UI
                 groups.Add(vm);
             }
             Groups = groups;
+        }
+
+        /// <summary>"Troops ready to upgrade now: 4 for a horse, 10 for a war horse" — what "automatic" (-1) keeps, before
+        /// the spares.</summary>
+        private static SettingLineVM ReadyToUpgradeLine(GameVisit visit)
+        {
+            var needs = UpgradeNeeds.Of(visit.Snapshot);
+            return SettingLineVM.Heading(
+                UiText.S2("ss_ui_ready_to_upgrade", "Troops ready to upgrade now: {HORSES} for a horse, {WAR_HORSES} for a war horse",
+                    "HORSES", UiFormat.Money(needs.ReadyFor(UpgradeNeeds.Horse)),
+                    "WAR_HORSES", UiFormat.Money(needs.ReadyFor(UpgradeNeeds.WarHorse))),
+                UiText.S("ss_ui_ready_to_upgrade_hint",
+                    "What an automatic (-1) kind keeps for upgrades right now, before the spares - counted like the party screen."));
         }
 
         private static string TroopName(string troopId, GameVisit visit)

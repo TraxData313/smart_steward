@@ -107,7 +107,7 @@ static class Program
         Check(wrong == 0, "every control has its type, its {=id} label and a hint with the default");
         var general = settings.SettingPropertyGroups.First(g => All(g).Any(p => p.Id == "ModEnabled"));
         Check(general.GroupNameRaw == "{=ss_grp_General}General", "group name " + general.GroupNameRaw);
-        var target = props.Single(p => p.Id == "WarMountsManualTarget");
+        var target = props.Single(p => p.Id == "WarMountsWarHorseTarget");
         Check(target.MinValue == -1 && target.MaxValue == 500, "int range " + target.MinValue + ".." + target.MaxValue);
         Console.WriteLine("  sample hint: " + props.Single(p => p.Id == "FoodPerMan").HintText);
 

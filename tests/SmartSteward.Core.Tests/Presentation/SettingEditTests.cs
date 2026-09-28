@@ -24,7 +24,7 @@ public class SettingEditTests
         var s = new StewardSettings();
         var gold = (IntSetting)SettingsRegistry.Find("MinGoldAfterDeal")!;
         var food = (FloatSetting)SettingsRegistry.Find("FoodPerMan")!;
-        var manual = (IntSetting)SettingsRegistry.Find("WarMountsManualTarget")!;
+        var manual = (IntSetting)SettingsRegistry.Find("WarMountsHorseTarget")!;
         Assert.Equal("1000", SettingEdit.Text(gold, s));
         Assert.Equal("2", SettingEdit.Text(food, s));
         Assert.Equal("-1", SettingEdit.Text(manual, s));

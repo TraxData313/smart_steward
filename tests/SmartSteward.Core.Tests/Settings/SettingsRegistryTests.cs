@@ -124,12 +124,13 @@ public class SettingsRegistryTests
     [Fact]
     public void Int_settings_clamp_what_they_are_given()
     {
-        var target = (IntSetting)SettingsRegistry.Find("WarMountsManualTarget")!;
+        var target = (IntSetting)SettingsRegistry.Find("WarMountsWarHorseTarget")!;
         var s = new StewardSettings();
         target.Set(s, -50);
-        Assert.Equal(-1, s.WarMountsManualTarget);
+        Assert.Equal(-1, s.WarMountsWarHorseTarget);
         target.Set(s, 9999);
-        Assert.Equal(500, s.WarMountsManualTarget);
+        Assert.Equal(500, s.WarMountsWarHorseTarget);
+        Assert.Equal(-1, s.WarMountsHorseTarget); // the other kind is its own setting
         Assert.Equal(500, target.Clamp(long.MaxValue));
         Assert.Equal(-1, target.Clamp(long.MinValue));
     }

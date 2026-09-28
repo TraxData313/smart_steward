@@ -11,9 +11,10 @@ namespace SmartSteward.Core.Planning
     /// </summary>
     /// <remarks>
     /// How a held mount gets its role:
-    /// 1. Need per upgrade category (only categories the party's troops upgrade into): the ready troops
-    ///    (a stack counted once, at its best horse-needing target — foot-or-horse recruits count as needing
-    ///    the horse) + WarMountsExtra, or WarMountsManualTarget when ≥ 0.
+    /// 1. Need per upgrade category (only categories the party's troops upgrade into — <see cref="UpgradeNeeds"/>):
+    ///    the ready troops (a stack counted once, at its best horse-needing target — foot-or-horse recruits count as
+    ///    needing the horse) + WarMountsExtra, or that kind's own fixed number (WarMountsHorseTarget /
+    ///    WarMountsWarHorseTarget) when ≥ 0.
     /// 2. Reserved = the first `need` held mounts of the category in the order the game's upgrade consumes
     ///    them: unlocked before locked, cheapest base value first (PartyScreenLogic.RemoveItemFromItemRoster).
     /// 3. Every other mount — war and noble horses and camels too — is a riding mount; its surplus is sold
@@ -57,36 +58,14 @@ namespace SmartSteward.Core.Planning
             var settings = ctx.Settings;
             _held = ctx.Inventory(ItemKind.Mount).ToList();
 
-            // 1. What the upgrades need, per category in play.
-            var inPlay = new SortedSet<string>(StringComparer.Ordinal);
-            var ready = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (var stack in ctx.Snapshot.Upgrades ?? new List<UpgradeStack>())
-            {
-                if (stack?.Targets == null)
-                    continue;
-                UpgradeTarget? best = null;
-                foreach (var target in stack.Targets)
-                {
-                    if (target == null || string.IsNullOrEmpty(target.RequiredCategoryId))
-                        continue;
-                    inPlay.Add(target.RequiredCategoryId!);
-                    if (target.ReadyCount > 0 && (best == null || target.ReadyCount > best.ReadyCount
-                            || (target.ReadyCount == best.ReadyCount
-                                && string.CompareOrdinal(target.RequiredCategoryId, best.RequiredCategoryId) < 0)))
-                        best = target;
-                }
-                if (best != null)
-                {
-                    int count = Math.Min(best.ReadyCount, Math.Max(0, stack.Count));
-                    ready[best.RequiredCategoryId!] = (ready.TryGetValue(best.RequiredCategoryId!, out var r) ? r : 0) + count;
-                }
-            }
-            var need = new Dictionary<string, int>(StringComparer.Ordinal);
-            if (settings.WarMountsEnabled)
-                foreach (var category in inPlay)
-                    need[category] = settings.WarMountsManualTarget >= 0
-                        ? settings.WarMountsManualTarget
-                        : (ready.TryGetValue(category, out var r) ? r : 0) + Math.Max(0, settings.WarMountsExtra);
+            // 1. What the upgrades need, per category in play (each kind its own fixed number or automatic).
+            var upgrades = UpgradeNeeds.Of(ctx.Snapshot);
+            var inPlay = upgrades.InPlay;
+            var need = upgrades.Need(settings);
+            var readyNow = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var category in inPlay)
+                readyNow[category] = upgrades.ReadyFor(category);
+            UpgradeReady = readyNow;
 
             // 2. Reserve the held horses the upgrades will take.
             var reserved = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -174,6 +153,7 @@ namespace SmartSteward.Core.Planning
         public int Footmen { get; }
         public int RidingTarget { get; }
         public int RidingCounted { get; }
+        public IReadOnlyDictionary<string, int> UpgradeReady { get; }
         public IReadOnlyDictionary<string, int> UpgradeNeed { get; }
         public IReadOnlyDictionary<string, int> UpgradeReserved { get; }
         public PlanRow? RidingRow { get; }

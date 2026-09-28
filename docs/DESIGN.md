@@ -284,8 +284,15 @@ pure Core logic fed a snapshot of the party and the market (§5).
 ### 2.4 War mounts — ready for the upgrades
 
 - **Needed** per war-mount category = number of troops that can upgrade NOW to a tier that
-  requires that category, + `WarMountsExtra` (default **0**). If `WarMountsManualTarget` ≥ 0 it
-  replaces the automatic count (default **-1** = automatic).
+  requires that category, + `WarMountsExtra` (default **0**). Each kind has its own fixed number:
+  `WarMountsHorseTarget` (plain horses, `horse`) and `WarMountsWarHorseTarget` (war horses, `war_horse`) — ≥ 0
+  replaces the automatic count for that kind only, with no spares on top (default **-1** = automatic). A category a mod
+  adds is always automatic.
+  **[decided: Claude, 2026.09.28 — step 12, playtest round 1]** The old single `WarMountsManualTarget` applied to EACH
+  kind: Anton's "10" kept 10 horses AND 10 war horses. It is split in two (labels "Horses for upgrades" / "War horses
+  for upgrades", "Spare upgrade horses (each kind)"); an old file's `WarMountsManualTarget` is retired — dropped, both
+  kinds start automatic, the log says so (`SettingsFile.RetiredKeys`). The Instructions tab shows the live count beside
+  them ("Ready to upgrade now: 4 horses, 10 war horses").
 - **[research 2026.09.27]** The requirement sits on the troop you upgrade INTO
   (`UpgradeRequiresItemFromCategory` of the target); vanilla uses `horse` and `war_horse` only.
   "Can upgrade now" = the party screen's own count per stack and target:
@@ -300,7 +307,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **How a held mount gets its role** **[decided: Claude, 2026.09.27 — step 4]**:
   - Need per category counts a stack once, at its best horse-needing target (foot-or-horse recruits
     count — the board's proposal). `WarMountsExtra` goes on every category the party's troops upgrade
-    into, even with nobody ready; `WarMountsManualTarget` applies to each such category.
+    into, even with nobody ready; a kind's fixed number (`WarMountsHorseTarget` / `WarMountsWarHorseTarget`) applies
+    only while some troop upgrades into that kind (Core `Planning\UpgradeNeeds`).
   - Reserved = the held horses the upgrades would take (unlocked first, cheapest base value first, as
     vanilla consumes them); every other mount — war and noble horses too — is a riding mount.
   - With `WarMountsCountAsMounts`, the reserved horses AND the upgrade horses about to be bought count
@@ -632,8 +640,9 @@ expected unit prices.
 | Mounts | WarMountsCountAsMounts | true | — | war mounts held count toward the footmen's mounts |
 | Mounts | SellMountSurplus | true | — | sell above target, most expensive first |
 | War mounts | WarMountsEnabled | true | — | manage war mounts for upgrades |
-| War mounts | WarMountsManualTarget | -1 | -1–500 | -1 = count upgrade-ready troops; ≥0 = keep exactly this |
-| War mounts | WarMountsExtra | 0 | 0–100 | buffer on top of the automatic count |
+| War mounts | WarMountsHorseTarget | -1 | -1–500 | plain horses (`horse`) for upgrades: -1 = the troops ready now (+ spares); ≥0 = keep exactly this **[step 12]** |
+| War mounts | WarMountsWarHorseTarget | -1 | -1–500 | war horses (`war_horse`) for upgrades: -1 = the troops ready now (+ spares); ≥0 = keep exactly this **[step 12]** |
+| War mounts | WarMountsExtra | 0 | 0–100 | spares on top of the automatic count, for each kind in play |
 | War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per upgrade horse (0 = none; not scaled) |
 | War mounts | SellWarMountSurplus | true | — | sell above need, most expensive first |
 | Prisoners | RansomPrisoners | true | — | ransom prisoners in towns |

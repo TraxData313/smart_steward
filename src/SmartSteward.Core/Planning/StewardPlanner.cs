@@ -78,6 +78,7 @@ namespace SmartSteward.Core.Planning
             facts.Footmen = mounts.Footmen;
             facts.RidingTarget = mounts.RidingTarget;
             facts.RidingCounted = mounts.RidingCounted;
+            facts.UpgradeReady = mounts.UpgradeReady;
             facts.UpgradeNeed = mounts.UpgradeNeed;
             facts.UpgradeReserved = mounts.UpgradeReserved;
 

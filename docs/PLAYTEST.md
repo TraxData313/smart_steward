@@ -127,3 +127,9 @@ Bannerlord\logs\rgl_log_*.txt` with any report.
    it says `Market closed: …` in the game's words (e.g. "There are no available products right now.", "You cannot
    trade with a hostile village."). In a town where you cannot trade but hold prisoners to ransom, the line sits at the
    top right and the table shows below it.
+4. **Upgrade horses per kind.** Your old settings.json's "Upgrade horses to keep" is gone: the log says
+   `"WarMountsManualTarget" (10) is retired and ignored`, and Instructions → War mounts shows **Horses for upgrades** and
+   **War horses for upgrades** (both -1 = automatic), **Spare upgrade horses (each kind)**, and under them the live line
+   `Troops ready to upgrade now: N for a horse, M for a war horse` — compare with the party screen. Set War horses for
+   upgrades = 10 and look at the Suggestion tab: the war-horse row aims at 10, the plain-horse row stays at its automatic
+   count. Are the three labels clear without reading the tooltips?

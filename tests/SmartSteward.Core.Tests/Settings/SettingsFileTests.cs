@@ -238,7 +238,7 @@ public class SettingsFileTests
     [Theory]
     [InlineData("MinGoldAfterDeal", "2000000", 1_000_000, "above the maximum")]
     [InlineData("MinGoldAfterDeal", "-5", 0, "below the minimum")]
-    [InlineData("WarMountsManualTarget", "-7", -1, "below the minimum")]
+    [InlineData("WarMountsWarHorseTarget", "-7", -1, "below the minimum")]
     [InlineData("MountsPer100Footmen", "301", 300, "above the maximum")]
     [InlineData("MountsPer100Footmen", "99999999999999999999999999", 300, "above the maximum")] // past long
     public void Whole_numbers_out_of_range_are_clamped_and_reported(string key, string json, int expected, string why)
@@ -460,6 +460,40 @@ public class SettingsFileTests
         Assert.False(parsed.Settings.AutonomousSteward);
         Assert.Empty(parsed.Renamed);
         Assert.Contains("AutonomousSteward: expected true or false", Assert.Single(parsed.Problems));
+    }
+
+    // ── Retired keys (step 12, playtest round 1) ───────────────────────────────────────────────
+
+    [Fact]
+    public void The_old_WarMountsManualTarget_is_dropped_and_both_kinds_start_automatic()
+    {
+        // Anton's file: one number for both kinds bought 10 horses AND 10 war horses.
+        var text = Defaults.Replace("  \"WarMountsHorseTarget\": -1," + SettingsFile.NewLine, "")
+            .Replace("  \"WarMountsWarHorseTarget\": -1,", "  \"WarMountsManualTarget\": 10,");
+        Assert.DoesNotContain("\"WarMountsHorseTarget\"", text);
+
+        var parsed = SettingsFile.Parse(text);
+
+        Assert.Equal(-1, parsed.Settings.WarMountsHorseTarget);
+        Assert.Equal(-1, parsed.Settings.WarMountsWarHorseTarget);
+        Assert.Empty(parsed.Problems);
+        Assert.False(parsed.LosesSomething); // dropped on purpose: logged, no backup
+        var note = Assert.Single(parsed.Retired);
+        Assert.StartsWith("line ", note);
+        Assert.Contains("\"WarMountsManualTarget\" (10) is retired and ignored - upgrade horses are now set per kind", note);
+        var rewritten = SettingsFile.Generate(parsed.Settings);
+        Assert.DoesNotContain("WarMountsManualTarget\"", rewritten);
+        Assert.Empty(SettingsFile.Parse(rewritten).Retired);
+    }
+
+    [Fact]
+    public void A_retired_key_is_case_insensitive_and_never_a_problem()
+    {
+        var parsed = SettingsFile.Parse(Defaults.Replace("  \"WarMountsExtra\": 0,", "  \"WarMountsExtra\": 0,"
+            + SettingsFile.NewLine + "  \"warmountsmanualtarget\": 3,"));
+        Assert.Single(parsed.Retired);
+        Assert.Empty(parsed.Problems);
+        Assert.Equal(-1, parsed.Settings.WarMountsWarHorseTarget);
     }
 
     [Fact]

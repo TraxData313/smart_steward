@@ -186,18 +186,26 @@ public class MountPlannerTests
     }
 
     [Fact]
-    public void Extra_goes_on_every_category_in_play_and_manual_replaces_the_count()
+    public void Extra_goes_on_every_category_in_play_and_each_kind_has_its_own_fixed_number()
     {
         var s = Footmen(0).Upgrade("recruit", 10, ("horse", 4)).Upgrade("rider", 10, ("war_horse", 0));
         s.Settings.WarMountsExtra = 2;
         var plan = s.Plan();
         Assert.Equal(6, plan.Facts.UpgradeNeed["horse"]);
         Assert.Equal(2, plan.Facts.UpgradeNeed["war_horse"]);
+        Assert.Equal(4, plan.Facts.UpgradeReady["horse"]);
+        Assert.Equal(0, plan.Facts.UpgradeReady["war_horse"]);
 
-        s.Settings.WarMountsManualTarget = 7;
+        // Round 1: "10" meant for war horses must not buy 10 plain horses too.
+        s.Settings.WarMountsWarHorseTarget = 10;
         plan = s.Plan();
-        Assert.Equal(7, plan.Facts.UpgradeNeed["horse"]);
-        Assert.Equal(7, plan.Facts.UpgradeNeed["war_horse"]);
+        Assert.Equal(6, plan.Facts.UpgradeNeed["horse"]);      // still automatic (+ the spares)
+        Assert.Equal(10, plan.Facts.UpgradeNeed["war_horse"]); // fixed: no spares on top
+
+        s.Settings.WarMountsHorseTarget = 0;
+        plan = s.Plan();
+        Assert.Equal(0, plan.Facts.UpgradeNeed["horse"]);
+        Assert.DoesNotContain(plan.Rows, r => r.Id == "mounts:upgrade:horse");
 
         s.Settings.WarMountsEnabled = false;
         plan = s.Plan();

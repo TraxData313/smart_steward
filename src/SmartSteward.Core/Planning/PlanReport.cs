@@ -28,8 +28,8 @@ namespace SmartSteward.Core.Planning
             yield return "facts: eaters " + f.FoodEaters.ToString(Inv) + ", food target " + f.FoodTarget.ToString(Inv)
                          + " (sell above " + f.FoodSellAbove.ToString("0.##", Inv) + "), pack target "
                          + f.PackTarget.ToString(Inv) + ", footmen " + f.Footmen.ToString(Inv) + ", riding target "
-                         + f.RidingTarget.ToString(Inv) + " (counted " + f.RidingCounted.ToString(Inv) + "), upgrade need "
-                         + Dict(f.UpgradeNeed) + ", reserved " + Dict(f.UpgradeReserved);
+                         + f.RidingTarget.ToString(Inv) + " (counted " + f.RidingCounted.ToString(Inv) + "), upgrade ready "
+                         + Dict(f.UpgradeReady) + ", need " + Dict(f.UpgradeNeed) + ", reserved " + Dict(f.UpgradeReserved);
             foreach (var section in plan.Sections)
             {
                 yield return "[" + section.Kind + "]";

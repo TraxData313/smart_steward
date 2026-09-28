@@ -37,6 +37,11 @@ namespace SmartSteward.Core.Settings
         /// AutonomousSteward). Nothing is lost, so no backup — the rewritten file simply has the new name.</summary>
         public List<string> Renamed { get; } = new List<string>();
 
+        /// <summary>One line per retired key the file still had (<see cref="SettingsFile.RetiredKeys"/>): its value is
+        /// dropped on purpose and the line says what took its place. Not a problem — no backup; the rewritten file
+        /// simply no longer has it.</summary>
+        public List<string> Retired { get; } = new List<string>();
+
         /// <summary>The file said something the settings could not keep — worth a backup before rewriting it.</summary>
         public bool LosesSomething => Unreadable || Problems.Count > 0;
     }
@@ -65,6 +70,18 @@ namespace SmartSteward.Core.Settings
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["AutoExecute"] = nameof(StewardSettings.AutonomousSteward),
+            };
+
+        /// <summary>Keys that are gone (old names case-insensitive → what the log says instead): a file that still has one
+        /// loses its value on purpose, once — logged, not a problem, and the rewrite drops it (playtest round 1, step 12).
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, string> RetiredKeys =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                // One number for both kinds kept 10 horses AND 10 war horses: each kind now has its own, both automatic.
+                ["WarMountsManualTarget"] = "upgrade horses are now set per kind (" + nameof(StewardSettings.WarMountsHorseTarget)
+                                            + ", " + nameof(StewardSettings.WarMountsWarHorseTarget)
+                                            + ") - both start automatic (-1)",
             };
 
         /// <summary>The explanation at the top of the file.</summary>
@@ -242,6 +259,9 @@ namespace SmartSteward.Core.Settings
                 {
                     if (RenamedKeys.TryGetValue(property.Name.Trim(), out var newKey) && SettingsRegistry.Find(newKey) is { } renamedTo)
                         renamed.Add((property, renamedTo));
+                    else if (RetiredKeys.TryGetValue(property.Name.Trim(), out var instead))
+                        result.Retired.Add(At(property) + "\"" + property.Name.Trim() + "\" (" + Describe(property.Value)
+                            + ") is retired and ignored - " + instead);
                     else
                         result.Problems.Add(At(property) + "unknown key \"" + property.Name + "\" ignored");
                     continue;
