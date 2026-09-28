@@ -32,6 +32,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [ ] 18. Collapsible sections in the Suggestion tab (Anton 2026.09.28): each section header expands/collapses; collapsed = ONE summary
   line (what the section will do + its gold, e.g. "Food  +29 (5 kinds) −510 · 64 → 71 days"); the state is REMEMBERED per section
   across windows, towns and game restarts (stays collapsed until Anton expands it) — kept in our settings folder, never in the save
+  + FOOTER (same step, Anton 2026.09.28): the weight line splits in TWO — "Land: weight now +chg → after · capacity now → after"
+    and "Sea: …" (pack horses raise land capacity but add weight at sea) — each part over its capacity in red;
+  + a HORSES line: "Horses 110 / 200 before the herd slows you" — the game's real herding threshold (verify the speed model), red when over
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
