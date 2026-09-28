@@ -224,8 +224,8 @@ with `troops N types, on offer [5 imperial_recruit at 20, …], in the party …
    men of that type. The row's detail says how many are wounded — they go first, so the weight line's capacity drops only
    after them. Party and the food/mount rows follow at once.
 5. **The live re-plan.** Recruit foot soldiers: the food target and "men on foot · riding target" grow, the steward buys more.
-   Dismiss men who are ready to upgrade: the upgrade-horse row's "needed for upgrades" drops (the Instructions tab's "Troops
-   ready to upgrade now" counts the party as it is, before the deal). Recruits whose upgrade needs a horse bring the upgrade-horse row if you keep a fixed number.
+   ~~Dismiss men who are ready to upgrade: the upgrade-horse row's "needed for upgrades" drops …~~ — step 17 removed the
+   upgrade rows: see "Horses simplified" below (the header now reads "men on foot · horses to keep").
 6. **Do it.** Recruit some, dismiss some, **Do it**: the party screen shows the new men and the dismissed ones gone (wounded
    first); the recruit screen shows those slots empty; the gold dropped by the recruits' price; your Leadership gains XP
    for the recruits (as from vanilla's recruit screen — check the character screen). The window plans afresh: nothing new for food and
@@ -233,3 +233,39 @@ with `troops N types, on offer [5 imperial_recruit at 20, …], in the party …
 7. **Settings.** Instructions tab (Tavern group) or MCM: **Show the troops** off hides the section; the Full-autonomous
    steward never recruits or dismisses.
 8. **Speed.** A big party lists many troop types: clicks should feel as quick as before.
+
+## Horses simplified (step 17)
+
+Anton 2026.09.28: no upgrade counting — a plain number of war horses, noble horses sold unless locked, lame horses
+replaced. **Not deployed at the end of step 17** (the game was running): run `tools\deploy.ps1` with the game closed first.
+Send `smart_steward.log` with any report — the plan's facts line reads `footmen F, horses to keep T (riding target R, war
+horses W)`, the snapshot line `lame/old horses held N`, a re-plan `… footmen, horses to keep T (was …), riding target R,
+war horses W`.
+
+1. **The settings.** Instructions tab: the Mounts group has **Sell noble horses** (on) and **Replace lame horses** (on);
+   the War mounts group has **War horses to keep** (0) — "Horses for upgrades", "War horses for upgrades", "Spare upgrade
+   horses" and "Upgrade horses carry footmen" are gone, and so is the "Troops ready to upgrade now" line. After the boxes of
+   "Horses per 100 footmen" and "War horses to keep" a grey note reads `(110 horses = 100 riding + 10 war, for 100
+   footmen)` — type another number in either: the note follows at once. Mod Options shows the same (46 settings).
+2. **An old settings file.** If your `settings.json` still had `WarMountsWarHorseTarget` etc., the log says once that each
+   is retired and ignored; the rewritten file no longer has them and War horses to keep starts at 0 — set it again.
+3. **Anton's example.** With ~100 footmen and War horses to keep = 10, a town with horses and war horses on offer: the
+   Mounts section header reads `100 men on foot · 110 horses to keep`; Riding mounts "target 100", War horses "target 10".
+   Do it, then open Party Steward again: nothing new to buy or sell for the horses.
+4. **War horses at 0 (the default).** Holding war horses you did not lock: the War horses row proposes selling them (the
+   dearest first) and the riding row buys cheaper horses for the footmen — set War horses to keep first if you want them.
+   **Sell surplus war horses** off: they are kept and carry footmen (the riding row buys fewer).
+5. **Upgrading settles by itself.** Keep 10 war horses, upgrade 10 men into cavalry in the party screen (they take the war
+   horses), then enter a town: the steward buys 10 war horses back and sells the riding horses the smaller band of
+   footmen no longer needs, in the same visit.
+6. **Noble horses.** Hold a noble horse (a t3 culture horse, a noble camel…): a **Noble horses** row (sell only — [+] greys
+   "Only ever sold…") proposes selling it, never below its min sell price (Prices tab → Horses → **Noble horses — sell
+   only**: no buy column, a grey average in the sell box). Lock it in the inventory: it stays, whatever "Locks protect food
+   & horses" says, and it counts as a horse for a footman. **Sell noble horses** off: kept and counted. A market selling
+   noble horses: never bought, not even cheap.
+7. **Lame horses.** Get a lame horse (your own horse "turned into a Lame …" in battle, then unequip it) or an old one (a
+   companion's horse): a **Lame horses** row sells it ("sold - healthy ones take their place") and the riding (or pack)
+   row buys a healthy one in the same visit. A lame horse fetches about a tenth of a healthy one — the row still sells it.
+   **Replace lame horses** off: no row, it is kept and counted as a riding horse. A market with lame horses: never bought.
+8. **Do it and the log.** The executor sells the noble and lame horses by their own stacks (`Sell 1 x t3_…|` / `Sell 1 x
+   …|lame_horse`); a noble horse locked after the window opened is skipped (the log: `stopped: Locked`).

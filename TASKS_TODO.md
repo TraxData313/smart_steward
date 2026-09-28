@@ -29,6 +29,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   total horses = footmen × MountsPer100Footmen/100; a plain "War mounts to keep" NUMBER (no automatic upgrade counting,
   no plain-horse upgrade reserve); regular mounts fill the rest (e.g. 100 footmen at 110 + keep 10 war → 100 mounts + 10 war);
   noble horses never bought, sold unless locked; lame horses never bought, "Replace lame horses with healthy ones" (default ON)
+  - [ ] Deploy (the game was running at the end of step 17), then playtest — checklist in docs/PLAYTEST.md "Horses simplified"
 - [ ] 18. Collapsible sections in the Suggestion tab (Anton 2026.09.28): each section header expands/collapses; collapsed = ONE summary
   line (what the section will do + its gold, e.g. "Food  +29 (5 kinds) −510 · 64 → 71 days"); the state is REMEMBERED per section
   across windows, towns and game restarts (stays collapsed until Anton expands it) — kept in our settings folder, never in the save
@@ -43,7 +44,9 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
 - No arrival popup where you cannot trade or the steward has no rows
 - A closed market says why in the window ("Market closed: …", the game's own words) and in the log
-- Upgrade horses set per kind: "Horses for upgrades" / "War horses for upgrades" (+ spares), the live ready count beside them; the old single number resets to automatic
+- ~~Upgrade horses set per kind~~ → Horses simplified: "Horses per 100 footmen" keeps T horses, "War horses to keep" (a plain number, default 0) among them, riding horses the rest — no upgrade counting; the old upgrade-horse settings are retired (logged once)
+- Noble horses: never bought, sold unless you lock them ("Sell noble horses"); their own sell-only row, and "Noble horses — sell only" in the Prices tab
+- Lame and old horses: never bought; "Replace lame horses" (on) sells them and buys healthy ones in their place
 - Prisoners: ransom all or none — the "Prisoners to ransom" list is gone ("Include lords" stays)
 - Prices tab: the item name is the first column
 - Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
@@ -109,7 +112,7 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Playtest: the window's look was never seen — column widths, font sizes, the Encyclopedia focus round trip (PLAYTEST Step 7)
 - [x] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — dropped (step 9)
 - [ ] Step 9 (left on purpose): a click on a huge plan still costs ~20 ms — one trial walk per live button; incremental walks could cut it, measure in game first (PlanPerformanceTests)
-- [ ] Step 9 (left on purpose): surplus riding horses are kept while an upgrade horse is on offer, even when the floors will not let the steward buy it — "never sell and buy mounts in one visit" taken strictly
+- [x] Step 9 (left on purpose): surplus riding horses are kept while an upgrade horse is on offer, even when the floors will not let the steward buy it — "never sell and buy mounts in one visit" taken strictly → step 17: the rule is gone (the riding surplus is sold against the war horses the plan buys)
 - [x] Step 10: README — translations welcome: copy module/ModuleData/Languages/std_SmartSteward.xml into Languages\XX (how-to in the file's header) — README + Steam page
 - [ ] Release day (after step 11): tools\WORKSHOP-UPLOAD.md — bump v1.0.0, package.ps1, create Private, paste the page, flip Public
 - [ ] Step 10: the Workshop preview is a drawn stand-in of the window — after the playtest put a real shot in tools\preview_thumbnail.html, re-render (tools\render-preview.ps1)
@@ -121,3 +124,6 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 14: unverified whether a party docked at a port counts as IsCurrentlyAtSea (the party screen's capacity uses that live flag) — compare with the footer's land / sea in game
 - [x] Step 15: a village has no tavern and no ransom, so the live re-plan's promise is tested in towns (walking and flat prices) — step 16: add a village case with recruits to LivePlanTests (done: 3 village cases)
 - [ ] Step 16: with PopupOnlyWithChanges OFF the arrival popup now opens at nearly every open market — the "Your troops" rows count as rows (at 0 they never count as changes); fine by that switch's meaning?
+- [ ] Step 17: the Steam page still says "A row you edit stays as you set it — the steward does not re-balance the others around it" — stale since step 15's live re-plan
+- [ ] Step 17: War horses to keep defaults to 0 (Anton's number) — so every unlocked war horse a party holds is proposed for sale on the first visit after the update; say so in the release notes?
+- [ ] Step 17: a lame horse only counts for the game's speed from the next load (the roster's live counter skips modified animals, RESEARCH §22) — the steward counts it at once; harmless, but the party screen's speed may disagree until a reload
