@@ -107,8 +107,15 @@ namespace SmartSteward.UI
             {
                 ModLog.Info("window", "the party left " + _settlement.Name + " - closing");
                 StewardWindow.Close();
+                return;
             }
+            // A Goal box the player left commits here, outside the widget's own event (step 23).
+            Guard("goal", Suggestion.FlushGoal);
         }
+
+        /// <summary>Escape inside a text box: a Goal box shows its goal again (the Prices and Instructions boxes saved every
+        /// key already).</summary>
+        internal void CancelTyping() => Guard("cancel typing", Suggestion.CancelGoalTyping);
 
         public override void OnFinalize()
         {
@@ -181,7 +188,11 @@ namespace SmartSteward.UI
         public void ExecuteSelectInstructions() => Guard("tab", () => SelectTab(2));
 
         /// <summary>"Close" and Escape: close, nothing done.</summary>
-        public void ExecuteClose() => Guard("close", StewardWindow.Close);
+        public void ExecuteClose() => Guard("close", () =>
+        {
+            Suggestion.FlushGoal(); // the click took the focus from a Goal box: that goal stands
+            StewardWindow.Close();
+        });
 
         /// <summary>Do it: the executor runs the plan's transactions (step 6), the result shows, and the window plans
         /// afresh on a new snapshot.</summary>
@@ -189,6 +200,7 @@ namespace SmartSteward.UI
 
         private void SelectTab(int tab)
         {
+            Suggestion.FlushGoal();
             if (tab == 1)
             {
                 Prices.EnsureBuilt(_visit);
@@ -208,6 +220,7 @@ namespace SmartSteward.UI
 
         private void DoIt()
         {
+            Suggestion.FlushGoal(); // a goal typed and left by this very click goes into the deal
             ReplanIfStale();
             var plan = Suggestion.Plan;
             if (plan == null || !PlanFooter.CanExecute(plan))

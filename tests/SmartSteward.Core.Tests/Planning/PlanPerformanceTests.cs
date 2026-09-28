@@ -111,6 +111,10 @@ public class PlanPerformanceTests
             () => plan.Increase("troops:volunteer2", EditSize.All),
             () => plan.Decrease("troops:unit12", EditSize.All),
             () => plan.ResetAll(),
+            // Round 5 (step 23): a goal typed in the Goal column (20 over the steward's), and its ⟲. A far bigger goal walks one
+            // price a unit, like Ctrl on the row (a goal of 400 grain here: ~620 prices, ~19 ms).
+            () => plan.SetGoal("food:grain", plan.Rows.First(r => r.Id == "food:grain").Result + 20),
+            () => plan.Reset("food:grain"),
         };
         var times = new List<long>();
         var calls = new List<int>();

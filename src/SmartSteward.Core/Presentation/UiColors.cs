@@ -33,6 +33,9 @@ namespace SmartSteward.Core.Presentation
         /// <summary>A clickable name (opens the Encyclopedia).</summary>
         public const string Link = "#F2C35CFF";
 
+        /// <summary>A goal the player typed (round 5): gold, beside its ⟲ — his standing order, not the steward's.</summary>
+        public const string Yours = "#F2C35CFF";
+
         /// <summary>By the sign of a row's change: + green, − red, 0 grey.</summary>
         public static string ForChange(int change) => change > 0 ? Buy : change < 0 ? Sell : Muted;
 

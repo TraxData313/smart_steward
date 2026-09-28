@@ -46,7 +46,8 @@
 
             <!-- ============================ Suggestion tab (DESIGN §1.1) ============================ -->
             <!-- Round 4 (PLAN step 21): ONE spreadsheet - the mockup Anton approved on 2026.09.28 (docs/mockups). Every width below
-                 comes from one table (tools/gen-suggestion-tab.py), so the heads, the title lines, the lines and the breakdown lines align. -->
+                 comes from one table (tools/gen-suggestion-tab.py), so the heads, the title lines, the lines and the breakdown lines align.
+                 Round 5 (PLAN step 23): the Goal column, Item back at the far left, the overview on its own row under each title. -->
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="132" MarginBottom="84" IsVisible="@IsSuggestionSelected">
               <Children>
                 <Widget DataSource="{Suggestion}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
@@ -65,19 +66,21 @@
                     <!-- A closed market: the game's own reason, on the header line's right (round 1) -->
                     <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Right" VerticalAlignment="Top" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@MarketClosedText" IsVisible="@HasMarketNotice" />
 
-                    <!-- Column heads: Market far left (Anton), the same widths as the lines -->
+                    <!-- Column heads: Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight (round 5), the same widths as the lines -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="46" MarginRight="14" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColMarket" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="402" HeightSizePolicy="StretchToParent" MarginLeft="40" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColItem" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColMine" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="214" HeightSizePolicy="StretchToParent" MarginLeft="10" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColChange" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColResult" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="230" HeightSizePolicy="StretchToParent" MarginLeft="10" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColDenari" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="76" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColParty" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColPrisoners" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColLand" />
-                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColSea" IsVisible="@ShowSea" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="408" HeightSizePolicy="StretchToParent" MarginLeft="30" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColItem" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColMarket" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="64" HeightSizePolicy="StretchToParent" MarginLeft="8" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColGoal" />
+                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="36" HeightSizePolicy="StretchToParent" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColMine" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="176" HeightSizePolicy="StretchToParent" MarginLeft="8" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColChange" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColResult" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="204" HeightSizePolicy="StretchToParent" MarginLeft="8" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColDenari" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColParty" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="92" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColPrisoners" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColLand" />
+                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ColSea" IsVisible="@ShowSea" />
                       </Children>
                     </ListPanel>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" MarginTop="74" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.25" />
@@ -97,13 +100,15 @@
                                     <!-- ===== one section ===== -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                       <Children>
-                                        <!-- the section's title line: [fold] the name, the overview, and its subtotal in every column (mockup choice 3) -->
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38">
+                                        <!-- the section's title line: [fold] the name and its subtotal in every column (mockup choice 3) - since round 5 its Goal,
+                                             Mine and Result too (Troops: the party size limit, the members now red over it), so the overview moved to a row of its own
+                                             under the name, the table's whole left width (hover: all of it) -->
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="54">
                                           <Children>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="3" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.06" />
-                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="3" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="3" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                               <Children>
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="876" HeightSizePolicy="StretchToParent" ClipContents="true">
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="504" HeightSizePolicy="StretchToParent" ClipContents="true">
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="6" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                       <Children>
@@ -123,13 +128,24 @@
                                                             <HintWidget DataSource="{ToggleHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                                                           </Children>
                                                         </ButtonWidget>
-                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="16" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@OverviewColor" Text="@OverviewText" />
-                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="12" Brush="Popup.Description.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@OverviewNote" />
                                                       </Children>
                                                     </ListPanel>
                                                   </Children>
                                                 </Widget>
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="230" HeightSizePolicy="StretchToParent" MarginLeft="10">
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" MarginLeft="8">
+                                                  <Children>
+                                                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent">
+                                                      <Children>
+                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="6" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@GoalColor" Text="@GoalText" />
+                                                        <HintWidget DataSource="{GoalHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                      </Children>
+                                                    </Widget>
+                                                  </Children>
+                                                </Widget>
+                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MineColor" Text="@MineText" />
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="176" HeightSizePolicy="StretchToParent" MarginLeft="8" />
+                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@ResultColor" Text="@ResultText" />
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="204" HeightSizePolicy="StretchToParent" MarginLeft="8">
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                       <Children>
@@ -139,12 +155,24 @@
                                                     </ListPanel>
                                                   </Children>
                                                 </Widget>
-                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="76" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PartyText" />
-                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PrisonersText" />
-                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@LandText" />
-                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@SeaText" IsVisible="@ShowSea" />
+                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PartyText" />
+                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="92" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PrisonersText" />
+                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@LandText" />
+                                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@SeaText" IsVisible="@ShowSea" />
                                               </Children>
                                             </ListPanel>
+                                            <!-- the overview (red past a limit: Troops 104/101, the Horses when the herd slows) and its small grey note -->
+                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="892" HeightSizePolicy="Fixed" SuggestedHeight="20" VerticalAlignment="Bottom" MarginLeft="36" MarginBottom="2" ClipContents="true">
+                                              <Children>
+                                                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@OverviewColor" Text="@OverviewText" />
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="12" Brush="Popup.Description.Text" Brush.FontSize="14" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@OverviewNote" />
+                                                  </Children>
+                                                </ListPanel>
+                                                <HintWidget DataSource="{OverviewHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                              </Children>
+                                            </Widget>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Bottom" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.18" />
                                           </Children>
                                         </Widget>
@@ -159,10 +187,8 @@
                                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.04" />
                                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                       <Children>
-                                                        <!-- Market: far left, as in the game's trade screen (Anton, at the approval) -->
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@MarketText" />
-                                                        <!-- Item: [indent] [fold] the name (gold = the Encyclopedia) and the small grey note -->
-                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="426" HeightSizePolicy="StretchToParent" MarginLeft="16" ClipContents="true">
+                                                        <!-- Item: [indent] [fold] the name (gold = the Encyclopedia) and the small grey note - far left again (round 5) -->
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="432" HeightSizePolicy="StretchToParent" MarginLeft="6" ClipContents="true">
                                                           <Children>
                                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                               <Children>
@@ -190,9 +216,40 @@
                                                             </ListPanel>
                                                           </Children>
                                                         </Widget>
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@MineText" />
-                                                        <!-- Change: [-] n [+] [reset] - or the prisoner toggle -->
-                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="214" HeightSizePolicy="StretchToParent" MarginLeft="10">
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@MarketText" />
+                                                        <!-- Goal (round 5): where the line should end - typed on the food and horse role rows -->
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" MarginLeft="8">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" IsVisible="@IsGoalPlain">
+                                                              <Children>
+                                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@GoalColor" Text="@GoalText" />
+                                                                <HintWidget DataSource="{GoalHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                              </Children>
+                                                            </Widget>
+                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Center" IsVisible="@IsGoalBox">
+                                                              <Children>
+                                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+                                                                <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="4" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.FontColor="@GoalColor" RealText="@GoalText" MaxLength="7" Command.TextEntered="ExecuteGoalEntered" Command.FocusGained="ExecuteGoalFocusGained" Command.FocusLost="ExecuteGoalFocusLost">
+                                                                  <Children>
+                                                                    <HintWidget DataSource="{GoalHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                                  </Children>
+                                                                </EditableTextWidget>
+                                                              </Children>
+                                                            </Widget>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                              <Children>
+                                                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="RefreshButton.Flat" Command.Click="ExecuteReset" IsVisible="@CanResetGoal">
+                                                                  <Children>
+                                                                    <HintWidget DataSource="{GoalResetHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+                                                                  </Children>
+                                                                </ButtonWidget>
+                                                              </Children>
+                                                            </Widget>
+                                                          </Children>
+                                                        </Widget>
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@MineText" />
+                                                        <!-- Change: [-] n [+] [reset] - or the prisoner toggle (a goal row's reset sits in the Goal column) -->
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="176" HeightSizePolicy="StretchToParent" MarginLeft="8">
                                                           <Children>
                                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasSpinner">
                                                               <Children>
@@ -219,7 +276,7 @@
                                                                 </Widget>
                                                                 <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28" VerticalAlignment="Center" MarginLeft="10">
                                                                   <Children>
-                                                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="RefreshButton.Flat" Command.Click="ExecuteReset" IsVisible="@CanReset">
+                                                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="RefreshButton.Flat" Command.Click="ExecuteReset" IsVisible="@CanResetInChange">
                                                                       <Children>
                                                                         <HintWidget DataSource="{ResetHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                                                                       </Children>
@@ -270,8 +327,14 @@
                                                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@ChangeColor" Text="@ChangeText" IsVisible="@HasChangeOnly" HorizontalAlignment="Center" />
                                                           </Children>
                                                         </Widget>
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@ResultText" />
-                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="230" HeightSizePolicy="StretchToParent" MarginLeft="10">
+                                                        <!-- Result: its hover says why it stops short of the goal (round 5) -->
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent">
+                                                          <Children>
+                                                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@TextColor" Text="@ResultText" />
+                                                            <HintWidget DataSource="{ResultHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                          </Children>
+                                                        </Widget>
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="204" HeightSizePolicy="StretchToParent" MarginLeft="8">
                                                           <Children>
                                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                               <Children>
@@ -282,10 +345,10 @@
                                                           <HintWidget DataSource="{DenariHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
                                                           </Children>
                                                         </Widget>
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="76" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PartyText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PrisonersText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@LandText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@SeaText" IsVisible="@ShowSea" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PartyText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="92" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PrisonersText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@LandText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@SeaText" IsVisible="@ShowSea" />
                                                       </Children>
                                                     </ListPanel>
                                                   </Children>
@@ -295,8 +358,7 @@
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                       <Children>
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@MarketText" />
-                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="426" HeightSizePolicy="StretchToParent" MarginLeft="16" ClipContents="true">
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="432" HeightSizePolicy="StretchToParent" MarginLeft="6" ClipContents="true">
                                                           <Children>
                                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                               <Children>
@@ -307,10 +369,12 @@
                                                             </ListPanel>
                                                           </Children>
                                                         </Widget>
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@MineText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="214" HeightSizePolicy="StretchToParent" MarginLeft="10" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@ChangeColor" Text="@ChangeText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="70" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ResultText" />
-                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="230" HeightSizePolicy="StretchToParent" MarginLeft="10">
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@MarketText" />
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" MarginLeft="8" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@MineText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="176" HeightSizePolicy="StretchToParent" MarginLeft="8" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@ChangeColor" Text="@ChangeText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ResultText" />
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="204" HeightSizePolicy="StretchToParent" MarginLeft="8">
                                                           <Children>
                                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                                               <Children>
@@ -321,10 +385,10 @@
                                                           <HintWidget DataSource="{DenariHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
                                                           </Children>
                                                         </Widget>
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="76" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@PartyText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@PrisonersText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@LandText" />
-                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@SeaText" IsVisible="@ShowSea" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@PartyText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="92" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@PrisonersText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@LandText" />
+                                                        <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@SeaText" IsVisible="@ShowSea" />
                                                       </Children>
                                                     </ListPanel>
                                                   </Children>
@@ -359,7 +423,7 @@
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Top" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.4" />
                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
                               <Children>
-                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="876" HeightSizePolicy="StretchToParent" ClipContents="true">
+                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="928" HeightSizePolicy="StretchToParent" ClipContents="true">
                                   <Children>
                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="36" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                       <Children>
@@ -369,7 +433,7 @@
                                     </ListPanel>
                                   </Children>
                                 </Widget>
-                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="230" HeightSizePolicy="StretchToParent" MarginLeft="10">
+                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="204" HeightSizePolicy="StretchToParent" MarginLeft="8">
                                   <Children>
                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight">
                                       <Children>
@@ -379,10 +443,10 @@
                                     </ListPanel>
                                   </Children>
                                 </Widget>
-                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="76" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PartyText" />
-                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="100" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PrisonersText" />
-                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@LandText" />
-                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="106" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@SeaText" IsVisible="@ShowSea" />
+                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PartyText" />
+                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="92" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@PrisonersText" />
+                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@LandText" />
+                                <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="104" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="21" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Text="@SeaText" IsVisible="@ShowSea" />
                               </Children>
                             </ListPanel>
                           </Children>
@@ -736,9 +800,17 @@
                     <!-- The Suggestion tab's clicks, told once here (round 4 - Anton: "move the tooltip about the shift+click on the
                          top of the Instructions, the players will see it once there") -->
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@ShortcutText" />
-                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginTop="30" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@IntroText" />
+                    <!-- Round 5 (step 23): typing a goal, and the reset button (drawn as the icon itself - the fonts have no ⟲) -->
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginTop="28" MarginLeft="6" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                      <Children>
+                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@GoalLineStart" />
+                        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="22" SuggestedHeight="22" VerticalAlignment="Center" MarginLeft="6" MarginRight="6" Brush="RefreshButton.Flat" DoNotAcceptEvents="true" />
+                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="19" Brush.TextVerticalAlignment="Center" Brush.FontColor="@HeadingColor" Text="@GoalLineEnd" />
+                      </Children>
+                    </ListPanel>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="28" VerticalAlignment="Top" MarginTop="58" MarginLeft="6" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@IntroText" />
 
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="66">
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="94">
                       <Children>
                         <ScrollablePanel Id="InstructionsScroller" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="14" ClipRect="InstructionsClip" InnerPanel="InstructionsClip\InstructionsList" VerticalScrollbar="..\InstructionsScrollbar" AutoHideScrollBars="true">
                           <Children>
@@ -759,12 +831,12 @@
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38">
                                               <Children>
-                                                <!-- a small line inside a group (the troops ready to upgrade) -->
+                                                <!-- a small grey info line on top of a group (round 5: "A food whose goal you have not typed ... follows these rules.") -->
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@IsHeading">
                                                   <Children>
                                                     <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="30">
                                                       <Children>
-                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="20" Brush.TextVerticalAlignment="Bottom" Brush.FontColor="@HeadingColor" Text="@LabelText" />
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@LabelText" />
                                                         <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
                                                       </Children>
                                                     </Widget>

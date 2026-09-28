@@ -13,9 +13,9 @@ namespace SmartSteward.UI
 {
     /// <summary>
     /// The Suggestion tab as ONE spreadsheet (PLAN step 21 — the mockup Anton approved on 2026.09.28, docs/mockups/README.md,
-    /// DESIGN §1.1): the denari header, the columns Market · Item · Mine · Change · Result · Denari · Party · Prisoners · Land kg
-    /// · Sea kg, the sections Troops · Food · Horses · Prisoners · Other whose title line is their subtotal, the lines under
-    /// them as the folds leave them. Core's <see cref="SheetView"/> decides every line, cell, colour and button state; this VM
+    /// DESIGN §1.1): the denari header, the columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners ·
+    /// Land weight · Sea weight (round 5, step 23 — the Goal a typed box on the food and horse role rows), the sections Troops ·
+    /// Food · Horses · Prisoners · Other whose title line is their subtotal, the lines under them as the folds leave them. Core's <see cref="SheetView"/> decides every line, cell, colour and button state; this VM
     /// only copies them and turns clicks into plan edits. After every click the view is built again and each line's VM is
     /// updated in place while its key stays — a fold inserts or removes only the lines it opens or closes.
     /// </summary>
@@ -46,6 +46,13 @@ namespace SmartSteward.UI
         /// <summary>The window is on screen: the wanderers it lists are learned about (round 3, <see cref="Adapter.TavernKnowledge"/>).</summary>
         private bool _shown;
 
+        /// <summary>A Goal box the player left (Enter or focus lost) — committed on the next tick or before the next command,
+        /// never inside the widget's own event (a re-plan may rebuild the very list the box sits in).</summary>
+        private readonly List<(SheetItemVM Item, bool Entered)> _pendingGoals = new List<(SheetItemVM, bool)>();
+
+        /// <summary>The Goal box being typed in (between its FocusGained and FocusLost).</summary>
+        private SheetItemVM? _typingGoal;
+
         internal SuggestionTabVM(Action onPlanChanged)
         {
             _onPlanChanged = onPlanChanged;
@@ -61,7 +68,7 @@ namespace SmartSteward.UI
             // "Weight, not kg" (Anton 2026.09.28, round 5): the game writes weight with no unit.
             ColLand = UiText.S("ss_ui_col_land_weight", "Land weight");
             ColSea = UiText.S("ss_ui_col_sea_weight", "Sea weight");
-            ColGoal = UiText.S("ss_ui_col_goal", "Goal"); // the Goal column — laid out in step 23
+            ColGoal = UiText.S("ss_ui_col_goal", "Goal"); // round 5: where the line should end (step 23 lays it out)
             HeaderLabel = UiText.S("ss_ui_header_denari", "Denari");
             _nothingToDoText = UiText.S("ss_ui_empty", "Nothing for the steward to do here.");
             _emptyText = _nothingToDoText;
@@ -166,6 +173,94 @@ namespace SmartSteward.UI
             HasStatus = !string.IsNullOrEmpty(StatusText);
         }
 
+        // ── the typed Goal boxes (round 5, PLAN step 23) ──────────────────────────────────────────────────
+
+        internal void GoalFocusGained(SheetItemVM item) => _typingGoal = item;
+
+        /// <summary>The player left a Goal box: Enter (<paramref name="entered"/>) or a click elsewhere. Queued — see
+        /// <see cref="FlushGoal"/>.</summary>
+        internal void QueueGoal(SheetItemVM item, bool entered)
+        {
+            if (_typingGoal == item && !entered)
+                _typingGoal = null;
+            int at = _pendingGoals.FindIndex(p => p.Item == item);
+            if (at >= 0)
+                _pendingGoals[at] = (item, _pendingGoals[at].Entered || entered);
+            else
+                _pendingGoals.Add((item, entered));
+        }
+
+        /// <summary>A Goal box is being typed in.</summary>
+        internal bool IsTypingGoal => _typingGoal != null;
+
+        /// <summary>Escape inside a Goal box: the box shows its goal again and nothing is committed (the window stays open —
+        /// a second Escape closes it).</summary>
+        internal void CancelGoalTyping()
+        {
+            var item = _typingGoal;
+            _typingGoal = null;
+            _pendingGoals.RemoveAll(p => p.Item == item);
+            if (item != null)
+            {
+                item.EndTyping();
+                item.RevertGoal();
+                ModLog.Info("window", "goal typing cancelled on " + item.Key);
+            }
+        }
+
+        /// <summary>
+        /// Commits the Goal box the player left: a changed whole number becomes the row's standing goal
+        /// (<see cref="StewardPlan.SetGoal"/>, the plan re-plans around it) and is saved quietly; anything else — the same text,
+        /// letters, a minus, an empty box — puts the box back as it was (Core <see cref="GoalInput"/>). Runs every tick and
+        /// before every other command, so a click elsewhere lands after the goal it took the focus from.
+        /// </summary>
+        internal void FlushGoal()
+        {
+            if (_pendingGoals.Count == 0)
+                return;
+            var pending = _pendingGoals.ToList();
+            _pendingGoals.Clear();
+            bool entered = false;
+            foreach (var (item, enter) in pending)
+            {
+                if (enter && _typingGoal == item)
+                    _typingGoal = null;
+                entered |= enter;
+                item.EndTyping();
+                CommitGoal(item);
+            }
+            if (entered)
+                StewardWindow.ClearTextFocus(); // Enter leaves the box, as in a spreadsheet
+        }
+
+        private void CommitGoal(SheetItemVM vm)
+        {
+            var plan = _plan;
+            var item = vm.Item;
+            var row = item.Row;
+            if (plan == null || row == null || !item.Goal.Editable || item.Kind != SheetItemKind.Row)
+            {
+                vm.RevertGoal();
+                return;
+            }
+            switch (GoalInput.Read(vm.GoalText, vm.ShownGoalText, out int goal))
+            {
+                case GoalTyped.Unchanged:
+                    vm.RevertGoal(); // the hands-off mark comes back after an empty visit
+                    return;
+                case GoalTyped.Invalid:
+                    ModLog.Info("window", "goal typed on " + row.Id + " is not a number of 0 or more: '" + vm.GoalText + "' - kept "
+                                          + vm.ShownGoalText);
+                    vm.RevertGoal();
+                    return;
+            }
+            var facts = plan.Facts;
+            var result = plan.SetGoal(row.Id, goal);
+            ModLog.Info("window", "goal typed " + row.Id + " = " + goal + ": change " + result.Before + " -> " + result.After
+                                  + (result.GoalShort == GoalShort.None ? "" : " (short: " + result.GoalShort + ")"));
+            AfterEdit(facts);
+        }
+
         // ── clicks (called by the lines) ─────────────────────────────────────────────────────────────────
 
         /// <summary>[+] / [−] on a line: a row edit (click 1, shift 5, ctrl all — the editor stops at zero, so a troop row under
@@ -236,6 +331,7 @@ namespace SmartSteward.UI
 
         public void ExecuteResetAll() => StewardWindowVM.Guard("reset all", () =>
         {
+            FlushGoal();
             if (_plan == null)
                 return;
             var facts = _plan.Facts;
@@ -506,6 +602,12 @@ namespace SmartSteward.UI
         private string _landText = "";
         private string _seaText = "";
         private bool _showSea;
+        private string _goalText = "";
+        private string _goalColor = UiColors.Text;
+        private string _mineText = "";
+        private string _mineColor = UiColors.Text;
+        private string _resultText = "";
+        private string _resultColor = UiColors.Text;
 
         internal SheetSectionVM(SuggestionTabVM tab, SheetSectionView view)
         {
@@ -514,6 +616,8 @@ namespace SmartSteward.UI
             Group = view.Group;
             TitleText = UiLabels.SheetSection(view.Group);
             ToggleHint = new HintVM();
+            GoalHint = new HintVM();
+            OverviewHint = new HintVM();
             Items = new MBBindingList<SheetItemVM>();
             Update(view);
         }
@@ -541,6 +645,17 @@ namespace SmartSteward.UI
             LandText = c.Land;
             SeaText = c.Sea;
             ShowSea = _tab.ShowSea;
+            // Round 5: the title line's Goal (Troops = the party size limit, the others the sum of their lines), Mine (red when
+            // the party is over its limit now) and Result (red past a limit, like the overview: the party, the herd).
+            GoalText = view.Goal.Text;
+            GoalColor = view.Goal.HandsOff ? UiColors.Muted : UiColors.Text;
+            GoalHint.Text = view.Goal.Hint;
+            MineText = view.Mine;
+            MineColor = UiColors.ForLimit(view.MineWarning);
+            ResultText = view.Result;
+            ResultColor = UiColors.ForLimit(view.OverviewWarning);
+            OverviewHint.Text = view.Overview.Length == 0 ? ""
+                : view.OverviewNote.Length == 0 ? view.Overview : view.Overview + " " + UiFormat.Dot + " " + view.OverviewNote;
             SyncItems(view.Items);
         }
 
@@ -582,6 +697,7 @@ namespace SmartSteward.UI
 
         public void ExecuteToggle() => StewardWindowVM.Guard("fold " + Group, () =>
         {
+            _tab.FlushGoal();
             if (_view.HasFold)
                 _tab.Fold(_view.FoldKeys, _view.IsOpen);
         });
@@ -693,6 +809,54 @@ namespace SmartSteward.UI
             get => _showSea;
             set { if (value != _showSea) { _showSea = value; OnPropertyChangedWithValue(value, nameof(ShowSea)); } }
         }
+
+        [DataSourceProperty] public HintVM GoalHint { get; }
+
+        /// <summary>The whole overview and its note (the overview line is cut at the table's width).</summary>
+        [DataSourceProperty] public HintVM OverviewHint { get; }
+
+        [DataSourceProperty]
+        public string GoalText
+        {
+            get => _goalText;
+            set { if (value != _goalText) { _goalText = value; OnPropertyChangedWithValue(value, nameof(GoalText)); } }
+        }
+
+        [DataSourceProperty]
+        public string GoalColor
+        {
+            get => _goalColor;
+            set { if (value != _goalColor) { _goalColor = value; OnPropertyChangedWithValue(value, nameof(GoalColor)); } }
+        }
+
+        [DataSourceProperty]
+        public string MineText
+        {
+            get => _mineText;
+            set { if (value != _mineText) { _mineText = value; OnPropertyChangedWithValue(value, nameof(MineText)); } }
+        }
+
+        /// <summary>Red when the party is over its size limit now (Anton, round 5).</summary>
+        [DataSourceProperty]
+        public string MineColor
+        {
+            get => _mineColor;
+            set { if (value != _mineColor) { _mineColor = value; OnPropertyChangedWithValue(value, nameof(MineColor)); } }
+        }
+
+        [DataSourceProperty]
+        public string ResultText
+        {
+            get => _resultText;
+            set { if (value != _resultText) { _resultText = value; OnPropertyChangedWithValue(value, nameof(ResultText)); } }
+        }
+
+        [DataSourceProperty]
+        public string ResultColor
+        {
+            get => _resultColor;
+            set { if (value != _resultColor) { _resultColor = value; OnPropertyChangedWithValue(value, nameof(ResultColor)); } }
+        }
     }
 
     /// <summary>
@@ -730,6 +894,18 @@ namespace SmartSteward.UI
         private bool _hasToggle;
         private PrisonerChoice _choice;
         private bool _canDonate;
+        private string _goalText = "";
+        private string _goalColor = UiColors.Text;
+        private bool _isGoalBox;
+        private bool _isGoalPlain;
+        private bool _canResetGoal;
+        private bool _canResetInChange;
+
+        /// <summary>The Goal box has the focus: an update must not write over what the player is typing.</summary>
+        private bool _editing;
+
+        private readonly string _goalYoursHint;
+        private readonly string _goalStewardHint;
 
         internal SheetItemVM(SuggestionTabVM tab, SheetItem item)
         {
@@ -754,6 +930,14 @@ namespace SmartSteward.UI
             RansomHint = new HintVM(UiText.S("ss_ui_toggle_ransom_hint",
                 "Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab."));
             DonateHint = new HintVM();
+            GoalHint = new HintVM();
+            ResultHint = new HintVM();
+            GoalResetHint = new HintVM(UiText.S("ss_ui_goal_reset_hint",
+                "Your goal - it holds in every town. Click to give the row back to the rules in the Instructions tab."));
+            _goalYoursHint = UiText.S("ss_ui_goal_yours_hint",
+                "Your goal: the steward aims this row at it in every town, until you reset it. Type a new number and press Enter to change it.");
+            _goalStewardHint = UiText.S("ss_ui_goal_steward_hint",
+                "The steward's goal, from your Instructions. Type a number and press Enter to set your own - it then holds in every town.");
             Update(item);
         }
 
@@ -801,6 +985,22 @@ namespace SmartSteward.UI
                     ? UiText.S("ss_ui_recruits_minus_hint", "Give back the last recruits. Shift 5, Ctrl all.")
                     : UiLabels.Block(item.DecreaseBlock);
             CanReset = item.CanReset;
+
+            // The Goal column (round 5): a typed box on the food and pack / riding / war rows, plain text elsewhere; the ⟲ of a goal
+            // row sits beside its box (the Change column keeps the ⟲ of every other row); the Result says why it stops short.
+            var goal = item.Goal;
+            IsGoalBox = goal.Editable && item.Kind == SheetItemKind.Row;
+            IsGoalPlain = !IsGoalBox && !IsSubLine;
+            if (!_editing)
+            {
+                SetGoalText(goal.Text);
+                GoalColor = GoalColorOf(goal);
+            }
+            GoalHint.Text = goal.HandsOff ? goal.Hint : !IsGoalBox ? "" : goal.IsYours ? _goalYoursHint : _goalStewardHint;
+            CanResetGoal = IsGoalBox && item.CanReset;
+            CanResetInChange = item.CanReset && !IsGoalBox;
+            ResultHint.Text = goal.ShortText;
+
             HasToggle = item.Choice != null;
             if (item.Choice != null)
             {
@@ -815,29 +1015,80 @@ namespace SmartSteward.UI
 
         // ── commands ─────────────────────────────────────────────────────────────────────────────────────
 
-        public void ExecuteIncrease() => StewardWindowVM.Guard("[+] " + Key, () => _tab.Edit(_item, +1));
+        // Every command first commits a Goal box the click took the focus from (FlushGoal), then acts on the line as it stands.
 
-        public void ExecuteDecrease() => StewardWindowVM.Guard("[-] " + Key, () => _tab.Edit(_item, -1));
+        public void ExecuteIncrease() => StewardWindowVM.Guard("[+] " + Key, () => { _tab.FlushGoal(); _tab.Edit(_item, +1); });
 
-        public void ExecuteReset() => StewardWindowVM.Guard("reset " + Key, () => _tab.Reset(_item));
+        public void ExecuteDecrease() => StewardWindowVM.Guard("[-] " + Key, () => { _tab.FlushGoal(); _tab.Edit(_item, -1); });
+
+        /// <summary>⟲ — in the Change column, or beside a goal of yours in the Goal column (the row back to the policy).</summary>
+        public void ExecuteReset() => StewardWindowVM.Guard("reset " + Key, () => { _tab.FlushGoal(); _tab.Reset(_item); });
 
         public void ExecuteToggleFold() => StewardWindowVM.Guard("fold " + Key, () =>
         {
+            _tab.FlushGoal();
             if (_item.FoldKey != null)
                 _tab.Fold(new[] { _item.FoldKey }, _item.IsOpen);
         });
 
         public void ExecuteOpenLink() => StewardWindowVM.Guard("link " + Key, () =>
         {
+            _tab.FlushGoal();
             if (_item.IsLink && _item.Row != null)
                 _tab.OpenLink(_item.Row);
         });
 
-        public void ExecuteKeep() => StewardWindowVM.Guard("keep " + Key, () => _tab.SetPrisonerAction(_item, PrisonerChoice.Keep));
+        public void ExecuteKeep() => StewardWindowVM.Guard("keep " + Key, () => { _tab.FlushGoal(); _tab.SetPrisonerAction(_item, PrisonerChoice.Keep); });
 
-        public void ExecuteRansom() => StewardWindowVM.Guard("ransom " + Key, () => _tab.SetPrisonerAction(_item, PrisonerChoice.Ransom));
+        public void ExecuteRansom() => StewardWindowVM.Guard("ransom " + Key, () => { _tab.FlushGoal(); _tab.SetPrisonerAction(_item, PrisonerChoice.Ransom); });
 
-        public void ExecuteDonate() => StewardWindowVM.Guard("donate " + Key, () => _tab.SetPrisonerAction(_item, PrisonerChoice.Donate));
+        public void ExecuteDonate() => StewardWindowVM.Guard("donate " + Key, () => { _tab.FlushGoal(); _tab.SetPrisonerAction(_item, PrisonerChoice.Donate); });
+
+        // ── the Goal box (round 5): the widget's own events only queue — the tab commits on its next tick ──
+
+        /// <summary>The box got the focus: typing starts (the hands-off mark clears, so a number can be typed at once).</summary>
+        public void ExecuteGoalFocusGained() => StewardWindowVM.Guard("goal focus " + Key, () =>
+        {
+            _editing = true;
+            _tab.GoalFocusGained(this);
+            if (_item.Goal.HandsOff)
+                SetGoalText("");
+            GoalColor = UiColors.Text;
+        });
+
+        /// <summary>A click elsewhere took the focus: the typed goal commits (or reverts).</summary>
+        public void ExecuteGoalFocusLost() => StewardWindowVM.Guard("goal focus lost " + Key, () => _tab.QueueGoal(this, entered: false));
+
+        /// <summary>Enter: the typed goal commits and the box lets go.</summary>
+        public void ExecuteGoalEntered() => StewardWindowVM.Guard("goal entered " + Key, () => _tab.QueueGoal(this, entered: true));
+
+        /// <summary>The line as Core last built it.</summary>
+        internal SheetItem Item => _item;
+
+        /// <summary>What the Goal box showed before the player typed (Core's text).</summary>
+        internal string ShownGoalText => _item.Goal.Text;
+
+        /// <summary>Typing is over (committed, reverted or cancelled): the next update may write the box again.</summary>
+        internal void EndTyping() => _editing = false;
+
+        /// <summary>The box shows Core's goal again, in its colour.</summary>
+        internal void RevertGoal()
+        {
+            SetGoalText(_item.Goal.Text);
+            GoalColor = GoalColorOf(_item.Goal);
+        }
+
+        private void SetGoalText(string text)
+        {
+            if (text == _goalText)
+                return;
+            _goalText = text;
+            OnPropertyChangedWithValue(text, nameof(GoalText));
+        }
+
+        /// <summary>Gold for a goal of yours, grey for the hands-off mark, plain for the steward's.</summary>
+        private static string GoalColorOf(SheetGoalCell goal) =>
+            goal.IsYours ? UiColors.Yours : goal.HandsOff ? UiColors.Muted : UiColors.Text;
 
         // ── bound properties ─────────────────────────────────────────────────────────────────────────────
 
@@ -1085,6 +1336,74 @@ namespace SmartSteward.UI
             get => _canReset;
             set { if (value != _canReset) { _canReset = value; OnPropertyChangedWithValue(value, nameof(CanReset)); } }
         }
+
+        // ── the Goal column (round 5) ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>The goal as the box / cell shows it; two-way on the box (the widget writes every key — nothing commits
+        /// until Enter or a click elsewhere). While typing, a text that is no goal turns red.</summary>
+        [DataSourceProperty]
+        public string GoalText
+        {
+            get => _goalText;
+            set
+            {
+                if (value == _goalText) return;
+                _goalText = value ?? "";
+                OnPropertyChangedWithValue(_goalText, nameof(GoalText));
+                if (_editing)
+                    GoalColor = _goalText.Trim().Length == 0 || GoalInput.Read(_goalText, "\u0001", out _) == GoalTyped.Goal
+                        ? UiColors.Text
+                        : UiColors.Warning;
+            }
+        }
+
+        [DataSourceProperty]
+        public string GoalColor
+        {
+            get => _goalColor;
+            set { if (value != _goalColor) { _goalColor = value; OnPropertyChangedWithValue(value, nameof(GoalColor)); } }
+        }
+
+        /// <summary>A typed box: food and the pack / riding / war rows.</summary>
+        [DataSourceProperty]
+        public bool IsGoalBox
+        {
+            get => _isGoalBox;
+            set { if (value != _isGoalBox) { _isGoalBox = value; OnPropertyChangedWithValue(value, nameof(IsGoalBox)); } }
+        }
+
+        /// <summary>The goal as plain text (every other main line; empty on the troop lines).</summary>
+        [DataSourceProperty]
+        public bool IsGoalPlain
+        {
+            get => _isGoalPlain;
+            set { if (value != _isGoalPlain) { _isGoalPlain = value; OnPropertyChangedWithValue(value, nameof(IsGoalPlain)); } }
+        }
+
+        /// <summary>⟲ beside a goal of yours.</summary>
+        [DataSourceProperty]
+        public bool CanResetGoal
+        {
+            get => _canResetGoal;
+            set { if (value != _canResetGoal) { _canResetGoal = value; OnPropertyChangedWithValue(value, nameof(CanResetGoal)); } }
+        }
+
+        /// <summary>⟲ in the Change column: the player's hand on a row that takes no goal (a troop, a prisoner, a loot group).</summary>
+        [DataSourceProperty]
+        public bool CanResetInChange
+        {
+            get => _canResetInChange;
+            set { if (value != _canResetInChange) { _canResetInChange = value; OnPropertyChangedWithValue(value, nameof(CanResetInChange)); } }
+        }
+
+        /// <summary>The Goal cell's hover: the hands-off reason, or what typing a goal does.</summary>
+        [DataSourceProperty] public HintVM GoalHint { get; }
+
+        /// <summary>The Goal column's ⟲ hover.</summary>
+        [DataSourceProperty] public HintVM GoalResetHint { get; }
+
+        /// <summary>The Result's hover when it stops short of the goal: <c>Short of the goal: …</c>.</summary>
+        [DataSourceProperty] public HintVM ResultHint { get; }
     }
 
     /// <summary>The pinned Total line (mockup choice 3): "Total", the party and prisoners before » after, and every row once in

@@ -27,6 +27,11 @@ namespace SmartSteward.UI
             ShortcutText = UiText.S("ss_ui_shortcuts", "Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia");
             IntroText = UiText.S("ss_ui_instructions_intro",
                 "Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does.");
+            // Round 5 (step 23): the Goal column, told once here beside the clicks - the reset button drawn as its own icon
+            // (the fonts have no ⟲).
+            GoalLineStart = UiText.S("ss_ui_shortcuts_goal",
+                "Type a goal in the Goal column (food, pack animals, riding and war horses) and press Enter - it holds in every town until");
+            GoalLineEnd = UiText.S("ss_ui_shortcuts_goal_end", "gives the row back to these rules.");
         }
 
         /// <summary>Builds the groups (again after Do it: the party — its footmen, its food rate — may have changed).</summary>
@@ -39,6 +44,9 @@ namespace SmartSteward.UI
             foreach (var group in SettingEdit.Groups())
             {
                 var vm = new SettingGroupVM(UiText.S("ss_grp_" + group.Key.Replace(" ", ""), SettingsRegistry.GroupLabel(group.Key)));
+                string info = GroupInfo(group.Key);
+                if (info.Length > 0)
+                    vm.Settings.Add(SettingLineVM.Info(info)); // round 5: what the group's rules have to do with the Goal column
                 foreach (var def in group.Value)
                 {
                     // The food goal in days shows what it means per man for this party, live (Anton 2026.09.28); the horses
@@ -53,6 +61,29 @@ namespace SmartSteward.UI
                 groups.Add(vm);
             }
             Groups = groups;
+        }
+
+        /// <summary>The info line on top of a group (round 5, Anton 2026.09.28: "add a info line telling that every food item
+        /// that's goal is not manually set will be determined by those rules"): the food and horse groups follow their rules
+        /// only where no goal was typed; the "Goals you set by hand" group says what it is for. "" = none.</summary>
+        private static string GroupInfo(string group)
+        {
+            switch (group)
+            {
+                case SettingsRegistry.Goals:
+                    return UiText.S("ss_ui_info_goals",
+                        "How the goals you type in the Suggestion tab's Goal column meet the money rules. The steward's own rows always keep them.");
+                case SettingsRegistry.Food:
+                    return UiText.S("ss_ui_info_food", "A food whose goal you have not typed in the Suggestion tab follows these rules.");
+                case SettingsRegistry.Pack:
+                    return UiText.S("ss_ui_info_pack", "Pack animals follow these rules until you type their goal in the Suggestion tab.");
+                case SettingsRegistry.Mounts:
+                    return UiText.S("ss_ui_info_mounts", "Riding horses follow these rules until you type their goal in the Suggestion tab.");
+                case SettingsRegistry.WarMounts:
+                    return UiText.S("ss_ui_info_war", "War horses follow these rules until you type their goal in the Suggestion tab.");
+                default:
+                    return "";
+            }
         }
 
         /// <summary>After the box: "(110 horses = 100 riding + 10 war, for 100 footmen)" — what the two numbers mean for this
@@ -124,6 +155,10 @@ namespace SmartSteward.UI
 
         /// <summary>The Suggestion tab's clicks, told once at the top (moved here in round 4).</summary>
         [DataSourceProperty] public string ShortcutText { get; }
+
+        /// <summary>The Goal column's line under it (round 5): "Type a goal … until [⟲] gives the row back to these rules."</summary>
+        [DataSourceProperty] public string GoalLineStart { get; }
+        [DataSourceProperty] public string GoalLineEnd { get; }
         [DataSourceProperty] public string MutedColor => UiColors.Muted;
         [DataSourceProperty] public string HeadingColor => UiColors.Heading;
 
@@ -149,8 +184,8 @@ namespace SmartSteward.UI
         [DataSourceProperty] public MBBindingList<SettingLineVM> Settings { get; }
     }
 
-    /// <summary>One line: a setting (checkbox / number box / enum button) or a small heading (the ready-to-upgrade
-    /// count).</summary>
+    /// <summary>One line: a setting (checkbox / number box / enum button) or a small grey info line (round 5 — the
+    /// ready-to-upgrade heading it once was went with step 17).</summary>
     public sealed class SettingLineVM : ViewModel
     {
         private readonly InstructionsTabVM? _tab;
@@ -184,7 +219,9 @@ namespace SmartSteward.UI
             IsHeading = true;
         }
 
-        internal static SettingLineVM Heading(string label, string hint) => new SettingLineVM(label, hint);
+        /// <summary>A small grey line inside a group, no control (round 5: "A food whose goal you have not typed … follows these
+        /// rules.").</summary>
+        internal static SettingLineVM Info(string text) => new SettingLineVM(text, "");
 
         internal SettingDefinition? Definition { get; }
 

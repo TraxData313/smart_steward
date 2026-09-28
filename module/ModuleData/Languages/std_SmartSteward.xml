@@ -223,7 +223,15 @@
     <string id="ss_ui_fold_hint" text="Fold this section to its line. The steward remembers it, even after a restart." />
     <string id="ss_ui_fold_line_hint" text="Fold these rows. The steward remembers it." />
     <string id="ss_ui_food_days_note" text="days (~{PER} per soul)  ·  {RANGE}" />
+    <string id="ss_ui_goal_reset_hint" text="Your goal - it holds in every town. Click to give the row back to the rules in the Instructions tab." />
+    <string id="ss_ui_goal_steward_hint" text="The steward's goal, from your Instructions. Type a number and press Enter to set your own - it then holds in every town." />
+    <string id="ss_ui_goal_yours_hint" text="Your goal: the steward aims this row at it in every town, until you reset it. Type a new number and press Enter to change it." />
     <string id="ss_ui_header_denari" text="Denari" />
+    <string id="ss_ui_info_food" text="A food whose goal you have not typed in the Suggestion tab follows these rules." />
+    <string id="ss_ui_info_goals" text="How the goals you type in the Suggestion tab's Goal column meet the money rules. The steward's own rows always keep them." />
+    <string id="ss_ui_info_mounts" text="Riding horses follow these rules until you type their goal in the Suggestion tab." />
+    <string id="ss_ui_info_pack" text="Pack animals follow these rules until you type their goal in the Suggestion tab." />
+    <string id="ss_ui_info_war" text="War horses follow these rules until you type their goal in the Suggestion tab." />
     <string id="ss_ui_instructions_intro" text="Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does." />
     <string id="ss_ui_link_hint" text="Open in the Encyclopedia" />
     <string id="ss_ui_loot_armour" text="Armour" />
@@ -338,6 +346,8 @@
     <string id="ss_ui_sheet_your_min" text="your min" />
     <string id="ss_ui_sheet_your_troops" text="Your troops" />
     <string id="ss_ui_shortcuts" text="Click ±1  ·  Shift ±5  ·  Ctrl all  ·  names in gold open the Encyclopedia" />
+    <string id="ss_ui_shortcuts_goal" text="Type a goal in the Goal column (food, pack animals, riding and war horses) and press Enter - it holds in every town until" />
+    <string id="ss_ui_shortcuts_goal_end" text="gives the row back to these rules." />
     <string id="ss_ui_tab_instructions" text="Instructions" />
     <string id="ss_ui_tab_prices" text="Prices" />
     <string id="ss_ui_tab_suggestion" text="Suggestion" />

@@ -11,10 +11,17 @@ import sys
 PREFAB = sys.argv[1]
 STAGE = "c"  # the build stages of step 21 (a: skeleton, b: toggles, c: Total + footer) - only the final one is kept
 
-# Column widths (px) - the table is 1506 wide (1520 minus the 14 px scrollbar lane).
-MARKET, ITEM_GAP, ITEM, MINE, CHANGE_GAP, CHANGE, RESULT = 70, 16, 426, 70, 10, 214, 70
-DENARI_GAP, DENARI, PARTY, PRISONERS, LAND, SEA = 10, 230, 76, 100, 106, 106
-LEFT = MARKET + ITEM_GAP + ITEM + MINE + CHANGE_GAP + CHANGE + RESULT  # 876: the title line's left part
+# Column widths (px) - the table is 1506 wide (1520 minus the 14 px scrollbar lane). Round 5 (step 23, Anton 2026.09.28):
+# Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight - Item back at the far
+# left, the Goal column a typed box (GOAL_BOX) with the goal's reset button beside it (GOAL_RESET).
+PAD, ITEM, MARKET = 6, 432, 66
+GOAL_GAP, GOAL_BOX, GOAL_RESET_GAP, GOAL_RESET = 8, 70, 4, 26
+GOAL = GOAL_BOX + GOAL_RESET_GAP + GOAL_RESET  # 100
+MINE, CHANGE_GAP, CHANGE, RESULT = 66, 8, 176, 66
+DENARI_GAP, DENARI, PARTY, PRISONERS, LAND, SEA = 8, 204, 66, 92, 104, 104
+LEFT = PAD + ITEM + MARKET + GOAL_GAP + GOAL + MINE + CHANGE_GAP + CHANGE + RESULT  # 928: everything left of Denari
+NAME_PART = PAD + ITEM + MARKET  # 504: the title line's name (its numbers start at the Goal column)
+TITLE_HEIGHT, TITLE_ROW, OVERVIEW_ROW = 54, 30, 20  # round 5: the overview on its own row under the name, full width
 
 TXT = 'Brush="Popup.Description.Text"'
 
@@ -81,6 +88,49 @@ def toggle_button(command, lit, enabled, hint, label, margin_left):
 </Widget>'''
 
 
+def hinted_text(width, value, size, color, hint, align="Right", margin_left=0, visible=None, margin_right=0):
+    """A text cell with a hover (vanilla's wrapper: a Widget holding the text and a disabled HintWidget)."""
+    ml = f' MarginLeft="{margin_left}"' if margin_left else ""
+    v = f' IsVisible="{visible}"' if visible else ""
+    mr = f' MarginRight="{margin_right}"' if margin_right else ""
+    return f'''<Widget WidthSizePolicy="Fixed" SuggestedWidth="{width}" HeightSizePolicy="StretchToParent"{ml}{v}>
+  <Children>
+    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"{mr} {TXT} Brush.FontSize="{size}" Brush.TextHorizontalAlignment="{align}" Brush.TextVerticalAlignment="Center" Brush.FontColor="{color}" Text="{value}" />
+    <HintWidget DataSource="{{{hint}}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+  </Children>
+</Widget>'''
+
+
+def goal_cell():
+    """Round 5 (step 23): the Goal column of a line - a typed box on the food and pack / riding / war rows (Enter or a click
+    elsewhere commits, Escape reverts; gold = yours, with its reset button beside it), plain text on every other line, the
+    grey hands-off mark with its hover."""
+    return f'''<Widget WidthSizePolicy="Fixed" SuggestedWidth="{GOAL}" HeightSizePolicy="StretchToParent" MarginLeft="{GOAL_GAP}">
+  <Children>
+{indent(hinted_text(GOAL_BOX, "@GoalText", 19, "@GoalColor", "GoalHint", visible="@IsGoalPlain", margin_right=6), 4)}
+    <Widget WidthSizePolicy="Fixed" SuggestedWidth="{GOAL_BOX}" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Center" IsVisible="@IsGoalBox">
+      <Children>
+        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55" DoNotAcceptEvents="true" />
+        <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="4" MarginRight="6" Brush="Review.NameInput.Text" Brush.FontSize="19" Brush.TextHorizontalAlignment="Right" Brush.FontColor="@GoalColor" RealText="@GoalText" MaxLength="7" Command.TextEntered="ExecuteGoalEntered" Command.FocusGained="ExecuteGoalFocusGained" Command.FocusLost="ExecuteGoalFocusLost">
+          <Children>
+            <HintWidget DataSource="{{GoalHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+          </Children>
+        </EditableTextWidget>
+      </Children>
+    </Widget>
+    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="{GOAL_RESET}" SuggestedHeight="{GOAL_RESET}" HorizontalAlignment="Right" VerticalAlignment="Center">
+      <Children>
+        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="RefreshButton.Flat" Command.Click="ExecuteReset" IsVisible="@CanResetGoal">
+          <Children>
+            <HintWidget DataSource="{{GoalResetHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
+          </Children>
+        </ButtonWidget>
+      </Children>
+    </Widget>
+  </Children>
+</Widget>'''
+
+
 def indent(block, n):
     pad = " " * n
     return "\n".join(pad + line if line.strip() else line for line in block.split("\n"))
@@ -105,10 +155,8 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="1" MarginBottom="1" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.04" />
     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
       <Children>
-        <!-- Market: far left, as in the game's trade screen (Anton, at the approval) -->
-        {text(MARKET, "@MarketText", 19)}
-        <!-- Item: [indent] [fold] the name (gold = the Encyclopedia) and the small grey note -->
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{ITEM}" HeightSizePolicy="StretchToParent" MarginLeft="{ITEM_GAP}" ClipContents="true">
+        <!-- Item: [indent] [fold] the name (gold = the Encyclopedia) and the small grey note - far left again (round 5) -->
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{ITEM}" HeightSizePolicy="StretchToParent" MarginLeft="{PAD}" ClipContents="true">
           <Children>
             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
               <Children>
@@ -136,8 +184,11 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
             </ListPanel>
           </Children>
         </Widget>
+        {text(MARKET, "@MarketText", 19)}
+        <!-- Goal (round 5): where the line should end - typed on the food and horse role rows -->
+{indent(goal_cell(), 8)}
         {text(MINE, "@MineText", 19)}
-        <!-- Change: [-] n [+] [reset] - or the prisoner toggle -->
+        <!-- Change: [-] n [+] [reset] - or the prisoner toggle (a goal row's reset sits in the Goal column) -->
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="{CHANGE}" HeightSizePolicy="StretchToParent" MarginLeft="{CHANGE_GAP}">
           <Children>
             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasSpinner">
@@ -147,7 +198,7 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
 {indent(small_button("ExecuteIncrease", "@CanIncrease", "IncreaseHint", "+"), 16)}
                 <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28" VerticalAlignment="Center" MarginLeft="10">
                   <Children>
-                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="RefreshButton.Flat" Command.Click="ExecuteReset" IsVisible="@CanReset">
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="RefreshButton.Flat" Command.Click="ExecuteReset" IsVisible="@CanResetInChange">
                       <Children>
                         <HintWidget DataSource="{{ResetHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                       </Children>
@@ -159,7 +210,8 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
             {text(0, "@ChangeText", 19, "Center", "@ChangeColor", visible="@HasChangeOnly", extra=' HorizontalAlignment="Center"')}
           </Children>
         </Widget>
-        {text(RESULT, "@ResultText", 19)}
+        <!-- Result: its hover says why it stops short of the goal (round 5) -->
+{indent(hinted_text(RESULT, "@ResultText", 19, "@TextColor", "ResultHint"), 8)}
 {indent(denari_cell(19, 14), 8)}
 {indent(number_cells(19), 8)}
       </Children>
@@ -172,8 +224,7 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
   <Children>
     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
       <Children>
-        {text(MARKET, "@MarketText", 16, color="@MutedColor")}
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{ITEM}" HeightSizePolicy="StretchToParent" MarginLeft="{ITEM_GAP}" ClipContents="true">
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{ITEM}" HeightSizePolicy="StretchToParent" MarginLeft="{PAD}" ClipContents="true">
           <Children>
             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
               <Children>
@@ -184,6 +235,8 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
             </ListPanel>
           </Children>
         </Widget>
+        {text(MARKET, "@MarketText", 16, color="@MutedColor")}
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{GOAL}" HeightSizePolicy="StretchToParent" MarginLeft="{GOAL_GAP}" />
         {text(MINE, "@MineText", 16, color="@MutedColor")}
         {text(CHANGE, "@ChangeText", 16, "Center", "@ChangeColor", margin_left=CHANGE_GAP)}
         {text(RESULT, "@ResultText", 16, color="@MutedColor")}
@@ -194,15 +247,17 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
   </Children>
 </Widget>'''
 
-title_line = f'''<!-- the section's title line: [fold] the name, the overview, and its subtotal in every column (mockup choice 3) -->
-<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38">
+title_line = f'''<!-- the section's title line: [fold] the name and its subtotal in every column (mockup choice 3) - since round 5 its Goal,
+     Mine and Result too (Troops: the party size limit, the members now red over it), so the overview moved to a row of its own
+     under the name, the table's whole left width (hover: all of it) -->
+<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="{TITLE_HEIGHT}">
   <Children>
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="3" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.06" />
-    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="3" StackLayout.LayoutMethod="HorizontalLeftToRight">
+    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="{TITLE_ROW}" MarginTop="3" StackLayout.LayoutMethod="HorizontalLeftToRight">
       <Children>
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{LEFT}" HeightSizePolicy="StretchToParent" ClipContents="true">
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{NAME_PART}" HeightSizePolicy="StretchToParent" ClipContents="true">
           <Children>
-            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="6" StackLayout.LayoutMethod="HorizontalLeftToRight">
+            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="{PAD}" StackLayout.LayoutMethod="HorizontalLeftToRight">
               <Children>
                 <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Command.Click="ExecuteToggle">
                   <Children>
@@ -220,16 +275,34 @@ title_line = f'''<!-- the section's title line: [fold] the name, the overview, a
                     <HintWidget DataSource="{{ToggleHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                   </Children>
                 </ButtonWidget>
-                {text(0, "@OverviewText", 20, "Left", "@OverviewColor", margin_left=16)}
-                {text(0, "@OverviewNote", 15, "Left", "@MutedColor", margin_left=12)}
               </Children>
             </ListPanel>
           </Children>
         </Widget>
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{GOAL}" HeightSizePolicy="StretchToParent" MarginLeft="{GOAL_GAP}">
+          <Children>
+{indent(hinted_text(GOAL_BOX, "@GoalText", 20, "@GoalColor", "GoalHint", margin_right=6), 12)}
+          </Children>
+        </Widget>
+        {text(MINE, "@MineText", 20, color="@MineColor")}
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{CHANGE}" HeightSizePolicy="StretchToParent" MarginLeft="{CHANGE_GAP}" />
+        {text(RESULT, "@ResultText", 20, color="@ResultColor")}
 {indent(denari_cell(20, 15, hint=False), 8)}
 {indent(number_cells(20), 8)}
       </Children>
     </ListPanel>
+    <!-- the overview (red past a limit: Troops 104/101, the Horses when the herd slows) and its small grey note -->
+    <Widget WidthSizePolicy="Fixed" SuggestedWidth="{LEFT - 36}" HeightSizePolicy="Fixed" SuggestedHeight="{OVERVIEW_ROW}" VerticalAlignment="Bottom" MarginLeft="36" MarginBottom="2" ClipContents="true">
+      <Children>
+        <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+          <Children>
+            {text(0, "@OverviewText", 16, "Left", "@OverviewColor")}
+            {text(0, "@OverviewNote", 14, "Left", "@MutedColor", margin_left=12)}
+          </Children>
+        </ListPanel>
+        <HintWidget DataSource="{{OverviewHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+      </Children>
+    </Widget>
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" VerticalAlignment="Bottom" Sprite="BlankWhiteSquare_9" Color="#E4C59BFF" AlphaFactor="0.18" />
   </Children>
 </Widget>'''
@@ -240,8 +313,10 @@ def head(width, value, align="Right", margin_left=0, visible=None):
 
 
 heads = "\n".join([
+    head(ITEM - 24, "@ColItem", "Left", PAD + 24),
     head(MARKET, "@ColMarket"),
-    head(ITEM - 24, "@ColItem", "Left", ITEM_GAP + 24),
+    head(GOAL_BOX - 6, "@ColGoal", "Right", GOAL_GAP),
+    f'<Widget WidthSizePolicy="Fixed" SuggestedWidth="{GOAL - GOAL_BOX + 6}" HeightSizePolicy="StretchToParent" />',
     head(MINE, "@ColMine"),
     head(CHANGE, "@ColChange", "Center", CHANGE_GAP),
     head(RESULT, "@ColResult"),
@@ -257,7 +332,8 @@ table_bottom = 182 if STAGE in ("a", "b") else 150
 
 tab = f'''            <!-- ============================ Suggestion tab (DESIGN §1.1) ============================ -->
             <!-- Round 4 (PLAN step 21): ONE spreadsheet - the mockup Anton approved on 2026.09.28 (docs/mockups). Every width below
-                 comes from one table (tools/gen-suggestion-tab.py), so the heads, the title lines, the lines and the breakdown lines align. -->
+                 comes from one table (tools/gen-suggestion-tab.py), so the heads, the title lines, the lines and the breakdown lines align.
+                 Round 5 (PLAN step 23): the Goal column, Item back at the far left, the overview on its own row under each title. -->
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="132" MarginBottom="84" IsVisible="@IsSuggestionSelected">
               <Children>
                 <Widget DataSource="{{Suggestion}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
@@ -276,7 +352,7 @@ tab = f'''            <!-- ============================ Suggestion tab (DESIGN �
                     <!-- A closed market: the game's own reason, on the header line's right (round 1) -->
                     <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Right" VerticalAlignment="Top" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@MarketClosedText" IsVisible="@HasMarketNotice" />
 
-                    <!-- Column heads: Market far left (Anton), the same widths as the lines -->
+                    <!-- Column heads: Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight (round 5), the same widths as the lines -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="46" MarginRight="14" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
 {indent(heads, 24)}

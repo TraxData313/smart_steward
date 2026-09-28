@@ -223,6 +223,14 @@ namespace SmartSteward.UI
                 }
                 if (input.IsHotKeyReleased("Exit"))
                 {
+                    // Escape inside a text box leaves the box (a typed goal is dropped, the box shows its goal again) — the
+                    // next Escape closes the window, as vanilla's search boxes do (step 23).
+                    if (_layer.IsFocusedOnInput())
+                    {
+                        _vm?.CancelTyping();
+                        ClearTextFocus();
+                        return;
+                    }
                     Close();
                     return;
                 }
@@ -232,6 +240,20 @@ namespace SmartSteward.UI
             {
                 ModLog.Error("window", "tick", ex);
                 Close();
+            }
+        }
+
+        /// <summary>Takes the keyboard focus off any text box of the window (Enter in a Goal box, Escape in any box) — the box's
+        /// FocusLost follows, the typing ends.</summary>
+        public static void ClearTextFocus()
+        {
+            try
+            {
+                _layer?.UIContext?.EventManager?.ClearFocus();
+            }
+            catch (Exception ex)
+            {
+                ModLog.Error("window", "clearing the text focus", ex);
             }
         }
 
