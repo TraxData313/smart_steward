@@ -132,6 +132,26 @@ disagree, this block wins.
 - **Saving without a double re-plan** [Claude's call]: the plan keeps its own copy of the goals, re-plans itself on every goal
   edit and queues the edit (`StewardPlan.TakeGoalEdits`); the window saves them with `SettingsService.SaveQuietly`, which writes
   settings.json WITHOUT raising `Changed` (the plan is already right — announcing would re-plan the window a second time).
+- **As built (PLAN step 23, 2026.09.28)** [decided: Claude — where the brief left it open or Gauntlet forced it]:
+  - **Widths** (one table, `tools\gen-suggestion-tab.py`, 1506 px): Item 432 (+6 pad) · Market 66 · Goal 100 (+8: a 70 px box and
+    the goal's 26 px ⟲) · Mine 66 · Change 176 (+8) · Result 66 · Denari 204 (+8) · Party 66 · Prisoners 92 · Land weight 104 ·
+    Sea weight 104 (still hidden without ships).
+  - **The title line has TWO rows now** (54 px, was 38): the name and the subtotals in every column — Goal, Mine, Result included
+    (the Troops title: party limit · members now, red over it · members after, red over it; the Horses title's Result red when the
+    herd slows) — and under them the overview + its note on a row of their own across the table's left 928 px (hover: all of it).
+    The Goal and Mine columns now start at 504 px, so the overview no longer fitted beside the name.
+  - **The typed box** (an `EditableTextWidget`, right-aligned like the numbers): Enter or a click elsewhere commits — queued, and
+    run on the window's next tick or before the next command, never inside the widget's own event; the same text never pins the
+    steward's goal as yours; empty, letters or a minus revert (Core `Presentation\GoalInput`); a text that is no goal turns red
+    while typing. **Escape inside a text box leaves the box** (a Goal box shows its goal again) — the next Escape closes the
+    window, as vanilla's search boxes (true for the Prices and Instructions boxes too, which save every key anyway). Enter leaves
+    the box as well. The hands-off `–*` shows in the box in grey and clears when the box takes the focus.
+  - **Colours**: a goal of yours gold (`UiColors.Yours`, the Encyclopedia gold), the steward's plain, `–*` grey. The ⟲ of a goal
+    row sits beside its box in the Goal column; the Change column keeps the ⟲ of every other row (troops, prisoners, loot).
+  - The Result carries its short-of-goal reason as a hover (no colour: the Goal beside it already shows the gap).
+  - **Instructions**: a grey info line on top of Food, Pack animals, Mounts, War mounts and "Goals you set by hand"; the hint at
+    the top gained a second line, *"Type a goal in the Goal column (food, pack animals, riding and war horses) and press Enter - it
+    holds in every town until [⟲] gives the row back to these rules."* (the ⟲ drawn as the button's own icon).
 
 **THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
 standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,

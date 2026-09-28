@@ -55,8 +55,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   threshold), [-]/[+] on food & horse rows edit the goal, "Goals you set by hand" switches (thresholds / purse floor / price caps),
   weight without "kg" — DESIGN first, then Core + settings + tests
   - [ ] Deployed at the end of step 22 (the game was closed — the install carries steps 12–22), then playtest — checklist in docs/PLAYTEST.md "Step 22" (the Goal column is step 23)
-- [ ] 23. Round 5 WINDOW — columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight;
+- [x] 23. Round 5 WINDOW — columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight;
   typed goal boxes with ⟲, the "-*" hover, troops Mine red over the limit, the Instructions info lines + the new group; deploy + PLAYTEST
+  - [ ] Deployed at the end of step 23 (the game was closed — the install carries steps 12–23), then playtest — checklist in docs/PLAYTEST.md "Round 5 — the Goal"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -86,7 +87,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - "Armour & weapons" is now "Other", with an Other goods row: wool, salt, pottery, jewelry… sold in bulk, cheapest first ("Sell other goods")
 - Prices tab: cheapest first inside each group
 - Troops: "Your troops" [-] drops the lowest tier first and [+] brings them back in reverse; "Recruits" [+] hires the best tier first (the lines of the new window, step 21)
-- The Suggestion tab is ONE spreadsheet: Market · Item · Mine · Change · Result · Denari · Party · Prisoners · Land kg · Sea kg — every section's title line is its subtotal, a Total line under the table that never scrolls
+- The Suggestion tab is ONE spreadsheet: ~~Market · Item · Mine · Change · Result · Denari · Party · Prisoners · Land kg · Sea kg~~ (round 5's order below) — every section's title line is its subtotal, a Total line under the table that never scrolls
 - Header "Denari 69,358 » 89,189 (+19,831)" + small green influence; colours by meaning (green in, red out), zeros blank
 - Troops in one section: each wanderer, the mercenaries, Recruits and Your troops — each opens its rows by tier (a type on offer that you hold shows under both, each side on its own)
 - Prisoners: "Lords" and "Others" lines with Keep | Ransom | Donate — the toggle is your standing order (Donate greyed where the game forbids it); prisoner rows show their tier, lowest first, names open the Encyclopedia
@@ -96,6 +97,10 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Goals: a click on a food, pack, riding or war horse row is a standing order kept in settings.json for every town until its ⟲ — the steward plans around it (Reset all keeps them); the autonomous steward obeys them too
 - Instructions: "Goals you set by hand" — your goals wait for the thresholds (off), keep the purse floors (on), obey the price limits (on)
 - Weight, not kg: "Land weight" / "Sea weight", "lowest price per weight"
+- The Goal column: Item · Market · Goal · Mine · Change · Result · … — type a goal for a food, pack animals, riding or war horses (Enter or click away), gold with its ⟲ while yours; "–*" below a threshold, hover says why
+- Troops title: Goal = party size limit, Mine red when you are over it; each title's overview on its own row under the name
+- A Result short of its goal says why on hover; Escape in a text box leaves the box, a second Escape closes the window
+- Instructions: a line on Food and the horse groups ("… follows these rules until you type its goal"), and the goal line in the hint on top
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -180,8 +185,13 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Step 21: "names in gold open the Encyclopedia" keeps "gold" — the colour of the names, not the money (every money text says denari)
 - [ ] Step 21: a closed market's notice (560 px, right of the header line) may touch a long centred Denari header — check at 1080p
 - [ ] Step 21: never seen in game — the Denari-cell tooltip rides a HintWidget on a plain Widget (the Prices tab labels' pattern); check it shows
-- [ ] Step 22: until step 23 shows the Goal column, a click on a food / horse row silently becomes a standing order (saved in settings.json) — the ⟲ is its only sign; do not release between 22 and 23
+- [x] Step 22: until step 23 shows the Goal column, a click on a food / horse row silently becomes a standing order (saved in settings.json) — the ⟲ is its only sign; do not release between 22 and 23 → step 23 shows it (gold goal + ⟲ in the Goal column)
 - [ ] Step 22: food and horse clicks re-plan now (the policy fills the rest): the benchmark's clicks went 0–15 → 0–30 ms (ResetAll the slowest) — fine under the 100 ms budget; measure in game with a big party
 - [ ] Step 22: a steward's riding row short of its target may show no reason when the war-horse pledge simulation cut its buys (GoalShort None) — rare; say if a Result stops short without a hover
 - [ ] Step 22: SectionSummary's SummaryWords.Kg still says "kg" — dead code since step 21 (see the RowCells / SectionSummary cleanup line), never shown
 - [ ] Release day: the Steam page and README say nothing of goals and still say "A row you edit stays as you set it" — describe the standing goals and "Goals you set by hand"
+- [ ] Step 23: the horse role rows' note still says "keep 10" — the Goal column says the same now; drop the note (Core SheetView.Note) if Anton finds it doubled
+- [ ] Step 23: the title lines grew a second row (38 → 54 px: the overview under the name) — ~1 line less on screen with every section open; Anton's look at 1080p
+- [ ] Step 23: never seen in game — the Goal box's Enter / FocusLost commands (vanilla binds TextEntered only in the banner builder), its tooltip as the box's child, the Result hover; check them first
+- [ ] Step 23: Escape in ANY text box now only leaves the box (Prices, Instructions too) — a second Escape closes; say if that is unwelcome
+- [ ] Step 23: a very large typed goal walks one price per unit (like Ctrl on the row): 400 grain on the benchmark's plan = ~620 game prices, ~19 ms — watch the first click in game with a huge market

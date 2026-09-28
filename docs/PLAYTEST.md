@@ -373,3 +373,24 @@ The Goal COLUMN is step 23; this install already plans with the goals. What you 
    have no kg left. An old settings.json with `"LowestPricePerKg"` is read and rewritten as `"LowestPricePerWeight"`.
 6. **Hand-edit settings.json**: put `"Goals": { "mounts:war": 15 }` in while the game runs, reopen the window — the war horses
    aim at 15. A junk key (`"mounts:noble": 3`) is dropped with a line in smart_steward.log (and a settings.json.bak).
+
+## Round 5 — the Goal (step 23, deployed 2026.09.28)
+
+The Goal column in the window. Enable "Smart Steward (dev)", load a save, enter a town with a market.
+
+1. **Columns at 1080p.** Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight —
+   nothing cut at the right; the Item notes still readable (a long "Your troops" note may clip). Sea weight only with ships.
+2. **Title lines have two rows now**: the name and its numbers (Goal, Mine, Result, Denari…), the overview under it. Troops:
+   Goal = party limit, Mine red when you are over it now. Hover the overview for all of it.
+3. **Type a food goal**: click Grain's Goal box, type 60, press Enter — gold 60, a reset icon beside it, the other foods re-plan.
+   Go to another town: still 60. The reset icon gives it back to the Instructions rules (the file loses the key).
+4. **Click elsewhere to commit**: type 40, then click another row's [+] — the 40 lands first, then the [+].
+5. **Bad input**: type `abc` (it turns red) and press Enter — the box shows its goal again; nothing saved.
+6. **Escape inside a box** puts the old number back and leaves the box; a second Escape closes the window. Shift / Ctrl clicks
+   still step 5 / all after you typed.
+7. **Horses**: Pack animals, Riding horses, War horses take typed goals the same way; Noble / Lame show 0, not editable.
+8. **Below a threshold** (under 2,000 denari for food): a grey `–*` in the box — hover says why; click it, type a number, Enter:
+   the steward buys it anyway.
+9. **Short of the goal**: type a goal the market cannot reach (1000 grain) — the Result stops short; hover the Result for why.
+10. **Instructions tab**: a grey line on top of Food, Pack animals, Mounts, War mounts and "Goals you set by hand"; a second line
+    in the hint at the top about typing a goal, with the reset icon drawn in it.

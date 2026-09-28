@@ -159,7 +159,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               row under its line shows only its side), the folds applied — a folded part is never asked for blocks;
                               SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults;
                               SheetGoalCell (step 22) = the Goal column per line and title line (SheetItem.Goal, SheetSectionView.Goal /
-                              Mine / MineWarning) — step 23's window binds it.
+                              Mine / MineWarning) — step 23's window binds it; GoalInput (step 23) = what a typed Goal box
+                              holds when left (unchanged / invalid → revert / a goal, clamped).
                               Planning/PlanCarryOver = edits kept over a re-plan
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
@@ -177,7 +178,9 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
                               command), SuggestionVMs (step 21: the spreadsheet — SuggestionTabVM, SheetSectionVM per title line,
-                              SheetItemVM per line updated in place by key, SheetTotalVM, WeightRowVM), PricesVMs (+ MultiplierBoxVM: the
+                              SheetItemVM per line updated in place by key, SheetTotalVM, WeightRowVM; step 23: the typed Goal
+                              boxes — their Enter / FocusLost only QUEUE, SuggestionTabVM.FlushGoal commits on the next tick and
+                              before every command; Escape in a box = StewardWindow cancels + ClearTextFocus), PricesVMs (+ MultiplierBoxVM: the
                               food and horse pairs), InstructionsVMs (the clicks' hint on top), HintVM, WindowStateHost (the folds on
                               disk), UiText/UiLabels (TextObject ids — every English ONE literal per UiText call: StringsFileTests reads
                               them from the source)

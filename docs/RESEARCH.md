@@ -1238,6 +1238,28 @@ game's GUI data (`Modules\SandBox\GUI\Brushes\Nameplates.xml`, `Prefabs\Nameplat
   index (`AddItemToList` → `SetSiblingIndex` of the rest) and removes one on delete — the others keep their widgets and bindings.
   So a fold that inserts / removes a few lines costs only those lines (the step-21 window keys its lines and syncs in place).
 
+## 27. Typed boxes in a list — verified in step 23 (2026.09.28)
+
+Read in `game-decompiled-1.4.8` (`TaleWorlds.GauntletUI.BaseTypes\EditableTextWidget.cs`, `…\Widget.cs`,
+`TaleWorlds.GauntletUI\EventManager.cs`, `TaleWorlds.Engine.GauntletUI\GauntletLayer.cs`,
+`TaleWorlds.MountAndBlade.GauntletUI.Widgets\HintWidget.cs`) and the game's prefabs (`Native\GUI\Prefabs\BannerBuilder\*`).
+
+- **Enter** in an `EditableTextWidget` fires the widget event `"TextEntered"` (`HandleInput`: `Input.IsKeyReleased(Enter |
+  NumpadEnter)`) — bound as `Command.TextEntered="Method"` (vanilla: the banner builder's number boxes). **Focus**: every widget
+  fires `"FocusGained"` / `"FocusLost"` (`Widget.OnGainFocus` / `OnLoseFocus`) → `Command.FocusGained` / `Command.FocusLost`.
+  The box does NOT handle Escape (the layer's `Exit` hotkey still sees it).
+- **A mouse press moves the focus first**: `EventManager.DispatchEvent(MousePressed)` sets `FocusedWidget` = the pressed widget
+  (the box's `OnLoseFocus` → FocusLost) and only the RELEASE clicks the button — so a click on another row's [+] reaches our
+  VM after the box's FocusLost. Our window queues the box's commit and runs it before any command (and on the next tick):
+  re-planning inside the widget's own event could rebuild the list the widget sits in.
+- `GauntletLayer.IsFocusedOnInput()` = `UIContext.EventManager.FocusedWidget is EditableTextWidget` (vanilla screens skip
+  their hotkeys then); `UIContext.EventManager.ClearFocus()` takes the focus off (the box's FocusLost follows).
+- **Hover goes to ONE widget**: `EventManager.HoveredWidget` calls `OnHoverBegin` only on the widget under the mouse that takes
+  events (no bubbling), and `HintWidget` relays its PARENT's HoverBegin/End. A text box takes events, so its tooltip's
+  `HintWidget IsDisabled="true"` is a CHILD of the `EditableTextWidget` (a sibling would never hear the box's hover).
+- `DefaultSearchText` (the grey placeholder) is written into the visible text only on `UpdateText` / `OnLoseFocus` while the
+  real text is empty — a placeholder that changes while shown stays stale; the Goal box shows its `–*` as real text instead.
+
 ---
 
 ## Gotchas (one line each)
@@ -1343,6 +1365,9 @@ game's GUI data (`Modules\SandBox\GUI\Brushes\Nameplates.xml`, `Prefabs\Nameplat
     with `BoolStateChangerWidget`, never name `Map\ship_speed`; check-gui fails a directly named DLC sprite (§26).
 71. **Insert / RemoveAt on an MBBindingList** rebuild only that item's widgets (`GauntletView.AddItemToList(index)`); replacing the
     whole list (or `Clear`) rebuilds every item — sync by key for folds (§26).
+72. **A press moves the focus before the click**: a text box's FocusLost fires before the button's Click — commit a typed value
+    outside the widget's event (queue it) and before any command runs (§27).
+73. **Hover does not bubble** — a text box's tooltip `HintWidget` must be the box's CHILD; `Command.TextEntered` = Enter (§27).
 
 ---
 
