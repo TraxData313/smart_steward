@@ -35,6 +35,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + FOOTER (same step, Anton 2026.09.28): the weight line splits in TWO — "Land: weight now +chg → after · capacity now → after"
     and "Sea: …" (pack horses raise land capacity but add weight at sea) — each part over its capacity in red;
   + a HORSES line: "Horses 110 / 200 before the herd slows you" — the game's real herding threshold (verify the speed model), red when over
+  + TROOPS (Anton 2026.09.28): tier before every troop name ("T1 Vlandian Recruit"); MY troops ordered by tier, LOWEST on top;
+    the COLLAPSED Troops line carries [-] [+] of its own: [-] dismisses from the lowest tier up, [+] recruits the highest tier on
+    offer first (shift/ctrl steps as usual), and the line says what it does ("dismissing 1 T1 Vlandian Recruit, 1 T1 Imperial Peasant")
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
