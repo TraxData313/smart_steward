@@ -25,6 +25,10 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deployed (the game was closed at the end of step 15 — the install carries steps 12–15), then playtest — checklist in docs/PLAYTEST.md "Round 3 — live re-plan"
 - [x] 16. Round 3, big — the TROOPS section: recruits on offer here + my troops, recruit and dismiss (see NEXT UPDATE lines marked R3)
   - [ ] Deployed (the game was closed at the end of step 16 — the install carries steps 12–16), then playtest — checklist in docs/PLAYTEST.md "Round 3 — troops"
+- [ ] 17. Horses simplified (Anton's decisions 2026.09.28 — see the NOT FULLY DECIDED answers):
+  total horses = footmen × MountsPer100Footmen/100; a plain "War mounts to keep" NUMBER (no automatic upgrade counting,
+  no plain-horse upgrade reserve); regular mounts fill the rest (e.g. 100 footmen at 110 + keep 10 war → 100 mounts + 10 war);
+  noble horses never bought, sold unless locked; lame horses never bought, "Replace lame horses with healthy ones" (default ON)
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -63,22 +67,24 @@ NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [x] (R3) The "Not now" button next to Do it is just "Close"
 - [x] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 
+- [ ] Pack animals: "keep enough to carry my load + a margin" as an alternative to a fixed number (the weight line now knows capacity)
+
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
 - [ ] Others in the price book — wood, jewelry, metal… bought below / sold above your price, hold-up-to cap (see DESIGN §1.3.1)
 
 NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [x] Food 2 per man = ~40 days of food — heavy on the cart; keep, or think in days? → Anton 2026.09.28: DAYS — "Keep food for [40] days (~2.0 per soul)" (DESIGN §2.1)
-- [ ] Pack animals: fixed 10 by default — or scale with party size?
-- [ ] Shift/Ctrl steps stop at zero — one click never flips a row from selling to buying (DESIGN §1.1)
-- [ ] Livestock (cows, sheep…) — the game counts it as food; proposed: steward ignores it (see RESEARCH "Design impact")
-- [ ] Recruits that can go foot OR cavalry — count them as needing a horse? proposed: yes (DESIGN §2.4)
-- [ ] Plain "horse" mounts double as upgrade horses — reserve them for upgrades first? proposed: yes
-- [ ] Prisoners locked in the party screen — never ransom them, like vanilla? proposed: yes
-- [ ] Lame/spirited (modified) horses — count them as mounts, never buy them? proposed: yes
-- [ ] Sell multiplier default 0.8 (sell only at ≥ average sell price − 20%) — right number? (DESIGN §1.3)
-- [ ] Role caps (mount 500 / pack 300 / war 2000) stay fixed — or scale with the buy multiplier too?
-- [ ] Noble horses sit with the war horses in the Prices tab (no auto-filled price) — ok? (DESIGN §1.3)
-- [ ] Donating fills the dungeon with the most valuable prisoners first (most influence) — ok? (DESIGN §2.5)
+- [x] Pack animals: fixed 10 by default — or scale with party size? → Anton 2026.09.28: fixed 10 now; "enough to carry my load + margin" goes to NEXT UPDATE
+- [x] Shift/Ctrl steps stop at zero — one click never flips a row from selling to buying (DESIGN §1.1) → Anton 2026.09.28: yes
+- [x] Livestock (cows, sheep…) — the game counts it as food; proposed: steward ignores it (see RESEARCH "Design impact") → Anton 2026.09.28: yes
+- [x] Recruits that can go foot OR cavalry — count them as needing a horse? → Anton 2026.09.28: MOOT — no automatic upgrade counting at all any more (step 17)
+- [x] Plain "horse" mounts double as upgrade horses — reserve them for upgrades first? → Anton 2026.09.28: MOOT — plain-horse upgrades just draw from the riding mounts (step 17)
+- [x] Prisoners locked in the party screen — never ransom them, like vanilla? → Anton 2026.09.28: yes
+- [x] Lame/spirited (modified) horses → Anton 2026.09.28: a bad horse still carries a footman (keep it for the speed); NEVER buy one; new switch "Replace lame horses with healthy ones" default ON (step 17)
+- [x] Sell multiplier default 0.8 (sell only at ≥ average sell price − 20%) — right number? (DESIGN §1.3) → Anton 2026.09.28: yes, 0.8
+- [x] Role caps (mount 500 / pack 300 / war 2000) stay fixed — or scale with the buy multiplier too? → Anton 2026.09.28: fixed (0 switches a cap off)
+- [x] Noble horses sit with the war horses in the Prices tab → Anton 2026.09.28: NO — noble horses are never used for upgrades (player/companion horses only): never bought, sold unless LOCKED (step 17)
+- [x] Donating fills the dungeon with the most valuable prisoners first (most influence) — ok? (DESIGN §2.5) → Anton 2026.09.28: yes
 
 NOTICED (things spotted during a step, left for later):
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
