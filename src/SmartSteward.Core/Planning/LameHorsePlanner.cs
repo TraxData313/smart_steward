@@ -108,7 +108,8 @@ namespace SmartSteward.Core.Planning
         {
             if (Row == null || _sell == null || _pinned != null)
                 return;
-            PlanWalk.WalkLane(_ctx.Walk, _sell, Row.Mine, _ctx.AnimalSellCeiling);
+            if (PlanWalk.WalkLane(_ctx.Walk, _sell, Row.Mine, _ctx.AnimalSellCeiling) < Row.Mine) // the goal is 0 (round 5)
+                Row.GoalShort = GoalReasons.Now(_sell.Cursor, _ctx.Market, _ctx.AnimalSellCeiling());
         }
 
         public void Finish()

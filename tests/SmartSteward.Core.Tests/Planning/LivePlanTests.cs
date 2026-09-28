@@ -250,7 +250,8 @@ public class LivePlanTests
 
         plan.Increase("tavern:mercenaries", EditSize.All);           // 20 more eaters: +40 food
         Assert.Equal(cheese, plan.Row("food:cheese").Change);        // the player's number stays…
-        Assert.Equal(others + 40 - 5, plan.Row("food:grain").Change + plan.Row("food:fish").Change); // …the steward fills the rest
+        // …the steward fills the rest (round 5: it gave way to the cheese goal at the click already)
+        Assert.Equal(others + 40, plan.Row("food:grain").Change + plan.Row("food:fish").Change);
         Assert.Equal(plan.Facts.FoodTarget, plan.Totals.FoodUnitsAfter);
     }
 
@@ -260,9 +261,22 @@ public class LivePlanTests
         var plan = Camp(flat: true).Plan();
         int fish = plan.Row("food:fish").Change;
         var facts = plan.Facts;
-        plan.Increase("food:grain", EditSize.Five);
+        plan.Increase("mounts:lame");                                // a lame horse kept back: no party, no goal
         Assert.Equal(fish, plan.Row("food:fish").Change);            // predictable beats clever (step 4b) — still
         Assert.Same(facts, plan.Facts);
+    }
+
+    [Fact]
+    public void A_food_goal_re_plans_the_stewards_food_around_it()
+    {
+        // Round 5: a click on a food row IS a goal edit — the steward's food rows share what is left of the target.
+        var plan = Camp(flat: true).Plan();
+        int grain = plan.Row("food:grain").Change, fish = plan.Row("food:fish").Change, cheese = plan.Row("food:cheese").Change;
+        plan.Increase("food:grain", EditSize.Five);
+        Assert.Equal(grain + 5, plan.Row("food:grain").Change);
+        Assert.Equal(grain + 5 + 30, plan.Row("food:grain").ManualGoal);
+        Assert.Equal(fish + cheese - 5, plan.Row("food:fish").Change + plan.Row("food:cheese").Change);
+        Assert.Equal(plan.Facts.FoodTarget, plan.Totals.FoodUnitsAfter);
     }
 
     [Fact]
@@ -537,7 +551,7 @@ public class LivePlanTests
     }
 
     /// <summary>What the executor does to the world, done to the snapshot: every transaction of the plan.</summary>
-    private static void ApplyDoIt(Scenario s, StewardPlan plan)
+    internal static void ApplyDoIt(Scenario s, StewardPlan plan)
     {
         var snap = s.Snap;
         double perEater = FoodGoal.PerEaterPerDay(snap); // the game's rate per eater (perks) stays; the eaters change

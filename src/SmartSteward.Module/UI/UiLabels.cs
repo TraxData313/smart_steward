@@ -138,6 +138,12 @@ namespace SmartSteward.UI
                     return UiText.S("ss_ui_block_all_dismissed", "All of them are already dismissed in the plan.");
                 case EditBlock.NothingDropped:
                     return UiText.S("ss_ui_block_nothing_dropped", "Nobody is dismissed, so nobody comes back.");
+                case EditBlock.PurseFloor:
+                    return UiText.S("ss_ui_block_purse_floor",
+                        "The next one would take your purse below the floor your goals keep (Instructions: Goals you set by hand).");
+                case EditBlock.WaitsForThreshold:
+                    return UiText.S("ss_ui_block_waits",
+                        "Your goals wait until your purse reaches this job's threshold (Instructions: Goals you set by hand).");
                 case EditBlock.NothingRecruited:
                     return UiText.S("ss_ui_block_nothing_recruited", "No recruit is queued to give back.");
                 case EditBlock.DismissingThisType:

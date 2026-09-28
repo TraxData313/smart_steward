@@ -57,8 +57,10 @@ namespace SmartSteward.Core.Planning
         /// <summary>The pinned rows' ids.</summary>
         public IEnumerable<string> Ids => _changes.Keys;
 
-        /// <summary>Pins every touched row of a plan at its quantity, with what it sells and spends in the plan's last walk.</summary>
-        public static PlanPins From(IEnumerable<PlanRow> rows)
+        /// <summary>Pins every touched row of a plan at its quantity, with what it sells and spends in the plan's last walk — for a
+        /// goal of the player's (round 5) at least what the goal WANTS, priced at the untouched market (<paramref name="untouched"/>):
+        /// a goal the steward's earlier phase starved in the last walk would otherwise never get its room back.</summary>
+        public static PlanPins From(IEnumerable<PlanRow> rows, MarketState? untouched = null)
         {
             var changes = new Dictionary<string, int>(StringComparer.Ordinal);
             int animalSales = 0, lootSales = 0, animalBuys = 0, hires = 0;
@@ -78,6 +80,14 @@ namespace SmartSteward.Core.Planning
                     if (tally.Direction == TradeDirection.Sell) sold += tally.Gold;
                     else bought += tally.Gold;
                 }
+                if (untouched != null && row.ManualGoal != null && !row.GoalWaits)
+                {
+                    int want = row.ManualGoal.Value - row.Mine;
+                    if (want < 0)
+                        sold = Math.Max(sold, Estimate(row.HandSellLane, -want, untouched));
+                    else if (want > 0)
+                        bought = Math.Max(bought, Estimate(row.HandBuyLane, want, untouched));
+                }
                 if (row.Type == RowType.Loot)
                     lootSales += sold;
                 else if (row.Section == PlanSectionKind.Mounts)
@@ -87,6 +97,27 @@ namespace SmartSteward.Core.Planning
                 }
             }
             return new PlanPins(changes, animalSales + lootSales, lootSales, animalBuys + hires, hires);
+        }
+
+        /// <summary>What <paramref name="units"/> of a lane come to at the market's first price for them (the best stack the lane
+        /// may take, capped at what it holds or has on offer) — a reservation, not a walk.</summary>
+        private static int Estimate(TradeLane? lane, int units, MarketState market)
+        {
+            if (lane == null || units <= 0)
+                return 0;
+            int? best = null, capacity = 0;
+            foreach (var stack in lane.Stacks)
+            {
+                if (stack.Available <= 0)
+                    continue;
+                capacity += stack.Available;
+                int price = market.Quote(stack.Stack, lane.Direction);
+                if (!stack.Accepts(lane.Direction, price))
+                    continue;
+                if (best == null || (lane.Direction == TradeDirection.Sell ? price > best : price < best))
+                    best = price;
+            }
+            return best == null ? 0 : best.Value * Math.Min(units, capacity.Value);
         }
     }
 }

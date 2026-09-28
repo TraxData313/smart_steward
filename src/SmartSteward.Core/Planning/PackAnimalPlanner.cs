@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SmartSteward.Core.Pricing;
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Planning
@@ -44,10 +45,20 @@ namespace SmartSteward.Core.Planning
                     .Where(x => x.Limit != null)
                     .Select(x => new LaneStack(x.Stack, x.Stack.Count, x.Limit)));
 
-            if (_heldCount == 0 && Target == 0 && buyLane.Capacity == 0)
+            if (_heldCount == 0 && Target == 0 && buyLane.Capacity == 0 && !ctx.Goals.ContainsKey(RowId))
                 return;
 
-            Row = new PlanRow("mounts:pack", PlanSectionKind.Mounts, RowType.Pack)
+            // Round 5: with ManualGoalsObeyPriceCaps off a goal buys any plain, Buy-ticked pack animal and sells at any price.
+            TradeLane? handBuy = null, handSell = null;
+            if (ctx.GoalsIgnoreCaps)
+            {
+                handBuy = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
+                    ctx.MarketStacks(ItemKind.PackAnimal).Where(s => !s.IsModified && ctx.Book(s)!.BuyTicked)
+                        .Select(s => new LaneStack(s, s.Count, null)));
+                handSell = PlanContext.Unlimited(sellLane);
+            }
+
+            Row = new PlanRow(RowId, PlanSectionKind.Mounts, RowType.Pack)
             {
                 Role = MountRole.Pack,
                 Mine = _heldCount,
@@ -58,17 +69,24 @@ namespace SmartSteward.Core.Planning
                 MaxSell = sellLane.Capacity,
                 BuyLane = buyLane,
                 SellLane = sellLane,
+                HandBuyLaneOverride = handBuy,
+                HandSellLaneOverride = handSell,
                 StartsAtDenari = ctx.StartsAt(ManagedJob.PackAnimals),
+                StewardGoal = Target,
             };
-            Row.MaxBuy = Row.Market ?? 0;
+            Row.MaxBuy = handBuy == null ? Row.Market ?? 0 : PlanMath.EligibleOnOffer(handBuy, ctx.Market);
             _buy = new WalkLine(Row, buyLane, book: Row.Book);
             _sell = new WalkLine(Row, sellLane, book: Row.Book);
-            if (ctx.Pins.TryGet(Row.Id, out int pin))
-                _pinned = pin;
+            _pinned = ctx.PinOf(Row, ManagedJob.PackAnimals);
         }
 
-        /// <summary>The player's own quantity (a touched row in a live re-plan) — walked first, never re-planned.</summary>
+        public const string RowId = ManualGoals.Pack;
+
+        /// <summary>The player's own quantity — a goal of yours (round 5: goal − Mine) — walked first, never re-planned.</summary>
         private readonly int? _pinned;
+
+        /// <summary>The player's own walk of the row, to tell why it stopped short of the goal.</summary>
+        private WalkLine? _hand;
 
         public int Target { get; }
         public PlanRow? Row { get; }
@@ -81,25 +99,34 @@ namespace SmartSteward.Core.Planning
         public void PlanPinnedSells()
         {
             if (Row != null && _pinned < 0)
-                PlanWalk.WalkLane(_ctx.Walk, new WalkLine(Row, Row.SellLane!, Row.Mine, -_pinned.Value, Row.Book), int.MaxValue,
-                    () => _ctx.Market.MarketGoldLeft);
+                PlanWalk.WalkLane(_ctx.Walk, _hand = new WalkLine(Row, Row.HandSellLane!, Row.Mine, -_pinned.Value, Row.Book),
+                    int.MaxValue, () => _ctx.Market.MarketGoldLeft);
         }
 
         /// <summary>The player's purchase of pack animals (a touched row) — first among the animal buys.</summary>
         public void PlanPinnedBuys()
         {
+            var walk = _ctx.Walk;
             if (Row != null && _pinned > 0)
-                PlanWalk.WalkLane(_ctx.Walk, new WalkLine(Row, Row.BuyLane!, Row.Mine, _pinned.Value, Row.Book), int.MaxValue,
-                    () => null);
+                PlanWalk.WalkLane(walk, _hand = new WalkLine(Row, Row.HandBuyLane!, Row.Mine, _pinned.Value, Row.Book),
+                    int.MaxValue, () => _ctx.GoalAnimalCeiling(walk));
         }
 
         /// <summary>Surplus above the target, the most expensive first, while the market can pay.</summary>
         public void PlanSells()
         {
-            if (Row == null || _sell == null || _pinned != null || !_ctx.Settings.SellPackAnimalSurplus
-                || !_ctx.JobActive(ManagedJob.PackAnimals))
+            if (Row == null || _sell == null || _pinned != null || !_ctx.JobActive(ManagedJob.PackAnimals))
                 return;
-            _heldCount -= PlanWalk.WalkLane(_ctx.Walk, _sell, Counted - Target, _ctx.AnimalSellCeiling);
+            int surplus = Counted - Target;
+            if (surplus > 0 && !_ctx.Settings.SellPackAnimalSurplus)
+            {
+                Row.GoalShort = GoalShort.SurplusKept;
+                return;
+            }
+            int sold = PlanWalk.WalkLane(_ctx.Walk, _sell, surplus, _ctx.AnimalSellCeiling);
+            _heldCount -= sold;
+            if (sold < surplus)
+                Row.GoalShort = GoalReasons.Now(_sell.Cursor, _ctx.Market, _ctx.AnimalSellCeiling());
         }
 
         /// <summary>Up to the target, the cheapest eligible first, never below the animal floor.</summary>
@@ -108,13 +135,20 @@ namespace SmartSteward.Core.Planning
             if (Row == null || _buy == null || _pinned != null || !_ctx.JobActive(ManagedJob.PackAnimals))
                 return;
             var walk = _ctx.Walk;
-            _heldCount += PlanWalk.WalkLane(walk, _buy, Target - Counted, () => _ctx.AnimalBuyCeiling(walk));
+            int wanted = Target - Counted;
+            int bought = PlanWalk.WalkLane(walk, _buy, wanted, () => _ctx.AnimalBuyCeiling(walk));
+            _heldCount += bought;
+            if (bought < wanted)
+                Row.GoalShort = GoalReasons.Now(_buy.Cursor, _ctx.Market, _ctx.AnimalBuyCeiling(walk));
         }
 
         public void Finish()
         {
-            if (Row != null)
-                PlanMath.FinishItemRow(Row, _held.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+            if (Row == null)
+                return;
+            PlanMath.FinishItemRow(Row, _held.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+            if (_hand != null && Row.Result != Row.ManualGoal)
+                Row.GoalShort = GoalReasons.Of(_hand, _ctx.GoalFloors.Animals != null);
         }
     }
 }

@@ -38,10 +38,13 @@ namespace SmartSteward.Core.Planning
     public static class StewardPlanner
     {
         public static StewardPlan Plan(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle,
-            PlanMode mode = PlanMode.Window) => Plan(snapshot, settings, oracle, mode, PlanPins.None);
+            PlanMode mode = PlanMode.Window) =>
+            Plan(snapshot, settings, oracle, mode, PlanPins.None, ManualGoals.CopyOf(settings));
 
+        /// <param name="goals">The player's standing goals (round 5) — the plan keeps this very dictionary as its own copy and
+        /// edits it (<see cref="StewardPlan.SetGoal"/>); a re-plan passes it again.</param>
         internal static StewardPlan Plan(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle,
-            PlanMode mode, PlanPins pins)
+            PlanMode mode, PlanPins pins, Dictionary<string, int> goals)
         {
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             if (settings == null) throw new ArgumentNullException(nameof(settings));
@@ -53,18 +56,25 @@ namespace SmartSteward.Core.Planning
             // not free — the same quotes come up again and again (PLAN step 9, review area 5). A re-plan reuses the
             // plan's own cache.
             var cache = oracle as CachingPriceOracle ?? new CachingPriceOracle(oracle);
-            var plan = PlanOnce(snapshot, settings, cache, mode, pins, 0, out int pledge);
-            return pledge > 0 ? PlanOnce(snapshot, settings, cache, mode, pins, pledge, out _) : plan;
+            var plan = PlanOnce(snapshot, settings, cache, mode, pins, goals, 0, out int pledge);
+            // Round 5: a fresh plan with goals of the player's plans once more with what they sell and spend known, so the
+            // steward's earlier phases leave it (PlanPins.SellGoldAfter… / SpendAfter…) — as every live re-plan does.
+            if (pins.IsEmpty && plan.Rows.Any(r => r.IsTouched))
+            {
+                pins = PlanPins.From(plan.Rows, new MarketState(cache, snapshot.MarketGold));
+                plan = PlanOnce(snapshot, settings, cache, mode, pins, goals, 0, out pledge);
+            }
+            return pledge > 0 ? PlanOnce(snapshot, settings, cache, mode, pins, goals, pledge, out _) : plan;
         }
 
         private static StewardPlan PlanOnce(StewardSnapshot snapshot, StewardSettings settings, CachingPriceOracle cache,
-            PlanMode mode, PlanPins pins, int warPledge, out int pledgeHint)
+            PlanMode mode, PlanPins pins, Dictionary<string, int> goals, int warPledge, out int pledgeHint)
         {
             pledgeHint = 0;
-            var ctx = new PlanContext(snapshot, settings, cache, mode, pins, warPledge);
+            var ctx = new PlanContext(snapshot, settings, cache, mode, pins, warPledge, goals);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
-                return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0);
+                return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0, goals);
 
             // 0. The tavern: offered, never proposed (every row at 0 — or at the player's number in a re-plan) - and not
             //    even offered to the autonomous steward, which never hires (DESIGN §6). Its hires are the party after the
@@ -127,7 +137,7 @@ namespace SmartSteward.Core.Planning
             if (lame.Row != null) rows.Add(lame.Row);
             rows.AddRange(loot.Rows);
             rows.AddRange(prisonerRows);
-            return Assemble(ctx, facts, rows, loot.SellOrder);
+            return Assemble(ctx, facts, rows, loot.SellOrder, goals);
         }
 
         /// <summary>The switched-on jobs the purse before the deal does not switch on yet (round 4).</summary>
@@ -148,7 +158,7 @@ namespace SmartSteward.Core.Planning
         }
 
         private static StewardPlan Assemble(PlanContext ctx, PlanFacts facts, List<PlanRow> rows,
-            Comparison<ItemStack> lootOrder)
+            Comparison<ItemStack> lootOrder, Dictionary<string, int> goals)
         {
             var sections = new List<PlanSection>();
             foreach (PlanSectionKind kind in Enum.GetValues(typeof(PlanSectionKind)))
@@ -160,7 +170,7 @@ namespace SmartSteward.Core.Planning
             var totals = PlanTotals.Compute(rows, ctx.Snapshot, ctx.Floors);
             var inputs = new PlanInputs(ctx.Snapshot, ctx.Settings, ctx.Mode, ctx.Floors, ctx.Oracle,
                 ctx.Settings.FoodStrategy == FoodStrategy.Balanced, lootOrder,
-                PrisonerPlanner.CanRansom(ctx), PrisonerPlanner.CanDonate(ctx), PrisonerPlanner.DungeonRoom(ctx));
+                PrisonerPlanner.CanRansom(ctx), PrisonerPlanner.CanDonate(ctx), PrisonerPlanner.DungeonRoom(ctx), goals);
             return new StewardPlan(sections, totals, facts, inputs);
         }
     }

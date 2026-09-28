@@ -45,5 +45,27 @@ namespace SmartSteward.Core.Planning
             int autonomous = settings.AutonomousMinGold;
             return new MoneyFloors(Math.Max(settings.MinGoldAfterDeal, autonomous), Math.Max(settings.MinGoldForHorses, autonomous));
         }
+
+        /// <summary>
+        /// The floors the player's manual goals answer to (DESIGN §1.1 "THE GOAL", round 5): with <c>ManualGoalsKeepPurseFloor</c>
+        /// (default on) the plan's own — food at <see cref="All"/>, animals at the higher of the two; off, none — except while
+        /// autonomous, when <see cref="StewardSettings.AutonomousMinGold"/> always holds ("the rich player's autonomy never drains
+        /// the chest"). Null = no floor.
+        /// </summary>
+        public static (int? Food, int? Animals) ForGoals(StewardSettings settings, PlanMode mode)
+        {
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            if (settings.ManualGoalsKeepPurseFloor)
+            {
+                var floors = For(settings, mode);
+                return (floors.All, Math.Max(floors.All, floors.Animals));
+            }
+            if (mode == PlanMode.Autonomous)
+            {
+                int autonomous = Math.Max(0, settings.AutonomousMinGold);
+                return (autonomous, autonomous);
+            }
+            return (null, null);
+        }
     }
 }

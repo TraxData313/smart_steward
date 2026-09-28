@@ -38,7 +38,7 @@ namespace SmartSteward.Core.Planning
             if (plan == null) throw new ArgumentNullException(nameof(plan));
             var edits = new List<KeyValuePair<string, int>>();
             foreach (var row in plan.Rows)
-                if (row.IsTouched)
+                if (row.IsTouched && !row.TakesGoal) // round 5: a goal row's hand is its goal — the settings carry it
                     edits.Add(new KeyValuePair<string, int>(row.Id, row.Change));
             return new PlanCarryOver(edits);
         }

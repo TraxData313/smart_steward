@@ -184,13 +184,16 @@ public class PlanEditingTests
         string suggestion = plan.Describe();
         Assert.Equal(-40, plan.Row("food:grain").Change);      // 320 of the market's 400
         Assert.Equal(-10, plan.Row("loot:Armour").Change);     // the other 80
-        plan.Increase("food:grain", EditSize.All);             // the food sale taken back: −40 → 0
-        Assert.Equal(-50, plan.Decrease("loot:Armour", EditSize.All).After); // the loot takes the whole 400
+        plan.Increase("food:grain", EditSize.All);             // the food sale taken back: −40 → 0 (a goal, round 5)…
+        Assert.Equal(-50, plan.Row("loot:Armour").Change);     // …so the steward's loot takes the whole 400 by itself
+        plan.Increase("loot:Armour");
+        Assert.Equal(-50, plan.Decrease("loot:Armour").After); // now the player's hand is on the loot sale
 
         var reset = plan.Reset("food:grain");
         Assert.Equal(0, reset.After);                            // the player's loot sale has the market's gold
         Assert.Equal(EditBlock.MarketOutOfGold, reset.Block);
         Assert.False(plan.Row("food:grain").IsTouched);          // ⟲ handed it back to the steward
+        Assert.Null(plan.Row("food:grain").ManualGoal);
         Assert.True(plan.Row("loot:Armour").IsTouched);
 
         plan.ResetAll();
@@ -232,11 +235,12 @@ public class PlanEditingTests
             else s.Oracle.Slope = 0.001;
             var plan = s.Plan();
             var fish = plan.Row("food:fish");
-            int fishGold = fish.GoldDelta;
+            int fishPrice = fish.UnitPriceMin;
             Assert.Equal(10, fish.Change);                   // balanced: 10 + 10
             plan.Increase("food:grain", EditSize.Five);
             Assert.Equal(15, plan.Row("food:grain").Change);
-            Assert.Equal(fishGold, fish.GoldDelta);
+            Assert.Equal(5, fish.Change);                    // round 5: a goal of 15 grain — the steward's fish fills the rest
+            Assert.Equal(fishPrice, fish.UnitPriceMin);      // another category: grain's walk never moves the fish price
             if (village)
             {
                 Assert.Equal(-150, plan.Row("food:grain").GoldDelta);
@@ -316,7 +320,9 @@ public class PlanEditingTests
         Assert.Equal(-40, plan.Row("food:grain").Change);   // 320
         Assert.Equal(-85, plan.Row("loot:Armour").Change);  // + 680 = the market's 1,000
 
-        Assert.Equal(EditBlock.MarketOutOfGold, plan.Row("food:grain").DecreaseBlock); // the rags need that gold
+        // Round 5: a food click is a goal edit — the steward's rags would give way, so it is not blocked; the rags' own [−]
+        // is still judged with the food sale as it stands.
+        Assert.Equal(EditBlock.None, plan.Row("food:grain").DecreaseBlock);
         Assert.Equal(EditBlock.MarketOutOfGold, plan.Decrease("loot:Armour", EditSize.All).Block);
 
         plan.Increase("loot:Armour", EditSize.Five);        // frees 40
@@ -565,7 +571,7 @@ public class PlanEditingTests
 
         plan.Decrease("food:fish", EditSize.All);
         Assert.Equal(new[] { "grain" }, plan.Transactions.Select(t => t.StackKey));
-        Assert.Equal(10, plan.Transactions[0].Count);
+        Assert.Equal(20, plan.Transactions[0].Count); // round 5: a goal of 0 fish - the steward's grain fills the target
     }
 
     // ── The round trip ───────────────────────────────────────────────────────────────────────────────
@@ -629,6 +635,8 @@ public class PlanEditingTests
     // ── Scenarios ────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>A village whose market holds 400 gold: 40 surplus grain (320) and armour loot (8 a piece) compete for it.</summary>
+    internal static Scenario MarketGold400Public() => MarketGold400();
+
     private static Scenario MarketGold400()
     {
         var s = new Scenario().Village().Party(10).Gold(100_000, marketGold: 400)

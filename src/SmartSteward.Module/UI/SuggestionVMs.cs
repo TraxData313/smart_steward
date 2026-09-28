@@ -275,6 +275,7 @@ namespace SmartSteward.UI
         private void AfterEdit(PlanFacts factsBefore)
         {
             var plan = _plan;
+            SaveGoals(plan);
             if (plan != null && !ReferenceEquals(plan.Facts, factsBefore))
             {
                 var f = plan.Facts;
@@ -286,6 +287,26 @@ namespace SmartSteward.UI
             SetStatus("");
             Refresh();
             _onPlanChanged();
+        }
+
+        /// <summary>
+        /// Round 5 (DESIGN §1.1 "THE GOAL"): a click (or ⟲) on a food or pack / riding / war row edited its standing goal — the plan
+        /// re-planned itself already, so the goals are saved to settings.json QUIETLY (no Changed: announcing would re-plan the
+        /// window a second time). They hold in every town until their ⟲.
+        /// </summary>
+        private static void SaveGoals(StewardPlan? plan)
+        {
+            if (plan == null)
+                return;
+            var edits = plan.TakeGoalEdits();
+            if (edits.Count == 0)
+                return;
+            SettingsHost.Service.SaveQuietly(s =>
+            {
+                foreach (var edit in edits)
+                    edit.ApplyTo(s);
+            });
+            ModLog.Info("window", "goals saved: " + string.Join(", ", edits));
         }
 
         /// <summary>A wanderer's, the mercenary troop's, a troop's or a prisoner's Encyclopedia page (DESIGN §2.5, §2.7, §2.8).</summary>

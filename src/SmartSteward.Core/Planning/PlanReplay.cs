@@ -12,7 +12,8 @@ namespace SmartSteward.Core.Planning
     internal sealed class PlanInputs
     {
         public PlanInputs(StewardSnapshot snapshot, StewardSettings settings, PlanMode mode, MoneyFloors floors,
-            IPriceOracle oracle, bool foodBalanced, Comparison<ItemStack> lootOrder, bool ransom, bool donate, int dungeonRoom)
+            IPriceOracle oracle, bool foodBalanced, Comparison<ItemStack> lootOrder, bool ransom, bool donate, int dungeonRoom,
+            Dictionary<string, int>? goals = null)
         {
             Snapshot = snapshot;
             Settings = settings;
@@ -25,7 +26,16 @@ namespace SmartSteward.Core.Planning
             Donate = donate;
             DungeonRoom = dungeonRoom;
             CompanionSlots = snapshot.Party.CompanionSlotsFree;
+            Goals = goals ?? ManualGoals.CopyOf(settings);
+            GoalFloors = MoneyFloors.ForGoals(settings, mode);
         }
+
+        /// <summary>The plan's own copy of the player's standing goals (round 5) — edited by <see cref="StewardPlan.SetGoal"/>,
+        /// passed to every re-plan; the window saves the edits (<see cref="StewardPlan.TakeGoalEdits"/>).</summary>
+        public Dictionary<string, int> Goals { get; }
+
+        /// <summary>The floors the goals answer to (<see cref="MoneyFloors.ForGoals"/>).</summary>
+        public (int? Food, int? Animals) GoalFloors { get; }
 
         public StewardSnapshot Snapshot { get; }
         public StewardSettings Settings { get; }
@@ -147,6 +157,22 @@ namespace SmartSteward.Core.Planning
                 lines[o] = line;
                 return line;
             }
+            // Round 5: a goal of the player's (a touched food or pack / riding / war row) walks its hand lanes (without the price
+            // limits when ManualGoalsObeyPriceCaps is off) and buys under the goals' floors (ManualGoalsKeepPurseFloor).
+            bool Hand(RowWalk o) => o.Row.TakesGoal && players.Contains(o.Row);
+            TradeLane SellLaneOf(RowWalk o) => Hand(o) ? o.Row.HandSellLane! : o.Row.SellLane!;
+            TradeLane BuyLaneOf(RowWalk o) => Hand(o) ? o.Row.HandBuyLane! : o.Row.BuyLane!;
+            var floored = new HashSet<RowWalk>();
+            int? goalFood() => inputs.GoalFloors.Food == null ? (int?)null : walk.Gold - inputs.GoalFloors.Food.Value;
+            int? goalAnimals() => inputs.GoalFloors.Animals == null ? (int?)null : walk.Gold - inputs.GoalFloors.Animals.Value;
+            List<RowWalk> Floored(List<RowWalk> rows, bool player, bool food)
+            {
+                if (player && (food ? inputs.GoalFloors.Food : inputs.GoalFloors.Animals) != null)
+                    foreach (var o in rows)
+                        if (Hand(o))
+                            floored.Add(o);
+                return rows;
+            }
 
             var itemRows = Of(RowType.Food, RowType.Pack, RowType.Mount, RowType.WarMount, RowType.Loot);
             var sells = itemRows.Where(o => o.Requested < 0 && o.Row.SellLane != null).ToList();
@@ -157,12 +183,12 @@ namespace SmartSteward.Core.Planning
             foreach (bool player in passes)
                 PlanWalk.SellMostHeldFirst(walk,
                     Pass(sells.Where(o => o.Row.Type == RowType.Food), player)
-                        .Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
+                        .Select(o => Line(o, SellLaneOf(o), -o.Requested)).ToList(),
                     () => true);
             foreach (bool player in passes)
                 foreach (var o in Pass(sells.Where(o => o.Row.Section == PlanSectionKind.Mounts), player)
                              .OrderBy(o => AnimalSellRank(o.Row)))
-                    PlanWalk.WalkLane(walk, Line(o, o.Row.SellLane!, -o.Requested), int.MaxValue, goldLeft);
+                    PlanWalk.WalkLane(walk, Line(o, SellLaneOf(o), -o.Requested), int.MaxValue, goldLeft);
             foreach (bool player in passes)
                 PlanWalk.SellInOrder(walk,
                     Pass(sells.Where(o => o.Row.Type == RowType.Loot), player)
@@ -172,17 +198,19 @@ namespace SmartSteward.Core.Planning
             // 3. Buy: food, pack, riding, war horses (noble and lame horses are never bought).
             foreach (bool player in passes)
                 PlanWalk.BuyFood(walk,
-                    Pass(buys.Where(o => o.Row.Type == RowType.Food), player)
-                        .Select(o => Line(o, o.Row.BuyLane!, o.Requested)).ToList(),
-                    inputs.FoodBalanced, noCeiling, () => true);
+                    Floored(Pass(buys.Where(o => o.Row.Type == RowType.Food), player), player, true)
+                        .Select(o => Line(o, BuyLaneOf(o), o.Requested)).ToList(),
+                    inputs.FoodBalanced, player ? goalFood : noCeiling, () => true);
             foreach (bool player in passes)
             {
-                foreach (var o in Pass(buys.Where(o => o.Row.Type == RowType.Pack || o.Row.Type == RowType.Mount), player))
-                    PlanWalk.WalkLane(walk, Line(o, o.Row.BuyLane!, o.Requested), int.MaxValue, noCeiling);
+                foreach (var o in Floored(Pass(buys.Where(o => o.Row.Type == RowType.Pack || o.Row.Type == RowType.Mount), player),
+                             player, false))
+                    PlanWalk.WalkLane(walk, Line(o, BuyLaneOf(o), o.Requested), int.MaxValue,
+                        player && Hand(o) ? goalAnimals : noCeiling);
                 PlanWalk.BuyCheapestAcross(walk,
-                    Pass(buys.Where(o => o.Row.Type == RowType.WarMount), player)
-                        .Select(o => Line(o, o.Row.BuyLane!, o.Requested)).ToList(),
-                    noCeiling);
+                    Floored(Pass(buys.Where(o => o.Row.Type == RowType.WarMount), player), player, false)
+                        .Select(o => Line(o, BuyLaneOf(o), o.Requested)).ToList(),
+                    player ? goalAnimals : noCeiling);
             }
 
             foreach (var o in itemRows)
@@ -191,7 +219,9 @@ namespace SmartSteward.Core.Planning
                 if (!o.IsShort)
                     continue;
                 if (lines.TryGetValue(o, out var line))
-                    o.Short = ToBlock(line.Short, line.Direction);
+                    o.Short = floored.Contains(o) && line.Short == LaneStop.Ceiling && line.Direction == TradeDirection.Buy
+                        ? EditBlock.PurseFloor
+                        : ToBlock(line.Short, line.Direction);
                 else
                     o.Short = o.Requested > 0
                         ? (o.Row.Type == RowType.Loot ? EditBlock.SellOnly : EditBlock.NoneEligible)

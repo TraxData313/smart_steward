@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SmartSteward.Core.Settings;
 
 namespace SmartSteward.Core.Planning
 {
@@ -87,6 +88,14 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>A troop row under the Your troops line: men of this type are being recruited under Recruits (step 21).</summary>
         RecruitingThisType,
+
+        /// <summary>A goal row's [+] (round 5): the next one would take the purse below the floor your goals keep
+        /// (ManualGoalsKeepPurseFloor — MinGoldAfterDeal for food, the animal floor for horses; AutonomousMinGold while autonomous).</summary>
+        PurseFloor,
+
+        /// <summary>A goal row (round 5): its job waits for its activation threshold and your goals wait with it
+        /// (ManualGoalsWaitForThresholds) — a typed goal is still kept.</summary>
+        WaitsForThreshold,
     }
 
     /// <summary>What one click did.</summary>
@@ -111,6 +120,12 @@ namespace SmartSteward.Core.Planning
         /// <summary>Why <see cref="After"/> stopped short of <see cref="Asked"/>; None when it got there.</summary>
         public EditBlock Block { get; }
         public bool Moved => After != Before;
+
+        /// <summary>A goal row (round 5): its goal after the edit — null when the row follows the policy (after ⟲).</summary>
+        public int? Goal { get; internal set; }
+
+        /// <summary>A goal row: why its Result stops short of the goal (a typed goal the market cannot reach).</summary>
+        public GoalShort GoalShort { get; internal set; }
     }
 
     /// <summary>
@@ -146,7 +161,62 @@ namespace SmartSteward.Core.Planning
     public sealed partial class StewardPlan
     {
         private readonly Dictionary<(PlanRow, int), EditBlock> _blocks = new Dictionary<(PlanRow, int), EditBlock>();
+        private readonly List<GoalEdit> _goalEdits = new List<GoalEdit>();
         private IReadOnlyList<PlanTransaction>? _transactions;
+
+        // ── The goals (round 5, DESIGN §1.1 "THE GOAL") ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// A goal typed for a food or pack / riding / war row: kept as typed (clamped to 0 … <see cref="ManualGoals.MaxGoal"/>)
+        /// even when the market cannot reach it — the Result then stops short and says why (<see cref="EditResult.GoalShort"/>).
+        /// The steward re-plans every row it owns around it (the policy fills the rest); the edit waits in
+        /// <see cref="TakeGoalEdits"/> for the window to save. Throws for a row that takes no goal.
+        /// </summary>
+        public EditResult SetGoal(string rowId, int goal)
+        {
+            var row = RowOrThrow(rowId);
+            if (!row.TakesGoal)
+                throw new ArgumentException("Row '" + rowId + "' takes no goal.", nameof(rowId));
+            int before = row.Change;
+            int value = ManualGoals.Clamp(goal);
+            if (_inputs == null)
+                return new EditResult(row.Id, before, value - row.Mine, before, EditBlock.None);
+            StoreGoal(row, value);
+            var now = FindRow(rowId) ?? row;
+            return new EditResult(row.Id, before, value - now.Mine, now.Change, EditBlock.None)
+            {
+                Goal = now.ManualGoal,
+                GoalShort = now.Result == value ? GoalShort.None : now.GoalShort,
+            };
+        }
+
+        /// <summary>The goal edits made since the last call (a click, a typed goal, a ⟲ on a goal row), oldest first — the window
+        /// saves them (<c>SettingsService.SaveQuietly</c>, no second re-plan) and they are forgotten here.</summary>
+        public IReadOnlyList<GoalEdit> TakeGoalEdits()
+        {
+            var edits = _goalEdits.ToList();
+            _goalEdits.Clear();
+            return edits;
+        }
+
+        /// <summary>The plan's own copy of the standing goals (row id → goal), as the planner reads them.</summary>
+        public IReadOnlyDictionary<string, int> Goals =>
+            _inputs?.Goals ?? (IReadOnlyDictionary<string, int>)new Dictionary<string, int>();
+
+        /// <summary>Keeps a goal in the plan's copy, queues it for saving, and re-plans with it.</summary>
+        private void StoreGoal(PlanRow row, int? goal)
+        {
+            var goals = _inputs!.Goals;
+            bool had = goals.TryGetValue(row.Id, out int old);
+            if (goal == null ? had : !had || old != goal.Value)
+            {
+                if (goal == null) goals.Remove(row.Id);
+                else goals[row.Id] = goal.Value;
+                _goalEdits.Add(new GoalEdit(row.Id, goal));
+            }
+            row.IsTouched = goal != null;
+            Replan();
+        }
 
         /// <summary>The player moved at least one row away from the steward's suggestion.</summary>
         public bool IsEdited => Rows.Any(r => r.IsEdited);
@@ -166,8 +236,13 @@ namespace SmartSteward.Core.Planning
             int before = row.Change, asked = row.SuggestedChange;
             if (_inputs == null)
                 return new EditResult(row.Id, before, asked, before, EditBlock.None);
-            row.IsTouched = false;
-            Replan();
+            if (row.TakesGoal)
+                StoreGoal(row, null); // round 5: ⟲ gives the row back to the Instructions policy — the goal is gone
+            else
+            {
+                row.IsTouched = false;
+                Replan();
+            }
             var now = FindRow(rowId); // an upgrade row nobody needs any more is gone after the re-plan
             int after = now?.Change ?? 0;
             var block = now == null || after == asked ? EditBlock.None : BlockOf(now, Math.Sign(asked - after));
@@ -185,7 +260,8 @@ namespace SmartSteward.Core.Planning
             return MoveTo(row, value, Math.Sign(value - row.Change));
         }
 
-        /// <summary>Every row handed back to the steward — exactly the plan as it was made (a re-plan with nothing touched).</summary>
+        /// <summary>Every row handed back to the steward — exactly the plan as it was made (a re-plan with nothing touched). The
+        /// standing goals stay (round 5, [Claude's call]): they are settings like a typed price, each goes by its own ⟲.</summary>
         public void ResetAll()
         {
             if (_inputs == null)
@@ -209,7 +285,7 @@ namespace SmartSteward.Core.Planning
             foreach (var edit in touched)
             {
                 var row = FindRow(edit.Key);
-                if (row == null)
+                if (row == null || row.TakesGoal) // a goal row's hand is its goal, which the settings carry (round 5)
                     continue;
                 var (min, max) = Bounds(row);
                 row.Change = Math.Max(min, Math.Min(max, edit.Value));
@@ -248,7 +324,9 @@ namespace SmartSteward.Core.Planning
                 return cached;
             EditBlock block;
             int current = row.Change;
-            if (current * direction < 0)
+            if (row.TakesGoal && GoalWaits(row))
+                block = EditBlock.WaitsForThreshold; // round 5: your goals wait with the steward — nothing would move
+            else if (current * direction < 0)
                 block = EditBlock.None; // toward zero always works
             else
             {
@@ -287,6 +365,10 @@ namespace SmartSteward.Core.Planning
                 ? EditBlock.NotEnoughGold
                 : EditBlock.None;
         }
+
+        /// <summary>A goal of this row would wait for its job's threshold (ManualGoalsWaitForThresholds and the job waiting).</summary>
+        private bool GoalWaits(PlanRow row) =>
+            _inputs!.Settings.ManualGoalsWaitForThresholds && row.StartsAtDenari != null;
 
         private PlanRow RowOrThrow(string rowId) =>
             FindRow(rowId) ?? throw new ArgumentException("No row '" + rowId + "' in this plan.", nameof(rowId));
@@ -332,7 +414,11 @@ namespace SmartSteward.Core.Planning
             }
             int after = row.Change;
             var block = after == asked || direction == 0 ? EditBlock.None : BlockOf(row, Math.Sign(asked - after));
-            return new EditResult(row.Id, before, asked, after, block);
+            return new EditResult(row.Id, before, asked, after, block)
+            {
+                Goal = row.ManualGoal,
+                GoalShort = row.ManualGoal == null || row.Result == row.ManualGoal ? GoalShort.None : row.GoalShort,
+            };
         }
 
         /// <summary>Toward zero: always done.</summary>
@@ -368,6 +454,18 @@ namespace SmartSteward.Core.Planning
         /// steward's rows for that party (the live re-plan); any other edit is walked with every other row as it is.</summary>
         private void Commit(PlanRow row)
         {
+            if (row.TakesGoal)
+            {
+                // Round 5: a click on a food or pack / riding / war row IS a goal edit — the new Result becomes the goal, and
+                // the steward re-plans its rows around it (the policy fills the rest). Should the re-plan land short of it (the
+                // trial's picture of the market is the plan as it stood), the goal follows the Result it got.
+                int goal = Math.Max(0, row.Result);
+                StoreGoal(row, goal);
+                var now = FindRow(row.Id);
+                if (now != null && now.Result != goal && now.ManualGoal == goal && !now.GoalWaits)
+                    StoreGoal(now, Math.Max(0, now.Result));
+                return;
+            }
             row.IsTouched = true;
             if (PartyAfter.ChangesParty(row))
                 Replan();
@@ -409,7 +507,7 @@ namespace SmartSteward.Core.Planning
             if (_inputs == null)
                 return;
             var planned = StewardPlanner.Plan(_inputs.Snapshot, _inputs.Settings, _inputs.Oracle, _inputs.Mode,
-                PlanPins.From(Rows));
+                PlanPins.From(Rows, new Pricing.MarketState(_inputs.Oracle, _inputs.Snapshot.MarketGold)), _inputs.Goals);
             Adopt(planned);
             Settle();
         }
@@ -422,8 +520,9 @@ namespace SmartSteward.Core.Planning
             var own = outcome.Of(row);
             if (own.IsShort)
                 return own.Short == EditBlock.None ? EditBlock.NeededByAnotherRow : own.Short;
+            // A goal row's edit re-plans the steward's rows (round 5): they give way — only the player's other rows count.
             foreach (var other in outcome.Rows)
-                if (other.IsShort)
+                if (other.IsShort && (!row.TakesGoal || other.Row.IsTouched))
                     return SharedLimit(other.Short) ? other.Short : EditBlock.NeededByAnotherRow;
             if (value > 0 && Unaffordable(outcome, row))
                 return EditBlock.NotEnoughGold;
@@ -437,7 +536,7 @@ namespace SmartSteward.Core.Planning
         /// </summary>
         private static bool Unaffordable(WalkOutcome outcome, PlanRow row)
         {
-            if (!PartyAfter.ChangesParty(row))
+            if (!PartyAfter.ChangesParty(row) && !row.TakesGoal)
                 return outcome.GoldAfter < 0 || outcome.HireUnaffordable;
             int giveWay = 0;
             foreach (var o in outcome.Rows)

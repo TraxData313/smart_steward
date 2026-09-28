@@ -33,7 +33,8 @@ internal sealed class FakeOracle : IPriceOracle
 /// members, no footmen — so each test switches on only what it looks at.
 /// <para>The settings are the defaults EXCEPT the round-4 changes that would change what the old tests look at
 /// (<see cref="LegacyDefaults"/>): the activation thresholds are 0 (every job acts, whatever the purse), WarMountsToKeep is 0
-/// and food uses the old 1.2 / 0.8 multipliers — the defaults every test before step 20 was written against.
+/// and food uses the old 1.2 / 0.8 multipliers — the defaults every test before step 20 was written against; and (round 5)
+/// the goals do not keep the purse floors, as the player's hand never did before step 22.
 /// <c>JobThresholdTests</c> and <c>FoodMultiplierTests</c> test the real defaults.</para></summary>
 internal sealed class Scenario
 {
@@ -48,6 +49,9 @@ internal sealed class Scenario
         // Food shared the horses' 1.2 / 0.8 until round 4 (now 2.0 / 0.5): the food tests keep the old limits.
         FoodBuyPriceMultiplier = 1.2,
         FoodSellPriceMultiplier = 0.8,
+        // Until round 5 the player's hand on a food or horse row never answered to the floors (red flags only); now a goal
+        // does by default (ManualGoalsKeepPurseFloor). The old tests keep the old way; GoalPlanTests test the real default.
+        ManualGoalsKeepPurseFloor = false,
     };
 
     public StewardSnapshot Snap { get; } = new()

@@ -32,8 +32,11 @@ namespace SmartSteward.Core.Planning
             /// <summary>The sell walk; its Held is the units held as the plan goes.</summary>
             public WalkLine Sell { get; }
 
-            /// <summary>The player's own quantity (a touched row in a live re-plan) — walked first, never re-planned.</summary>
+            /// <summary>The player's own quantity — a goal of yours (round 5: goal − Mine) — walked first, never re-planned.</summary>
             public int? Pinned { get; }
+
+            /// <summary>The player's own walk of this row (sell or buy), to tell why it stopped short.</summary>
+            public WalkLine? Hand { get; set; }
         }
 
         private readonly PlanContext _ctx;
@@ -97,8 +100,19 @@ namespace SmartSteward.Core.Planning
                         item.Held.Where(s => !ctx.IsGuarded(s)).Select(s => new LaneStack(s, s.Count, book.FinalMinSell)))
                     : TradeLane.Empty(TradeDirection.Sell);
 
+                // Round 5: with ManualGoalsObeyPriceCaps off a goal buys and sells this food at any price — its own lanes
+                // without the limits (the ticks still decide the stacks); the steward's own walk keeps the limits.
+                TradeLane? handBuy = null, handSell = null;
+                if (ctx.GoalsIgnoreCaps)
+                {
+                    handBuy = book.BuyTicked
+                        ? new TradeLane(TradeDirection.Buy, LanePick.Cheapest, item.Offered.Select(s => new LaneStack(s, s.Count, null)))
+                        : TradeLane.Empty(TradeDirection.Buy);
+                    handSell = PlanContext.Unlimited(sellLane);
+                }
+
                 int held = item.Held.Sum(s => s.Count);
-                if (held == 0 && buyLane.Capacity == 0)
+                if (held == 0 && buyLane.Capacity == 0 && (handBuy?.Capacity ?? 0) == 0 && !ctx.Goals.ContainsKey("food:" + item.Id))
                     continue; // on the market but never buyable (unticked, or no price to judge it by)
 
                 var row = new PlanRow("food:" + item.Id, PlanSectionKind.Food, RowType.Food)
@@ -110,14 +124,16 @@ namespace SmartSteward.Core.Planning
                     Locked = item.Held.Where(ctx.IsGuarded).Sum(s => s.Count),
                     LocksGuard = ctx.LockGuards(ItemKind.Food),
                     Market = item.Offered.Sum(s => s.Count),
-                    MaxBuy = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
+                    MaxBuy = PlanMath.EligibleOnOffer(handBuy ?? buyLane, ctx.Market),
                     MaxSell = sellLane.Capacity,
                     PriceBook = book,
                     BuyLane = buyLane,
                     SellLane = sellLane,
+                    HandBuyLaneOverride = handBuy,
+                    HandSellLaneOverride = handSell,
                     StartsAtDenari = startsAt,
                 };
-                int? pinned = ctx.Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
+                int? pinned = ctx.PinOf(row, ManagedJob.Food);
                 _lines.Add(new Line(row, item.Held, new WalkLine(row, sellLane, held, book: row.Book), pinned));
             }
         }
@@ -130,9 +146,13 @@ namespace SmartSteward.Core.Planning
 
         private IEnumerable<Line> Steward => _lines.Where(l => l.Pinned == null);
 
-        /// <summary>Food the party will hold as the steward sees it: its own rows as the walk goes, the player's rows at their
-        /// result (their own buys and sales already counted — the steward plans the rest around them).</summary>
-        private int TotalHeld => _lines.Sum(l => l.Pinned == null ? l.Sell.Held : l.Row.Mine + l.Pinned.Value);
+        /// <summary>Food the party will hold as the steward sees it: its own rows as the walk goes, the player's rows (your
+        /// goals — round 5: they count toward the days goal FIRST) at their result — asked, before their buys are walked;
+        /// walked, after (<paramref name="walked"/>): the steward plans the rest around them.</summary>
+        private int HeldTotal(bool walked) =>
+            _lines.Sum(l => l.Pinned == null ? l.Sell.Held : l.Row.Mine + (walked ? l.Row.Book.Net : l.Pinned.Value));
+
+        private int TotalHeld => HeldTotal(false);
 
         /// <summary>The player's food sales first (a live re-plan, <see cref="PlanPins"/>), then the steward's surplus: only
         /// above target × (1 + tolerance), back down to the target — the most-held type first (keeps variety), only
@@ -142,7 +162,7 @@ namespace SmartSteward.Core.Planning
             if (!_active)
                 return;
             var mine = _lines.Where(l => l.Pinned < 0)
-                .Select(l => new WalkLine(l.Row, l.Row.SellLane!, l.Row.Mine, -l.Pinned!.Value, l.Row.Book)).ToList();
+                .Select(l => l.Hand = new WalkLine(l.Row, l.Row.HandSellLane!, l.Row.Mine, -l.Pinned!.Value, l.Row.Book)).ToList();
             if (mine.Count > 0)
                 PlanWalk.SellMostHeldFirst(_ctx.Walk, mine, () => true);
 
@@ -161,17 +181,18 @@ namespace SmartSteward.Core.Planning
                 return;
             var walk = _ctx.Walk;
             bool balanced = _ctx.Settings.FoodStrategy == FoodStrategy.Balanced;
+            // Your goals' buys (round 5) stop at the goals' food floor (ManualGoalsKeepPurseFloor; AutonomousMinGold always).
             var mine = _lines.Where(l => l.Pinned > 0)
-                .Select(l => new WalkLine(l.Row, l.Row.BuyLane!, l.Row.Mine, l.Pinned!.Value, l.Row.Book)).ToList();
+                .Select(l => l.Hand = new WalkLine(l.Row, l.Row.HandBuyLane!, l.Row.Mine, l.Pinned!.Value, l.Row.Book)).ToList();
             if (mine.Count > 0)
-                PlanWalk.BuyFood(walk, mine, balanced, () => null, () => true);
+                PlanWalk.BuyFood(walk, mine, balanced, () => _ctx.GoalFoodCeiling(walk), () => true);
 
             if (!_stewardActs)
                 return;
             // No row sells and buys in one visit (sold only above target + tolerance, bought only below the
             // target), so the buy walk starts from the units held after the sales.
             var buys = Steward.Select(l => new WalkLine(l.Row, l.Row.BuyLane!, l.Sell.Held, book: l.Row.Book)).ToList();
-            int total = TotalHeld;
+            int total = HeldTotal(true);
             PlanWalk.BuyFood(walk, buys, balanced,
                 () => _ctx.FoodBuyCeiling(walk), () => total + buys.Sum(b => b.Cursor.Moved) < Target);
         }
@@ -179,8 +200,12 @@ namespace SmartSteward.Core.Planning
         public void Finish()
         {
             foreach (var line in _lines)
+            {
                 PlanMath.FinishItemRow(line.Row,
                     line.HeldStacks.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+                if (line.Hand != null && line.Row.Result != line.Row.ManualGoal)
+                    line.Row.GoalShort = GoalReasons.Of(line.Hand, _ctx.GoalFloors.Food != null);
+            }
         }
     }
 }

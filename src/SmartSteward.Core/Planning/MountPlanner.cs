@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SmartSteward.Core.Pricing;
+using SmartSteward.Core.Settings;
 using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Planning
@@ -32,8 +33,8 @@ namespace SmartSteward.Core.Planning
     /// </remarks>
     internal sealed class MountPlanner
     {
-        public const string RidingId = "mounts:riding";
-        public const string WarId = "mounts:war";
+        public const string RidingId = ManualGoals.Riding;
+        public const string WarId = ManualGoals.War;
         public const string NobleId = "mounts:noble";
 
         private readonly PlanContext _ctx;
@@ -50,11 +51,16 @@ namespace SmartSteward.Core.Planning
         private readonly WalkLine? _warSell;
         private readonly WalkLine? _nobleSell;
 
-        /// <summary>The player's own quantities (touched rows in a live re-plan) — walked first, never re-planned.</summary>
+        /// <summary>The player's own quantities — goals of yours for riding and war horses (round 5: goal − Mine), a touched
+        /// noble row — walked first, never re-planned.</summary>
         private readonly int? _ridingPinned;
         private readonly int? _warPinned;
         private readonly int? _noblePinned;
         private bool _soldRiding;
+
+        /// <summary>The player's own walks of the riding and war rows, to tell why a goal stopped short.</summary>
+        private WalkLine? _ridingHand;
+        private WalkLine? _warHand;
 
         public MountPlanner(PlanContext ctx, LameHorsePlanner lame)
         {
@@ -84,21 +90,25 @@ namespace SmartSteward.Core.Planning
                 var buyLane = BuyLane(s => MountGoal.IsRiding(s, settings), settings.MountMaxPrice);
                 RidingRow = RoleRow(RidingId, RowType.Mount, MountRole.Riding, null, _riding, sellLane, buyLane);
                 RidingRow.StartsAtDenari = ctx.StartsAt(ManagedJob.Mounts);
+                HandLanes(RidingRow, s => MountGoal.IsRiding(s, settings));
                 _ridingBuy = new LaneCursor(buyLane);
                 _ridingSell = new WalkLine(RidingRow, sellLane, book: RidingRow.Book);
-                _ridingPinned = Pin(RidingRow);
+                _ridingPinned = ctx.PinOf(RidingRow, ManagedJob.Mounts);
             }
 
-            if (settings.WarMountsEnabled && (_warHeld > 0 || WarTarget > 0 || ctx.Pins.Contains(WarId)))
+            if (settings.WarMountsEnabled
+                && (_warHeld > 0 || WarTarget > 0 || ctx.Pins.Contains(WarId) || ctx.Goals.ContainsKey(WarId)))
             {
                 var sellLane = SellLane(_war);
                 var buyLane = BuyLane(s => MountGoal.IsWar(s, settings), settings.WarMountMaxPrice);
                 WarRow = RoleRow(WarId, RowType.WarMount, MountRole.War, MountGoal.WarHorse, _war, sellLane, buyLane);
                 WarRow.Target = WarTarget;
+                WarRow.StewardGoal = WarTarget;
                 WarRow.StartsAtDenari = ctx.StartsAt(ManagedJob.WarHorses);
+                HandLanes(WarRow, s => MountGoal.IsWar(s, settings));
                 _warBuy = new LaneCursor(buyLane);
                 _warSell = new WalkLine(WarRow, sellLane, book: WarRow.Book);
-                _warPinned = Pin(WarRow);
+                _warPinned = ctx.PinOf(WarRow, ManagedJob.WarHorses);
             }
 
             if (settings.SellNobleHorses && _nobleHeld > 0)
@@ -164,6 +174,19 @@ namespace SmartSteward.Core.Planning
 
         private int? Pin(PlanRow row) => _ctx.Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
 
+        /// <summary>Round 5: with ManualGoalsObeyPriceCaps off a goal buys any plain, Buy-ticked horse of the row's kind and sells at
+        /// any price — the row's hand lanes (the steward's own walk keeps the limits).</summary>
+        private void HandLanes(PlanRow row, Func<ItemStack, bool> kind)
+        {
+            if (!_ctx.GoalsIgnoreCaps)
+                return;
+            row.HandBuyLaneOverride = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
+                _ctx.MarketStacks(ItemKind.Mount).Where(s => !s.IsModified && kind(s) && _ctx.Book(s)!.BuyTicked)
+                    .Select(s => new LaneStack(s, s.Count, null)));
+            row.HandSellLaneOverride = PlanContext.Unlimited(row.SellLane!);
+            row.MaxBuy = PlanMath.EligibleOnOffer(row.HandBuyLaneOverride, _ctx.Market);
+        }
+
         private PlanRow RoleRow(string id, RowType type, MountRole role, string? category, List<ItemStack> stacks,
             TradeLane sellLane, TradeLane? buyLane)
         {
@@ -227,28 +250,32 @@ namespace SmartSteward.Core.Planning
         public void PlanPinnedSells()
         {
             PinnedSell(NobleRow, _noblePinned);
-            PinnedSell(WarRow, _warPinned);
-            PinnedSell(RidingRow, _ridingPinned);
+            _warHand = PinnedSell(WarRow, _warPinned) ?? _warHand;
+            _ridingHand = PinnedSell(RidingRow, _ridingPinned) ?? _ridingHand;
         }
 
-        private void PinnedSell(PlanRow? row, int? pinned)
+        private WalkLine? PinnedSell(PlanRow? row, int? pinned)
         {
             var walk = _ctx.Walk;
-            if (row != null && pinned < 0)
-                PlanWalk.WalkLane(walk, new WalkLine(row, row.SellLane!, row.Mine, -pinned.Value, row.Book), int.MaxValue,
-                    () => walk.Market.MarketGoldLeft);
+            if (row == null || !(pinned < 0))
+                return null;
+            var line = new WalkLine(row, row.HandSellLane!, row.Mine, -pinned!.Value, row.Book);
+            PlanWalk.WalkLane(walk, line, int.MaxValue, () => walk.Market.MarketGoldLeft);
+            return line;
         }
 
         /// <summary>The player's own mount buys — riding, then war — before any of the steward's.</summary>
         public void PlanPinnedBuys()
         {
+            // Your goals' buys (round 5) stop at the goals' animal floor (ManualGoalsKeepPurseFloor; AutonomousMinGold always).
             var walk = _ctx.Walk;
             if (RidingRow != null && _ridingPinned > 0)
-                PlanWalk.WalkLane(walk, new WalkLine(RidingRow, RidingRow.BuyLane!, RidingRow.Mine, _ridingPinned.Value,
-                    RidingRow.Book), int.MaxValue, () => null);
+                PlanWalk.WalkLane(walk, _ridingHand = new WalkLine(RidingRow, RidingRow.HandBuyLane!, RidingRow.Mine,
+                    _ridingPinned.Value, RidingRow.Book), int.MaxValue, () => _ctx.GoalAnimalCeiling(walk));
             if (WarRow != null && _warPinned > 0)
                 PlanWalk.BuyCheapestAcross(walk,
-                    new[] { new WalkLine(WarRow, WarRow.BuyLane!, WarRow.Mine, _warPinned.Value, WarRow.Book) }, () => null);
+                    new[] { _warHand = new WalkLine(WarRow, WarRow.HandBuyLane!, WarRow.Mine, _warPinned.Value, WarRow.Book) },
+                    () => _ctx.GoalAnimalCeiling(walk));
         }
 
         /// <summary>
@@ -260,14 +287,31 @@ namespace SmartSteward.Core.Planning
             var settings = _ctx.Settings;
             var walk = _ctx.Walk;
             if (NobleRow != null && _nobleSell != null && _noblePinned == null && RidingActs)
+            {
                 PlanWalk.WalkLane(walk, _nobleSell, int.MaxValue, _ctx.AnimalSellCeiling);
-            if (WarRow != null && _warSell != null && _warPinned == null && settings.SellWarMountSurplus && WarActs)
-                PlanWalk.WalkLane(walk, _warSell, WarNow - WarTarget, _ctx.AnimalSellCeiling);
-            if (RidingRow != null && _ridingSell != null && _ridingPinned == null && settings.SellMountSurplus && RidingActs)
+                if (NobleNow > 0) // the goal is 0: why one stays (locked, the min price, the market's denari)
+                    NobleRow.GoalShort = GoalReasons.Now(_nobleSell.Cursor, _ctx.Market, _ctx.AnimalSellCeiling());
+            }
+            if (WarRow != null && _warSell != null && _warPinned == null && WarActs && WarNow > WarTarget)
+            {
+                int surplus = WarNow - WarTarget;
+                if (!settings.SellWarMountSurplus)
+                    WarRow.GoalShort = GoalShort.SurplusKept;
+                else if (PlanWalk.WalkLane(walk, _warSell, surplus, _ctx.AnimalSellCeiling) < surplus)
+                    WarRow.GoalShort = GoalReasons.Now(_warSell.Cursor, _ctx.Market, _ctx.AnimalSellCeiling());
+            }
+            if (RidingRow != null && _ridingSell != null && _ridingPinned == null && RidingActs)
             {
                 int surplus = Counted() + WarToBuy() - MountTarget;
-                if (surplus > 0)
-                    _soldRiding = PlanWalk.WalkLane(walk, _ridingSell, surplus, _ctx.AnimalSellCeiling) > 0;
+                if (surplus > 0 && !settings.SellMountSurplus)
+                    RidingRow.GoalShort = GoalShort.SurplusKept;
+                else if (surplus > 0)
+                {
+                    int sold = PlanWalk.WalkLane(walk, _ridingSell, surplus, _ctx.AnimalSellCeiling);
+                    _soldRiding = sold > 0;
+                    if (sold < surplus)
+                        RidingRow.GoalShort = GoalReasons.Now(_ridingSell.Cursor, _ctx.Market, _ctx.AnimalSellCeiling());
+                }
             }
         }
 
@@ -302,10 +346,14 @@ namespace SmartSteward.Core.Planning
                 }
             }
 
-            if (stewardRides)
-                BuyRiding(walk, new WalkLine(RidingRow, _ridingBuy!, book: RidingRow!.Book), ridingCap);
+            if (stewardRides && BuyRiding(walk, new WalkLine(RidingRow, _ridingBuy!, book: RidingRow!.Book), ridingCap) < ridingCap)
+                RidingRow!.GoalShort = GoalReasons.Now(_ridingBuy!, _ctx.Market, _ctx.AnimalBuyCeiling(walk));
             if (stewardWar && warShort > 0)
-                BuyWar(walk, new WalkLine(WarRow, _warBuy!, quota: warShort, book: WarRow!.Book));
+            {
+                var line = new WalkLine(WarRow, _warBuy!, quota: warShort, book: WarRow!.Book);
+                if (BuyWar(walk, line) < warShort)
+                    WarRow.GoalShort = GoalReasons.Of(line, true);
+            }
         }
 
         private int BuyRiding(WalkState walk, WalkLine line, int cap) =>
@@ -317,13 +365,21 @@ namespace SmartSteward.Core.Planning
         public void Finish()
         {
             RidingTarget = RidingRow == null ? 0 : Math.Max(0, MountTarget - WarNow - NobleNow - _lame.LeftOf(ItemKind.Mount));
+            bool floor = _ctx.GoalFloors.Animals != null;
             if (RidingRow != null)
             {
                 RidingRow.Target = RidingTarget;
+                RidingRow.StewardGoal = RidingTarget;
                 PlanMath.FinishItemRow(RidingRow, _riding.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+                if (_ridingHand != null && RidingRow.Result != RidingRow.ManualGoal)
+                    RidingRow.GoalShort = GoalReasons.Of(_ridingHand, floor);
             }
             if (WarRow != null)
+            {
                 PlanMath.FinishItemRow(WarRow, _war.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+                if (_warHand != null && WarRow.Result != WarRow.ManualGoal)
+                    WarRow.GoalShort = GoalReasons.Of(_warHand, floor);
+            }
             if (NobleRow != null)
                 PlanMath.FinishItemRow(NobleRow, _noble.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
         }

@@ -106,9 +106,14 @@ namespace SmartSteward.Core.Execution
                 return 0;
             var floors = plan.Floors;
             var row = plan.FindRow(transaction.RowId);
-            return row != null && row.Section == PlanSectionKind.Mounts
-                ? System.Math.Max(floors.All, floors.Animals)
-                : floors.All;
+            bool animal = row != null && row.Section == PlanSectionKind.Mounts;
+            if (row != null && row.TakesGoal && row.IsTouched && plan.Settings != null)
+            {
+                // A goal of the player's (round 5) answers to the goals' floors — AutonomousMinGold at least, while autonomous.
+                var goals = MoneyFloors.ForGoals(plan.Settings, plan.Mode);
+                return (animal ? goals.Animals : goals.Food) ?? 0;
+            }
+            return animal ? System.Math.Max(floors.All, floors.Animals) : floors.All;
         }
 
         /// <summary>Books one unit moved at <paramref name="price"/>.</summary>
@@ -205,7 +210,11 @@ namespace SmartSteward.Core.Execution
             if (plan == null || transaction == null || !transaction.IsItemTrade)
                 return null;
             var row = plan.FindRow(transaction.RowId);
-            var lane = transaction.Kind == TransactionKind.Sell ? row?.SellLane : row?.BuyLane;
+            // A goal of the player's (round 5) walked its hand lanes — without the limits when ManualGoalsObeyPriceCaps is off.
+            bool hand = row != null && row.TakesGoal && row.IsTouched;
+            var lane = transaction.Kind == TransactionKind.Sell
+                ? hand ? row!.HandSellLane : row?.SellLane
+                : hand ? row!.HandBuyLane : row?.BuyLane;
             if (lane == null)
                 return null;
             foreach (var laneStack in lane.Stacks)

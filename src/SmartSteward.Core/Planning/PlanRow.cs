@@ -67,6 +67,49 @@ namespace SmartSteward.Core.Planning
         Mercenaries,
     }
 
+    /// <summary>
+    /// Why a row's Result stops short of its Goal (DESIGN §1.1 "THE GOAL", round 5) — the Result cell's hover. Plain values: the
+    /// window words them. Set by the planners where they know it (a goal of yours, a role row's target, the sell-only rows).
+    /// </summary>
+    public enum GoalShort
+    {
+        /// <summary>The Result reaches the Goal (or nobody knows why not).</summary>
+        None,
+
+        /// <summary>The market has no more of it on offer (the row took everything it had).</summary>
+        MarketStock,
+
+        /// <summary>What the market has left went to another row.</summary>
+        StockTaken,
+
+        /// <summary>The next one costs more than its max buy price (price book or role cap).</summary>
+        PriceCap,
+
+        /// <summary>The next one would fetch less than its min sell price.</summary>
+        MinSellPrice,
+
+        /// <summary>The market has no denari left to pay for more.</summary>
+        MarketGold,
+
+        /// <summary>A purse floor stops the buying (MinGoldAfterDeal, the animal floor, AutonomousMinGold).</summary>
+        PurseFloor,
+
+        /// <summary>A goal of yours waits for its job's activation threshold (ManualGoalsWaitForThresholds).</summary>
+        Threshold,
+
+        /// <summary>Nothing on offer the row may buy (none here, unticked in the Prices tab, or no price to judge it by).</summary>
+        NoneEligible,
+
+        /// <summary>Nothing more it may sell (the rest is locked, or unticked for selling).</summary>
+        NothingToSell,
+
+        /// <summary>The steward's selling of the surplus is off in the Instructions tab (SellPackAnimalSurplus, …).</summary>
+        SurplusKept,
+
+        /// <summary>Not possible here: no ransom broker, or a lord to donate where the game forbids it.</summary>
+        NotPossibleHere,
+    }
+
     /// <summary>Why a tavern row could not be raised when the plan was made (the live reason, after the player's
     /// clicks, is <see cref="PlanRow.IncreaseBlock"/>).</summary>
     public enum HireBlock
@@ -329,6 +372,39 @@ namespace SmartSteward.Core.Planning
         /// <summary>Food rows: the item's resolved price book row.</summary>
         public PriceBookPrices? PriceBook { get; internal set; }
 
+        // ── The Goal (DESIGN §1.1 "THE GOAL", round 5) ────────────────────────────────────────────────────
+
+        /// <summary>The row takes a goal typed by hand: every food row, and the pack, riding and war horse rows
+        /// (<see cref="Settings.ManualGoals"/>). For these rows "touched" means "has a goal of yours" (<see cref="IsTouched"/>).</summary>
+        public bool TakesGoal => Type == RowType.Food
+                                 || Role == MountRole.Pack || Role == MountRole.Riding || Role == MountRole.War;
+
+        /// <summary>Your standing goal for this row (the Result it should end at, kept in settings.json until its ⟲); null = the
+        /// steward's row, which follows the Instructions policy.</summary>
+        public int? ManualGoal { get; internal set; }
+
+        /// <summary>The steward's goal for the row where the policy gives one — the pack, riding and war rows' targets; null for
+        /// food (its goal is its planned Result: a share of the days goal) and rows without one (<see cref="RowGoal"/>).</summary>
+        public int? StewardGoal { get; internal set; }
+
+        /// <summary>Your goal waits for its job's threshold (ManualGoalsWaitForThresholds, the purse before the deal below it) —
+        /// nothing moves; <see cref="GoalShort"/> is <see cref="Planning.GoalShort.Threshold"/>.</summary>
+        public bool GoalWaits { get; internal set; }
+
+        /// <summary>Why the Result stops short of the goal, where the planner knows it.</summary>
+        public GoalShort GoalShort { get; internal set; }
+
+        /// <summary>The lanes a goal of yours walks when <c>ManualGoalsObeyPriceCaps</c> is off — the row's own lanes without the
+        /// price limits (the ticks still hold); null = the row's lanes (<see cref="BuyLane"/>, <see cref="SellLane"/>). The
+        /// steward's own walk always keeps the limits.</summary>
+        internal TradeLane? HandBuyLaneOverride { get; set; }
+        internal TradeLane? HandSellLaneOverride { get; set; }
+
+        /// <summary>What the player's hand buys through (a goal, a click): <see cref="BuyLane"/> or, with the price limits off
+        /// for goals, the same stacks without limits.</summary>
+        internal TradeLane? HandBuyLane => HandBuyLaneOverride ?? BuyLane;
+        internal TradeLane? HandSellLane => HandSellLaneOverride ?? SellLane;
+
         public PrisonerRowInfo? Prisoner { get; internal set; }
         public TavernRowInfo? Tavern { get; internal set; }
 
@@ -364,10 +440,13 @@ namespace SmartSteward.Core.Planning
         /// Takes over what a re-plan made of this row (same id) — every number, lane and fact — so the window keeps its
         /// row objects across a live re-plan. Kept: the id, section and type (the same by id), the owner, the touch, and a
         /// touched row's <see cref="SuggestedChange"/> (the steward did not plan it). Every settable property must be listed
-        /// here — <c>PlanRowTests</c> checks by reflection that none is forgotten.
+        /// here — <c>PlanRowTests</c> checks by reflection that none is forgotten. A row that takes a goal adopts the touch too:
+        /// for it "touched" is "has a goal of yours", which the planner reads from the goals (round 5).
         /// </summary>
         internal void AdoptFrom(PlanRow planned)
         {
+            if (TakesGoal || planned.TakesGoal)
+                IsTouched = planned.IsTouched;
             Name = planned.Name;
             ItemId = planned.ItemId;
             TroopId = planned.TroopId;
@@ -393,6 +472,12 @@ namespace SmartSteward.Core.Planning
             Target = planned.Target;
             StartsAtDenari = planned.StartsAtDenari;
             PriceBook = planned.PriceBook;
+            ManualGoal = planned.ManualGoal;
+            StewardGoal = planned.StewardGoal;
+            GoalWaits = planned.GoalWaits;
+            GoalShort = planned.GoalShort;
+            HandBuyLaneOverride = planned.HandBuyLaneOverride;
+            HandSellLaneOverride = planned.HandSellLaneOverride;
             Prisoner = planned.Prisoner;
             Tavern = planned.Tavern;
             Troop = planned.Troop;

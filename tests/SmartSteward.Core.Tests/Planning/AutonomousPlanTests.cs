@@ -1,5 +1,6 @@
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Settings;
+using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Tests.Planning;
 
@@ -103,14 +104,33 @@ public class AutonomousPlanTests
     [Fact]
     public void An_edit_past_the_autonomous_floor_is_flagged_against_it()
     {
-        var s = new Scenario().Party(100).Gold(101_000).Food("grain", market: 1_000, buy: 10);
+        // A loot sale taken back by hand is no goal: the floors only flag it.
+        var s = new Scenario().Party(100).Gold(101_000).Food("grain", market: 1_000, buy: 10)
+            .Loot("rags", LootGroup.Armour, held: 10, sell: 100);
+        s.Settings.SellLoot = true;
         var alone = StewardPlanner.Plan(s.Snap, s.Settings, s.Oracle, PlanMode.Autonomous);
         Assert.Equal(100_000, alone.Floors.All);
+        Assert.Equal(-10, alone.Row("loot:Armour").Change);
 
-        alone.Increase("food:grain", EditSize.Five);
+        alone.Increase("loot:Armour", EditSize.All); // the 1,000 of the rags taken back after the food was bought with it
 
-        Assert.Equal(99_950, alone.Totals.GoldAfter);
-        Assert.True(alone.Totals.BelowMinGoldAfterDeal); // 99,950 < 100,000, though far above MinGoldAfterDeal
+        Assert.True(alone.Totals.GoldAfter < 100_000);
+        Assert.True(alone.Totals.BelowMinGoldAfterDeal); // below 100,000, though far above MinGoldAfterDeal
+    }
+
+    [Fact]
+    public void Goals_never_take_the_autonomous_purse_below_AutonomousMinGold()
+    {
+        // Round 5: your goals obey AutonomousMinGold whatever ManualGoalsKeepPurseFloor says (off in the test kit).
+        var s = new Scenario().Party(100).Gold(101_000).Food("grain", market: 1_000, buy: 10);
+        s.Settings.Goals["food:grain"] = 900;
+        Assert.False(s.Settings.ManualGoalsKeepPurseFloor);
+        var alone = StewardPlanner.Plan(s.Snap, s.Settings, s.Oracle, PlanMode.Autonomous);
+        var grain = alone.Row("food:grain");
+        Assert.Equal(100, grain.Change);                  // 1,000 denari above the floor: 100 grain
+        Assert.Equal(100_000, alone.Totals.GoldAfter);
+        Assert.Equal(GoalShort.PurseFloor, RowGoal.Of(grain).Short);
+        Assert.Equal(EditBlock.PurseFloor, grain.IncreaseBlock);
     }
 
     [Fact]

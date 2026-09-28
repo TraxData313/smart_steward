@@ -146,6 +146,9 @@ namespace SmartSteward.Core.Planning
             if (mine.Count > 0)
                 PlanWalk.SellInOrder(_ctx.Walk, mine, _order);
             PlanWalk.SellInOrder(_ctx.Walk, steward, _order);
+            foreach (var line in steward) // the goal is 0 (round 5): a group the market could not pay for in full says so
+                if (line.Stopped && line.Row != null)
+                    line.Row.GoalShort = GoalShort.MarketGold;
         }
 
         public void Finish()

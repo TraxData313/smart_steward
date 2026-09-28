@@ -14,7 +14,7 @@ namespace SmartSteward.Core.Planning
             new Dictionary<string, PriceBookPrices>(StringComparer.Ordinal);
 
         public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, PlanMode mode,
-            PlanPins? pins = null, int warPledge = 0)
+            PlanPins? pins = null, int warPledge = 0, IReadOnlyDictionary<string, int>? goals = null)
         {
             Snapshot = snapshot;
             Settings = settings;
@@ -22,10 +22,56 @@ namespace SmartSteward.Core.Planning
             Mode = mode;
             Pins = pins ?? PlanPins.None;
             WarPledge = Math.Max(0, warPledge);
+            Goals = goals ?? ManualGoals.CopyOf(settings);
             Party = PartyAfter.Of(snapshot);
             Floors = MoneyFloors.For(settings, mode);
+            GoalFloors = MoneyFloors.ForGoals(settings, mode);
             Walk = new WalkState(new MarketState(oracle, snapshot.MarketGold), snapshot.PlayerGold);
         }
+
+        /// <summary>The player's standing goals by row id (the plan's own copy — <see cref="ManualGoals"/>).</summary>
+        public IReadOnlyDictionary<string, int> Goals { get; }
+
+        /// <summary>The floors the manual goals answer to (<see cref="MoneyFloors.ForGoals"/>); null = none.</summary>
+        public (int? Food, int? Animals) GoalFloors { get; }
+
+        /// <summary>The goals walk their own lanes without the price limits (<c>ManualGoalsObeyPriceCaps</c> off).</summary>
+        public bool GoalsIgnoreCaps => !Settings.ManualGoalsObeyPriceCaps;
+
+        /// <summary>
+        /// The player's quantity for a row — walked first in its phase, never re-planned (the live re-plan's pins, step 15):
+        /// for a row that takes a goal, YOUR GOAL (round 5 — <c>goal − Mine</c>; 0 while it waits for <paramref name="job"/>'s
+        /// threshold under <c>ManualGoalsWaitForThresholds</c>), marking the row as yours; for any other row its touched
+        /// quantity. Null = the steward's row.
+        /// </summary>
+        public int? PinOf(PlanRow row, ManagedJob? job)
+        {
+            if (!row.TakesGoal)
+                return Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
+            if (!Goals.TryGetValue(row.Id, out int goal))
+                return null;
+            row.ManualGoal = goal;
+            row.IsTouched = true;
+            if (job != null && Settings.ManualGoalsWaitForThresholds && !JobActive(job.Value))
+            {
+                row.GoalWaits = true;
+                row.GoalShort = goal == row.Mine ? GoalShort.None : GoalShort.Threshold;
+                return 0;
+            }
+            return goal - row.Mine;
+        }
+
+        /// <summary>The most a goal's next food unit may cost: the purse above the goals' food floor (null = no floor).</summary>
+        public int? GoalFoodCeiling(WalkState walk) => GoalFloors.Food == null ? (int?)null : walk.Gold - GoalFloors.Food.Value;
+
+        /// <summary>The most a goal's next animal may cost.</summary>
+        public int? GoalAnimalCeiling(WalkState walk) =>
+            GoalFloors.Animals == null ? (int?)null : walk.Gold - GoalFloors.Animals.Value;
+
+        /// <summary>A lane without its price limits — a goal's own lane when the goals ignore the caps (the ticks decided the
+        /// stacks already).</summary>
+        public static TradeLane Unlimited(TradeLane lane) =>
+            new TradeLane(lane.Direction, lane.Pick, lane.Stacks.Select(s => new LaneStack(s.Stack, s.Available, null)));
 
         public StewardSnapshot Snapshot { get; }
         public StewardSettings Settings { get; }
