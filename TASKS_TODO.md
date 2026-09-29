@@ -58,6 +58,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 23. Round 5 WINDOW — columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight;
   typed goal boxes with ⟲, the "-*" hover, troops Mine red over the limit, the Instructions info lines + the new group; deploy + PLAYTEST
   - [ ] Deployed at the end of step 23 (the game was closed — the install carries steps 12–23), then playtest — checklist in docs/PLAYTEST.md "Round 5 — the Goal"
+- [ ] 24. BUG — a village raid won in battle ends in capture ("DefenderVictory"; docs/feedback/2026-09-29-raid-capture-bug.md):
+  find whether the steward touches the encounter (LeaveGuard, the arrival popup, the menu entry, autonomy) during a hostile action; fix + log; can save "fst2" be repaired
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
