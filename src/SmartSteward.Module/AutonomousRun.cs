@@ -21,6 +21,12 @@ namespace SmartSteward
         {
             try
             {
+                string? busy = EncounterGuard.WhyBusy(settlement, checkMenu: true);
+                if (busy != null)
+                {
+                    EncounterGuard.LogAside("the autonomous steward at " + settlement.Name, busy);
+                    return;
+                }
                 var visit = SnapshotBuilder.Build(settlement, out string whyNot);
                 if (visit == null)
                 {

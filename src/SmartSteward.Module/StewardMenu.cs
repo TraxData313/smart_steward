@@ -98,7 +98,15 @@ namespace SmartSteward
             args.optionLeaveType = GameMenuOption.LeaveType.Manage;
             try
             {
-                return SettingsHost.Current.ModEnabled;
+                if (!SettingsHost.Current.ModEnabled)
+                    return false;
+                // Greyed while the encounter is not a quiet visit (a battle, a hostile action - PLAN step 24).
+                if (EncounterGuard.WhyBusy(null, checkMenu: false) != null)
+                {
+                    args.IsEnabled = false;
+                    args.Tooltip = UiText.T("ss_menu_busy", "The steward waits until the fighting is over.");
+                }
+                return true;
             }
             catch
             {
@@ -111,6 +119,12 @@ namespace SmartSteward
             try
             {
                 bool port = args?.MenuContext?.GameMenu?.StringId == PortMenuId;
+                string? busy = EncounterGuard.WhyBusy(MobileParty.MainParty?.CurrentSettlement, checkMenu: false);
+                if (busy != null)
+                {
+                    EncounterGuard.LogAside("the Party Steward entry", busy + " - the window stays closed");
+                    return;
+                }
                 StewardWindow.Open(MobileParty.MainParty?.CurrentSettlement ?? Settlement.CurrentSettlement,
                     port ? "the Party Steward entry at the port" : "the Party Steward menu entry");
             }

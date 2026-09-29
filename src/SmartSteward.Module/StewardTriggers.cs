@@ -74,6 +74,10 @@ namespace SmartSteward
         private static LeaveGuard? _leaveRequest;
         private static int _leaveRequestFrames;
 
+        /// <summary>The village whose flipped encounter side (vanilla's raid bug, <see cref="EncounterGuard.IsRaidSideFlipped"/>)
+        /// the player was told about — once per stay.</summary>
+        private static Settlement? _sideWarnedAt;
+
         /// <summary>The <see cref="CampaignSession.Generation"/> this state belongs to (stamped by <see cref="Reset"/>).</summary>
         private static int _generation;
 
@@ -104,8 +108,10 @@ namespace SmartSteward
             _openRequest = null;
             _leaveRequest = null;
             _warnedThisFrame = null;
+            _sideWarnedAt = null;
             _generation = CampaignSession.Generation;
             LeaveGuard.Reset();
+            EncounterGuard.Quiet();
         }
 
         /// <summary>What the triggers hold right now, for the campaign reset's log line ("" = nothing).</summary>
@@ -163,6 +169,7 @@ namespace SmartSteward
             _visit = null;
             _openRequest = null;
             _leaveRequest = null;
+            _sideWarnedAt = null;
         }
 
         /// <summary>Every menu (re)opening: guard its leave options (once), give War Sails' port menu its entry (once),
@@ -179,6 +186,8 @@ namespace SmartSteward
                     LeaveGuard.Wrap(menu, optionId);
             if (id == StewardMenu.PortMenuId)
                 StewardMenu.EnsurePortEntry(menu);
+            if (id == "village")
+                WarnIfRaidSideFlipped();
 
             var visit = _visit;
             if (visit != null && visit.Arrived && !visit.ArrivalDone && !visit.ArrivalPending && IsArrivalMenu(id, visit.Settlement)
@@ -190,6 +199,17 @@ namespace SmartSteward
                 ModLog.Info("trigger", "the " + id + " menu is up at " + visit.Settlement.Name
                                        + " - the arrival waits for a quiet map");
             }
+        }
+
+        /// <summary>The village menu is up: when vanilla's raid bug has flipped the player to the village's side (RESEARCH
+        /// §28), say so once per stay — the steward itself changes nothing.</summary>
+        private static void WarnIfRaidSideFlipped()
+        {
+            var here = MobileParty.MainParty?.CurrentSettlement;
+            if (here == null || here == _sideWarnedAt || !SettingsHost.Current.ModEnabled || !EncounterGuard.IsRaidSideFlipped(here))
+                return;
+            _sideWarnedAt = here;
+            EncounterGuard.WarnRaidSideFlipped(here);
         }
 
         /// <summary>The menus an arrival shows in: the town's and the village's own, and — docked at a town by sea under War
@@ -243,6 +263,15 @@ namespace SmartSteward
             try
             {
                 var settlement = _openRequest ?? visit!.Settlement;
+                string? busy = EncounterGuard.WhyBusy(settlement, checkMenu: false);
+                if (busy != null)
+                {
+                    _quietFrames = 0;
+                    EncounterGuard.LogAside((_openRequest != null ? "the review at " : "the arrival at ") + settlement.Name
+                                            + " waits", busy);
+                    return;
+                }
+                EncounterGuard.Quiet();
                 string? blocker = QuietBlocker(settlement);
                 if (blocker != null)
                 {
@@ -366,6 +395,12 @@ namespace SmartSteward
                 var here = MobileParty.MainParty?.CurrentSettlement;
                 if (here == null || !(here.IsTown || here.IsVillage) || IsLootedVillage(here))
                     return false;
+                string? busy = EncounterGuard.WhyBusy(here, checkMenu: true);
+                if (busy != null)
+                {
+                    EncounterGuard.LogAside("leaving " + here.Name + " (no leave warning, the leave goes through as clicked)", busy);
+                    return false;
+                }
                 SettingsHost.ReloadIfChanged();
                 var settings = SettingsHost.Current;
                 if (!settings.ModEnabled || !settings.WarnIfNotReviewed || settings.AutonomousSteward)
@@ -449,6 +484,12 @@ namespace SmartSteward
                     return;
                 }
                 _leaveRequest = null;
+                string? busy = EncounterGuard.WhyBusy(MobileParty.MainParty?.CurrentSettlement, checkMenu: true);
+                if (busy != null)
+                {
+                    EncounterGuard.LogAside("Leave anyway dropped", busy);
+                    return;
+                }
                 guard.LeaveNow(context);
             }
             catch (Exception ex)

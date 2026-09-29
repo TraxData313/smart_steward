@@ -51,6 +51,14 @@ namespace SmartSteward.Adapter
                 report.Abort = "the party is no longer in " + settlement.Name;
                 return report;
             }
+            // Never while the encounter is not a quiet visit or the menu is not the settlement's own (PLAN step 24).
+            string? busy = EncounterGuard.WhyBusy(settlement, checkMenu: true);
+            if (busy != null)
+            {
+                EncounterGuard.LogAside("the executor at " + settlement.Name, busy);
+                report.Abort = "the steward stands aside - " + busy;
+                return report;
+            }
 
             Donate(transactions.Where(t => t.Kind == TransactionKind.Donate).ToList(), report, settlement, main);
             Ransom(transactions.Where(t => t.Kind == TransactionKind.Ransom).ToList(), report, settlement, main);
