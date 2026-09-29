@@ -45,3 +45,15 @@ touches are the "Party Steward" option (town, village, port) and the LeaveGuard 
 leave_set_sail, leave_at_sea (+ the town's), whose "Leave anyway" re-runs the option via RunConsequencesOfMenuOption.
 The executor's only settlement call is EnterSettlementAction.ApplyForPrisoner (donating prisoners, towns/castles).
 The in-game test with Smart Steward OFF has not been done yet.
+
+## Step 24 finding (2026.09.29) — vanilla, not Smart Steward
+- Game log 20:12:04 → 20:12:07: the encounter menu was open 2.5 s, then "WaitingRemoval" + "Player has entered Kamshar" with
+  no mission = the encounter menu's "Leave..." (`MenuHelper.EncounterLeaveConsequence`: Finish without leaving the village, then
+  `StartSettlementEncounter`). The new encounter's `SetupFields` sees the party INSIDE the village → `PlayerSide = Defender`.
+- fst2 was saved 4 s later with that state (`PlayerSide` is saved). The raid's won mission calls `SetPlayerVictorious()` →
+  `SetOverrideWinner(PlayerSide = Defender)` → DefenderVictory → captured. Same on the retry from fst2.
+- smart_steward.log for the whole stay: arrival, "no popup - the market is closed", the window opened by hand 20:11:57 and
+  closed 20:12:01 — no leave warning, no Leave anyway, no autonomous run, no executor. The steward's code has no call that
+  finishes, starts or re-enters an encounter.
+- Repair: Leave the village to the map and enter again, then raid. Hardening + the red warning: PLAN step 24, RESEARCH §28,
+  PLAYTEST "Step 24".

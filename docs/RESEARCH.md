@@ -1260,6 +1260,50 @@ Read in `game-decompiled-1.4.8` (`TaleWorlds.GauntletUI.BaseTypes\EditableTextWi
 - `DefaultSearchText` (the grey placeholder) is written into the visible text only on `UpdateText` / `OnLoseFocus` while the
   real text is empty — a placeholder that changes while shown stays stale; the Goal box shows its `–*` as real text instead.
 
+## 28. The encounter at a village — the raid that ends in capture (verified in step 24, 2026.09.29)
+
+Anton's report (docs/feedback/2026-09-29-raid-capture-bug.md): at Kamshar a raid won in battle resolved `DefenderVictory` and
+the player was captured, every time from save "fst2". Read in `game-decompiled-1.4.8` (`TaleWorlds.CampaignSystem\Encounters\
+PlayerEncounter.cs`, `…\EncounterManager.cs`, `…\Helpers\MenuHelper.cs`, `…\CampaignBehaviors\VillageHostileActionCampaignBehavior.cs`,
+`…\EncounterGameMenuBehavior.cs`, `…\PlayerTownVisitCampaignBehavior.cs`, `SandBox\…\CampaignMissionComponent.cs`) and the two
+game logs (`rgl_log_21220.txt` 20:11–20:27, `rgl_log_47924.txt` 14:18–14:22). **Verdict: vanilla, not the steward.**
+
+- **The hostile action**: `village_hostile_action` → `StartHostileAction` = `BeHostileAction.ApplyEncounterHostileAction`, sets
+  `PlayerEncounter.Current.ForceRaid / ForceSupplies / ForceVolunteers`, `SwitchToMenu("encounter")`; the encounter menu's init
+  (`game_menu_encounter_on_init`) → `PlayerEncounter.StartBattle()` → `RaidEventComponent.CreateRaidEvent(_attackerParty,
+  _defenderParty)` (log "Player MapEvent State: Wait"). StartBattle does NOT recompute `PlayerEncounter.PlayerSide`.
+- **`PlayerSide` is set in `SetupFields`** (called by `Init`): with no player MapEvent it is `Defender` when the defender is a
+  settlement of the player's faction **or `MainParty.CurrentSettlement == defender.Settlement`**, else `Attacker`. Arriving
+  from the map, `SetupFields` runs BEFORE `EnterSettlement`, so an enemy village gives `Attacker`. `PlayerSide` is a
+  `[SaveableProperty(3)]` — it goes into the save.
+- **"Leave..." in the encounter menu** (`game_menu_encounter_leave_on_consequence` → `MenuHelper.EncounterLeaveConsequence`):
+  `PlayerEncounter.Finish(false)` while inside the village (the MapEvent is finalized: "State: WaitingRemoval"; the player is
+  NOT moved out), then `EncounterManager.StartSettlementEncounter(MainParty, village)` → a NEW encounter whose `SetupFields`
+  sees `CurrentSettlement == village` → **`PlayerSide = Defender`**, and `Init` → `EnterSettlement` ("Player has entered …"
+  again, menus `village_outside` → `village`). This is the log's 20:12:04 → 20:12:07 (2.5 s in the encounter menu, no mission).
+- **The win**: `CampaignMissionComponent.OnMissionResultReady` → `PlayerEncounter.SetPlayerVictorious()` →
+  `_mapEvent.SetOverrideWinner(PlayerSide)` = Defender → "Player MapEvent BattleState: DefenderVictory" at `CheckMissionEnded`,
+  though the mission says "Enemies are fleeing. You won the battle." → the player's side lost → captured by the village.
+- **A normal raid** (47924, Mussum, force supplies): village → hostile action → encounter → mission → `AttackerVictory`; the
+  "Player has entered" line AFTER a finished MapEvent (WaitingRemoval) is vanilla too — the re-entry of the same path.
+- **Our log** (`smart_steward.log`, 2026.09.29 20:11:53–20:17:49): arrived, guarded the leave options, "no popup at Kamshar -
+  the market is closed", the player opened the window from the menu entry 20:11:57 and closed it 20:12:01; then only the
+  re-entry's "arrived" and "no popup". No leave warning, no Leave anyway, no autonomous run, no executor. The steward's code
+  never calls `PlayerEncounter`, `EnterSettlementAction` (except `ApplyForPrisoner` in a donation), `LeaveSettlementAction`,
+  `GameMenu.SwitchToMenu` / `ExitToLast` / `ActivateGameMenu`; its one `RunConsequencesOfMenuOption` is the guarded leave
+  option of the town/village/port menu, logged, and only after the same menu is back. Escape never runs a menu's leave option
+  (only the escape menu, context menus and panels read `Exit`).
+- **Repair**: the village menu's Leave (`game_menu_settlement_leave_on_consequence`: `LeaveSettlement` + `Finish`) drops the
+  encounter; entering again from the map runs `SetupFields` with no current settlement → `Attacker`. So a save made after a
+  back-out is fixed by Leave → click the village again → raid. Never back out of the encounter menu at a village you mean to
+  raid (or leave and re-enter after it).
+- **The steward's guard** (`EncounterGuard`, step 24): stands aside while `MainParty.MapEvent`, `PlayerEncounter.Battle`, the
+  settlement's `Party.MapEvent`, a `Force*` flag, an `EncounterState` other than `Begin`, a siege / besieger camp, captivity —
+  or, for the leave warning / Leave anyway / autonomy / executor, a menu other than `town` / `village` / `port_menu`. Logged as
+  `[guard] …: the steward stands aside - <why>`. `IsRaidSideFlipped` = a village of another faction, no battle, `PlayerSide ==
+  Defender` → one red message at the village menu (the steward changes nothing). `PlayerEncounter.EncounteredBattle` throws
+  when `Current` or its encountered party is null — the guard reads `Battle` and the parties' `MapEvent` instead.
+
 ---
 
 ## Gotchas (one line each)
@@ -1368,6 +1412,8 @@ Read in `game-decompiled-1.4.8` (`TaleWorlds.GauntletUI.BaseTypes\EditableTextWi
 72. **A press moves the focus before the click**: a text box's FocusLost fires before the button's Click — commit a typed value
     outside the widget's event (queue it) and before any command runs (§27).
 73. **Hover does not bubble** — a text box's tooltip `HintWidget` must be the box's CHILD; `Command.TextEntered` = Enter (§27).
+74. **"Leave..." out of a village hostile action flips `PlayerEncounter.PlayerSide` to Defender** (re-encounter while inside) —
+    the next raid won in battle is `DefenderVictory` and a capture; saved with the game; Leave + re-enter fixes it (§28).
 
 ---
 

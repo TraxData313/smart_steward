@@ -1173,6 +1173,14 @@ troop / hero, the count and the expected unit prices.
     a load from the main menu or from inside a running campaign, the exit to the main menu) closes the window and drops the
     visit, a pending popup, Review or Leave anyway (`Module\CampaignSession`); what the steward holds is stamped with its
     campaign and never used in another (a leave option wrapped in an earlier campaign only passes through).
+  - **The steward stands aside during any fight** **[decided: Claude, 2026.09.29 — step 24, Anton's raid-capture report]**:
+    no popup, no autonomous run, no leave warning (the leave goes through as clicked), no Leave anyway, no Do it / executor
+    while the party or the settlement has a battle (MapEvent), a hostile action is starting, the encounter is past its
+    Begin state, a siege or captivity — nor, for the leave warning, Leave anyway, autonomy and the executor, while the menu is
+    not the settlement's own. The menu entry greys ("The steward waits until the fighting is over."). One `[guard]` log line
+    says each time (`Module\EncounterGuard`, RESEARCH §28). The report itself was vanilla's bug: backing out of a village
+    hostile action ("Leave...") makes the game count the player as the village's defender, so a raid won afterwards is
+    lost — at the village menu the steward says so once in red (it changes nothing; Leave + re-enter sets it right).
 - **[research 2026.09.27]** (RESEARCH §10)
   - Menu entries go into the `town` and `village` menus (right after Trade); arrival =
     `SettlementEntered`, then the next `town`/`village` menu opening (it re-fires on every return

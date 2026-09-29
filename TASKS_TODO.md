@@ -58,8 +58,10 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 23. Round 5 WINDOW — columns Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight;
   typed goal boxes with ⟲, the "-*" hover, troops Mine red over the limit, the Instructions info lines + the new group; deploy + PLAYTEST
   - [ ] Deployed at the end of step 23 (the game was closed — the install carries steps 12–23), then playtest — checklist in docs/PLAYTEST.md "Round 5 — the Goal"
-- [ ] 24. BUG — a village raid won in battle ends in capture ("DefenderVictory"; docs/feedback/2026-09-29-raid-capture-bug.md):
+- [x] 24. BUG — a village raid won in battle ends in capture ("DefenderVictory"; docs/feedback/2026-09-29-raid-capture-bug.md):
   find whether the steward touches the encounter (LeaveGuard, the arrival popup, the menu entry, autonomy) during a hostile action; fix + log; can save "fst2" be repaired
+  → VANILLA: "Leave..." out of a hostile action makes you the village's defender; fst2: Leave + re-enter, then raid (RESEARCH §28)
+  - [ ] Deploy (the game was running at the end of step 24), then playtest — checklist in docs/PLAYTEST.md "Step 24"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -103,6 +105,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Troops title: Goal = party size limit, Mine red when you are over it; each title's overview on its own row under the name
 - A Result short of its goal says why on hover; Escape in a text box leaves the box, a second Escape closes the window
 - Instructions: a line on Food and the horse groups ("… follows these rules until you type its goal"), and the goal line in the hint on top
+- The steward stands aside during any fight or hostile action (no popup, leave question, autonomy or Do it; the menu entry greys); a red warning when the game would count a village raid as lost (its own bug after backing out of a hostile action - leave and enter again)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -155,6 +158,7 @@ NOTICED (things spotted during a step, left for later):
 - [x] Step 8: the "Party Steward" menu entry already exists (StewardMenu, step 7) — step 8 added the popup, leave warning and autonomy
 - [x] Step 9: the window's texts carry ids ss_ui_* (+ MCM's ss_set_/ss_hint_/ss_opt_/ss_grp_, step 8's ss_auto_*/ss_leave_*) — gathered: module/ModuleData/Languages/std_SmartSteward.xml, held to the code by StringsFileTests
 - [ ] Playtest: the window's look was never seen — column widths, font sizes, the Encyclopedia focus round trip (PLAYTEST Step 7)
+- [ ] Step 24: the capture's game log shows "Resolving: Enlisted" (twice) — some loaded mod asks for an "Enlisted" assembly that is not in the load order; harmless here, worth a look in the sibling mods
 - [x] Step 9: PlanReport.Compact and ExecutionReport.Summary lost their last caller with the debug door (tests only) — dropped (step 9)
 - [ ] Step 9 (left on purpose): a click on a huge plan still costs ~20 ms — one trial walk per live button; incremental walks could cut it, measure in game first (PlanPerformanceTests)
 - [x] Step 9 (left on purpose): surplus riding horses are kept while an upgrade horse is on offer, even when the floors will not let the steward buy it — "never sell and buy mounts in one visit" taken strictly → step 17: the rule is gone (the riding surplus is sold against the war horses the plan buys)

@@ -192,6 +192,9 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
   CampaignSession.cs          (step 12) every campaign start/end resets the window + triggers; a generation stamp so nothing
                               of an earlier campaign is ever used
   InputWatch.cs               (step 12) log-only: the map's follow modifier (Left Alt) read as held — RESEARCH §17
+  EncounterGuard.cs           (step 24) WhyBusy = the steward stands aside (popup, autonomy, leave warning, Leave anyway, menu
+                              entry, executor) while a battle / hostile action / siege / captivity is on or the menu is not the
+                              settlement's own — one [guard] log line; IsRaidSideFlipped = vanilla's raid bug warned once (RESEARCH §28)
 tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xml ↔ ModInfo and
                               StewardSettings + SettingsRegistry ↔ DESIGN §7 checks (keys, order, groups,
                               defaults, ranges); Settings/ = registry, file and service tests;
