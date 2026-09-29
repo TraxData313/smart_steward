@@ -105,7 +105,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Troops title: Goal = party size limit, Mine red when you are over it; each title's overview on its own row under the name
 - A Result short of its goal says why on hover; Escape in a text box leaves the box, a second Escape closes the window
 - Instructions: a line on Food and the horse groups ("… follows these rules until you type its goal"), and the goal line in the hint on top
-- The steward stands aside during any fight or hostile action (no popup, leave question, autonomy or Do it; the menu entry greys); a red warning when the game would count a village raid as lost (its own bug after backing out of a hostile action - leave and enter again)
+- The steward stands aside during any fight or hostile action (no popup, leave question, autonomy or Do it; the menu entry greys)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited

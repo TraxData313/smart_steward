@@ -1180,7 +1180,8 @@ troop / hero, the count and the expected unit prices.
     not the settlement's own. The menu entry greys ("The steward waits until the fighting is over."). One `[guard]` log line
     says each time (`Module\EncounterGuard`, RESEARCH §28). The report itself was vanilla's bug: backing out of a village
     hostile action ("Leave...") makes the game count the player as the village's defender, so a raid won afterwards is
-    lost — at the village menu the steward says so once in red (it changes nothing; Leave + re-enter sets it right).
+    lost (Leave + re-enter sets it right). The mod does NOT warn about it **[Anton 2026.09.29: "if it is the game, pls dont add that
+    message … dont add stuff in the mod that is not related"]** — step 24's red warning was removed the same day.
 - **[research 2026.09.27]** (RESEARCH §10)
   - Menu entries go into the `town` and `village` menus (right after Trade); arrival =
     `SettlementEntered`, then the next `town`/`village` menu opening (it re-fires on every return

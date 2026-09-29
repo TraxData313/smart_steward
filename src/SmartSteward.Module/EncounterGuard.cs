@@ -17,8 +17,9 @@ namespace SmartSteward
     /// asked, a menu that is not the settlement's own (town, village, War Sails' port). Every place the steward acts asks
     /// here first: the arrival popup and the autonomous run, the leave warning and its "Leave anyway", the menu entry and
     /// the executor (Do it and autonomous). Read-only: it never touches the encounter or the menu.
-    /// <para>The raid-capture report (2026.09.29) was vanilla's own bug — see <see cref="IsRaidSideFlipped"/> — but the
-    /// guard makes sure the steward can never be part of such a chain, and its log line makes a repeat visible.</para>
+    /// <para>The raid-capture report (2026.09.29) was vanilla's own bug (RESEARCH §28) — but the guard makes sure the
+    /// steward can never be part of such a chain, and its log line makes a repeat visible. The mod does not warn about
+    /// vanilla's bug itself (Anton 2026.09.29: nothing in the mod that is not the steward's work).</para>
     /// </summary>
     internal static class EncounterGuard
     {
@@ -103,42 +104,5 @@ namespace SmartSteward
 
         /// <summary>The encounter is quiet again: the next stand-aside is logged even when it repeats the last.</summary>
         public static void Quiet() => _lastLogged = null;
-
-        /// <summary>
-        /// Vanilla's raid bug (RESEARCH §28): backing out of a village hostile action ("Leave..." in the encounter menu,
-        /// <c>MenuHelper.EncounterLeaveConsequence</c>) finishes the encounter and starts a new one while the party is still
-        /// INSIDE the village, so <c>PlayerEncounter.SetupFields</c> makes the player the village's DEFENDER. The next
-        /// hostile action from that encounter makes a raid with the player as attacker, but a won battle declares
-        /// <c>PlayerEncounter.PlayerSide</c> — the defender — the winner: DefenderVictory, the player captured. The state
-        /// is saved with the game. True when the party stands in a village of another faction with that flipped side and
-        /// no battle yet — leaving to the map and entering again sets it right.
-        /// </summary>
-        public static bool IsRaidSideFlipped(Settlement? settlement)
-        {
-            try
-            {
-                var main = MobileParty.MainParty;
-                var encounter = Campaign.Current == null ? null : PlayerEncounter.Current;
-                return settlement != null && settlement.IsVillage && main != null && encounter != null
-                       && main.CurrentSettlement == settlement && PlayerEncounter.Battle == null && main.MapEvent == null
-                       && encounter.PlayerSide == BattleSideEnum.Defender
-                       && settlement.MapFaction != null && settlement.MapFaction != main.MapFaction;
-            }
-            catch (Exception ex)
-            {
-                ModLog.Error("guard", "checking the encounter's side", ex);
-                return false;
-            }
-        }
-
-        /// <summary>Says so once in the message log (and the log file) — the player can still leave and come back.</summary>
-        public static void WarnRaidSideFlipped(Settlement settlement)
-        {
-            ModLog.Info("guard", "at " + settlement.Name + " the game's encounter has the player as the village's DEFENDER"
-                + " (vanilla, after backing out of a hostile action) - a raid won here would count as lost; warned the player");
-            InformationManager.DisplayMessage(new InformationMessage(UiText.S1("ss_guard_raid_side",
-                "Smart Steward: the game would count a raid on {SETTLEMENT} as lost (a game bug after backing out of a hostile action). Leave the village and enter again before you raid it.",
-                "SETTLEMENT", settlement.Name?.ToString() ?? ""), Colors.Red));
-        }
     }
 }

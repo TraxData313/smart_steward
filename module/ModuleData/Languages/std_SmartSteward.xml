@@ -47,7 +47,6 @@
     <string id="ss_grp_Prisoners" text="Prisoners" />
     <string id="ss_grp_Tavern" text="Tavern" />
     <string id="ss_grp_Warmounts" text="War mounts" />
-    <string id="ss_guard_raid_side" text="Smart Steward: the game would count a raid on {SETTLEMENT} as lost (a game bug after backing out of a hostile action). Leave the village and enter again before you raid it." />
     <string id="ss_hint_AutoFillFoodPrices" text="Food you gave no price in the Prices tab uses its average price as the base. Default: on." />
     <string id="ss_hint_AutoFillPackAndMountPrices" text="Pack animals and riding horses you gave no price use their average price as the base. Default: on." />
     <string id="ss_hint_AutoFillWarMountPrices" text="War horses you gave no price use their average price as the base. When off, they are bought only under the war horse price cap until you type a price. (Noble horses always show their average sell price - they are only ever sold.) Default: off." />

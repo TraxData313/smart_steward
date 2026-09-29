@@ -1300,8 +1300,8 @@ game logs (`rgl_log_21220.txt` 20:11–20:27, `rgl_log_47924.txt` 14:18–14:22)
 - **The steward's guard** (`EncounterGuard`, step 24): stands aside while `MainParty.MapEvent`, `PlayerEncounter.Battle`, the
   settlement's `Party.MapEvent`, a `Force*` flag, an `EncounterState` other than `Begin`, a siege / besieger camp, captivity —
   or, for the leave warning / Leave anyway / autonomy / executor, a menu other than `town` / `village` / `port_menu`. Logged as
-  `[guard] …: the steward stands aside - <why>`. `IsRaidSideFlipped` = a village of another faction, no battle, `PlayerSide ==
-  Defender` → one red message at the village menu (the steward changes nothing). `PlayerEncounter.EncounteredBattle` throws
+  `[guard] …: the steward stands aside - <why>`. (The flipped state is readable — a village of another faction, no battle,
+  `PlayerEncounter.Current.PlayerSide == Defender` — but the mod does not warn about it: Anton 2026.09.29.) `PlayerEncounter.EncounteredBattle` throws
   when `Current` or its encountered party is null — the guard reads `Battle` and the parties' `MapEvent` instead.
 
 ---

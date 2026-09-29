@@ -398,14 +398,14 @@ The Goal column in the window. Enable "Smart Steward (dev)", load a save, enter 
 
 The cause is **vanilla** (RESEARCH §28): "Leave..." in the encounter menu of a village hostile action restarts the encounter
 while you are still inside, the game then counts you as the village's DEFENDER, and the next raid you win resolves as
-`DefenderVictory` — you are captured. The steward now stands aside during any fight and tells you when the game is in that state.
+`DefenderVictory` — you are captured. The steward now stands aside during any fight. (The red warning step 24 added is gone again — Anton 2026.09.29: not the mod's job.)
 
-1. **Repair fst2.** Load "fst2" (at Kamshar). A red message: "the game would count a raid on Kamshar as lost…". Click the village
-   menu's **Leave** (the steward's leave question may come — "Leave anyway" is fine), then click Kamshar on the map to enter again:
-   no red message this time. Take a hostile action → Raid → win the fight: the log says `AttackerVictory`, you are NOT captured.
+1. **Repair fst2.** Load "fst2" (at Kamshar). Click the village
+   menu's **Leave** (the steward's leave question may come — "Leave anyway" is fine), then click Kamshar on the map to enter again.
+   Take a hostile action → Raid → win the fight: the log says `AttackerVictory`, you are NOT captured.
 2. **The bug on purpose (steward on).** At another enemy village: Take a hostile action → Raid the village → in the encounter
-   menu choose **Leave...** → you are back in the village menu and the red message shows. Leave + re-enter → no message. (Do not
-   raid while the message is up — that loses your army.)
+   menu choose **Leave...** → you are back in the village menu, in the game's bad state. Leave + re-enter sets it right. (Do not
+   raid before that — it loses your army.)
 3. **Optional A/B, steward OFF** (untick "Smart Steward (dev)" in the launcher): do step 2's back-out, then raid and win — you
    are captured all the same. That confirms it is the game, not the steward. Save before trying.
 4. **The guard in the log** (`smart_steward.log`): during a hostile action / battle at a settlement, lines like
