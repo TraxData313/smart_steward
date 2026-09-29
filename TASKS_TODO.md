@@ -61,7 +61,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 24. BUG — a village raid won in battle ends in capture ("DefenderVictory"; docs/feedback/2026-09-29-raid-capture-bug.md):
   find whether the steward touches the encounter (LeaveGuard, the arrival popup, the menu entry, autonomy) during a hostile action; fix + log; can save "fst2" be repaired
   → VANILLA: "Leave..." out of a hostile action makes you the village's defender; fst2: Leave + re-enter, then raid (RESEARCH §28)
-  - [ ] Deploy (the game was running at the end of step 24), then playtest — checklist in docs/PLAYTEST.md "Step 24"
+  - [ ] Deployed 2026.09.29 by the manager after step 24 (the install carries steps 12–24), then playtest — checklist in docs/PLAYTEST.md "Step 24"
 
 SHIPPING NEXT (done in main, NOT released yet):
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
