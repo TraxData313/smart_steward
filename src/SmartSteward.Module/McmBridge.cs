@@ -74,7 +74,10 @@ namespace SmartSteward
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static object? Register(SettingsService service)
         {
-            ISettingsBuilder? builder = BaseSettingsBuilder.Create(ModInfo.Id, "{=ss_mcm_title}" + ModInfo.Name);
+            // MCM's mod list shows the display name as it is (its own MCMSettings resolves the TextObject
+            // itself), so the title is resolved here — groups and settings MCM resolves on its own.
+            var title = new TaleWorlds.Localization.TextObject("{=ss_mcm_title}" + ModInfo.Name).ToString();
+            ISettingsBuilder? builder = BaseSettingsBuilder.Create(ModInfo.Id, title);
             if (builder == null) return null;
 
             // "none" is a format no MCM service claims, so MCM neither loads nor saves anything for us.
