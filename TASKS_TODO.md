@@ -64,6 +64,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deployed 2026.09.29 by the manager after step 24 (the install carries steps 12–24), then playtest — checklist in docs/PLAYTEST.md "Step 24"
 
 SHIPPING NEXT (done in main, NOT released yet):
+- MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
 - No arrival popup where you cannot trade or the steward has no rows
 - A closed market says why in the window ("Market closed: …", the game's own words) and in the log
