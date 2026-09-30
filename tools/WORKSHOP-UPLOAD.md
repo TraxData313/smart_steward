@@ -32,7 +32,7 @@ Item: **not created yet** — `WorkshopCreate.xml` makes it (once), then `Worksh
    directory), Steam open:
    ```powershell
    cd $env:TEMP
-   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Trax\Documents\BannerlordMods\smart_steward\tools\WorkshopCreate.xml"
+   & "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Trax\Documents\BannerlordMods\smart_steward\tools\WorkshopCreate.xml"
    ```
    Success = **"Item created. Item ID is …"** + **"Uploading done!"** in the output (the exit code lies —
    see the quirks). Write the id down.
@@ -56,7 +56,7 @@ Item: **not created yet** — `WorkshopCreate.xml` makes it (once), then `Worksh
 3. **Run the uploader** (Steam open, from a scratch folder):
    ```powershell
    cd $env:TEMP
-   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Trax\Documents\BannerlordMods\smart_steward\tools\WorkshopUpdate.xml"
+   & "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Trax\Documents\BannerlordMods\smart_steward\tools\WorkshopUpdate.xml"
    ```
 
 ## Uploader quirks (decompiled 2026.07.13 for ImmersiveAI — trust these)

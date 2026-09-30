@@ -4,11 +4,11 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- Path to the Bannerlord installation (game DLLs are referenced from here, never copied). -->
-    <GameFolder>C:\Program Files (x86)\Steam\steamapps\common\Mount &amp; Blade II Bannerlord</GameFolder>
+    <GameFolder>D:\SteamLibrary\steamapps\common\Mount &amp; Blade II Bannerlord</GameFolder>
     <!-- Mod Configuration Menu (MCM v5), referenced but NOT shipped: its own module provides the
          DLL at runtime, and the mod must run without it (soft dependency, see CLAUDE.md).
          Steam Workshop id 2859238197. -->
-    <McmBinFolder>C:\Program Files (x86)\Steam\steamapps\workshop\content\261550\2859238197\bin\Win64_Shipping_Client</McmBinFolder>
+    <McmBinFolder>D:\SteamLibrary\steamapps\workshop\content\261550\2859238197\bin\Win64_Shipping_Client</McmBinFolder>
   </PropertyGroup>
 
   <!-- Machine-specific overrides (git-ignored via *.user). Redefine GameFolder / McmBinFolder in a

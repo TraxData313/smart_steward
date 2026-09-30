@@ -244,7 +244,7 @@ deploying** — it holds module DLLs from startup, main menu included, and deplo
 
 ## Environment
 
-- Game: `C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord` (v1.4.8,
+- Game: `D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord` (v1.4.8,
   War Sails / NavalDLC installed — do not reference it; the steward works at settlements only).
 - MCM v5: Steam Workshop id 2859238197 (decompiled copy in `..\reference\MCMv5-5.12.3-decompiled`).
 - .NET SDK 8 on the machine; Core targets netstandard2.0, Module net472.
