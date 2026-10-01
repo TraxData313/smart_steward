@@ -73,6 +73,12 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   dismiss, prisoners it would ransom; the need shows in the Goal cell (quest marker + hover naming the quest); a goal you type wins;
   switch "Keep what your quests need" (on); research every quest type first (RESEARCH), DESIGN, then Core + Module + window
   - [ ] Deploy (the game was running at the end of step 26), then playtest — checklist in docs/PLAYTEST.md "Step 26"
+- [ ] 27. DO JUST THIS PART (Anton 2026.10.01 — "i dont want to do the full steward but want to ransom my prisoners"): a new column
+  with a small "Do" button on each section's title line (Troops, Food, Horses, Prisoners, Other) and on its own lines (Lords, Others,
+  Recruits, Your troops, each tavern row) — it executes ONLY that part of the plan as it stands (your edits included), changes no
+  settings, then the window re-plans and stays open; greyed when that part has nothing to do
+- [ ] 28. NOBLE HORSES TO KEEP (Anton 2026.10.01 — "some mods want nobles for upgrades"): a "Noble horses to keep" number like
+  war horses (same threshold, buys up to it, sells the rest unless locked), default 0 = today's behaviour; a typed goal on the row
 SHIPPING NEXT (done in main, NOT released yet):
 - The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, the quest named on hover
 - A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
