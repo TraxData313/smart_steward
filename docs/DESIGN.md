@@ -76,6 +76,8 @@ disagree, this block wins.
   | Other lines (the loot groups, Other goods) | 0 [Anton: "others goal=0"] (= Mine where the settings do not sell the line — such a line has no row today, so it never shows) | no |
   | Other title | the sum (0) | no |
   A title shows `–*` when every row under it is hands-off (below).
+  **[step 26, §2.9]** A row a quest keeps something on shows the quest's need in this cell, in the quest colour, its hover
+  naming the quests; a goal you typed still wins.
 - **A manual goal is a STANDING ORDER** [Anton: "if I change it add a reset button and it will reset to the one determined by my
   policy in instructions"]: it holds in every town, across sessions and restarts, until its ⟲ gives the row back to the
   Instructions policy. Kept in `settings.json` as the commented **`Goals`** object (§7 group "Goals you set by hand", §8) — global
@@ -987,6 +989,66 @@ too); castles have no market and no steward. One row per troop type — never ev
   gate, the slots still holding the troop and still open to you (taken in the recruit screen's order), the live price, the
   purse; the men still held.
 
+### 2.9 Quest needs — keep what your quests ask for **[Anton 2026.10.01 — decided by the manager, Anton may adjust]**
+
+Anton took "Ryibelet Needs Grain Seeds" and had to type a grain goal so the steward would not sell the grain; he wants the
+steward to know by itself — read the player's active quests and keep what they ask for (PLAN step 26). The quests and their fields are
+RESEARCH §29. Core `Snapshot\QuestNeed`, `Planning\QuestKeep`; Module `Adapter\QuestReader`.
+
+- **Read live, stored nowhere**: every plan (the window, every re-plan, the arrival popup's test, the leave warning, the
+  Full-autonomous steward) reads the player's ongoing quests afresh into the snapshot (`StewardSnapshot.QuestNeeds`: the quest's
+  id and title, what it wants — item ids, troop ids or prisoner ids, any of which counts — and how many it still asks). Nothing
+  goes into the save. Every read is guarded: a missing field or a changed game logs ONE line and skips that quest, never throws;
+  a `[quest]` log line lists what was read.
+- **A quest need is an AUTOMATIC goal: it KEEPS what the quest asks for.** Units a quest asks for are never sold, ransomed,
+  donated or dismissed by the steward — not by its own rows, not by the Your troops line's `[-]`, not by a row's `[-]` on the
+  rows that take no goal (loot groups, Other goods, noble and lame horses, troops, prisoners): they are kept apart like locked
+  ones. Kept units still count as held — food toward the days (below), horses toward the horses for the footmen (they carry
+  footmen until handed over), men in the party after the deal.
+  - **Which units** [Claude's call]: items — the LEAST valuable held units of the asked items first (every quest takes any
+    modifier: a lame horse is kept before a healthy one, so the dear ones stay free to sell); troops — the HIGHEST tier first
+    (the gang pays more per tier); prisoners — the MOST valuable first (the laborers quest pays 5 × each one's ransom value).
+    Two quests asking for the same thing add up (each takes its own).
+- **Food buys toward the need** (the only job that buys for a quest): a food a quest asks for (grain — Headman Needs Grain,
+  Army Needs Supply) is an automatic goal of that amount. Held below it → the row buys up to it, walked FIRST in the food buys
+  like a goal of yours; it counts toward the days target only up to the even share and the rest is a stockpile ON TOP (§2.1,
+  step 25) — exactly a typed goal of that size. Held at or above it → the steward's own row, which never sells below the need
+  (the variety guard and the surplus rule as ever; the units above the need count toward the days as usual). Nothing is
+  bought when what you hold satisfies the need.
+- **Everything else is KEEP ONLY** [manager]: horses and pack animals (Lord Needs Horses, Village Needs Draught Animals —
+  a ROLE row buys the cheapest eligible animal, never a particular breed, so buying the asked horse stays yours: a typed goal or
+  the trade screen), Other goods and armour & weapons (the steward never buys them), troops (the steward never recruits),
+  prisoners. No new buying jobs. **[Claude's call]** Kept horses count toward the riding / war / pack targets — they carry
+  footmen until handed over, and the next town buys back what the hand-over leaves short; "on top of the targets" (like the
+  food stockpile) is a one-line flip if Anton prefers it.
+- **A goal you typed WINS** (the player is in control): a food, pack, riding or war row with a goal of yours walks without
+  the quest's keep (your goal may sell below it); the Goal cell stays yours (gold) and its hover adds *"Below what your quests
+  need: Ryibelet Needs Grain Seeds – 120 Grain."* A click on such a row's `[-]`/`[+]` is a goal edit as ever, so it can go
+  below the need too (it becomes your goal). Elsewhere the kept units are out of reach of the steward's buttons — turn the
+  switch off, or sell or hand them over in the game's own screens.
+- **The "Goals you set by hand" switches** [manager]: a quest's food goal answers to them as a typed goal does —
+  `ManualGoalsWaitForThresholds` (off: it buys below `FoodMinDenari`), `ManualGoalsKeepPurseFloor` (on: its buys stop at
+  `MinGoldAfterDeal`), `ManualGoalsObeyPriceCaps` (on: within the max buy price). KEEPING needs no switch and no threshold — it
+  costs nothing, so it holds even while a job waits for its denari.
+- **The Full-autonomous steward obeys them too** (the same planner); `AutonomousMinGold` always holds for a quest's buys, as for
+  your goals.
+- **In the window** (no new column — the Goal column, `RowGoal` / `SheetGoalCell`): a row a quest keeps something on shows its
+  Goal in the QUEST colour (light blue, `UiColors.Quest`) — the value is the larger of the steward's goal and the quest's
+  (a food row: the quest's amount; a horse row: its target or the kept horses; loot, Other goods, noble / lame horses and
+  prisoner rows: the kept units instead of 0; a troop row under Your troops / Recruits: the kept men, where the cell is
+  otherwise empty) — and its hover names the quests in the game's own titles: *"Kept for your quests: Ryibelet Needs Grain
+  Seeds – 120 Grain"* (one line per quest; *", you hold 5"* when fewer are held than it asks). A goal of yours keeps its gold,
+  the hover then saying when it is below the quests' need. A title line's Goal stays the plain sum.
+- **The switch**: `QuestGoalsEnabled` — "Keep what your quests need" (Goals group, default **on**; registry, settings file,
+  MCM, Instructions). Off: quests are not read at all — the old way.
+- **Covered** (RESEARCH §29): Headman Needs Grain, Army Needs Supply (grain; wine as an Other good; its livestock is never
+  traded anyway), Lord Needs Horses, Village Needs Draught Animals (mule / sumpter horse; a cow is livestock), Village Needs
+  Tools, Village Needs Crafting Materials, Artisan Can't Sell Products (the goods you deliver), Artisan Overpriced Goods, The
+  Art of the Trade (the goods you are to sell at the giver's price — the Other goods line would sell them at any price, so it
+  keeps them for your own hand [Claude's call]), Gang Leader Needs Weapons (the weapon class, Melee weapons), Lord Needs
+  Garrison Troops, Gang Needs Recruits (bandit troops), Landowner Needs Manual Laborers (bandit prisoners), Lord Wants Rival
+  Captured (the rival held as a prisoner). Not covered, and why: RESEARCH §29.
+
 ---
 
 ## 3. Money — the order and the floors
@@ -1005,6 +1067,7 @@ too); castles have no market and no steward. One row per troop type — never ev
    - **[round 5, Anton 2026.09.28]** Your manual goals (§1.1 "THE GOAL") answer to the floors only with
      `ManualGoalsKeepPurseFloor` (default on) — food goals at `MinGoldAfterDeal`, animal goals at the higher animal floor; while
      autonomous never below `AutonomousMinGold`, whatever the switch says. They come first in their phase (the player's rows).
+   - **[step 26]** A quest's food goal (§2.9) answers to the floors exactly like a goal you typed.
 4. **Activation thresholds** **[Anton 2026.09.28, playtest round 4 — "war hourses to keep, default set it to 10, add another
    option min denari to have to start keeping war hourses 20k by default · same for the mouts … 5k · same for food keeping,
    have at least 2k before start auto managing · pack animals - have min 2k … i want it in such a way that the players turn
@@ -1234,6 +1297,7 @@ troop / hero, the count and the expected unit prices.
 | Goals | ManualGoalsWaitForThresholds | false | — | "Your goals wait for the thresholds": on = a manual goal acts only once the purse reaches its job's "Manage … from" denari, like the steward; off = your goal is your order (§1.1 "THE GOAL") **[Anton 2026.09.28, round 5]** |
 | Goals | ManualGoalsKeepPurseFloor | true | — | "Your goals keep the purse floors": a manual goal's buys stop at MinGoldAfterDeal (food) / the animal floor (horses); off = they may go below (red flags, the pre-round-5 way). AutonomousMinGold always holds **[Anton 2026.09.28, round 5]** |
 | Goals | ManualGoalsObeyPriceCaps | true | — | "Your goals obey the price limits": a manual goal buys and sells only within the price book (max buy / min sell) and the role caps; off = at any price (ticks still hold) **[Anton 2026.09.28, round 5]** |
+| Goals | QuestGoalsEnabled | true | — | "Keep what your quests need": the steward reads your ongoing quests and keeps what they ask for — never sold, ransomed, donated or dismissed; a food a quest asks for is bought up to the need like a goal of yours (§2.9); off = quests are not read **[Anton 2026.10.01, step 26]** |
 | Goals | Goals | {} | goals 0–100,000 | the standing goals by row id — `food:<item>`, `mounts:pack`, `mounts:riding`, `mounts:war` — typed or clicked in the Suggestion tab, gone with its ⟲ (file + Suggestion tab, not MCM) **[Anton 2026.09.28, round 5]** |
 | Food | FoodEnabled | true | — | manage food |
 | Food | FoodMinDenari | 2000 | 0–1,000,000 | "Manage food from (denari)": the purse before the deal food needs to be managed at all — below it the steward neither buys nor sells food (0 = always; §3 activation thresholds) **[Anton 2026.09.28, round 4]** |
