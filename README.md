@@ -5,7 +5,7 @@
 A *Mount & Blade II: Bannerlord* mod that takes the logistics chores off your hands.
 
 Ride into a town or village and your **Party Steward** lays out, in one table, what the party needs —
-nudge any row with `[–]` `[+]` (click ±1, Shift ±5, Ctrl all), then **Do it**. Five jobs:
+nudge any row with `[–]` `[+]` (click ±1, Shift ±5, Ctrl all), then **Deal all**. Five jobs:
 
 - **Tavern** — wanderers and the tavern's mercenaries, hired with a click (never suggested: your choice)
 - **Food** — enough for everyone, varied for morale, surplus sold

@@ -17,7 +17,7 @@
              Workshop browse page 2026.09.28); the version tag = <game>\bin\Win64_Shipping_Client\Version.xml.
              NEVER run this file again after the item exists - it would create a second item. Use WorkshopUpdate.xml. -->
         <ModuleFolder Value="C:\Users\Trax\Documents\BannerlordMods\smart_steward\dist\SmartSteward"/>
-        <ItemDescription Value="Your party's steward, at last doing the steward's job. Ride into a town or village and one glanceable table shows what the party needs: food (enough, and varied), pack animals, horses for your footmen, horses for the upgrades waiting, loot to sell in bulk, prisoners to ransom - and who is sitting in the tavern for hire. Nudge any row (click 1, Shift 5, Ctrl all), then Do all. Every number is yours to set; MCM optional. No Harmony, nothing stored in the save. Full description coming."/>
+        <ItemDescription Value="Your party's steward, at last doing the steward's job. Ride into a town or village and one glanceable table shows what the party needs: food (enough, and varied), pack animals, horses for your footmen, horses for the upgrades waiting, loot to sell in bulk, prisoners to ransom - and who is sitting in the tavern for hire. Nudge any row (click 1, Shift 5, Ctrl all), then Deal all. Every number is yours to set; MCM optional. No Harmony, nothing stored in the save. Full description coming."/>
         <Tags>
             <Tag Value="Utility" />
             <Tag Value="UI" />
