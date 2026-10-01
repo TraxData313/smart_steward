@@ -51,7 +51,7 @@ public class GoalsSettingsTests
     public void Junk_in_the_goals_is_dropped_with_a_line_each_and_the_rest_kept()
     {
         var parsed = SettingsFile.Parse(WithGoals(
-            "{ \"food:grain\": 40, \"mounts:noble\": 3, \"grain\": 5, \"food:fish\": \"lots\", \"food:meat\": 12.5, "
+            "{ \"food:grain\": 40, \"mounts:lame\": 3, \"grain\": 5, \"food:fish\": \"lots\", \"food:meat\": 12.5, "
             + "\"mounts:riding\": 250000, \"food:beer\": -4, \"food:olives\": null, \"mounts:war\": 7.0 }"));
         Assert.False(parsed.Unreadable);
         var goals = parsed.Settings.Goals;
@@ -59,13 +59,13 @@ public class GoalsSettingsTests
         Assert.Equal(ManualGoals.MaxGoal, goals["mounts:riding"]); // clamped
         Assert.Equal(0, goals["food:beer"]); // clamped
         Assert.Equal(7, goals["mounts:war"]); // a whole float is a whole number
-        Assert.False(goals.ContainsKey("mounts:noble"));
+        Assert.False(goals.ContainsKey("mounts:lame"));
         Assert.False(goals.ContainsKey("grain"));
         Assert.False(goals.ContainsKey("food:fish"));
         Assert.False(goals.ContainsKey("food:meat"));
         Assert.False(goals.ContainsKey("food:olives")); // null = no goal, no problem
         Assert.Equal(6, parsed.Problems.Count);
-        Assert.Contains(parsed.Problems, p => p.Contains("Goals[\"mounts:noble\"]: not a row that takes a goal"));
+        Assert.Contains(parsed.Problems, p => p.Contains("Goals[\"mounts:lame\"]: not a row that takes a goal"));
         Assert.Contains(parsed.Problems, p => p.Contains("Goals[\"food:fish\"]: expected a whole number"));
         Assert.Contains(parsed.Problems, p => p.Contains("Goals[\"mounts:riding\"]: 250000 is outside 0 to 100000 - using 100000"));
         Assert.True(parsed.LosesSomething); // the service keeps a .bak
@@ -93,19 +93,20 @@ public class GoalsSettingsTests
     }
 
     [Fact]
-    public void Only_food_and_the_pack_riding_and_war_rows_take_a_goal()
+    public void Only_food_and_the_pack_riding_war_and_noble_rows_take_a_goal()
     {
         Assert.True(ManualGoals.IsGoalKey("food:grain"));
         Assert.True(ManualGoals.IsGoalKey("mounts:pack"));
         Assert.True(ManualGoals.IsGoalKey("mounts:riding"));
         Assert.True(ManualGoals.IsGoalKey("mounts:war"));
-        foreach (var key in new[] { "food:", "mounts:noble", "mounts:lame", "loot:Armour", "prisoner:looter", "grain", "", " food:x" })
+        Assert.True(ManualGoals.IsGoalKey("mounts:noble")); // step 28: the noble row takes one while noble horses are kept
+        foreach (var key in new[] { "food:", "mounts:lame", "loot:Armour", "prisoner:looter", "grain", "", " food:x" })
             Assert.False(ManualGoals.IsGoalKey(key), key);
 
         var s = new StewardSettings();
         Assert.True(ManualGoals.Set(s, "food:grain", 250_000));
         Assert.Equal(ManualGoals.MaxGoal, ManualGoals.Get(s, "food:grain"));
-        Assert.False(ManualGoals.Set(s, "mounts:noble", 3));
+        Assert.False(ManualGoals.Set(s, "mounts:lame", 3));
         Assert.True(ManualGoals.Set(s, "food:grain", null));
         Assert.Null(ManualGoals.Get(s, "food:grain"));
     }

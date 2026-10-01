@@ -462,7 +462,7 @@ namespace SmartSteward.Core.Presentation
         }
 
         /// <summary>The job a row's threshold belongs to, in words (food, pack animals, riding horses — the noble horses go with
-        /// them —, war horses).</summary>
+        /// them unless they are kept, step 28 —, war horses, the kept noble horses).</summary>
         private static string JobWord(PlanRow row, SheetWords words)
         {
             if (row.Type == RowType.Food)
@@ -471,6 +471,7 @@ namespace SmartSteward.Core.Presentation
             {
                 case MountRole.Pack: return words.PackAnimalsJob;
                 case MountRole.War: return words.WarHorsesJob;
+                case MountRole.Noble when row.KeepsNobles: return words.NobleHorsesJob;
                 default: return words.RidingHorsesJob;
             }
         }
@@ -760,6 +761,10 @@ namespace SmartSteward.Core.Presentation
                 {
                     case MountRole.Pack:
                     case MountRole.War:
+                        if (row.Target != null)
+                            Add(words.Keep + " " + UiFormat.Money(row.Target.Value));
+                        break;
+                    case MountRole.Noble when row.KeepsNobles: // step 28: kept like the war horses
                         if (row.Target != null)
                             Add(words.Keep + " " + UiFormat.Money(row.Target.Value));
                         break;

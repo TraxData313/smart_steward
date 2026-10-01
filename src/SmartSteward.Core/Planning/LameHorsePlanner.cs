@@ -15,7 +15,8 @@ namespace SmartSteward.Core.Planning
     /// the same kind in one visit" (DESIGN §2.2), and on purpose.
     /// </summary>
     /// <remarks>
-    /// Which stacks: a bad modifier, not a noble horse (the noble row sells those anyway), its role managed (pack animals /
+    /// Which stacks: a bad modifier, not a noble horse (the noble row sells those anyway — unless the player keeps noble horses,
+    /// step 28: then a lame one is replaced like a war horse), its role managed (pack animals /
     /// riding horses / war horses switched on), not guarded by a lock (<see cref="LockRule"/>) and Sell-ticked in the price book.
     /// Everything else — the switch off, a guarded lock, an unticked item — stays in its role row, counted as held: a lame
     /// horse still carries a footman. A lame horse the market cannot take this visit (gold, min sell price) still counts
@@ -88,11 +89,13 @@ namespace SmartSteward.Core.Planning
         public static bool Replaces(PlanContext ctx, ItemStack stack)
         {
             var settings = ctx.Settings;
-            if (!settings.ReplaceLameHorses || stack == null || !stack.HasBadModifier || MountGoal.IsNoble(stack))
+            // A noble horse only while the player keeps noble horses (step 28) - else the noble row sells it anyway.
+            if (!settings.ReplaceLameHorses || stack == null || !stack.HasBadModifier || (MountGoal.IsNoble(stack) && !ctx.NobleKeeping))
                 return false;
             // Round 4: only while the role's job acts (its threshold met) - else its role row, which buys nothing either,
             // keeps and counts it.
             bool managed = stack.Kind == ItemKind.PackAnimal ? settings.PackAnimalsEnabled && ctx.JobActive(ManagedJob.PackAnimals)
+                : MountGoal.IsNoble(stack) ? ctx.JobActive(ManagedJob.NobleHorses)
                 : MountGoal.IsWar(stack, settings) ? settings.WarMountsEnabled && ctx.JobActive(ManagedJob.WarHorses)
                 : stack.Kind == ItemKind.Mount && settings.MountsEnabled && ctx.JobActive(ManagedJob.Mounts);
             return managed && !ctx.IsGuarded(stack) && ctx.Book(stack)?.SellTicked == true;

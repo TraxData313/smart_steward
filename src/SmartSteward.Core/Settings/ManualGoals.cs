@@ -22,13 +22,17 @@ namespace SmartSteward.Core.Settings
         public const string Riding = "mounts:riding";
         public const string War = "mounts:war";
 
-        /// <summary>Does a row with this id take a goal typed by hand? Food rows (<c>food:&lt;item id&gt;</c>) and the pack, riding
-        /// and war horse rows.</summary>
+        /// <summary>The noble horse row (step 28, Anton 2026.10.01): it takes a goal while noble horses are kept
+        /// (<c>NobleHorsesToKeep</c> &gt; 0) or a goal for it is set (by hand in this file) — else it is the sell-only row.</summary>
+        public const string Noble = "mounts:noble";
+
+        /// <summary>Does a row with this id take a goal typed by hand? Food rows (<c>food:&lt;item id&gt;</c>) and the pack, riding,
+        /// war and noble horse rows.</summary>
         public static bool IsGoalKey(string? key)
         {
             if (string.IsNullOrWhiteSpace(key))
                 return false;
-            return key == Pack || key == Riding || key == War
+            return key == Pack || key == Riding || key == War || key == Noble
                    || (key!.StartsWith(FoodPrefix, StringComparison.Ordinal) && key.Length > FoodPrefix.Length
                        && key.Trim() == key);
         }

@@ -15,7 +15,8 @@ namespace SmartSteward.Core.Pricing
         WarMounts,
 
         /// <summary>Noble horses — sell only (step 17, Anton 2026.09.28: never bought, sold unless locked): the Prices tab
-        /// shows no buy column, and the sell placeholder is always filled so they never go for a pittance.</summary>
+        /// shows no buy column, and the sell placeholder is always filled so they never go for a pittance. Step 28: while the
+        /// player keeps noble horses they are bought too — the buy column shows (<see cref="PriceBook.IsSellOnly"/>).</summary>
         NobleHorses,
     }
 
@@ -139,6 +140,19 @@ namespace SmartSteward.Core.Pricing
         public static double SellMultiplier(PriceBookGroup group, StewardSettings settings) =>
             group == PriceBookGroup.Food ? settings.FoodSellPriceMultiplier : settings.HorseSellPriceMultiplier;
 
+        /// <summary>
+        /// A group the steward only ever sells — the noble horses while none are kept (step 17); once the player keeps noble horses
+        /// (<c>NobleHorsesToKeep</c> &gt; 0, or a goal of his on the noble row — step 28, Anton 2026.10.01) they are bought up to
+        /// the number at their max buy price (the average buy price × the horse multiplier: the group always auto-fills), so the
+        /// Prices tab shows their buy column again.
+        /// </summary>
+        public static bool IsSellOnly(PriceBookGroup group, StewardSettings settings)
+        {
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            return group == PriceBookGroup.NobleHorses && Planning.MountGoal.Noble(settings) == 0
+                   && !(settings.Goals?.ContainsKey(ManualGoals.Noble) ?? false);
+        }
+
         public static bool AutoFills(PriceBookGroup group, StewardSettings settings)
         {
             switch (group)
@@ -148,7 +162,7 @@ namespace SmartSteward.Core.Pricing
                 case PriceBookGroup.Mounts: return settings.AutoFillPackAndMountPrices;
                 case PriceBookGroup.WarMounts: return settings.AutoFillWarMountPrices;
                 // Only ever sold: the average SELL price is no trader's cheat sheet, and without it a noble horse would go
-                // at any price (DESIGN §1.3, step 17).
+                // at any price (DESIGN §1.3, step 17). Kept (step 28): the average BUY price is their max buy - shown then.
                 case PriceBookGroup.NobleHorses: return true;
                 default: return false;
             }

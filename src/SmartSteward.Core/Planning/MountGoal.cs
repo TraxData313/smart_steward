@@ -12,7 +12,9 @@ namespace SmartSteward.Core.Planning
     /// <item>Horses to keep <c>T = ceil(footmen × MountsPer100Footmen / 100)</c> — the footmen of the party after the deal.</item>
     /// <item>War horses to keep <c>W = WarMountsToKeep</c>, a plain number (the <c>war_horse</c> category only); they carry
     ///   footmen until an upgrade takes them, so they COUNT toward T.</item>
-    /// <item>Riding horses fill the rest: <c>R = max(0, T − W)</c>. Anton's example: 100 footmen at 110 per 100, keep 10 war →
+    /// <item>Noble horses to keep <c>N = NobleHorsesToKeep</c> (step 28, default 0): kept like the war horses, counted among T
+    ///   the same way.</item>
+    /// <item>Riding horses fill the rest: <c>R = max(0, T − W − N)</c>. Anton's example: 100 footmen at 110 per 100, keep 10 war →
     ///   100 riding + 10 war = 110 horses. Upgrading men with the war horses turns them into cavalry: the footmen drop and
     ///   the numbers settle by themselves.</item>
     /// </list>
@@ -24,7 +26,8 @@ namespace SmartSteward.Core.Planning
         public const string WarHorse = "war_horse";
 
         /// <summary>The noble horse category — never an upgrade requirement (RESEARCH §4): the player's and his companions'
-        /// own horses — never bought, sold unless locked.</summary>
+        /// own horses — sold unless locked, never bought unless the player keeps some (step 28: <see cref="Noble"/>; some mods upgrade
+        /// troops with them).</summary>
         public const string NobleHorse = "noble_horse";
 
         /// <summary>T: the horses kept for <paramref name="footmen"/> (0 when riding horses are not managed).</summary>
@@ -43,8 +46,18 @@ namespace SmartSteward.Core.Planning
             return settings.WarMountsEnabled ? Math.Max(0, settings.WarMountsToKeep) : 0;
         }
 
-        /// <summary>R: the riding horses that fill the rest — <c>max(0, T − W)</c>.</summary>
-        public static int Riding(StewardSettings settings, int footmen) => Math.Max(0, Total(settings, footmen) - War(settings));
+        /// <summary>N: the noble horses kept (step 28, Anton 2026.10.01 — "keep noble mounts like I keep war mounts … number is 0
+        /// by default"): <c>NobleHorsesToKeep</c>; 0 = none kept, every unlocked noble horse is sold as since step 17.</summary>
+        public static int Noble(StewardSettings settings)
+        {
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            return Math.Max(0, settings.NobleHorsesToKeep);
+        }
+
+        /// <summary>R: the riding horses that fill the rest — <c>max(0, T − W − N)</c>: the kept noble horses carry footmen like
+        /// the war horses, so they count among T the same way (step 28).</summary>
+        public static int Riding(StewardSettings settings, int footmen) =>
+            Math.Max(0, Total(settings, footmen) - War(settings) - Noble(settings));
 
         /// <summary>Is this held mount a noble horse (sold unless locked)?</summary>
         public static bool IsNoble(ItemStack stack) =>

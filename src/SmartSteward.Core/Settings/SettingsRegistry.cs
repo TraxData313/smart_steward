@@ -170,7 +170,8 @@ namespace SmartSteward.Core.Settings
             new GoalsSetting(nameof(StewardSettings.Goals), Goals, "Goals",
                 "The goals you set in the Suggestion tab - where a row should end after the deal - kept for every town until "
                 + "you click its reset. By row: \"food:\" and the item id for a food, \"mounts:pack\" (pack animals), "
-                + "\"mounts:riding\" (riding horses), \"mounts:war\" (war horses). A row without a goal follows the rules "
+                + "\"mounts:riding\" (riding horses), \"mounts:war\" (war horses), \"mounts:noble\" (noble horses). A row "
+                + "without a goal follows the rules "
                 + "of the Instructions tab.\n"
                 + "Example: \"food:grain\": 60, \"mounts:war\": 15"),
 
@@ -276,9 +277,10 @@ namespace SmartSteward.Core.Settings
                 "Sell riding horses above the target, the dearest first.",
                 s => s.SellMountSurplus, (s, v) => s.SellMountSurplus = v),
             new BoolSetting(nameof(StewardSettings.SellNobleHorses), Mounts, "Sell noble horses",
-                "Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and "
-                + "sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you "
-                + "lock in the inventory is always kept, and a kept one carries a footman.",
+                "Noble horses are for you and your companions - no vanilla troop needs one. The steward sells the party's "
+                + "noble horses above the number to keep (Noble horses to keep, 0 by default), never below their min sell "
+                + "price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries "
+                + "a footman.",
                 s => s.SellNobleHorses, (s, v) => s.SellNobleHorses = v),
             new BoolSetting(nameof(StewardSettings.ReplaceLameHorses), Mounts, "Replace lame horses",
                 "Sell the party's lame and old horses and pack animals and buy healthy ones in their place. When off they "
@@ -299,6 +301,16 @@ namespace SmartSteward.Core.Settings
                 + "upgrade men with them (who then ride as cavalry), so they count among the horses per 100 footmen. "
                 + "0 = none kept: spare war horses are sold. Only once your purse reaches the war horse threshold above.",
                 0, 500, s => s.WarMountsToKeep, (s, v) => s.WarMountsToKeep = v),
+            new IntSetting(nameof(StewardSettings.NobleHorsesToKeep), WarMounts, "Noble horses to keep",
+                "How many noble horses the party keeps, like the war horses - bought up to it at their prices in the Prices "
+                + "tab, the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. "
+                + "They count among the horses per 100 footmen. 0 = none kept: every noble horse you did not lock is sold.",
+                0, 500, s => s.NobleHorsesToKeep, (s, v) => s.NobleHorsesToKeep = v),
+            new IntSetting(nameof(StewardSettings.NobleHorsesMinDenari), WarMounts, "Manage kept noble horses from (denari)",
+                "When you keep noble horses, the steward starts managing them once your purse holds at least this many "
+                + "denari when you arrive - below it it neither buys nor sells them. With none to keep they are sold "
+                + "with the riding horses. 0 = always.",
+                0, MaxGold, s => s.NobleHorsesMinDenari, (s, v) => s.NobleHorsesMinDenari = v),
             new IntSetting(nameof(StewardSettings.WarMountMaxPrice), WarMounts, "Max price per war horse",
                 "Never pay more than this for one war horse, whatever the price book says. 0 = no cap. "
                 + "Not scaled by the buy multiplier.",

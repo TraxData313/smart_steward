@@ -63,6 +63,7 @@ namespace SmartSteward.Core.Presentation
         public string PackAnimalsStart { get; set; } = "pack animals start at";
         public string RidingHorsesStart { get; set; } = "riding horses start at";
         public string WarHorsesStart { get; set; } = "war horses start at";
+        public string NobleHorsesStart { get; set; } = "noble horses start at";
         public string Lord { get; set; } = "lord";
         public string Lords { get; set; } = "lords";
         public string TierPrefix { get; set; } = "T";
@@ -150,6 +151,7 @@ namespace SmartSteward.Core.Presentation
         public string PackAnimalsJob { get; set; } = "pack animals";
         public string RidingHorsesJob { get; set; } = "riding horses";
         public string WarHorsesJob { get; set; } = "war horses";
+        public string NobleHorsesJob { get; set; } = "noble horses";
         public string At { get; set; } = "at";
         public string YouHave { get; set; } = "you have";
         public string TypeGoalAnyway { get; set; } = "Type a goal to order it anyway.";
@@ -519,6 +521,7 @@ namespace SmartSteward.Core.Presentation
             Wait(ManagedJob.PackAnimals, words.PackAnimalsStart);
             Wait(ManagedJob.Mounts, words.RidingHorsesStart);
             Wait(ManagedJob.WarHorses, words.WarHorsesStart);
+            Wait(ManagedJob.NobleHorses, words.NobleHorsesStart); // step 28: only while noble horses are kept
             if (waiting.Count > 0)
                 parts.Add(string.Join(", ", waiting));
             return new SheetSection(SheetGroup.Horses)

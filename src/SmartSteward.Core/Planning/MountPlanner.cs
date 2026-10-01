@@ -24,7 +24,11 @@ namespace SmartSteward.Core.Planning
     ///   simulation). The riding surplus is sold against the war horses the party will HAVE — those it buys in this visit
     ///   too, as the planner's first pass found them (<see cref="PlanContext.WarPledge"/>, <see cref="PledgeHint"/>).</item>
     /// <item>Noble horses (noble_horse): never bought; every one NOT locked is sold (a lock always keeps a noble horse —
-    ///   <see cref="LockRule"/>), each at no less than its min sell price.</item>
+    ///   <see cref="LockRule"/>), each at no less than its min sell price. Step 28 (Anton 2026.10.01): while the player keeps
+    ///   noble horses (<see cref="PlanContext.NobleKeeping"/> — NobleHorsesToKeep N &gt; 0, or a goal of his) the row works
+    ///   exactly like the war row instead: the cheapest eligible bought up to N (the price book's noble prices, no role cap),
+    ///   the dearest sold above it (SellNobleHorses), its own threshold (NobleHorsesMinDenari), a goal, and the kept ones count
+    ///   toward T and are pledged to the riding sale like the war horses. With N = 0 and no goal: exactly step 17.</item>
     /// </list>
     /// Modified horses are never bought (lame and old ones by Anton's rule; any other modifier as since step 4). A lame one held
     /// sits in the Lame horses row while ReplaceLameHorses is on (<see cref="LameHorsePlanner"/>) and is counted here only
@@ -35,7 +39,7 @@ namespace SmartSteward.Core.Planning
     {
         public const string RidingId = ManualGoals.Riding;
         public const string WarId = ManualGoals.War;
-        public const string NobleId = "mounts:noble";
+        public const string NobleId = ManualGoals.Noble;
 
         private readonly PlanContext _ctx;
         private readonly LameHorsePlanner _lame;
@@ -47,6 +51,10 @@ namespace SmartSteward.Core.Planning
         private readonly int _nobleHeld;
         private readonly LaneCursor? _ridingBuy;
         private readonly LaneCursor? _warBuy;
+        private readonly LaneCursor? _nobleBuy;
+
+        /// <summary>The player keeps noble horses (step 28): the noble row is a war-like role row.</summary>
+        private readonly bool _nobleKeeping;
         private readonly WalkLine? _ridingSell;
         private readonly WalkLine? _warSell;
         private readonly WalkLine? _nobleSell;
@@ -61,6 +69,7 @@ namespace SmartSteward.Core.Planning
         /// <summary>The player's own walks of the riding and war rows, to tell why a goal stopped short.</summary>
         private WalkLine? _ridingHand;
         private WalkLine? _warHand;
+        private WalkLine? _nobleHand;
 
         public MountPlanner(PlanContext ctx, LameHorsePlanner lame)
         {
@@ -79,6 +88,8 @@ namespace SmartSteward.Core.Planning
             Footmen = Math.Max(0, ctx.Party.Footmen);
             MountTarget = MountGoal.Total(settings, Footmen);
             WarTarget = MountGoal.War(settings);
+            NobleTarget = MountGoal.Noble(settings);
+            _nobleKeeping = ctx.NobleKeeping;
             RidingTarget = settings.MountsEnabled ? MountGoal.Riding(settings, Footmen) : 0;
 
             if (!ctx.Snapshot.CanTrade)
@@ -111,7 +122,23 @@ namespace SmartSteward.Core.Planning
                 _warPinned = ctx.PinOf(WarRow, ManagedJob.WarHorses);
             }
 
-            if (settings.SellNobleHorses && _nobleHeld > 0)
+            if (_nobleKeeping)
+            {
+                // Step 28: kept like the war horses. No role cap - the price book's noble prices (always auto-filled, DESIGN §1.3).
+                var sellLane = SellLane(_noble, true);
+                var buyLane = BuyLane(MountGoal.IsNoble, 0);
+                NobleRow = RoleRow(NobleId, RowType.Mount, MountRole.Noble, MountGoal.NobleHorse, _noble, sellLane, buyLane);
+                NobleRow.KeepsNobles = true;
+                NobleRow.LocksGuard = true; // a lock always keeps a noble horse
+                NobleRow.Target = NobleTarget;
+                NobleRow.StewardGoal = NobleTarget;
+                NobleRow.StartsAtDenari = ctx.StartsAt(ManagedJob.NobleHorses);
+                HandLanes(NobleRow, MountGoal.IsNoble, _noble);
+                _nobleBuy = new LaneCursor(buyLane);
+                _nobleSell = new WalkLine(NobleRow, sellLane, book: NobleRow.Book);
+                _noblePinned = ctx.PinOf(NobleRow, ManagedJob.NobleHorses);
+            }
+            else if (settings.SellNobleHorses && _nobleHeld > 0)
             {
                 var sellLane = SellLane(_noble, true);
                 NobleRow = RoleRow(NobleId, RowType.Mount, MountRole.Noble, MountGoal.NobleHorse, _noble, sellLane, null);
@@ -129,6 +156,9 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>W: the war horses to keep.</summary>
         public int WarTarget { get; }
+
+        /// <summary>N: the noble horses to keep (step 28; 0 = none, the sell-only row).</summary>
+        public int NobleTarget { get; }
 
         /// <summary>The riding horses the plan aims for: T minus the war, noble and lame horses kept after the deal (set in
         /// <see cref="Finish"/>; before that <c>max(0, T − W)</c>).</summary>
@@ -149,20 +179,22 @@ namespace SmartSteward.Core.Planning
         }
 
         /// <summary>
-        /// After this pass: the war horses the steward bought while the riding row still had a surplus it could sell against
-        /// them — the planner then plans once more with them pledged (<see cref="PlanContext.WarPledge"/>), so the fresh plan
-        /// after Do it has nothing left to sell. 0 = no second pass needed.
+        /// After this pass: the war horses (and, step 28, the kept noble horses) the steward bought while the riding row still had
+        /// a surplus it could sell against them — the planner then plans once more with them pledged
+        /// (<see cref="PlanContext.WarPledge"/>, <see cref="PlanContext.NoblePledge"/>), so the fresh plan after Do it has nothing
+        /// left to sell. (0, 0) = no second pass needed.
         /// </summary>
-        public int PledgeHint
+        public (int War, int Noble) PledgeHint
         {
             get
             {
-                if (_ctx.WarPledge > 0 || WarRow == null || _warPinned != null || RidingRow == null || _ridingPinned != null
+                if (_ctx.WarPledge > 0 || _ctx.NoblePledge > 0 || RidingRow == null || _ridingPinned != null
                     || !_ctx.Settings.SellMountSurplus || !RidingActs)
-                    return 0;
-                int bought = Bought(WarRow);
+                    return (0, 0);
+                int war = WarRow != null && _warPinned == null ? Bought(WarRow) : 0;
+                int noble = NobleRow != null && _nobleKeeping && _noblePinned == null ? Bought(NobleRow) : 0;
                 bool sellableLeft = RidingRow.SellLane!.Capacity - Sold(RidingRow) > 0; // the steward's lane: what quests keep is out
-                return bought > 0 && sellableLeft && Counted() > MountTarget ? bought : 0;
+                return war + noble > 0 && sellableLeft && Counted() > MountTarget ? (war, noble) : (0, 0);
             }
         }
 
@@ -171,6 +203,9 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>The steward's war side acts (WarHorsesMinDenari met — round 4).</summary>
         private bool WarActs => _ctx.JobActive(ManagedJob.WarHorses);
+
+        /// <summary>The steward's side of the kept noble horses acts (NobleHorsesMinDenari met — step 28).</summary>
+        private bool NobleActs => _ctx.JobActive(ManagedJob.NobleHorses);
 
         private int? Pin(PlanRow row) => _ctx.Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
 
@@ -237,7 +272,7 @@ namespace SmartSteward.Core.Planning
 
         private int RidingNow => _ridingHeld - Sold(RidingRow) + Bought(RidingRow);
         private int WarNow => _warHeld - Sold(WarRow) + Bought(WarRow);
-        private int NobleNow => _nobleHeld - Sold(NobleRow);
+        private int NobleNow => _nobleHeld - Sold(NobleRow) + Bought(NobleRow);
 
         /// <summary>Every mount counting toward T as the walk stands: riding, war, noble kept, and the lame ones not sold.</summary>
         private int Counted() => RidingNow + WarNow + NobleNow + _lame.LeftOf(ItemKind.Mount);
@@ -253,11 +288,23 @@ namespace SmartSteward.Core.Planning
             return Math.Min(_ctx.WarPledge, Math.Max(0, WarTarget - WarNow));
         }
 
+        /// <summary>The kept noble horses still to come in the buy phase (step 28), the same way as <see cref="WarToBuy"/>.</summary>
+        private int NobleToBuy()
+        {
+            if (NobleRow == null || !_nobleKeeping)
+                return 0;
+            if (_noblePinned != null)
+                return Math.Max(0, _noblePinned.Value);
+            return Math.Min(_ctx.NoblePledge, Math.Max(0, NobleTarget - NobleNow));
+        }
+
         /// <summary>The player's own mount sales (touched rows) — first among the animal sales, noble, war, riding
         /// (<see cref="PlanPins"/>).</summary>
         public void PlanPinnedSells()
         {
-            PinnedSell(NobleRow, _noblePinned);
+            var nobleHand = PinnedSell(NobleRow, _noblePinned);
+            if (_nobleKeeping)
+                _nobleHand = nobleHand ?? _nobleHand;
             _warHand = PinnedSell(WarRow, _warPinned) ?? _warHand;
             _ridingHand = PinnedSell(RidingRow, _ridingPinned) ?? _ridingHand;
         }
@@ -272,7 +319,8 @@ namespace SmartSteward.Core.Planning
             return line;
         }
 
-        /// <summary>The player's own mount buys — riding, then war — before any of the steward's.</summary>
+        /// <summary>The player's own mount buys — riding, the kept noble horses (step 28), then war: the replay's order, where the
+        /// noble row is a Mount row — before any of the steward's.</summary>
         public void PlanPinnedBuys()
         {
             // Your goals' buys (round 5) stop at the goals' animal floor (ManualGoalsKeepPurseFloor; AutonomousMinGold always).
@@ -280,6 +328,9 @@ namespace SmartSteward.Core.Planning
             if (RidingRow != null && _ridingPinned > 0)
                 PlanWalk.WalkLane(walk, _ridingHand = new WalkLine(RidingRow, RidingRow.HandBuyLane!, RidingRow.Mine,
                     _ridingPinned.Value, RidingRow.Book), int.MaxValue, () => _ctx.GoalAnimalCeiling(walk));
+            if (NobleRow != null && _nobleKeeping && _noblePinned > 0)
+                PlanWalk.WalkLane(walk, _nobleHand = new WalkLine(NobleRow, NobleRow.HandBuyLane!, NobleRow.Mine,
+                    _noblePinned.Value, NobleRow.Book), int.MaxValue, () => _ctx.GoalAnimalCeiling(walk));
             if (WarRow != null && _warPinned > 0)
                 PlanWalk.BuyCheapestAcross(walk,
                     new[] { _warHand = new WalkLine(WarRow, WarRow.HandBuyLane!, WarRow.Mine, _warPinned.Value, WarRow.Book) },
@@ -294,7 +345,19 @@ namespace SmartSteward.Core.Planning
         {
             var settings = _ctx.Settings;
             var walk = _ctx.Walk;
-            if (NobleRow != null && _nobleSell != null && _noblePinned == null && RidingActs)
+            if (NobleRow != null && _nobleSell != null && _noblePinned == null && _nobleKeeping)
+            {
+                // Step 28: above the number to keep, the dearest first - like the war horses.
+                if (NobleActs && NobleNow > NobleTarget)
+                {
+                    int surplus = NobleNow - NobleTarget;
+                    if (!settings.SellNobleHorses)
+                        NobleRow.GoalShort = GoalShort.SurplusKept;
+                    else if (PlanWalk.WalkLane(walk, _nobleSell, surplus, _ctx.AnimalSellCeiling) < surplus)
+                        NobleRow.GoalShort = GoalReasons.Now(_nobleSell.Cursor, _ctx.Market, _ctx.AnimalSellCeiling());
+                }
+            }
+            else if (NobleRow != null && _nobleSell != null && _noblePinned == null && RidingActs)
             {
                 PlanWalk.WalkLane(walk, _nobleSell, int.MaxValue, _ctx.AnimalSellCeiling);
                 if (NobleNow > 0) // the goal is 0: why one stays (locked, the min price, the market's denari)
@@ -310,7 +373,7 @@ namespace SmartSteward.Core.Planning
             }
             if (RidingRow != null && _ridingSell != null && _ridingPinned == null && RidingActs)
             {
-                int surplus = Counted() + WarToBuy() - MountTarget;
+                int surplus = Counted() + WarToBuy() + NobleToBuy() - MountTarget;
                 if (surplus > 0 && !settings.SellMountSurplus)
                     RidingRow.GoalShort = GoalShort.SurplusKept;
                 else if (surplus > 0)
@@ -335,19 +398,24 @@ namespace SmartSteward.Core.Planning
             var walk = _ctx.Walk;
             bool stewardRides = RidingRow != null && _ridingBuy != null && _ridingPinned == null && !_soldRiding && RidingActs;
             bool stewardWar = WarRow != null && _warBuy != null && _warPinned == null && WarActs;
+            bool stewardNoble = NobleRow != null && _nobleKeeping && _nobleBuy != null && _noblePinned == null && NobleActs;
             int warShort = stewardWar ? Math.Max(0, WarTarget - WarNow) : 0;
+            int nobleShort = stewardNoble ? Math.Max(0, NobleTarget - NobleNow) : 0;
             int ridingNeed = stewardRides ? Math.Max(0, MountTarget - Counted()) : 0;
 
+            // The war horses and the kept noble horses (step 28) to come are pledged against the riding need, in the purse's
+            // order: riding, war, noble.
             int ridingCap = ridingNeed;
-            if (ridingNeed > 0 && warShort > 0)
+            if (ridingNeed > 0 && warShort + nobleShort > 0)
             {
-                int pledged = warShort;
+                int pledged = warShort + nobleShort;
                 while (true)
                 {
                     ridingCap = Math.Max(0, ridingNeed - pledged);
                     var whatIf = walk.Simulation();
                     BuyRiding(whatIf, new WalkLine(null, _ridingBuy!.Clone()), ridingCap);
-                    int got = BuyWar(whatIf, new WalkLine(null, _warBuy!.Clone(), quota: warShort));
+                    int got = (warShort > 0 ? BuyWar(whatIf, new WalkLine(null, _warBuy!.Clone(), quota: warShort)) : 0)
+                              + (nobleShort > 0 ? BuyNoble(whatIf, new WalkLine(null, _nobleBuy!.Clone(), quota: nobleShort)) : 0);
                     if (got >= pledged)
                         break;
                     pledged = got;
@@ -362,6 +430,12 @@ namespace SmartSteward.Core.Planning
                 if (BuyWar(walk, line) < warShort)
                     WarRow.GoalShort = GoalReasons.Of(line, true);
             }
+            if (stewardNoble && nobleShort > 0)
+            {
+                var line = new WalkLine(NobleRow, _nobleBuy!, quota: nobleShort, book: NobleRow!.Book);
+                if (BuyNoble(walk, line) < nobleShort)
+                    NobleRow.GoalShort = GoalReasons.Of(line, true);
+            }
         }
 
         private int BuyRiding(WalkState walk, WalkLine line, int cap) =>
@@ -369,6 +443,10 @@ namespace SmartSteward.Core.Planning
 
         private int BuyWar(WalkState walk, WalkLine line) =>
             PlanWalk.BuyCheapestAcross(walk, new[] { line }, () => _ctx.AnimalBuyCeiling(walk));
+
+        /// <summary>The kept noble horses' buy (step 28) - one lane walked like a Mount row (the replay walks it so).</summary>
+        private int BuyNoble(WalkState walk, WalkLine line) =>
+            PlanWalk.WalkLane(walk, line, int.MaxValue, () => _ctx.AnimalBuyCeiling(walk));
 
         public void Finish()
         {
@@ -389,7 +467,11 @@ namespace SmartSteward.Core.Planning
                     WarRow.GoalShort = GoalReasons.Of(_warHand, floor);
             }
             if (NobleRow != null)
+            {
                 PlanMath.FinishItemRow(NobleRow, _noble.Select(s => new KeyValuePair<ItemStack, int>(s, s.Count)));
+                if (_nobleHand != null && NobleRow.Result != NobleRow.ManualGoal)
+                    NobleRow.GoalShort = GoalReasons.Of(_nobleHand, floor);
+            }
         }
     }
 }

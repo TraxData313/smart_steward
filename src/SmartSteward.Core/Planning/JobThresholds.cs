@@ -17,6 +17,11 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>War horses (and their lame ones) — <see cref="StewardSettings.WarHorsesMinDenari"/>.</summary>
         WarHorses,
+
+        /// <summary>The noble horses KEPT (and their lame ones) — <see cref="StewardSettings.NobleHorsesMinDenari"/> (step 28, Anton
+        /// 2026.10.01). Only while noble horses are kept (<see cref="StewardSettings.NobleHorsesToKeep"/> &gt; 0, or a goal of
+        /// yours); with none kept the noble horses are sold with the riding horses (<see cref="Mounts"/>), as since step 17.</summary>
+        NobleHorses,
     }
 
     /// <summary>
@@ -38,7 +43,8 @@ namespace SmartSteward.Core.Planning
     public static class JobThresholds
     {
         /// <summary>Every job in the table's order.</summary>
-        public static ManagedJob[] All { get; } = { ManagedJob.Food, ManagedJob.PackAnimals, ManagedJob.Mounts, ManagedJob.WarHorses };
+        public static ManagedJob[] All { get; } =
+            { ManagedJob.Food, ManagedJob.PackAnimals, ManagedJob.Mounts, ManagedJob.WarHorses, ManagedJob.NobleHorses };
 
         /// <summary>The purse a job needs before the deal to act (0 = always).</summary>
         public static int Of(ManagedJob job, StewardSettings settings)
@@ -49,6 +55,7 @@ namespace SmartSteward.Core.Planning
                 case ManagedJob.Food: return Math.Max(0, settings.FoodMinDenari);
                 case ManagedJob.PackAnimals: return Math.Max(0, settings.PackAnimalsMinDenari);
                 case ManagedJob.Mounts: return Math.Max(0, settings.MountsMinDenari);
+                case ManagedJob.NobleHorses: return Math.Max(0, settings.NobleHorsesMinDenari);
                 default: return Math.Max(0, settings.WarHorsesMinDenari);
             }
         }

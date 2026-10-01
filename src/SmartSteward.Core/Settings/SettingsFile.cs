@@ -525,7 +525,7 @@ namespace SmartSteward.Core.Settings
                 if (!ManualGoals.IsGoalKey(key))
                 {
                     result.Problems.Add(At(item) + where + ": not a row that takes a goal (\"food:<item id>\", \"mounts:pack\", "
-                        + "\"mounts:riding\", \"mounts:war\") - dropped");
+                        + "\"mounts:riding\", \"mounts:war\", \"mounts:noble\") - dropped");
                     continue;
                 }
                 if (item.Value.Type == JTokenType.Null)

@@ -115,7 +115,7 @@ namespace SmartSteward.Core.Settings
         /// they ask for; a food a quest asks for is bought up to the need like a goal of yours. Off: quests are not read.</summary>
         public bool QuestGoalsEnabled { get; set; } = true;
         /// <summary>The standing goals typed or clicked in the Suggestion tab, by row id (<c>food:grain</c>, <c>mounts:pack</c>,
-        /// <c>mounts:riding</c>, <c>mounts:war</c>) → the Result the row should end at; a row without one follows the policy
+        /// <c>mounts:riding</c>, <c>mounts:war</c>, <c>mounts:noble</c>) → the Result the row should end at; a row without one follows the policy
         /// (<see cref="ManualGoals"/>). Global like the price book, never in the save.</summary>
         public Dictionary<string, int> Goals { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -189,6 +189,15 @@ namespace SmartSteward.Core.Settings
         /// WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts are retired). Default 10 since
         /// round 4 (Anton 2026.09.28; was 0) — kept only once the purse reaches WarHorsesMinDenari.</summary>
         public int WarMountsToKeep { get; set; } = 10;
+        /// <summary>Noble horses (the <c>noble_horse</c> category) the party keeps — like the war horses: bought up to it at the
+        /// price book's noble prices, the rest sold (SellNobleHorses; a lock always keeps one); they count among the horses for
+        /// the footmen. 0 (the default) = none kept: every unlocked noble horse is sold, as since step 17 (Anton 2026.10.01, step
+        /// 28: "some mods want nobles for upgrades, but vanilla players dont need that, so that is why the default is 0").</summary>
+        public int NobleHorsesToKeep { get; set; } = 0;
+        /// <summary>The purse (before the deal) the kept noble horses need to be managed at all — the war horses' default (Anton
+        /// 2026.10.01, step 28: "same defaults"). Only while NobleHorsesToKeep (or a goal of yours) keeps some; at 0 the noble
+        /// horses are sold with the riding horses (MountsMinDenari), as since step 17.</summary>
+        public int NobleHorsesMinDenari { get; set; } = 20000;
         /// <summary>Role cap per war horse (0 = none; not scaled).</summary>
         public int WarMountMaxPrice { get; set; } = 2000;
         public bool SellWarMountSurplus { get; set; } = true;

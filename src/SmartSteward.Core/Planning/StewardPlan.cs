@@ -44,6 +44,9 @@ namespace SmartSteward.Core.Planning
         /// <summary>W: the war horses to keep (WarMountsToKeep; 0 when war horses are not managed).</summary>
         public int WarTarget { get; internal set; }
 
+        /// <summary>N: the noble horses to keep (NobleHorsesToKeep — step 28; 0 = none kept, they are sold).</summary>
+        public int NobleTarget { get; internal set; }
+
         /// <summary>The switched-on jobs whose activation threshold the purse before the deal did not reach (round 4,
         /// <see cref="JobThresholds"/>) → the denari each needs; in <see cref="JobThresholds.All"/>'s order. Empty = every job
         /// acts. The section overviews say "starts at 20,000 denari".</summary>

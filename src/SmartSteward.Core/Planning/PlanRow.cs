@@ -54,7 +54,8 @@ namespace SmartSteward.Core.Planning
         /// <summary>War horses — the war_horse category, kept to a plain number (WarMountsToKeep); they carry footmen too.</summary>
         War,
 
-        /// <summary>Noble horses — sell only: never bought, sold unless locked (SellNobleHorses).</summary>
+        /// <summary>Noble horses — sold unless locked (SellNobleHorses); sell only unless the player keeps some (step 28:
+        /// <see cref="PlanRow.KeepsNobles"/> — then bought up to NobleHorsesToKeep like the war horses).</summary>
         Noble,
 
         /// <summary>Lame and old horses and pack animals — sell only: sold so healthy ones replace them (ReplaceLameHorses).</summary>
@@ -374,10 +375,17 @@ namespace SmartSteward.Core.Planning
 
         // ── The Goal (DESIGN §1.1 "THE GOAL", round 5) ────────────────────────────────────────────────────
 
-        /// <summary>The row takes a goal typed by hand: every food row, and the pack, riding and war horse rows
-        /// (<see cref="Settings.ManualGoals"/>). For these rows "touched" means "has a goal of yours" (<see cref="IsTouched"/>).</summary>
+        /// <summary>The row takes a goal typed by hand: every food row, the pack, riding and war horse rows, and the noble horse
+        /// row while noble horses are kept (<see cref="KeepsNobles"/>, step 28) (<see cref="Settings.ManualGoals"/>). For these
+        /// rows "touched" means "has a goal of yours" (<see cref="IsTouched"/>).</summary>
         public bool TakesGoal => Type == RowType.Food
-                                 || Role == MountRole.Pack || Role == MountRole.Riding || Role == MountRole.War;
+                                 || Role == MountRole.Pack || Role == MountRole.Riding || Role == MountRole.War
+                                 || (Role == MountRole.Noble && KeepsNobles);
+
+        /// <summary>The noble horse row of a party that keeps noble horses (step 28 — <c>NobleHorsesToKeep</c> &gt; 0, or a goal of
+        /// yours on it): a role row like the war row — it buys, keeps its number, takes a goal. False: the sell-only row of
+        /// step 17.</summary>
+        public bool KeepsNobles { get; internal set; }
 
         /// <summary>Your standing goal for this row (the Result it should end at, kept in settings.json until its ⟲); null = the
         /// steward's row, which follows the Instructions policy.</summary>
@@ -462,6 +470,7 @@ namespace SmartSteward.Core.Planning
             CategoryId = planned.CategoryId;
             LootGroup = planned.LootGroup;
             Role = planned.Role;
+            KeepsNobles = planned.KeepsNobles;
             Mine = planned.Mine;
             Locked = planned.Locked;
             LocksGuard = planned.LocksGuard;

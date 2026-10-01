@@ -30,7 +30,8 @@ namespace SmartSteward.Core.Planning
                          + " per kind), pack target "
                          + f.PackTarget.ToString(Inv) + ", footmen " + f.Footmen.ToString(Inv) + ", horses to keep "
                          + f.MountTarget.ToString(Inv) + " (riding target " + f.RidingTarget.ToString(Inv) + ", war horses "
-                         + f.WarTarget.ToString(Inv) + ")";
+                         + f.WarTarget.ToString(Inv) + (f.NobleTarget > 0 ? ", noble horses " + f.NobleTarget.ToString(Inv) : "")
+                         + ")";
             foreach (var section in plan.Sections)
             {
                 yield return "[" + section.Kind + "]";

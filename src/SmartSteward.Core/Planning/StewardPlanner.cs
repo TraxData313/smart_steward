@@ -20,8 +20,8 @@ namespace SmartSteward.Core.Planning
     /// <item>SELL: food surplus (most-held type first), the animals (lame horses, pack surplus, noble horses, war surplus,
     ///   riding surplus — <see cref="PlanReplay.AnimalSellRank"/>), loot (all groups interleaved by SellLootOrder) — each unit
     ///   only if the market can still pay for it.</item>
-    /// <item>BUY in priority order: food (under MinGoldAfterDeal), pack animals, riding mounts, war horses
-    ///   (under both floors). No kind is both sold and bought in one visit — except the lame horses the healthy ones
+    /// <item>BUY in priority order: food (under MinGoldAfterDeal), pack animals, riding mounts, war horses, the kept noble
+    ///   horses (step 28) (under both floors). No kind is both sold and bought in one visit — except the lame horses the healthy ones
     ///   replace (step 17, ReplaceLameHorses).</item>
     /// <item>Tavern — rows at 0, outside the chain; never in an autonomous plan (DESIGN §6).</item>
     /// <item>Troops (step 16) — recruit and dismiss rows at 0, outside the chain like the tavern; never autonomous.</item>
@@ -56,22 +56,23 @@ namespace SmartSteward.Core.Planning
             // not free — the same quotes come up again and again (PLAN step 9, review area 5). A re-plan reuses the
             // plan's own cache.
             var cache = oracle as CachingPriceOracle ?? new CachingPriceOracle(oracle);
-            var plan = PlanOnce(snapshot, settings, cache, mode, pins, goals, 0, out int pledge);
+            var plan = PlanOnce(snapshot, settings, cache, mode, pins, goals, (0, 0), out var pledge);
             // Round 5: a fresh plan with goals of the player's plans once more with what they sell and spend known, so the
             // steward's earlier phases leave it (PlanPins.SellGoldAfter… / SpendAfter…) — as every live re-plan does.
             if (pins.IsEmpty && plan.Rows.Any(r => r.IsTouched))
             {
                 pins = PlanPins.From(plan.Rows, new MarketState(cache, snapshot.MarketGold));
-                plan = PlanOnce(snapshot, settings, cache, mode, pins, goals, 0, out pledge);
+                plan = PlanOnce(snapshot, settings, cache, mode, pins, goals, (0, 0), out pledge);
             }
-            return pledge > 0 ? PlanOnce(snapshot, settings, cache, mode, pins, goals, pledge, out _) : plan;
+            return pledge.War + pledge.Noble > 0 ? PlanOnce(snapshot, settings, cache, mode, pins, goals, pledge, out _) : plan;
         }
 
         private static StewardPlan PlanOnce(StewardSnapshot snapshot, StewardSettings settings, CachingPriceOracle cache,
-            PlanMode mode, PlanPins pins, Dictionary<string, int> goals, int warPledge, out int pledgeHint)
+            PlanMode mode, PlanPins pins, Dictionary<string, int> goals, (int War, int Noble) pledge,
+            out (int War, int Noble) pledgeHint)
         {
-            pledgeHint = 0;
-            var ctx = new PlanContext(snapshot, settings, cache, mode, pins, warPledge, goals);
+            pledgeHint = (0, 0);
+            var ctx = new PlanContext(snapshot, settings, cache, mode, pins, pledge.War, goals, pledge.Noble);
             var facts = new PlanFacts();
             if (!settings.ModEnabled)
                 return Assemble(ctx, facts, new List<PlanRow>(), (a, b) => 0, goals);
@@ -127,6 +128,7 @@ namespace SmartSteward.Core.Planning
             facts.MountTarget = mounts.MountTarget;
             facts.RidingTarget = mounts.RidingTarget;
             facts.WarTarget = mounts.WarTarget;
+            facts.NobleTarget = mounts.NobleTarget;
             facts.Waiting = Waiting(ctx);
 
             var rows = new List<PlanRow>();
@@ -151,6 +153,7 @@ namespace SmartSteward.Core.Planning
                 bool enabled = job == ManagedJob.Food ? s.FoodEnabled
                     : job == ManagedJob.PackAnimals ? s.PackAnimalsEnabled
                     : job == ManagedJob.Mounts ? s.MountsEnabled
+                    : job == ManagedJob.NobleHorses ? ctx.NobleKeeping // step 28: only while noble horses are kept
                     : s.WarMountsEnabled;
                 if (enabled && !ctx.JobActive(job))
                     waiting.Add(new KeyValuePair<ManagedJob, int>(job, JobThresholds.Of(job, s)));

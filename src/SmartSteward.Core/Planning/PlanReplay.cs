@@ -195,7 +195,8 @@ namespace SmartSteward.Core.Planning
                         .Select(o => Line(o, o.Row.SellLane!, -o.Requested)).ToList(),
                     inputs.LootOrder);
 
-            // 3. Buy: food, pack, riding, war horses (noble and lame horses are never bought).
+            // 3. Buy: food, pack, riding, war horses (lame horses are never bought; noble horses only while kept - step 28 - as a
+            //    Mount row, after the riding horses).
             foreach (bool player in passes)
                 PlanWalk.BuyFood(walk,
                     Floored(Pass(buys.Where(o => o.Row.Type == RowType.Food), player), player, true)

@@ -14,7 +14,7 @@ namespace SmartSteward.Core.Planning
             new Dictionary<string, PriceBookPrices>(StringComparer.Ordinal);
 
         public PlanContext(StewardSnapshot snapshot, StewardSettings settings, IPriceOracle oracle, PlanMode mode,
-            PlanPins? pins = null, int warPledge = 0, IReadOnlyDictionary<string, int>? goals = null)
+            PlanPins? pins = null, int warPledge = 0, IReadOnlyDictionary<string, int>? goals = null, int noblePledge = 0)
         {
             Snapshot = snapshot;
             Settings = settings;
@@ -22,6 +22,7 @@ namespace SmartSteward.Core.Planning
             Mode = mode;
             Pins = pins ?? PlanPins.None;
             WarPledge = Math.Max(0, warPledge);
+            NoblePledge = Math.Max(0, noblePledge);
             Goals = goals ?? ManualGoals.CopyOf(settings);
             Party = PartyAfter.Of(snapshot);
             Floors = MoneyFloors.For(settings, mode);
@@ -104,6 +105,18 @@ namespace SmartSteward.Core.Planning
         /// so the riding surplus is sold against the war horses the party will HAVE after the deal, not only those it holds
         /// (step 17: R = T − war horses kept). 0 on the first pass.</summary>
         public int WarPledge { get; }
+
+        /// <summary>The noble horses the steward will buy in this plan, as the first pass found them — pledged like the war horses
+        /// (step 28). 0 on the first pass.</summary>
+        public int NoblePledge { get; }
+
+        /// <summary>
+        /// The player keeps noble horses (step 28, Anton 2026.10.01): <c>NobleHorsesToKeep</c> &gt; 0, or a goal of his on the noble
+        /// row. Then the noble row is a role row like the war row — it buys up to its number, sells the rest, takes a goal, and
+        /// waits for <see cref="ManagedJob.NobleHorses"/>'s threshold; its lame ones are replaced like any. False (the default):
+        /// the sell-only noble row of step 17, exactly — it waits with the riding horses.
+        /// </summary>
+        public bool NobleKeeping => MountGoal.Noble(Settings) > 0 || Goals.ContainsKey(ManualGoals.Noble);
 
         /// <summary>The party the steward plans for — the snapshot's, with the plan's hires (and step 16's recruits and
         /// dismissals) applied (<see cref="PartyAfter"/>). Set by the planner once the party rows are known.</summary>
