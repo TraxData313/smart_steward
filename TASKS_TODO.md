@@ -6,7 +6,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
 - [x] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [x] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
-  - [ ] Playtest the executor: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6" (the debug door is gone: use the window's Do all)
+  - [ ] Playtest the executor: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6" (the debug door is gone: use the window's Deal all)
 - [x] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
   - [ ] Playtest the window: tabs, clicks, tooltips, Encyclopedia round trip, Do all — checklist in docs/PLAYTEST.md "Step 7 — the window"
 - [x] 8. Triggers — menu entries, popup on arrival, leave warning, FULL-AUTONOMOUS steward (AutoExecute → AutonomousSteward + AutonomousMinGold 100k, message-log report — DESIGN §6; update §7 with the code), remove the debug door
@@ -88,15 +88,16 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 30. NOBLE HORSE MAX PRICE (Anton 2026.10.01 — "I want max price per noble horse to be able to be different from war horse"):
   its own "Noble horse max price" setting beside WarMountMaxPrice, used when buying kept noble horses (today: no cap)
   - [ ] Deployed at the end of step 30 (the install carries steps 24–30), then playtest — checklist in docs/PLAYTEST.md "Step 30"
-- [ ] 31. "DEAL" WORDING (Anton 2026.10.01 — "rename that Do button over say the food group as Do group … and maybe Do in all places
+- [x] 31. "DEAL" WORDING (Anton 2026.10.01 — "rename that Do button over say the food group as Do group … and maybe Do in all places
   there replace with Deal, deal I think will feel more natural"): the Part column's buttons say "Deal" on a single line and "Deal group"
   on a section title and on the lines that hold a group (Recruits, Your troops, Lords, Others, Other goods); the bottom "Do all" → "Deal all"
   (manager's call for one word everywhere — Anton may keep "Do all"); every text naming them follows
+  - [ ] Deployed at the end of step 31 (the install carries steps 24–31), then playtest — checklist in docs/PLAYTEST.md "Step 31"
 SHIPPING NEXT (done in main, NOT released yet):
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
-- A "Do" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Do all"
+- A "Deal" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Deal all" (it read "Do it")
 - "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
-- "Do" just this part: a Part column with a Do button on every section and on Lords, Others, Recruits, Your troops, each tavern row and Other goods — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
+- "Deal" just this part: a Deal column with a "Deal group" button on every section and on Lords, Others, Recruits, Your troops and Other goods (a "Deal" on each tavern row) — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
 - The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, the quest named on hover
 - A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
 - MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
