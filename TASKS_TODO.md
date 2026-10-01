@@ -93,14 +93,15 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   on a section title and on the lines that hold a group (Recruits, Your troops, Lords, Others, Other goods); the bottom "Do all" → "Deal all"
   (manager's call for one word everywhere — Anton may keep "Do all"); every text naming them follows
   - [ ] Deployed at the end of step 31 (the install carries steps 24–31), then playtest — checklist in docs/PLAYTEST.md "Step 31"
-- [ ] 32. QUEST NOTE BY THE NAME (Anton 2026.10.01 — "next to the name 'Grain' -> 'Grain (100 needed for quest)'"): every line a quest
+- [x] 32. QUEST NOTE BY THE NAME (Anton 2026.10.01 — "next to the name 'Grain' -> 'Grain (100 needed for quest)'"): every line a quest
   needs shows it after its name, in the quest colour — "Grain  120 needed for quest" (food, horses, goods, troops, prisoners)
+  - [ ] Deploy (the game was running at the end of step 32), then playtest — checklist in docs/PLAYTEST.md "Step 32"
 SHIPPING NEXT (done in main, NOT released yet):
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
 - A "Deal" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Deal all" (it read "Do it")
 - "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
 - "Deal" just this part: a Deal column with a "Deal group" button on every section and on Lords, Others, Recruits, Your troops and Other goods (a "Deal" on each tavern row) — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
-- The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, the quest named on hover
+- The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, and after the item's name ("Grain  120 needed for quest", "… for quest, held"), the quest named on hover
 - A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
 - MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
