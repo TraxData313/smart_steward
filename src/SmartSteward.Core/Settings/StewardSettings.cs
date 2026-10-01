@@ -200,6 +200,11 @@ namespace SmartSteward.Core.Settings
         public int NobleHorsesMinDenari { get; set; } = 20000;
         /// <summary>Role cap per war horse (0 = none; not scaled).</summary>
         public int WarMountMaxPrice { get; set; } = 2000;
+        /// <summary>Role cap per kept noble horse bought (0 = none; not scaled) — the war horses' cap, a number of its own (Anton
+        /// 2026.10.01, step 30: "I want max price per noble horse to be able to be different from war horse"). Default 10,000: the
+        /// vanilla noble horses a market sells are worth 4,219–8,480, so a typical one is buyable. Only matters while noble
+        /// horses are kept (NobleHorsesToKeep &gt; 0 or a goal of yours).</summary>
+        public int NobleHorseMaxPrice { get; set; } = 10000;
         public bool SellWarMountSurplus { get; set; } = true;
 
         // ── Prisoners (DESIGN §2.5) ──────────────────────────────────────────────────────────────

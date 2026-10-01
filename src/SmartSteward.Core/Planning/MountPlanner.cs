@@ -26,7 +26,8 @@ namespace SmartSteward.Core.Planning
     /// <item>Noble horses (noble_horse): never bought; every one NOT locked is sold (a lock always keeps a noble horse —
     ///   <see cref="LockRule"/>), each at no less than its min sell price. Step 28 (Anton 2026.10.01): while the player keeps
     ///   noble horses (<see cref="PlanContext.NobleKeeping"/> — NobleHorsesToKeep N &gt; 0, or a goal of his) the row works
-    ///   exactly like the war row instead: the cheapest eligible bought up to N (the price book's noble prices, no role cap),
+    ///   exactly like the war row instead: the cheapest eligible bought up to N (the price book's noble prices AND, step 30,
+    ///   NobleHorseMaxPrice),
     ///   the dearest sold above it (SellNobleHorses), its own threshold (NobleHorsesMinDenari), a goal, and the kept ones count
     ///   toward T and are pledged to the riding sale like the war horses. With N = 0 and no goal: exactly step 17.</item>
     /// </list>
@@ -124,9 +125,10 @@ namespace SmartSteward.Core.Planning
 
             if (_nobleKeeping)
             {
-                // Step 28: kept like the war horses. No role cap - the price book's noble prices (always auto-filled, DESIGN §1.3).
+                // Step 28: kept like the war horses, at the price book's noble prices (always auto-filled, DESIGN §1.3);
+                // step 30: under a role cap of their own, NobleHorseMaxPrice (Anton 2026.10.01).
                 var sellLane = SellLane(_noble, true);
-                var buyLane = BuyLane(MountGoal.IsNoble, 0);
+                var buyLane = BuyLane(MountGoal.IsNoble, settings.NobleHorseMaxPrice);
                 NobleRow = RoleRow(NobleId, RowType.Mount, MountRole.Noble, MountGoal.NobleHorse, _noble, sellLane, buyLane);
                 NobleRow.KeepsNobles = true;
                 NobleRow.LocksGuard = true; // a lock always keeps a noble horse

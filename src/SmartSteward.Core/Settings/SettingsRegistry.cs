@@ -303,7 +303,7 @@ namespace SmartSteward.Core.Settings
                 0, 500, s => s.WarMountsToKeep, (s, v) => s.WarMountsToKeep = v),
             new IntSetting(nameof(StewardSettings.NobleHorsesToKeep), WarMounts, "Noble horses to keep",
                 "How many noble horses the party keeps, like the war horses - bought up to it at their prices in the Prices "
-                + "tab, the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. "
+                + "tab (and at most the max price per noble horse), the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. "
                 + "They count among the horses per 100 footmen. 0 = none kept: every noble horse you did not lock is sold.",
                 0, 500, s => s.NobleHorsesToKeep, (s, v) => s.NobleHorsesToKeep = v),
             new IntSetting(nameof(StewardSettings.NobleHorsesMinDenari), WarMounts, "Manage kept noble horses from (denari)",
@@ -315,6 +315,10 @@ namespace SmartSteward.Core.Settings
                 "Never pay more than this for one war horse, whatever the price book says. 0 = no cap. "
                 + "Not scaled by the buy multiplier.",
                 0, MaxAnimalPrice, s => s.WarMountMaxPrice, (s, v) => s.WarMountMaxPrice = v),
+            new IntSetting(nameof(StewardSettings.NobleHorseMaxPrice), WarMounts, "Max price per noble horse",
+                "Never pay more than this for one noble horse you keep, whatever the price book says. 0 = no cap. "
+                + "Not scaled by the buy multiplier. Only matters while you keep noble horses.",
+                0, MaxAnimalPrice, s => s.NobleHorseMaxPrice, (s, v) => s.NobleHorseMaxPrice = v),
             new BoolSetting(nameof(StewardSettings.SellWarMountSurplus), WarMounts, "Sell surplus war horses",
                 "Sell war horses above the number to keep, the dearest first.",
                 s => s.SellWarMountSurplus, (s, v) => s.SellWarMountSurplus = v),

@@ -76,8 +76,9 @@
     <string id="ss_hint_MountsEnabled" text="Keep horses for the men who walk, so the party moves faster. Default: on." />
     <string id="ss_hint_MountsMinDenari" text="The steward starts managing riding horses once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them, nor sells noble or lame horses. 0 = always. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MountsPer100Footmen" text="Horses kept for every 100 men on foot: 110 is one each plus 10% spare. The war horses you keep count among them; riding horses fill the rest. Default: 110. Range: 0 to 300." />
+    <string id="ss_hint_NobleHorseMaxPrice" text="Never pay more than this for one noble horse you keep, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Only matters while you keep noble horses. Default: 10,000. Range: 0 to 100,000." />
     <string id="ss_hint_NobleHorsesMinDenari" text="When you keep noble horses, the steward starts managing them once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. With none to keep they are sold with the riding horses. 0 = always. Default: 20,000. Range: 0 to 1,000,000." />
-    <string id="ss_hint_NobleHorsesToKeep" text="How many noble horses the party keeps, like the war horses - bought up to it at their prices in the Prices tab, the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. They count among the horses per 100 footmen. 0 = none kept: every noble horse you did not lock is sold. Default: 0. Range: 0 to 500." />
+    <string id="ss_hint_NobleHorsesToKeep" text="How many noble horses the party keeps, like the war horses - bought up to it at their prices in the Prices tab (and at most the max price per noble horse), the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. They count among the horses per 100 footmen. 0 = none kept: every noble horse you did not lock is sold. Default: 0. Range: 0 to 500." />
     <string id="ss_hint_PackAnimalMaxPrice" text="Never pay more than this for one pack animal, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 300. Range: 0 to 100,000." />
     <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
     <string id="ss_hint_PackAnimalsMinDenari" text="The steward starts managing pack animals once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
@@ -155,6 +156,7 @@
     <string id="ss_set_MountsEnabled" text="Manage riding horses" />
     <string id="ss_set_MountsMinDenari" text="Manage riding horses from (denari)" />
     <string id="ss_set_MountsPer100Footmen" text="Horses per 100 footmen" />
+    <string id="ss_set_NobleHorseMaxPrice" text="Max price per noble horse" />
     <string id="ss_set_NobleHorsesMinDenari" text="Manage kept noble horses from (denari)" />
     <string id="ss_set_NobleHorsesToKeep" text="Noble horses to keep" />
     <string id="ss_set_PackAnimalMaxPrice" text="Max price per pack animal" />
