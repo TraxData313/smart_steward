@@ -91,15 +91,27 @@ namespace SmartSteward.Core.Planning
         {
             if (part == null) throw new ArgumentNullException(nameof(part));
             var deal = new PartDeal(part);
-            var rows = new Dictionary<string, PlanRow>(StringComparer.Ordinal);
-            foreach (var r in Rows)
-                if (!rows.ContainsKey(r.Id))
-                    rows[r.Id] = r;
             var mine = new List<(PlanTransaction Tx, PlanRow Row)>();
-            foreach (var tx in Transactions)
+            if (part.RowId != null)
             {
-                if (rows.TryGetValue(tx.RowId, out var row) && part.Includes(row, tx.Kind))
-                    mine.Add((tx, row));
+                // Step 29: a part of one row (every line has a button now — the sheet asks for each one after every click).
+                var single = FindRow(part.RowId);
+                if (single != null)
+                    foreach (var tx in Transactions)
+                        if (string.Equals(tx.RowId, part.RowId, StringComparison.Ordinal) && part.Includes(single, tx))
+                            mine.Add((tx, single));
+            }
+            else
+            {
+                var rows = new Dictionary<string, PlanRow>(StringComparer.Ordinal);
+                foreach (var r in Rows)
+                    if (!rows.ContainsKey(r.Id))
+                        rows[r.Id] = r;
+                foreach (var tx in Transactions)
+                {
+                    if (rows.TryGetValue(tx.RowId, out var row) && part.Includes(row, tx))
+                        mine.Add((tx, row));
+                }
             }
             deal.Planned = mine.Count;
             if (mine.Count == 0)

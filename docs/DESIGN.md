@@ -171,19 +171,19 @@ part; the window's `RunPart`.)
   `tools\gen-suggestion-tab.py`): Item 432 → 396, Denari 204 → 190, Prisoners 92 → 80; the Do column 6 + 56.
 - **Where**: on every section's TITLE line (Troops, Food, Horses, Prisoners, Other) — folded or not, a folded section's button
   works the same — and on the lines that are a deal of their own: **Lords**, **Others**, **Recruits**, **Your troops**, **each
-  tavern row** (a wanderer, the mercenaries) and **Other goods**. Item-level rows get none — one food, a horse role, a troop
+  tavern row** (a wanderer, the mercenaries) and **Other goods**. ~~Item-level rows get none — one food, a horse role, a troop
   type, a prisoner type, the loot groups Armour / Melee / Ranged / Shields (the Other title runs them), a breakdown line — so
-  the table stays glanceable.
+  the table stays glanceable.~~ (Reversed by Anton 2026.10.01 — step 29 below: every line has its Do.)
 - **What it runs**: ONLY that part's transactions of the CURRENT plan as shown — your edits, your goals, a quest's food goal
   included, at the plan's own prices (`StewardPlan.DealOf(part)` filters `StewardPlan.Transactions` by row; a troop row by its
-  side: Recruits = its recruits, Your troops = its dismissals) — through the SAME executor path as Do it (`PlanExecutor`: the
+  side: Recruits = its recruits, Your troops = its dismissals) — through the SAME executor path as Do all (`PlanExecutor`: the
   live price against each row's limit, the market's gold, the purse, the lock rules, the dungeon, `EncounterGuard`). It changes
   NO setting and NO goal.
 - **The money — honest about running alone** [manager for Anton; how: Claude's call]: the part's ransoms and sales come first
-  (as in Do it), then each purchase stops at the floor its row answers to in Do it — the steward's food at `MinGoldAfterDeal`,
+  (as in Do all), then each purchase stops at the floor its row answers to in Do all — the steward's food at `MinGoldAfterDeal`,
   its animals at the higher animal floor, a goal of yours (or a quest's) at the goals' floors (none with
   `ManualGoalsKeepPurseFloor` off) — then the hires and recruits stop where the purse no longer pays (a wanderer needs MORE than
-  his price, like vanilla). So **where the part differs from the same rows inside Do it**:
+  his price, like vanilla). So **where the part differs from the same rows inside Do all**:
   - Its buys or hires that the OTHER parts' sales and ransoms paid for inside the whole deal are cut (a row cut once buys no
     other stack — its prices were walked on units it never bought). The hover says so: *"Alone: 12 fewer than in the whole
     deal - it keeps your purse at 1,000 denari."* / *"… - your purse alone cannot pay for them."* Everything cut → greyed.
@@ -194,15 +194,50 @@ part; the window's `RunPart`.)
   - The plan is for the party after the WHOLE deal (the live re-plan): Food run alone buys the food planned for the mercenaries
     you queued even if you never hire them — the re-plan afterwards then shows any surplus. Run Troops first if that matters.
 - **Greyed** (`PartDeal.Block`) with the reason on hover: *"Nothing to do in this part."* · *"Alone it would take your purse
-  below 1,000 denari - the rest of the deal pays for it. Use Do it."* · *"Alone your purse cannot pay for it - the rest of the
-  deal pays for it. Use Do it."* **Enabled**, the hover says what it will do in one line: *"Ransom 9: +3,160 denari"*, *"Buy 24,
+  below 1,000 denari - the rest of the deal pays for it. Use Do all."* · *"Alone your purse cannot pay for it - the rest of the
+  deal pays for it. Use Do all."* **Enabled**, the hover says what it will do in one line: *"Ransom 9: +3,160 denari"*, *"Buy 24,
   sell 5: –310 denari"*, *"Hire 9, recruit 5, dismiss 4: –1,600 denari"*, *"To the dungeon 4: +3.2 influence"* (+ the cut line).
-- **Afterwards** the window plans afresh on a new snapshot (as after Do it) and STAYS OPEN; the player's touched rows of every
+- **Afterwards** the window plans afresh on a new snapshot (as after Do all) and STAYS OPEN; the player's touched rows of every
   OTHER part are put back (`PlanCarryOver.Capture(plan, part)` → `StewardPlan.Restore`, the settings re-plan's own carry-over:
   rows by id, clamped to the new limits, walked first; a troop row by its side — after Recruits its dismissals stay); the part's
   own edits were carried out and are not put back (a row the executor cut short is proposed anew). Goals are settings and stay
-  anyway. Not kept: the Your troops line's undo order (as after any settings re-plan). The log gets Do it's own report lines,
+  anyway. Not kept: the Your troops line's undo order (as after any settings re-plan). The log gets Do all's own report lines,
   tagged `part <name>`; the status line and the message log say `Steward (Prisoners): 2 of 2 done. Denari …`.
+
+**DO ON EVERY LINE · "DO ALL" [Anton 2026.10.01, PLAN step 29]** — *"can I have that Do button next to every line too, so that say
+I want to just update one specific food, and maybe the bottom right button 'Do it' -> 'Do all'"*. Step 27's "item-level rows get
+none" is reversed; everything else of "Do just this part" above holds for a line exactly as for a section (Core `PlanPart.Row`,
+`RecruitRow`, `DismissRow`, `StackLine`; `SheetView.PartOf(item)`).
+- **Where**: EVERY line of the table — each food kind, each horse row (pack, riding, war, noble, lame), each loot group (Armour,
+  Melee weapons, Ranged, Shields), each prisoner type, each troop type, each tavern row and Other goods (as in step 27) — and every
+  **breakdown line** under a row's ▸ (one breed under its horse role, one good under Other goods, one item under a loot group): a
+  smaller Do (22 px, the breakdown line is 26 px high) in the same column. The column's width is unchanged (the generator's 1506 px
+  row). A line with nothing to do greys its Do — *"Nothing to do on this line."* — [Claude's call: a greyed button on a quiet line
+  rather than none, so the column reads the same on every line and a line never "loses" its button after a click].
+- **What a line runs**: only its own row's transactions of the plan as it stands (`StewardPlan.DealOf`). **A troop type** shown
+  under both Recruits and Your troops does only its own side: under Recruits its recruits (`RecruitRow`), under Your troops its
+  dismissals (`DismissRow`) — the other side greys "Nothing to do". **A breakdown line** runs only its row's trades of that one
+  stack (`StackLine`, the item + modifier). Same executor path, floors, checks and `EncounterGuard` as Do all; the log lines are
+  tagged `part Row:food:grain` / `part StackLine:mounts:riding/…`; the status line names the line: `Steward (Grain): 1 of 1 done…`.
+- **Hover**: enabled = one line of what it does, naming the line — *"Buy 6 Grain: -120 denari"*, *"Ransom 8 T1 Looter: +160
+  denari"* (+ step 27's cut line); greyed = step 27's reasons (*"… Use Do all."*).
+- **Rows that share a walk** [Claude's call, how it reads]: the food kinds share the days goal and the horse roles share the
+  footmen's T. A food run alone buys exactly what its row shows — its share as planned — and its purchase still stops at the
+  floor it answers to in Do all (the steward's food at `MinGoldAfterDeal`, a goal of yours at the goals' floors): the ransom or
+  sale on another line that would have paid for it inside Do all does not count (step 27's rule, the same words). AFTERWARDS the
+  window re-plans the whole table on the world the line left, so **the other kinds' suggestions may move** — the days goal is
+  nearer, the steward may split the rest differently (the test town: the fish row stays as it was, the grain asks nothing more).
+  That is intended: each line is the plan's own deal at that moment, and the re-plan is always the truth after it. Likewise the
+  lame horses run alone are only sold — the riding row then shows the healthy replacements to buy (or run it next).
+- **The carry-over** (`PlanCarryOver.Capture(plan, part)`, now through `PlanPart.EditLeft`): every OTHER row's hand goes back on
+  the fresh plan as in step 27; a troop type keeps the side it did not run; **a breakdown line leaves the rest of its row's edit**
+  — a touched Other goods row selling 12 (wool 8 + salt 4), wool run alone → the row's −4 is put back. (A touched row the line
+  did not touch keeps its hand as it was, a 0 included.) Goal rows carry nothing — the goals are settings.
+- **"Do it" is now "Do all"** — the bottom-right button that runs the whole table (`ss_ui_do_all`; a NEW string id, so a
+  translation of "Do it" is not kept for a different button), its new enabled hover *"Carry out the whole table at once - every
+  line's Do in one click."*, the part hovers' *"Use Do all."* (new ids `ss_ui_part_floor_all`, `ss_ui_part_no_gold_all`), the
+  log's `after Do all`, the Workshop page. The rest of this document says Do all from now on (Anton's own quotes keep his
+  words; TASKS_DONE keeps its history).
 
 **THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
 standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,
@@ -438,7 +473,7 @@ Buttons on Change:
     its row objects and rebuilds its table only then (`StewardPlan.Layout`).
   - **A settings change** (Prices/Instructions tab, MCM, the file) re-plans as before and puts the player's touched rows back
     in one re-plan (`PlanCarryOver` → `StewardPlan.Restore`): the steward plans its rows around them — the hires included.
-  - **The promise, as a test** (`LivePlanTests`): plan → edit the party → Do it → a fresh plan of the resulting party proposes
+  - **The promise, as a test** (`LivePlanTests`): plan → edit the party → Do all → a fresh plan of the resulting party proposes
     nothing new for food, pack animals, riding mounts, war, noble or lame horses (food within its surplus tolerance).
   - **Speed**: only a party-changing click (or ⟲ / Reset all) re-plans; on the late-game benchmark a re-planning click costs
     15–26 ms (the re-plan itself 1–6 ms, the rest the window's usual refresh), ordinary clicks 14–19 ms (step 9: ≤ ~20 ms).
@@ -457,7 +492,7 @@ Buttons on Change:
   - The floors never block (red flags) — **[round 5]** except a goal row's buys with `ManualGoalsKeepPurseFloor` (default on:
     `EditBlock.PurseFloor`, §1.1 "THE GOAL"). An **empty purse does**: a buy or hire the purse cannot pay is refused
     (a wanderer needs MORE gold than his price, like vanilla). Taking income back (a ransom, a sale) may still
-    leave the deal unaffordable — the footer shows it (`CannotAfford`) and **Do it** is disabled then.
+    leave the deal unaffordable — the footer shows it (`CannotAfford`) and **Do all** is disabled then.
   - Rarely, lowering one row makes another impossible (a sale taken back raises a category's price past the
     max of a row buying in it): that row is cut to what the market allows.
   - ⟲ returns a row to the suggestion as far as what other rows took since allows; reset-all restores the plan
@@ -468,7 +503,7 @@ Buttons on Change:
   - **Re-planning keeps the player's hand.** A settings change (Prices or Instructions tab, MCM, the file) re-plans
     on the same snapshot when the Suggestion tab shows again; every row the player had edited is set back to its
     edited quantity by row id, as far as the new plan allows (new limits clamp it; a row the new plan no longer has
-    is dropped); the other rows take the new suggestion. **Do it** looks at the world again and plans afresh with no
+    is dropped); the other rows take the new suggestion. **Do all** looks at the world again and plans afresh with no
     carry-over — the edits were carried out. (Core `PlanCarryOver`, `StewardPlan.SetChange`.) **[step 15]** "Edited" =
     touched; they are put back in one re-plan (`StewardPlan.Restore`), so the new suggestion is planned around them.
   - The Price cell reads `units × unit price = signed total` (`3 × 180–240 = –630`, `5 × 48 = +240`); a tavern row at
@@ -481,7 +516,7 @@ Buttons on Change:
     else turns the box red and saves nothing. An empty price box = the placeholder again.
 
 Footer (until step 21 — round 4 leaves only the weight table, above): gold now → gold after · spent / earned · food after (units and ≈ days) · the party after the deal ·
-the weight lines and the herd line · buttons **Do it** and **Close** (Escape = Close; the button read "Not now" until
+the weight lines and the herd line · buttons **Do all** and **Close** (Escape = Close; the button read "Not now" until
 **[Anton 2026.09.28, playtest round 3]**: "it is just Close").
 **The weight on two lines** **[Anton 2026.09.28 — PLAN step 18: "the weight line splits in TWO … (pack horses raise land
 capacity but add weight at sea) — each part over its capacity in red"]**, each like the food line:
@@ -513,7 +548,7 @@ that changes it is honoured); the change is Core arithmetic at the vanilla formu
 If the capacity cannot be read, the line shows the weight change only (`Weight +120 kg`).
 **The party after the deal** **[Anton 2026.09.28, playtest round 3]**: `Party 99/96` — the members after every hire,
 recruit and dismissal in the plan (§2.8) against the party size limit, red when over, live with every click. Information, never a wall (§2.7). When the player's edits break a money floor (§3),
-the footer shows it in red, but **Do it** still works — the player's hand overrides the steward.
+the footer shows it in red, but **Do all** still works — the player's hand overrides the steward.
 
 ### 1.2 Instructions tab — the settings
 
@@ -752,7 +787,7 @@ pure Core logic fed a snapshot of the party and the market (§5).
   will HAVE after the deal, those bought in this visit too **[decided: Claude, 2026.09.28 — step 17]**: when the steward
   buys war horses while the riding row has a surplus, the planner plans once more with those war horses pledged
   (`MountPlanner.PledgeHint` → `PlanContext.WarPledge`), so 110 riding + 0 war with "keep 10" becomes −10 riding, +10 war
-  in ONE visit, and a fresh plan after Do it has nothing left (Anton's promise, §1.1). Should the second pass afford fewer
+  in ONE visit, and a fresh plan after Do all has nothing left (Anton's promise, §1.1). Should the second pass afford fewer
   war horses than the first (the riding sales' gold is the market's too), a footman may lack a horse until the next town.
   (The old rule "riding surplus is not sold in a visit that buys an upgrade horse" is gone: a riding and a war horse are
   different kinds now.) Never a riding horse bought in a visit that sells riding horses.
@@ -948,7 +983,7 @@ Towns only. Shown as rows so the player can hire without walking to the tavern o
 The steward never proposes a hire by itself — every tavern row starts at 0; the player clicks.
 - **Wanderers** (companions for hire sitting in this town's tavern): one row each — name,
   hire price, daily wage (and their best skills as a short tag, if cheap to show). Change is
-  `[-] 0 [+]` — a 0/1 toggle. **Do it** hires them outright (gold paid, joins the clan and the
+  `[-] 0 [+]` — a 0/1 toggle. **Do all** hires them outright (gold paid, joins the clan and the
   party) with no dialogue. Blocked (greyed, tooltip says why) only when the clan's companion limit
   is reached — vanilla enforces that one too.
 - **Mercenaries** (the tavern's mercenary band): one row — troop name, how many are on offer,
@@ -1042,7 +1077,7 @@ too); castles have no market and no steward. One row per troop type — never ev
     never a row with dismissals queued). Greyed with the reason (nobody offers a troop here, every volunteer already in the
     plan, not enough gold).
   - They are ORDINARY row edits underneath (each moves troop rows with `SetChange`): the rows are touched (⟲ shows when
-    unfolded), the food and horses re-plan live, Do it runs the same Dismiss and Recruit transactions — no new executor path.
+    unfolded), the food and horses re-plan live, Do all runs the same Dismiss and Recruit transactions — no new executor path.
     The line then says what the section does: `dismissing 1 T1 Imperial Peasant, 1 T1 Vlandian Recruit · recruiting 2 T3
     Vlandian Footman –160`.
 - **The two aggregate lines** **[Anton 2026.09.28, playtest round 4 — "when I press - there drop the lowest tier unit, if I
@@ -1068,7 +1103,7 @@ too); castles have no market and no steward. One row per troop type — never ev
 - **Names are clickable**: a troop's name opens its unit page in the Encyclopedia (like the mercenaries — unit pages are never
   hidden).
 - `ShowTroops` (default **on**, the Tavern group — "Show the troops") shows the section.
-- **Do it** **[decided: Claude, 2026.09.28 — step 16]** (the executor, §5; RESEARCH §21): **dismissals right after the
+- **Do all** **[decided: Claude, 2026.09.28 — step 16]** (the executor, §5; RESEARCH §21): **dismissals right after the
   prisoners** — men leave before any goods move; free, and nothing in the trade depends on them — through the party screen's
   own roster move (the wounded first; no gold, no event); **recruits last**, after the trades (their proceeds fund them) and
   the tavern's hires (the table's order), through the recruit screen's own steps (the notable's slot emptied, the man added,
@@ -1347,7 +1382,7 @@ troop / hero, the count and the expected unit prices.
     visit, a pending popup, Review or Leave anyway (`Module\CampaignSession`); what the steward holds is stamped with its
     campaign and never used in another (a leave option wrapped in an earlier campaign only passes through).
   - **The steward stands aside during any fight** **[decided: Claude, 2026.09.29 — step 24, Anton's raid-capture report]**:
-    no popup, no autonomous run, no leave warning (the leave goes through as clicked), no Leave anyway, no Do it / executor
+    no popup, no autonomous run, no leave warning (the leave goes through as clicked), no Leave anyway, no Do all / executor
     while the party or the settlement has a battle (MapEvent), a hostile action is starting, the encounter is past its
     Begin state, a siege or captivity — nor, for the leave warning, Leave anyway, autonomy and the executor, while the menu is
     not the settlement's own. The menu entry greys ("The steward waits until the fighting is over."). One `[guard]` log line

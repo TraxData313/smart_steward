@@ -332,15 +332,17 @@ public class PartDealTests
             view.Sections.Select(v => v.Part));
         Assert.All(view.Sections, v => Assert.NotNull(v.Deal));
 
-        var withParts = view.Sections.SelectMany(v => v.Items).Where(i => i.Part != null).ToList();
-        Assert.Equal(
-            new[] { "row:tavern:wanderer:w1", "row:tavern:wanderer:w2", "row:tavern:mercenaries", "line:recruits", "line:yours",
-                "line:lords", "line:others", "row:loot:OtherGoods" }.OrderBy(k => k),
-            withParts.Select(i => i.Key).OrderBy(k => k));
-        Assert.All(withParts, i => Assert.NotNull(i.Deal));
-        // Item-level rows carry none: a food, a horse role, a loot group, a troop type under its line.
-        Assert.DoesNotContain(view.Sections.SelectMany(v => v.Items),
-            i => i.Part != null && (i.Row?.Type == RowType.Food || i.Row?.Id == "loot:Armour" || i.Side != TroopSide.None));
+        // Step 27's lines of their own keep their parts (step 29 gives every other line one too — LineDealTests).
+        var items = view.Sections.SelectMany(v => v.Items).ToDictionary(i => i.Key);
+        Assert.Equal(PlanPart.TavernRow("tavern:wanderer:w1"), items["row:tavern:wanderer:w1"].Part);
+        Assert.Equal(PlanPart.TavernRow("tavern:wanderer:w2"), items["row:tavern:wanderer:w2"].Part);
+        Assert.Equal(PlanPart.TavernRow("tavern:mercenaries"), items["row:tavern:mercenaries"].Part);
+        Assert.Equal(PlanPart.Recruits, items["line:recruits"].Part);
+        Assert.Equal(PlanPart.YourTroops, items["line:yours"].Part);
+        Assert.Equal(PlanPart.Lords, items["line:lords"].Part);
+        Assert.Equal(PlanPart.OtherPrisoners, items["line:others"].Part);
+        Assert.Equal(PlanPart.OtherGoods, items["row:loot:OtherGoods"].Part);
+        Assert.All(items.Values, i => Assert.NotNull(i.Deal));
     }
 
     [Fact]

@@ -192,8 +192,12 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The game allows donating here — else the Donate button greys (mockup choice 7).</summary>
         public bool DonateAllowed { get; internal set; }
 
-        /// <summary>The part this line's "Do" button carries out alone (PLAN step 27): the Lords / Others, Recruits / Your troops
-        /// lines, each tavern row and the Other goods line; null = no button (an item-level row).</summary>
+        /// <summary>A breakdown line's stack (<see cref="SheetItemKind.SubLine"/>); null otherwise.</summary>
+        public string? StackKey { get; internal set; }
+
+        /// <summary>The part this line's "Do" button carries out alone (PLAN step 27: the Lords / Others, Recruits / Your troops
+        /// lines, each tavern row and the Other goods line; step 29: every line — one row, a troop type's own side, a breakdown
+        /// line); null = no button.</summary>
         public PlanPart? Part { get; internal set; }
 
         /// <summary>What <see cref="Part"/> does alone — the button's state and hover.</summary>
@@ -335,7 +339,7 @@ namespace SmartSteward.Core.Presentation
             view.FoldKeys = keys;
             view.Items = items;
             TitleGoal(plan, section, view, words);
-            // Step 27: "Do" on the title line and on the lines that are a deal of their own.
+            // Step 27: "Do" on the title line and on the lines that are a deal of their own; step 29: on every line.
             view.Part = PartOf(section.Group);
             view.Deal = plan.DealOf(view.Part);
             foreach (var item in items)
@@ -360,9 +364,10 @@ namespace SmartSteward.Core.Presentation
             }
         }
 
-        /// <summary>The part a line carries out alone (PLAN step 27) — the lines that are a deal of their own: Lords, Others,
-        /// Recruits, Your troops, each tavern row (a wanderer, the mercenaries), Other goods. Null for every other line: an
-        /// item-level row (one food, one troop type, a loot group, a horse role) or a breakdown line gets no button.</summary>
+        /// <summary>The part a line carries out alone — step 27's lines that are a deal of their own (Lords, Others, Recruits, Your
+        /// troops, each tavern row, Other goods) and, since step 29 (Anton 2026.10.01: "can I have that Do button next to every
+        /// line too"), every other line: one row (a food, a horse role, a loot group, a prisoner type), a troop type on its own
+        /// side (under Recruits its recruits, under Your troops its dismissals), a breakdown line (one breed, one good).</summary>
         public static PlanPart? PartOf(SheetItem item)
         {
             switch (item.Kind)
@@ -373,13 +378,19 @@ namespace SmartSteward.Core.Presentation
                 case SheetItemKind.YourTroops: return PlanPart.YourTroops;
                 case SheetItemKind.Row:
                     var row = item.Row;
-                    if (row == null || item.Side != TroopSide.None)
+                    if (row == null)
                         return null;
+                    if (item.Side == TroopSide.Recruit)
+                        return PlanPart.RecruitRow(row.Id);
+                    if (item.Side == TroopSide.Dismiss)
+                        return PlanPart.DismissRow(row.Id);
                     if (row.Type == RowType.Tavern)
                         return PlanPart.TavernRow(row.Id);
                     if (row.Type == RowType.Loot && row.LootGroup == LootGroup.OtherGoods)
                         return PlanPart.OtherGoods;
-                    return null;
+                    return PlanPart.Row(row.Id);
+                case SheetItemKind.SubLine:
+                    return item.Row == null || item.StackKey == null ? null : PlanPart.StackLine(item.Row.Id, item.StackKey);
                 default:
                     return null;
             }
@@ -651,6 +662,7 @@ namespace SmartSteward.Core.Presentation
             return new SheetItem("sub:" + row.Id + "/" + line.StackKey, SheetItemKind.SubLine)
             {
                 Row = row,
+                StackKey = line.StackKey,
                 Indented = true,
                 Name = string.IsNullOrEmpty(line.Name) ? line.ItemId : line.Name,
                 Note = UnitPrice(line.UnitPriceMin, line.UnitPriceMax, words),
