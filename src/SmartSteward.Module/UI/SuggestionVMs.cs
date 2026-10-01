@@ -996,7 +996,10 @@ namespace SmartSteward.UI
                 SetGoalText(goal.Text);
                 GoalColor = GoalColorOf(goal);
             }
-            GoalHint.Text = goal.HandsOff ? goal.Hint : !IsGoalBox ? "" : goal.IsYours ? _goalYoursHint : _goalStewardHint;
+            // Step 26: the quests behind a goal head its hover (the game's own quest titles); a box keeps its typing hint below.
+            string boxHint = goal.HandsOff ? goal.Hint : !IsGoalBox ? "" : goal.IsYours ? _goalYoursHint : _goalStewardHint;
+            GoalHint.Text = goal.QuestHint.Length == 0 ? boxHint
+                : boxHint.Length == 0 ? goal.QuestHint : goal.QuestHint + "\n\n" + boxHint;
             CanResetGoal = IsGoalBox && item.CanReset;
             CanResetInChange = item.CanReset && !IsGoalBox;
             ResultHint.Text = goal.ShortText;
@@ -1086,9 +1089,9 @@ namespace SmartSteward.UI
             OnPropertyChangedWithValue(text, nameof(GoalText));
         }
 
-        /// <summary>Gold for a goal of yours, grey for the hands-off mark, plain for the steward's.</summary>
+        /// <summary>Gold for a goal of yours, light blue for the quests' (step 26), grey for the hands-off mark, plain for the steward's.</summary>
         private static string GoalColorOf(SheetGoalCell goal) =>
-            goal.IsYours ? UiColors.Yours : goal.HandsOff ? UiColors.Muted : UiColors.Text;
+            goal.IsYours ? UiColors.Yours : goal.IsQuest ? UiColors.Quest : goal.HandsOff ? UiColors.Muted : UiColors.Text;
 
         // ── bound properties ─────────────────────────────────────────────────────────────────────────────
 

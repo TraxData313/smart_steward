@@ -65,6 +65,9 @@ namespace SmartSteward.Adapter
             if (isTown)
                 ReadTavern(snap, settlement, main, hero);
             ReadTroops(snap, settlement, main, hero);
+            // Step 26 (DESIGN §2.9): what the player's quests ask the party to hold - read afresh, never stored.
+            if (SettingsHost.Current.QuestGoalsEnabled)
+                snap.QuestNeeds = QuestReader.Read();
             return new GameVisit(settlement, snap, elements);
         }
 

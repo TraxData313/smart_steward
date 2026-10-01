@@ -122,6 +122,8 @@
     <string id="ss_opt_SellLootOrder_Cheapest" text="Cheapest first" />
     <string id="ss_opt_SellLootOrder_LowestPricePerWeight" text="Lowest price per weight" />
     <string id="ss_opt_SellLootOrder_MostExpensive" text="Most expensive first" />
+    <string id="ss_quest_bandits" text="bandits" />
+    <string id="ss_quest_weapons" text="weapons" />
     <string id="ss_set_AutoFillFoodPrices" text="Average prices for food" />
     <string id="ss_set_AutoFillPackAndMountPrices" text="Average prices for pack animals and horses" />
     <string id="ss_set_AutoFillWarMountPrices" text="Average prices for war horses" />
