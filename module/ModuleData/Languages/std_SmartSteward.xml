@@ -223,7 +223,8 @@
     <string id="ss_ui_col_result" text="Result" />
     <string id="ss_ui_col_sea_weight" text="Sea weight" />
     <string id="ss_ui_col_sell" text="Sell" />
-    <string id="ss_ui_do_it" text="Do it" />
+    <string id="ss_ui_do_all" text="Do all" />
+    <string id="ss_ui_do_all_hint" text="Carry out the whole table at once - every line's Do in one click." />
     <string id="ss_ui_do_part" text="Do" />
     <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
     <string id="ss_ui_done_abort" text="Steward: nothing was done - see smart_steward.log." />
@@ -264,11 +265,13 @@
     <string id="ss_ui_part_donate" text="to the dungeon {N}" />
     <string id="ss_ui_part_done" text="Steward ({PART}): {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
     <string id="ss_ui_part_done_abort" text="Steward ({PART}): nothing was done - see smart_steward.log." />
-    <string id="ss_ui_part_floor" text="Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do it." />
+    <string id="ss_ui_part_floor_all" text="Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do all." />
     <string id="ss_ui_part_hire" text="hire {N}" />
     <string id="ss_ui_part_influence" text="{N} influence" />
-    <string id="ss_ui_part_no_gold" text="Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do it." />
+    <string id="ss_ui_part_named" text="{WHAT} {NAME}" />
+    <string id="ss_ui_part_no_gold_all" text="Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do all." />
     <string id="ss_ui_part_nothing" text="Nothing to do in this part." />
+    <string id="ss_ui_part_nothing_line" text="Nothing to do on this line." />
     <string id="ss_ui_part_ransom" text="ransom {N}" />
     <string id="ss_ui_part_recruit" text="recruit {N}" />
     <string id="ss_ui_part_sell" text="sell {N}" />

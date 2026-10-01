@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Presentation;
 using SmartSteward.Core.Snapshot;
@@ -217,29 +218,41 @@ namespace SmartSteward.UI
                 case PlanPartKind.OtherGoods: return UiText.S("ss_ui_loot_other_goods", "Other goods");
                 default:
                     var row = part.RowId == null ? null : plan?.FindRow(part.RowId);
-                    return row == null ? part.Id : SheetView.RowName(row, null);
+                    if (row == null)
+                        return part.Id;
+                    if (part.StackKey != null) // step 29: a breakdown line by its own item's name
+                    {
+                        var line = row.Breakdown.FirstOrDefault(l => Is(l.StackKey, part.StackKey));
+                        if (line != null)
+                            return OrId(line.Name, line.ItemId);
+                    }
+                    return SheetView.RowName(row, SheetText());
             }
         }
 
         /// <summary>
         /// The "Do" button's hover (PLAN step 27, DESIGN §1.1 "Do just this part"): enabled, what the part does alone in one line —
-        /// <c>Ransom 9, sell 12: +3,160 denari</c> — and, when the purse alone cuts it, how many fewer and why; greyed, why.
+        /// <c>Ransom 9, sell 12: +3,160 denari</c> — and, when the purse alone cuts it, how many fewer and why; greyed, why. A line
+        /// of one row (step 29) names it: <c>Buy 6 Grain: -120 denari</c> (<paramref name="name"/>; null = a section or a line of
+        /// many rows).
         /// </summary>
-        public static string PartHint(PartDeal? deal)
+        public static string PartHint(PartDeal? deal, string? name = null)
         {
             if (deal == null)
                 return "";
             switch (deal.Block)
             {
                 case PartBlock.NothingToDo:
-                    return UiText.S("ss_ui_part_nothing", "Nothing to do in this part.");
+                    return name == null
+                        ? UiText.S("ss_ui_part_nothing", "Nothing to do in this part.")
+                        : UiText.S("ss_ui_part_nothing_line", "Nothing to do on this line.");
                 case PartBlock.PurseFloor:
-                    return UiText.S1("ss_ui_part_floor",
-                        "Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do it.",
+                    return UiText.S1("ss_ui_part_floor_all",
+                        "Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do all.",
                         "GOLD", UiFormat.Money(deal.Floor));
                 case PartBlock.NotEnoughGold:
-                    return UiText.S("ss_ui_part_no_gold",
-                        "Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do it.");
+                    return UiText.S("ss_ui_part_no_gold_all",
+                        "Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do all.");
             }
             var moves = new System.Collections.Generic.List<string>();
             void Add(int n, string text)
@@ -254,6 +267,8 @@ namespace SmartSteward.UI
             Add(deal.Recruited, UiText.S1("ss_ui_part_recruit", "recruit {N}", "N", UiFormat.Money(deal.Recruited)));
             Add(deal.Dismissed, UiText.S1("ss_ui_part_dismiss", "dismiss {N}", "N", UiFormat.Money(deal.Dismissed)));
             string what = string.Join(", ", moves);
+            if (what.Length > 0 && !string.IsNullOrEmpty(name))
+                what = UiText.S2("ss_ui_part_named", "{WHAT} {NAME}", "WHAT", what, "NAME", name!);
             if (what.Length > 0)
                 what = char.ToUpperInvariant(what[0]) + what.Substring(1);
             var money = new System.Collections.Generic.List<string>();

@@ -16,7 +16,7 @@ STAGE = "c"  # the build stages of step 21 (a: skeleton, b: toggles, c: Total + 
 # left, the Goal column a typed box (GOAL_BOX) with the goal's reset button beside it (GOAL_RESET).
 # Step 27 (Anton 2026.10.01, "do just this part"): the Part column right after Result - a small "Do" button on every section
 # title and on the lines that are a deal of their own; its 62 px came from Item (432 -> 396), Denari (204 -> 190) and
-# Prisoners (92 -> 80).
+# Prisoners (92 -> 80). Step 29 (Anton 2026.10.01): the Do button on every line - the breakdown lines too (22 px there).
 PAD, ITEM, MARKET = 6, 396, 66
 GOAL_GAP, GOAL_BOX, GOAL_RESET_GAP, GOAL_RESET = 8, 70, 4, 26
 GOAL = GOAL_BOX + GOAL_RESET_GAP + GOAL_RESET  # 100
@@ -63,10 +63,10 @@ def number_cells(size, color=None):
     ])
 
 
-def small_button(command, enabled, hint, label, margin_left=0, width=34, font=22, visible=None):
+def small_button(command, enabled, hint, label, margin_left=0, width=34, font=22, visible=None, height=26):
     ml = f' MarginLeft="{margin_left}"' if margin_left else ""
     v = f' IsVisible="{visible}"' if visible else ""
-    return f'''<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="{width}" SuggestedHeight="26" VerticalAlignment="Center"{ml}{v}>
+    return f'''<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="{width}" SuggestedHeight="{height}" VerticalAlignment="Center"{ml}{v}>
   <Children>
     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="{command}" IsEnabled="{enabled}" UpdateChildrenStates="true">
       <Children>
@@ -136,12 +136,13 @@ def goal_cell():
 </Widget>'''
 
 
-def do_cell():
+def do_cell(height=26, font=17):
     """Step 27: the Part column - "Do" runs this part of the plan alone (greyed with the reason on hover when it has nothing
-    it can do alone); an empty cell on the lines that carry no part."""
+    it can do alone); an empty cell on the lines that carry no part. Step 29 (Anton 2026.10.01, "can I have that Do button
+    next to every line too"): on every line - the breakdown lines too, a little smaller (their lines are 26 px)."""
     return f'''<Widget WidthSizePolicy="Fixed" SuggestedWidth="{DO}" HeightSizePolicy="StretchToParent" MarginLeft="{DO_GAP}">
   <Children>
-{indent(small_button("ExecuteDoPart", "@CanDoPart", "PartHint", "@DoPartText", width=DO - 8, font=17, visible="@HasPart"), 4).replace('VerticalAlignment="Center"', 'HorizontalAlignment="Center" VerticalAlignment="Center"', 1)}
+{indent(small_button("ExecuteDoPart", "@CanDoPart", "PartHint", "@DoPartText", width=DO - 8, font=font, visible="@HasPart", height=height), 4).replace('VerticalAlignment="Center"', 'HorizontalAlignment="Center" VerticalAlignment="Center"', 1)}
   </Children>
 </Widget>'''
 
@@ -236,7 +237,7 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
   </Children>
 </Widget>'''
 
-sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, small and grey, no buttons -->
+sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, small and grey; only its own "Do" (step 29) -->
 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" IsVisible="@IsSubLine">
   <Children>
     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -257,7 +258,8 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
         {text(MINE, "@MineText", 16, color="@MutedColor")}
         {text(CHANGE, "@ChangeText", 16, "Center", "@ChangeColor", margin_left=CHANGE_GAP)}
         {text(RESULT, "@ResultText", 16, color="@MutedColor")}
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{DO}" HeightSizePolicy="StretchToParent" MarginLeft="{DO_GAP}" />
+        <!-- Part (step 29): "Do" - just this kind's trades -->
+{indent(do_cell(22, 15), 8)}
 {indent(denari_cell(16, 13), 8)}
 {indent(number_cells(16, "@MutedColor"), 8)}
       </Children>

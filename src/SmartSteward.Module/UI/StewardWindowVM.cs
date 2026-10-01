@@ -13,12 +13,12 @@ namespace SmartSteward.UI
 {
     /// <summary>
     /// The Party Steward window's root view model (DESIGN §1): the title, the three tabs (Suggestion, Prices,
-    /// Instructions), Do it and Close. Every command is wrapped (<see cref="Guard"/>) — a bug closes the window
+    /// Instructions), Do all (the button read "Do it" until step 29) and Close. Every command is wrapped (<see cref="Guard"/>) — a bug closes the window
     /// with a log line instead of reaching Gauntlet, which rethrows it into the game (RESEARCH §14). Getters only
     /// return fields.
     /// <para>Re-planning [decided: Claude, 2026.09.27 — step 7]: a settings change (Prices or Instructions tab, or
     /// the file) marks the plan stale; showing the Suggestion tab again plans afresh on the same snapshot and carries
-    /// the player's edited rows over (<see cref="PlanCarryOver"/>). Do it looks at the world again (a new snapshot)
+    /// the player's edited rows over (<see cref="PlanCarryOver"/>). Do all looks at the world again (a new snapshot)
     /// and plans afresh with no carry-over — the edits were carried out.</para>
     /// </summary>
     public sealed class StewardWindowVM : ViewModel
@@ -44,7 +44,7 @@ namespace SmartSteward.UI
             PricesTabText = UiText.S("ss_ui_tab_prices", "Prices");
             InstructionsTabText = UiText.S("ss_ui_tab_instructions", "Instructions");
             CloseText = UiText.S("ss_ui_close", "Close"); // was "Not now" until round 3 (Anton 2026.09.28)
-            DoItText = UiText.S("ss_ui_do_it", "Do it");
+            DoItText = UiText.S("ss_ui_do_all", "Do all"); // step 29: "Do it" -> "Do all" beside every line's own Do
             DoItHint = new HintVM();
             Suggestion = new SuggestionTabVM(RefreshDoIt, part => Guard("do part " + part.Id, () => RunPart(part)));
             Suggestion.SetPlan(plan, visit);
@@ -175,7 +175,8 @@ namespace SmartSteward.UI
             var plan = Suggestion.Plan;
             bool can = plan != null && PlanFooter.CanExecute(plan);
             CanDoIt = can;
-            DoItHint.Text = can || plan == null ? ""
+            DoItHint.Text = plan == null ? ""
+                : can ? UiText.S("ss_ui_do_all_hint", "Carry out the whole table at once - every line's Do in one click.")
                 : plan.Totals.CannotAfford ? UiLabels.Warning(PlanWarning.CannotAfford, 0, 0)
                 : UiText.S("ss_ui_nothing_to_do", "Nothing to do.");
         }
@@ -195,9 +196,9 @@ namespace SmartSteward.UI
             StewardWindow.Close();
         });
 
-        /// <summary>Do it: the executor runs the plan's transactions (step 6), the result shows, and the window plans
+        /// <summary>Do all: the executor runs the plan's transactions (step 6), the result shows, and the window plans
         /// afresh on a new snapshot.</summary>
-        public void ExecuteDoIt() => Guard("do it", DoIt);
+        public void ExecuteDoIt() => Guard("do all", DoIt);
 
         private void SelectTab(int tab)
         {
@@ -235,13 +236,13 @@ namespace SmartSteward.UI
             var visit = SnapshotBuilder.Build(_settlement, out string whyNot);
             if (visit == null)
             {
-                ModLog.Info("window", "after Do it: no plan - " + whyNot);
+                ModLog.Info("window", "after Do all: no plan - " + whyNot);
                 StewardWindow.Close();
                 return;
             }
             _visit = visit;
             _planStale = false;
-            Suggestion.SetPlan(PlanFor(visit, "after Do it"), visit);
+            Suggestion.SetPlan(PlanFor(visit, "after Do all"), visit);
             Suggestion.SetStatus(summary);
             RefreshDoIt();
         }
@@ -249,7 +250,7 @@ namespace SmartSteward.UI
         /// <summary>
         /// "Do" on a section's title line or on a line that is a deal of its own (PLAN step 27, DESIGN §1.1 "Do just this part"):
         /// the executor runs ONLY that part's transactions of the plan as it stands (Core <see cref="StewardPlan.DealOf"/>: the
-        /// player's edits and goals included, cut where the purse alone stops them) through Do it's own path and checks; no setting
+        /// player's edits and goals included, cut where the purse alone stops them) through Do all's own path and checks; no setting
         /// and no goal changes. Then the window plans afresh on a new snapshot and STAYS open, the player's touched rows of every
         /// OTHER part put back (<see cref="PlanCarryOver.Capture(StewardPlan, PlanPart)"/>).
         /// </summary>

@@ -1057,10 +1057,11 @@ namespace SmartSteward.UI
             CanResetInChange = item.CanReset && !IsGoalBox;
             ResultHint.Text = goal.ShortText;
 
-            // Step 27: "Do" on the lines that are a deal of their own (Lords, Others, Recruits, Your troops, a tavern row, Other goods).
+            // Step 27: "Do" on the lines that are a deal of their own (Lords, Others, Recruits, Your troops, a tavern row, Other goods);
+            // step 29: on every line — a one-row part's hover names the line ("Buy 6 Grain: -120 denari").
             HasPart = item.Deal != null;
             CanDoPart = item.Deal?.CanRun ?? false;
-            PartHint.Text = UiLabels.PartHint(item.Deal);
+            PartHint.Text = UiLabels.PartHint(item.Deal, item.Part != null && item.Part.IsSingleRow ? item.Name : null);
 
             HasToggle = item.Choice != null;
             if (item.Choice != null)

@@ -384,7 +384,7 @@
                                                     </ListPanel>
                                                   </Children>
                                                 </Widget>
-                                                <!-- a breakdown line (26 px): one kind inside a row's fold, small and grey, no buttons -->
+                                                <!-- a breakdown line (26 px): one kind inside a row's fold, small and grey; only its own "Do" (step 29) -->
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" IsVisible="@IsSubLine">
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -405,7 +405,21 @@
                                                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@MineText" />
                                                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="176" HeightSizePolicy="StretchToParent" MarginLeft="8" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Center" Brush.FontColor="@ChangeColor" Text="@ChangeText" />
                                                         <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="66" HeightSizePolicy="StretchToParent" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@MutedColor" Text="@ResultText" />
-                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="56" HeightSizePolicy="StretchToParent" MarginLeft="6" />
+                                                        <!-- Part (step 29): "Do" - just this kind's trades -->
+                                                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="56" HeightSizePolicy="StretchToParent" MarginLeft="6">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="48" SuggestedHeight="22" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="@HasPart">
+                                                              <Children>
+                                                                <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="ExecuteDoPart" IsEnabled="@CanDoPart" UpdateChildrenStates="true">
+                                                                  <Children>
+                                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="15" Text="@DoPartText" />
+                                                                  </Children>
+                                                                </ButtonWidget>
+                                                                <HintWidget DataSource="{PartHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+                                                              </Children>
+                                                            </Widget>
+                                                          </Children>
+                                                        </Widget>
                                                         <Widget WidthSizePolicy="Fixed" SuggestedWidth="190" HeightSizePolicy="StretchToParent" MarginLeft="8">
                                                           <Children>
                                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -963,7 +977,7 @@
               </Children>
             </ButtonWidget>
 
-            <!-- Do it (Suggestion tab) — greyed with the reason when the purse cannot pay or nothing is queued -->
+            <!-- Do all (Suggestion tab; "Do it" until step 29) — greyed with the reason when the purse cannot pay or nothing is queued -->
             <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="52" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginRight="30" MarginBottom="18" IsVisible="@IsSuggestionSelected">
               <Children>
                 <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Done.Button" Command.Click="ExecuteDoIt" IsEnabled="@CanDoIt" UpdateChildrenStates="true">
