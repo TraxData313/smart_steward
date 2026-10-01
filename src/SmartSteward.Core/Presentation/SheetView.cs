@@ -162,6 +162,24 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The small grey words after the name: a unit price (<c>510 each</c>), a target (<c>keep 10</c>), what a line does.</summary>
         public string Note { get; internal set; } = "";
 
+        /// <summary>The quest part of the note (PLAN step 32, Anton 2026.10.01: "next to the name 'Grain' -> 'Grain (100 needed
+        /// for quest)'"): <c>120 needed for quest</c>, <c>220 needed for quests</c> (several summed), <c>120 for quest, held</c> when
+        /// what the party holds already covers it; empty when no quest touches the line. Drawn right after the name in the quest
+        /// colour (<see cref="UiColors.Quest"/>), before the grey <see cref="Note"/> — the Item cell clips at its right edge, so the
+        /// quest part is the one that must never be cut.</summary>
+        public string QuestNote { get; internal set; } = "";
+
+        /// <summary>The quest note's hover: <c>Your quests ask for:</c> + one line per quest (its title, the amount, what; <c>, you
+        /// hold 5</c> when short); empty without a quest note.</summary>
+        public string QuestNoteHint { get; internal set; } = "";
+
+        /// <summary>The grey note as drawn after a quest note: <c>· 30–33 each</c> (the dot joins the two labels); the plain
+        /// <see cref="Note"/> when there is no quest note.</summary>
+        public string NoteAfterQuest => QuestNote.Length > 0 && Note.Length > 0 ? UiFormat.Dot + " " + Note : Note;
+
+        /// <summary>The whole note as one text (the log, the tests): <c>120 needed for quest · 30–33 each</c>.</summary>
+        public string FullNote => QuestNote.Length == 0 ? Note : Note.Length == 0 ? QuestNote : QuestNote + " " + UiFormat.Dot + " " + Note;
+
         public string Market { get; internal set; } = "";
         public string Mine { get; internal set; } = "";
         public string Change { get; internal set; } = "";
@@ -460,16 +478,73 @@ namespace SmartSteward.Core.Presentation
             if (goal.Quest == null || goal.Quest.Quests.Count == 0 || (goal.IsYours && !goal.BelowQuest))
                 return "";
             var lines = new List<string> { goal.IsYours ? words.QuestBelow : words.QuestKeptFor };
-            foreach (var state in goal.Quest.Quests)
-            {
-                var need = state.Need;
-                string line = need.Title + " " + UiFormat.Minus + " " + UiFormat.Money(need.Amount)
-                              + (string.IsNullOrEmpty(need.What) ? "" : " " + need.What);
-                if (state.IsShort)
-                    line += ", " + words.QuestYouHold + " " + UiFormat.Money(state.Kept);
-                lines.Add(line);
-            }
+            lines.AddRange(goal.Quest.Quests.Select(state => QuestLine(state, words)));
             return string.Join("\n", lines);
+        }
+
+        /// <summary>One quest in words: <c>Ryibelet Needs Grain Seeds – 120 Grain</c>, <c>…, you hold 5</c> when short.</summary>
+        private static string QuestLine(QuestNeedState state, SheetWords words)
+        {
+            var need = state.Need;
+            string line = need.Title + " " + UiFormat.Minus + " " + UiFormat.Money(need.Amount)
+                          + (string.IsNullOrEmpty(need.What) ? "" : " " + need.What);
+            if (state.IsShort)
+                line += ", " + words.QuestYouHold + " " + UiFormat.Money(state.Kept);
+            return line;
+        }
+
+        // ── The quest note after a name (PLAN step 32) ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// The quest part of a line's note (step 32, DESIGN §1.1 / §2.9): what the quests on the line ask for, summed over them —
+        /// <c>120 needed for quest</c>, <c>220 needed for quests</c>; <c>120 for quest, held</c> when the party already holds all of
+        /// it (the fonts have no check mark — RESEARCH §14). The number is what the QUESTS ask, not what this line keeps [Claude's
+        /// call]: a need served from two lines (a horse breed among riding and war horses, bandits of two types) shows on both —
+        /// the hover says what is held. Empty when no quest touches the line.
+        /// </summary>
+        public static string QuestNote(IEnumerable<QuestNeedState>? states, SheetWords? words = null)
+        {
+            words ??= new SheetWords();
+            var list = Distinct(states);
+            int sum = list.Sum(s => Math.Max(0, s.Need.Amount));
+            if (sum <= 0)
+                return "";
+            bool many = list.Select(s => string.IsNullOrEmpty(s.Need.QuestId) ? s.Need.Title : s.Need.QuestId)
+                .Distinct(StringComparer.Ordinal).Count() > 1;
+            bool held = list.All(s => !s.IsShort);
+            string word = held ? many ? words.QuestNoteHeldMany : words.QuestNoteHeld
+                : many ? words.QuestNoteNeededMany : words.QuestNoteNeeded;
+            return UiFormat.Money(sum) + " " + word;
+        }
+
+        /// <summary>The quest note's hover: <c>Your quests ask for:</c> and one line per quest; empty without quests.</summary>
+        public static string QuestNoteHint(IEnumerable<QuestNeedState>? states, SheetWords? words = null)
+        {
+            words ??= new SheetWords();
+            var list = Distinct(states);
+            if (list.Count == 0 || list.Sum(s => Math.Max(0, s.Need.Amount)) <= 0)
+                return "";
+            return words.QuestAskFor + "\n" + string.Join("\n", list.Select(s => QuestLine(s, words)));
+        }
+
+        /// <summary>The quests on a plan row (its <see cref="PlanRow.Quest"/>).</summary>
+        public static IReadOnlyList<QuestNeedState> QuestsOf(PlanRow? row) =>
+            row?.Quest?.Quests ?? (IReadOnlyList<QuestNeedState>)Array.Empty<QuestNeedState>();
+
+        /// <summary>The quests on one breakdown line of a row (a horse breed, a good): the row's item needs that name its item.</summary>
+        public static IReadOnlyList<QuestNeedState> QuestsOf(PlanRow? row, PlanRowLine line) =>
+            line == null ? Array.Empty<QuestNeedState>()
+                : QuestsOf(row).Where(s => s.Need.Kind == QuestNeedKind.Items && s.Need.Ids != null
+                                           && s.Need.Ids.Contains(line.ItemId)).ToList();
+
+        private static List<QuestNeedState> Distinct(IEnumerable<QuestNeedState>? states) =>
+            (states ?? Enumerable.Empty<QuestNeedState>()).Where(s => s?.Need != null).Distinct().ToList();
+
+        private static void SetQuestNote(SheetItem item, IEnumerable<QuestNeedState> states, SheetWords words)
+        {
+            var list = states.ToList();
+            item.QuestNote = QuestNote(list, words);
+            item.QuestNoteHint = item.QuestNote.Length == 0 ? "" : QuestNoteHint(list, words);
         }
 
         /// <summary>The job a row's threshold belongs to, in words (food, pack animals, riding horses — the noble horses go with
@@ -561,13 +636,16 @@ namespace SmartSteward.Core.Presentation
                 FoldKey = foldKey,
                 IsOpen = open,
             };
+            // Step 32: Your troops carries the quests of the men it holds (its rows are folded in the everyday view); Recruits none.
+            if (!recruits)
+                SetQuestNote(item, line.Details.SelectMany(r => QuestsOf(r)), words);
             return item;
         }
 
         private static SheetItem PrisonerLine(SheetLine line, SuggestionSheet sheet, SheetWords words)
         {
             bool lords = line.Kind == SheetLineKind.Lords;
-            return new SheetItem(lords ? "line:lords" : "line:others", lords ? SheetItemKind.Lords : SheetItemKind.OtherPrisoners)
+            var item = new SheetItem(lords ? "line:lords" : "line:others", lords ? SheetItemKind.Lords : SheetItemKind.OtherPrisoners)
             {
                 Line = line,
                 Name = lords ? words.LordsLine : words.OthersLine,
@@ -582,6 +660,9 @@ namespace SmartSteward.Core.Presentation
                 DonateAllowed = sheet.DonateAllowedHere,
                 Goal = LineGoal(line, sheet.Plan, words),
             };
+            // Step 32: the Lords / Others lines carry their rows' quests, like their Goal's quest colour (step 26).
+            SetQuestNote(item, line.Details.SelectMany(r => QuestsOf(r)), words);
+            return item;
         }
 
         /// <summary>The Lords / Others lines' Goal: the sum of their rows' (0 on Ransom and Donate, Mine on Keep); short when one of
@@ -635,6 +716,7 @@ namespace SmartSteward.Core.Presentation
                 // A troop row under Recruits shows no goal (its Mine is "–"); under Your troops the men a quest keeps (step 26).
                 Goal = side == TroopSide.Recruit ? SheetGoalCell.Empty : GoalCell(row, sheet.Plan, words),
             };
+            SetQuestNote(item, QuestsOf(row), words); // step 32: every row a quest touches, either side of a troop type
             // Each line moves only its own side of a row (step 20's rule for the lines, step 21 for the rows under them).
             switch (side)
             {
@@ -659,7 +741,7 @@ namespace SmartSteward.Core.Presentation
         private static SheetItem SubItem(PlanRow row, PlanRowLine line, SheetWords words)
         {
             var metrics = new PlanMetrics(line.GoldDelta, 0, 0, 0, line.LandKg, line.SeaKg);
-            return new SheetItem("sub:" + row.Id + "/" + line.StackKey, SheetItemKind.SubLine)
+            var item = new SheetItem("sub:" + row.Id + "/" + line.StackKey, SheetItemKind.SubLine)
             {
                 Row = row,
                 StackKey = line.StackKey,
@@ -675,6 +757,8 @@ namespace SmartSteward.Core.Presentation
                 Cells = SheetCellTexts.Of(metrics, words),
                 DenariHint = UiFormat.PriceCell(Math.Abs(line.Change), line.UnitPriceMin, line.UnitPriceMax, line.GoldDelta),
             };
+            SetQuestNote(item, QuestsOf(row, line), words); // step 32: one breed, one good
+            return item;
         }
 
         // ── The words of a row ───────────────────────────────────────────────────────────────────────────

@@ -184,6 +184,23 @@ namespace SmartSteward.Core.Presentation
 
         /// <summary><c>, you hold 5</c> — the party holds fewer than the quest asks for.</summary>
         public string QuestYouHold { get; set; } = "you hold";
+
+        // ── Step 32: the quest note after a name (DESIGN §1.1 / §2.9) ──
+
+        /// <summary><c>120 needed for quest</c> — one quest, not yet held in full.</summary>
+        public string QuestNoteNeeded { get; set; } = "needed for quest";
+
+        /// <summary><c>220 needed for quests</c> — several quests on the line, summed.</summary>
+        public string QuestNoteNeededMany { get; set; } = "needed for quests";
+
+        /// <summary><c>120 for quest, held</c> — what the party holds covers it.</summary>
+        public string QuestNoteHeld { get; set; } = "for quest, held";
+
+        /// <summary><c>220 for quests, held</c>.</summary>
+        public string QuestNoteHeldMany { get; set; } = "for quests, held";
+
+        /// <summary>The quest note's hover head: <c>Your quests ask for:</c>, then one line per quest.</summary>
+        public string QuestAskFor { get; set; } = "Your quests ask for:";
     }
 
     /// <summary>One always-visible line of a section: a plan row shown on its own, or an aggregate line over detail rows.</summary>
