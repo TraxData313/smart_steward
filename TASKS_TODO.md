@@ -93,6 +93,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   on a section title and on the lines that hold a group (Recruits, Your troops, Lords, Others, Other goods); the bottom "Do all" → "Deal all"
   (manager's call for one word everywhere — Anton may keep "Do all"); every text naming them follows
   - [ ] Deployed at the end of step 31 (the install carries steps 24–31), then playtest — checklist in docs/PLAYTEST.md "Step 31"
+- [ ] 32. QUEST NOTE BY THE NAME (Anton 2026.10.01 — "next to the name 'Grain' -> 'Grain (100 needed for quest)'"): every line a quest
+  needs shows it after its name, in the quest colour — "Grain  120 needed for quest" (food, horses, goods, troops, prisoners)
 SHIPPING NEXT (done in main, NOT released yet):
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
 - A "Deal" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Deal all" (it read "Do it")
