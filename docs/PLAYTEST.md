@@ -488,3 +488,29 @@ see it (your edits and goals included) — no setting, no goal changes — then 
 10. **During a fight** nothing runs (the same guard as Do it — a `[guard]` log line).
 11. Log: the run's lines are tagged `part Prisoners: …` (window, execute), then `carried N of M edited rows of the other parts over`.
 12. Look: the column fits at 1080p — the Item names lost 36 px, Denari 14, Prisoners 12; say if anything clips.
+
+## Step 28 — noble horses to keep (deployed 2026.10.01 — the install carries steps 24–28 too)
+
+A new number in the Instructions tab's **War mounts** group, right under "War horses to keep": **Noble horses to keep** (0 by
+default) and **Manage kept noble horses from (denari)** (20,000, like the war horses). At 0 nothing changes. Above 0 the noble
+horses work like the war horses (DESIGN §2.4 "Noble horses to keep").
+
+1. **0 = today.** With the defaults, a town with noble horses in your inventory: the Noble horses row sells every unlocked one,
+   "sell only", its Goal a plain 0 (no box); the Prices tab says *"Noble horses — sell only"* with no buy column.
+2. **Keep 2, you hold none.** Set it to 2 (purse above 20,000) in a town that sells noble horses: the Noble horses row shows
+   the Market, *keep 2*, buys the 2 cheapest it may, and its Goal is a box with 2. The Riding horses' goal drops by 2 (they
+   count among the horses for your footmen). Do it → reopen: nothing new.
+3. **Keep 2, you hold 5.** It sells 3, the dearest first (like the war horses) — two of the cheaper ones stay. A noble horse you
+   LOCKED counts toward the 2 and is never sold.
+4. **Below 20,000 denari**: the row stays as it is, its Goal shows `–*` (hover: *"Not managed yet: the steward starts on noble
+   horses at 20,000 denari …"*), the Horses title's overview adds *"noble horses start at 20,000 denari"*.
+5. **Type a goal** in the Noble horses Goal box (say 1): it sells down to 1, gold with ⟲; ⟲ gives the row back to the number.
+   Close and reopen in another town: the goal is still there (settings.json `"mounts:noble": 1`).
+6. **Prices tab**: with the number above 0 the sub-header reads just *"Noble horses"* and the buy half shows (grey average buy
+   price → × 1.2); set it back to 0 and it hides again.
+7. **Sell noble horses off**: with 2 to keep and 5 held, nothing is sold; the Result's hover says the surplus is kept.
+8. **A lame noble horse** (if you ever get one) goes into the Lame horses row and a healthy one is bought in its place — only
+   while you keep noble horses.
+9. **Autonomous steward** on, rich (above 100,000 + their price): it buys up to the number too, the message log says so.
+10. **Instructions note** beside the three numbers: *"(110 horses = 98 riding + 10 war + 2 noble, for 100 footmen)"*.
+11. Log: the facts line ends with *"noble horses 2)"* when you keep some.

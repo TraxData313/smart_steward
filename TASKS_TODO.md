@@ -78,9 +78,11 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   Recruits, Your troops, each tavern row) — it executes ONLY that part of the plan as it stands (your edits included), changes no
   settings, then the window re-plans and stays open; greyed when that part has nothing to do
   - [ ] Deploy (the game was running at the end of step 27), then playtest — checklist in docs/PLAYTEST.md "Step 27"
-- [ ] 28. NOBLE HORSES TO KEEP (Anton 2026.10.01 — "some mods want nobles for upgrades"): a "Noble horses to keep" number like
+- [x] 28. NOBLE HORSES TO KEEP (Anton 2026.10.01 — "some mods want nobles for upgrades"): a "Noble horses to keep" number like
   war horses (same threshold, buys up to it, sells the rest unless locked), default 0 = today's behaviour; a typed goal on the row
+  - [ ] Deployed at the end of step 28 (the game was closed — the install carries steps 24–28), then playtest — checklist in docs/PLAYTEST.md "Step 28"
 SHIPPING NEXT (done in main, NOT released yet):
+- "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
 - "Do" just this part: a Part column with a Do button on every section and on Lords, Others, Recruits, Your troops, each tavern row and Other goods — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
 - The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, the quest named on hover
 - A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
@@ -89,7 +91,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - No arrival popup where you cannot trade or the steward has no rows
 - A closed market says why in the window ("Market closed: …", the game's own words) and in the log
 - ~~Upgrade horses set per kind~~ → Horses simplified: "Horses per 100 footmen" keeps T horses, "War horses to keep" (a plain number, default 0) among them, riding horses the rest — no upgrade counting; the old upgrade-horse settings are retired (logged once)
-- Noble horses: never bought, sold unless you lock them ("Sell noble horses"); their own sell-only row, and "Noble horses — sell only" in the Prices tab
+- Noble horses: never bought, sold unless you lock them ("Sell noble horses"); their own sell-only row, and "Noble horses — sell only" in the Prices tab (unless you keep some — step 28 above)
 - Lame and old horses: never bought; "Replace lame horses" (on) sells them and buys healthy ones in their place
 - Prisoners: ransom all or none — the "Prisoners to ransom" list is gone ("Include lords" stays)
 - Prices tab: the item name is the first column
@@ -169,6 +171,7 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [x] Donating fills the dungeon with the most valuable prisoners first (most influence) — ok? (DESIGN §2.5) → Anton 2026.09.28: yes
 
 NOTICED (things spotted during a step, left for later):
+- [ ] Release day: the Steam description and README say "noble horses sold unless you lock them" — still true by default; mention the optional "Noble horses to keep" (step 28)?
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
 - [ ] TrainingBattles' TrainingWindow.Close() never calls ReleaseMovie, and its prefabs carry MouseScrollAxis (gone in 1.4.8) — fix there; ours does both right (step 7)
 - [ ] Vanilla's donate screen sizes the dungeon room by prisoner stacks, not men — we use NumberOfPrisoners
