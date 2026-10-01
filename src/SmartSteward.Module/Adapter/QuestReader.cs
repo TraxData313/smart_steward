@@ -192,12 +192,29 @@ namespace SmartSteward.Adapter
             into.Add(new QuestNeed
             {
                 QuestId = quest.StringId ?? "",
-                Title = quest.Title?.ToString() ?? quest.StringId ?? "",
+                Title = TitleOf(quest),
                 Kind = kind,
                 Amount = amount,
                 What = what,
                 Ids = ids.Where(i => !string.IsNullOrEmpty(i)).ToList(),
             });
+        }
+
+        /// <summary>The quest's own title; its id when the title cannot be built (a title reads the giver's settlement - a
+        /// quest must not be dropped for its words).</summary>
+        private static string TitleOf(QuestBase quest)
+        {
+            try
+            {
+                string? title = quest.Title?.ToString();
+                if (!string.IsNullOrEmpty(title))
+                    return title!;
+            }
+            catch (Exception)
+            {
+                // the id below
+            }
+            return quest.StringId ?? "";
         }
 
         private static int Int(object quest, string field) => Field<int>(quest, field);

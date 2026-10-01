@@ -427,3 +427,37 @@ steward's surplus sale never takes a kind below that share.
 4. **Your own sale is not guarded.** Type a goal BELOW what you hold (e.g. Fish = 0): it is sold, all of it.
 5. **Do it, then reopen the window**: nothing new is suggested for food.
 6. The log's `facts:` line shows the share: `food target 235 (sell above 258.5, 27 per kind)`.
+
+## Step 26 — the steward keeps what your quests need (NOT deployed yet: the game was running — quit it, run `tools\deploy.ps1`)
+
+The steward reads your ongoing quests at every plan and KEEPS what they ask for: never sold, ransomed, donated or dismissed.
+A food a quest asks for is bought up to the need like a goal of yours. The Goal cell shows it in LIGHT BLUE; its hover names
+the quest. A goal you type still wins. Switch: Instructions → Goals you set by hand → "Keep what your quests need" (on).
+The log writes a `[quest]` line whenever what it read changes (DESIGN §2.9, RESEARCH §29).
+
+How to get the quests: talk to the notables (village headmen, town landowners, gang leaders) and lords — the quest offers come
+in conversation ("Is there any work…"); the Encyclopedia / the map's quest markers show who has one.
+
+1. **Headman needs grain** (a village headman: "{village} Needs Grain Seeds"). Accept it, then enter a town:
+   - holding LESS grain than asked: the Grain row buys up to the need (first, before the other food), its Goal shows the need in
+     light blue, the hover reads *"Kept for your quests: Ryibelet Needs Grain Seeds – 120 Grain, you hold 20"*;
+   - holding MORE: the steward never sells the grain below the need; fish and meat keep their share (step 25's rule).
+   - The Food title's Goal = target + the grain above its share.
+2. **Your goal wins.** Type Grain = 50 while the quest wants 120: the row turns gold, the grain is sold down to 50, and the hover
+   says *"Below what your quests need: …"*. ⟲ gives it back to the quest (light blue again).
+3. **Lord needs horses** (a lord: "Lord Needs Horses"). Hold some of the asked horse: the Riding (or War / Pack) row never sells
+   them — the row's Goal is the larger of its target and the kept horses, light blue, the hover names the breed. A lame one of
+   that breed is kept first (the quest takes any). The steward does NOT buy the asked breed — buy it yourself.
+4. **Village needs draught animals** (mules or sumpter horses): the Pack row keeps them even above "Pack animals to keep".
+5. **Tools / crafting materials / an artisan's goods / gang weapons** (with "Sell loot" on): the Other goods line or the Melee
+   weapons line never sells the quest's tools, iron, goods or one-handed axes; their Goal shows the kept pieces in light blue.
+6. **Garrison troops / gang recruits** (a lord: "… Needs Garrison Troops in …"; a gang leader: "Gang Needs Recruits"): open
+   Your troops — the asked troops show their kept number in the Goal column, and the line's [-] (Ctrl = all) leaves them in.
+7. **Manual laborers / a lord's rival** (a landowner: "Landowner Needs Manual Laborers" — bandit prisoners; a lord: "… Wants …
+   Captured"): with Others / Lords on Ransom, the kept prisoners stay (the dearest bandits first); the line's Goal shows them.
+8. **Switch off** "Keep what your quests need": everything is planned as before step 26 — no light blue anywhere.
+9. **Full-autonomous steward** (if you use it): it keeps the quest's units too, and buys the quest's grain only above
+   "Keep while autonomous".
+10. **Do it, then reopen the window**: nothing new is suggested; after you hand the quest over, the next town plans as usual.
+11. Log: one `[quest] …` line listing each quest read (title, kind, amount, ids); a quest the game changed shows once as
+    `cannot read …` and is simply left alone.

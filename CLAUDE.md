@@ -140,6 +140,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               rows' hand lanes (HandBuyLane/HandSellLane) = the three "Goals you set by hand" switches; a click on
                               such a row is a goal edit (StewardPlan.SetGoal / Reset / TakeGoalEdits — every goal edit re-plans);
                               RowGoal = a row's Goal cell (value, editable, yours, hands-off -*, GoalShort = why a Result stops short)
+                              QuestKeep (step 26, DESIGN §2.9) = what the player's quests keep (Snapshot/QuestNeed in, the units out of the
+                              steward's sell lanes / MaxSell, a food quest = a pin like a goal of yours but untouched: PlanRow.WalksFirst,
+                              PlanRow.Quest = QuestRowInfo for RowGoal's quest colour and hover; switch QuestGoalsEnabled)
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
@@ -174,7 +177,9 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               through vanilla's paths — headless InventoryLogic, SellPrisonersAction, donate, hires, the
                               recruit screen's and the party screen's steps for recruits and dismissals),
                               StewardMerchantListener, PriceBookCatalog (the Prices tab's items + placeholders), GameVisit,
-                              TavernKnowledge (step 14: the listed wanderers become known, as the tavern district does it)
+                              TavernKnowledge (step 14: the listed wanderers become known, as the tavern district does it),
+                              QuestReader (step 26: the ongoing quests' needs by reflection, one reader per vanilla quest type —
+                              RESEARCH §29; a [quest] log line)
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
                               Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
                               command), SuggestionVMs (step 21: the spreadsheet — SuggestionTabVM, SheetSectionVM per title line,
@@ -202,6 +207,7 @@ tests/SmartSteward.Core.Tests/  net8.0 xUnit (keep green) — incl. SubModule.xm
                               Planning/PlanPerformanceTests = a big late-game plan, open + clicks timed;
                               Planning/LivePlanTests = the live re-plan (plan → edit the party → Do it → nothing new; troops,
                               a village too); Planning/TroopPlanTests = the troops section (step 16);
+                              Planning/QuestPlanTests = the quest needs (step 26: every job, the switches, Do it → nothing new);
                               Planning/GoalPlanTests, Presentation/SheetGoalTests, Settings/GoalsSettingsTests = the goals (step 22;
                               the test kit's LegacyDefaults keeps ManualGoalsKeepPurseFloor off, the pre-round-5 way);
                               Snapshot/, Execution/ = the adapter's pure half; StringsFileTests = the strings file ↔
