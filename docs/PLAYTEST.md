@@ -461,3 +461,30 @@ in conversation ("Is there any work…"); the Encyclopedia / the map's quest mar
 10. **Do it, then reopen the window**: nothing new is suggested; after you hand the quest over, the next town plans as usual.
 11. Log: one `[quest] …` line listing each quest read (title, kind, amount, ids); a quest the game changed shows once as
     `cannot read …` and is simply left alone.
+
+## Step 27 — Do just this part (NOT deployed yet: the game was running — quit it, run `tools\deploy.ps1`)
+
+A new **Part** column right after Result: a small **Do** button on every section title (Troops, Food, Horses, Prisoners, Other)
+and on Lords, Others, Recruits, Your troops, each tavern row and Other goods. It carries out ONLY that part of the plan as you
+see it (your edits and goals included) — no setting, no goal changes — then the window plans again and stays open
+(DESIGN §1.1 "Do just this part").
+
+1. **Your case first: ransom only.** In a town with prisoners and a grain goal you do not want touched: hover the Prisoners
+   title's **Do** — *"Ransom 12: +3,400 denari"*. Click it: the prisoners are ransomed, the grain and everything else stay as
+   they were, the window stays open, the status line says *"Steward (Prisoners): 2 of 2 done. Denari …"*.
+2. **Lords / Others alone**: with both lines on Ransom, Do on **Others** ransoms only the common prisoners; the lords stay (and
+   are still proposed).
+3. **Folded**: fold Food, hover and click its title's Do — it works the same folded.
+4. **Greyed**: a section with nothing to do greys its Do; the hover says *"Nothing to do in this part."*
+5. **Alone vs the whole deal**: with little denari and prisoners to ransom, the food buys need the ransom. Hover Food's Do:
+   *"Buy 50: –500 denari"* and *"Alone: 30 fewer than in the whole deal - it keeps your purse at 1,000 denari."* With nothing
+   above the floor it greys: *"Alone it would take your purse below 1,000 denari - the rest of the deal pays for it. Use Do it."*
+6. **Your hand on the other parts stays**: [+] a wanderer and sell fewer armour pieces, then Do on Prisoners — after the
+   re-plan the wanderer is still queued and the armour row still shows your number (⟲ on both).
+7. **A tavern row**: [+] the mercenaries, Do on their row — only they are hired (a wanderer you queued stays queued).
+8. **Recruits / Your troops**: [+] on Recruits and [-] on Your troops, then Do on Recruits — only the recruits join, the
+   dismissals stay queued; Do on Your troops dismisses only.
+9. **Other goods**: Do on its line sells only the goods; the armour and weapons rows are untouched.
+10. **During a fight** nothing runs (the same guard as Do it — a `[guard]` log line).
+11. Log: the run's lines are tagged `part Prisoners: …` (window, execute), then `carried N of M edited rows of the other parts over`.
+12. Look: the column fits at 1080p — the Item names lost 36 px, Denari 14, Prisoners 12; say if anything clips.
