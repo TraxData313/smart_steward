@@ -6,9 +6,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 4b. Plan editing model — row edits ±1/±5/all, reset, live re-pricing, totals (Core, tested)
 - [x] 5. Settings — one registry → commented settings.json + MCM (fluent, soft) + log file
 - [x] 6. Game adapter — snapshot from the game, executor through the game's own actions (debug menu door)
-  - [ ] Playtest the executor: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6" (the debug door is gone: use the window's Do it)
+  - [ ] Playtest the executor: town, village, tavern hires — checklist in docs/PLAYTEST.md "Step 6" (the debug door is gone: use the window's Do all)
 - [x] 7. Party Steward window — Suggestion table (±1/±5/±all, reset, header total) + Prices tab + Instructions tab
-  - [ ] Playtest the window: tabs, clicks, tooltips, Encyclopedia round trip, Do it — checklist in docs/PLAYTEST.md "Step 7 — the window"
+  - [ ] Playtest the window: tabs, clicks, tooltips, Encyclopedia round trip, Do all — checklist in docs/PLAYTEST.md "Step 7 — the window"
 - [x] 8. Triggers — menu entries, popup on arrival, leave warning, FULL-AUTONOMOUS steward (AutoExecute → AutonomousSteward + AutonomousMinGold 100k, message-log report — DESIGN §6; update §7 with the code), remove the debug door
   - [ ] Playtest the triggers: arrival popup, leave question, ships, autonomy — checklist in docs/PLAYTEST.md "Step 8 — triggers & autonomy"
 - [x] 9. Review pass — whole-mod code review, fix what it finds, strings through TextObject ids
@@ -81,10 +81,12 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 28. NOBLE HORSES TO KEEP (Anton 2026.10.01 — "some mods want nobles for upgrades"): a "Noble horses to keep" number like
   war horses (same threshold, buys up to it, sells the rest unless locked), default 0 = today's behaviour; a typed goal on the row
   - [ ] Deployed at the end of step 28 (the game was closed — the install carries steps 24–28), then playtest — checklist in docs/PLAYTEST.md "Step 28"
-- [ ] 29. DO ON EVERY LINE (Anton 2026.10.01 — "can I have that Do button next to every line too, so that say I want to just update one
+- [x] 29. DO ON EVERY LINE (Anton 2026.10.01 — "can I have that Do button next to every line too, so that say I want to just update one
   specific food"): the Part column's Do button on every item row too (each food, horse row, troop type, prisoner, other good) — it
   does only that row; and the bottom-right "Do it" button is renamed "Do all" (every text that names it follows)
+  - [ ] Deployed at the end of step 29 (the install carries steps 24–29), then playtest — checklist in docs/PLAYTEST.md "Step 29"
 SHIPPING NEXT (done in main, NOT released yet):
+- A "Do" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Do all"
 - "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
 - "Do" just this part: a Part column with a Do button on every section and on Lords, Others, Recruits, Your troops, each tavern row and Other goods — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
 - The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, the quest named on hover
@@ -131,7 +133,7 @@ SHIPPING NEXT (done in main, NOT released yet):
 - Troops title: Goal = party size limit, Mine red when you are over it; each title's overview on its own row under the name
 - A Result short of its goal says why on hover; Escape in a text box leaves the box, a second Escape closes the window
 - Instructions: a line on Food and the horse groups ("… follows these rules until you type its goal"), and the goal line in the hint on top
-- The steward stands aside during any fight or hostile action (no popup, leave question, autonomy or Do it; the menu entry greys)
+- The steward stands aside during any fight or hostile action (no popup, leave question, autonomy or Do all; the menu entry greys)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -182,7 +184,7 @@ NOTICED (things spotted during a step, left for later):
 - [x] Step 8: War Sails' port/sail menus must exist before the leave-wrap — wrapped lazily (War Sails builds them in OnAfterSessionLaunched: no load order could help)
 - [ ] Playtest: Mod Options page (10 groups, 46 settings) never seen in game yet — gold sliders run 0–1,000,000 (Keep while autonomous 0–10,000,000), are they usable?
 - [x] Step 8: remove the TEMPORARY debug door (DebugDoor.cs + its OnSessionLaunched hook in SmartStewardBehavior) — gone
-- [ ] Step 7: a wanderer's hire price is re-read at Do it (the trades move the town's prices) — the row may show a slightly different number
+- [ ] Step 7: a wanderer's hire price is re-read at Do all (the trades move the town's prices) — the row may show a slightly different number
 - [x] Step 8: the "Party Steward" menu entry already exists (StewardMenu, step 7) — step 8 added the popup, leave warning and autonomy
 - [x] Step 9: the window's texts carry ids ss_ui_* (+ MCM's ss_set_/ss_hint_/ss_opt_/ss_grp_, step 8's ss_auto_*/ss_leave_*) — gathered: module/ModuleData/Languages/std_SmartSteward.xml, held to the code by StringsFileTests
 - [ ] Playtest: the window's look was never seen — column widths, font sizes, the Encyclopedia focus round trip (PLAYTEST Step 7)

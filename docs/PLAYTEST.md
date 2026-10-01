@@ -3,6 +3,8 @@
 Short lists for Anton, one section per build step that needs the game. The log is
 `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log` — send it with any report.
 
+Since step 29 the bottom-right button the older checklists call **Do it** reads **Do all**.
+
 ## Step 6 — the debug door (removed in step 8 — run these checks through the window's Do it)
 
 Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load a save. For a lively test, turn on
@@ -514,3 +516,30 @@ horses work like the war horses (DESIGN §2.4 "Noble horses to keep").
 9. **Autonomous steward** on, rich (above 100,000 + their price): it buys up to the number too, the message log says so.
 10. **Instructions note** beside the three numbers: *"(110 horses = 98 riding + 10 war + 2 noble, for 100 footmen)"*.
 11. Log: the facts line ends with *"noble horses 2)"* when you keep some.
+
+## Step 29 — Do on every line, "Do it" is "Do all" (deployed 2026.10.01 — the install carries steps 24–29)
+
+Every line of the table now has its own small **Do** in the Part column — each food, each horse row, each loot group, each
+prisoner type, each troop type, and the lines inside a row's ▸ (one breed, one good). It runs only that line, then the window
+plans again and stays open, exactly like step 27's section buttons. The big bottom-right button is now **Do all**
+(DESIGN §1.1 "Do on every line").
+
+1. **Your case: one food.** In a town where the steward wants to buy several foods, hover the **Grain** line's Do —
+   *"Buy 6 Grain: -120 denari"*. Click it: only grain is bought; the other foods, horses, prisoners stay proposed; the status
+   line says *"Steward (Grain): 1 of 1 done. Denari …"*. The other food rows may now suggest a little differently — the days
+   goal is nearer; that is intended (the re-plan is the truth after every Do).
+2. **A quiet line greys**: a food with nothing to buy or sell — its Do is grey, the hover *"Nothing to do on this line."*
+3. **The floor still holds**: with little denari and a lord to ransom, the grain's Do buys only down to your 1,000 denari
+   floor; the hover's second line says how many fewer. With nothing above the floor it greys: *"… Use Do all."*
+4. **A troop type, both sides**: [+] some recruits of a type you already have — under **Recruits** its Do recruits only them;
+   the same type under **Your troops** greys (nothing to dismiss). [-] a type under Your troops: its Do there dismisses only it.
+5. **One prisoner type**: Do on the looters' row ransoms only the looters; the other prisoner rows and the lords stay.
+6. **One good**: open Other goods (▸), Do on the wool line sells only the wool; the salt and the rest stay proposed. The small
+   Do on a breakdown line fits its line (say if it looks cramped).
+7. **A horse breed**: open Riding horses (▸) and Do on one breed — only that breed's trade happens.
+8. **Your hand stays**: [+] a wanderer, then Do on one food — the wanderer is still queued afterwards (⟲).
+9. **Do all**: the bottom-right button reads *"Do all"*; its hover *"Carry out the whole table at once - every line's Do in one
+   click."*; greyed it says why as before.
+10. **During a fight** nothing runs (the same guard — a `[guard]` log line).
+11. Log: the run is tagged `part Row:food:grain: …` / `part StackLine:…`; the window's lines say `after Do all`.
+12. Look: the Part column is no wider than in step 27 — say if a row looks busier than you like with a Do on every line.
