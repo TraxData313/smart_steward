@@ -68,6 +68,10 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   toward the days target only up to an even share (target / food kinds); above that it is a stockpile ON TOP and the other kinds keep
   their full share; and the surplus sale never takes a kind below its even share (variety is kept)
   - [ ] Deploy (the game was running at the end of step 25), then playtest — checklist in docs/PLAYTEST.md "Step 25"
+- [ ] 26. QUEST GOALS (Anton 2026.10.01 — "yes, make the quest goals the next step"): the steward reads your active quests (live, nothing
+  in the save) and keeps what they ask for — grain, horses, draught animals, tools/weapons it would sell as Other, troops it would
+  dismiss, prisoners it would ransom; the need shows in the Goal cell (quest marker + hover naming the quest); a goal you type wins;
+  switch "Keep what your quests need" (on); research every quest type first (RESEARCH), DESIGN, then Core + Module + window
 SHIPPING NEXT (done in main, NOT released yet):
 - A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
 - MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
@@ -133,7 +137,7 @@ NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [x] (R3) The "Not now" button next to Do it is just "Close"
 - [x] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 
-- [ ] QUEST NEEDS (Anton 2026.10.01): the steward reads your active quests and adds what they ask for to its goals — grain (Headman needs grain), horses (Lord needs horses), draught animals, troops (garrison / gang recruits), maybe prisoners (manual laborers); keep them from being sold or dismissed
+- [ ] QUEST NEEDS (Anton 2026.10.01) → PLAN step 26: the steward reads your active quests and adds what they ask for to its goals — grain (Headman needs grain), horses (Lord needs horses), draught animals, troops (garrison / gang recruits), maybe prisoners (manual laborers); keep them from being sold or dismissed
 - [ ] Pack animals: "keep enough to carry my load + a margin" as an alternative to a fixed number (the weight line now knows capacity)
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
