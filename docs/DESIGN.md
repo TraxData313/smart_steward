@@ -69,7 +69,7 @@ disagree, this block wins.
   | a food row | yours, or the steward's: the row's planned Result — its share of the days goal (the days goal is a total, not per kind) [Claude's call] | **yes** |
   | Food title | the sum of the rows' goals [Anton via the manager] — the target + any goal's stockpile above the even share (§2.1, step 25) | no |
   | Pack animals · Riding horses · War horses | yours, or the steward's: `PackAnimalsTarget` · the riding target (T − the war, noble and lame horses kept, §2.3) · `WarMountsToKeep` | **yes** |
-  | Noble horses · Lame horses | 0 (they are only ever sold) | no |
+  | Noble horses · Lame horses | 0 (they are only ever sold) — **noble horses KEPT (step 28, §2.4): yours, or the steward's `NobleHorsesToKeep`** | no — **the noble row yes, while noble horses are kept** |
   | Horses title | the sum of the role rows' goals [Claude's call] | no |
   | Lords / Others and each prisoner row | 0 on Ransom and Donate, = Mine on Keep [Anton: "prisoners course goal=0"] | no |
   | Prisoners title | the sum of its two lines [Claude's call] | no |
@@ -82,7 +82,8 @@ disagree, this block wins.
   policy in instructions"]: it holds in every town, across sessions and restarts, until its ⟲ gives the row back to the
   Instructions policy. Kept in `settings.json` as the commented **`Goals`** object (§7 group "Goals you set by hand", §8) — global
   like the price book, NEVER in the save. Keys are the rows' ids: `"food:grain"`, `"mounts:pack"`, `"mounts:riding"`,
-  `"mounts:war"`; values whole numbers 0–100,000. A goal for a food this town neither holds nor sells simply waits (no row). The
+  `"mounts:war"` — and **`"mounts:noble"` (step 28: taken while noble horses are kept — `NobleHorsesToKeep` > 0, or a goal of
+  yours set in the file; at 0 the noble row stays the sell-only row and takes none)**; values whole numbers 0–100,000. A goal for a food this town neither holds nor sells simply waits (no row). The
   **Full-autonomous steward obeys the goals too** — but `AutonomousMinGold` always holds for them, whatever the switches say.
 - **How it plans — the live re-plan's pins** [Claude's call, 2026.09.28 — step 22] (Core `PlanContext.PinOf`): a manual goal IS a
   touched row of the live re-plan (§1.1 below): its pin is `goal − Mine`, walked FIRST in its phase (the player's rows before the
@@ -348,7 +349,7 @@ horse types:
 | Pack animals | pack animals | the CHEAPEST eligible pack animal on the market | the MOST EXPENSIVE surplus one |
 | Riding mounts | the riding horses: every mount that is not a war or a noble horse (`horse`, camels, a mod's categories) | the cheapest eligible riding horse | the most expensive one |
 | War horses | `war_horse` mounts — kept to `WarMountsToKeep` | the cheapest eligible `war_horse` | the most expensive one |
-| Noble horses | `noble_horse` mounts — **sell only** (`SellNobleHorses`) | never (grey: sell only) | the most expensive one not LOCKED |
+| Noble horses | `noble_horse` mounts — **sell only** (`SellNobleHorses`); **kept to `NobleHorsesToKeep` when > 0 (step 28)** | never (grey: sell only) — **while kept: the cheapest eligible noble horse** | the most expensive one not LOCKED |
 | Lame horses | lame and old horses and pack animals — **sell only** (`ReplaceLameHorses`) | never (grey: sell only) | the most expensive one |
 
 **[Anton 2026.09.28, step 17 — "make it simpler for now"]** The two upgrade rows (`horse` / `war_horse` "reserved for
@@ -583,6 +584,14 @@ One row per item:
   a lame horse is judged against a lame horse's worth, so the Lame horses row can sell it at all (`PriceBook.MinSellOf`).
 - **Defaults of the ticks**: food — Buy ☑ Sell ☑; pack animals and mounts — Buy ☑ Sell ☑;
   war mounts — Buy ☑ Sell ☑; noble horses — Sell ☑ (no buy tick shown: never bought).
+- **Noble horses kept (step 28)** **[Anton 2026.10.01, step 28 — "add me option to keep noble mounts like I keep war mounts, same defaults, but number is 0 by default, some mods want nobles for upgrades, but vanilla players dont need that, so that is why the default is 0, but lets have the option"]**: while the player keeps noble horses (`NobleHorsesToKeep` > 0, or a goal
+  of his on the noble row) the sub-header reads plain **Noble horses** and the buy half of their lines shows (Buy ☑ by default),
+  live with the setting (`PriceBook.IsSellOnly`). Their max buy is the honest one [decided: Claude, 2026.10.01 — step 28]: the
+  group always auto-fills (its sell average since step 17), so the buy placeholder is the item's AVERAGE buy price × the horse
+  buy multiplier (1.2) — the same rule as the riding horses; the player can type his own. **No role cap** (there is no
+  `NobleMountMaxPrice`: the war horses' cap exists because their prices do not auto-fill — a noble horse costs several thousand,
+  any war-sized cap would buy none; the price book is its limit). Back at 0 the buy half hides again (a typed noble buy price
+  stays stored, unused).
 - **Which horses sit under "War mounts"** ~~**[decided: Claude, 2026.09.27 — step 4]**: the Mounts
   sub-header holds the `horse` category (plain riding horses and camels); `war_horse`, `noble_horse`
   and any category a mod adds sit under War mounts — no auto-filled price by default.~~ **[Anton 2026.09.28 — step 17:
@@ -723,11 +732,14 @@ pure Core logic fed a snapshot of the party and the market (§5).
   **[step 15]** The footmen of the party after the deal: every man the plan hires who is not mounted (the game's own
   `CharacterObject.IsMounted`, RESEARCH §3) needs a mount too — live with every hire, recruit and dismissal (§1.1).
 - **Horses to keep** `T = ceil(footmen × MountsPer100Footmen / 100)` (default **110** → a 10% buffer). EVERY mount kept
-  counts toward it — riding horses, the war horses kept (§2.4), noble horses kept (locked, or `SellNobleHorses` off) and
+  counts toward it — riding horses, the war horses kept (§2.4), noble horses kept (locked, `SellNobleHorses` off, or **the
+  number to keep — step 28, counted among T exactly like the war horses**) and
   lame ones kept (`ReplaceLameHorses` off, a guarding lock, or the market could not take them) — because a footman rides
   any of them. ~~War mounts held (§2.4) count toward this target when `WarMountsCountAsMounts`~~ (retired: they always do).
 - **Riding horses fill the rest**: `R = T − the war, noble and lame horses kept after the deal` (with the war horses at
-  their number: `R = max(0, T − W)`). **Anton's example**: 100 footmen at 110 per 100, keep 10 war → **100 riding + 10
+  their number: `R = max(0, T − W)`; **with noble horses kept, step 28: `R = max(0, T − W − N)`** — the noble horses bought in
+  the visit are pledged against the riding surplus like the war horses (`PlanContext.NoblePledge`), and the riding buys outrank
+  them for the purse: riding · war · noble). **Anton's example**: 100 footmen at 110 per 100, keep 10 war → **100 riding + 10
   war = 110 horses**. When he upgrades men with those war horses they become cavalry, the footmen drop, and the numbers
   settle by themselves (the next town buys the war horses back up to W and sells the riding horses the smaller party no
   longer needs — test `After_an_upgrade_took_the_war_horses_the_numbers_settle_by_themselves`).
@@ -758,7 +770,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
   set after the plan too). They sell at ≥ their final min sell price like any horse (the Prices tab's "Noble horses — sell
   only" sub-group always shows the sell placeholder, §1.3), so a village never gets one for a pittance. Their own row in
   the Suggestion tab: **Noble horses**, sell only. Kept (locked, the switch off, unticked, or below the min price) they
-  carry footmen and count toward T.
+  carry footmen and count toward T. **Step 28: a number to keep — §2.4 "Noble horses to keep"; at 0 (the default) all of this
+  is exactly as written here.**
 - **Lame horses** **[Anton 2026.09.28, step 17 — "the whole idea is to speed up the infantry, so if a lame horse gives the
   bonus — keep it; never buy them as they don't look good; add a button to sell and replace them with healthy ones, default
   ON"]**: the steward **never buys** a horse or pack animal with a BAD modifier (`ItemModifier.PriceMultiplier < 1`, the
@@ -793,6 +806,35 @@ pure Core logic fed a snapshot of the party and the market (§5).
   upgraded men ride as cavalry, the footmen drop, and the next plan follows (§2.3).
 - `WarMountsEnabled` (default on, "Manage war horses"): off = a war horse is a plain riding horse to the steward (counted,
   bought and sold as one; no War horses row).
+- **Noble horses to keep** **[Anton 2026.10.01, step 28 — "add me option to keep noble mounts like I keep war mounts, same defaults, but number is 0 by default, some mods want nobles for upgrades, but vanilla players dont need that, so that is why the default is 0, but lets have the option"]** (Core `MountGoal.Noble`, `PlanContext.NobleKeeping`, `MountPlanner`; decided by the
+  manager for Anton, built in step 28):
+  - `N = NobleHorsesToKeep` — default **0**, 0–500, the War mounts group right after "War horses to keep". **0 = exactly step
+    17** (§2.3 "Noble horses"): the sell-only row, sold with the riding horses at `MountsMinDenari`, no buy, no goal, the Prices
+    tab's "Noble horses — sell only" — the step-17 tests are unchanged.
+  - **N > 0 works exactly like the war horses**: the steward buys up to N — the cheapest ELIGIBLE (Buy-ticked, plain, at most
+    its price-book max: average buy × 1.2, §1.3; no role cap) — and sells the rest above N, **the dearest first** (the war
+    horses' rule and the noble row's own ranking since step 17), with `SellNobleHorses` (off: the surplus is kept, the Result
+    hover says so); a LOCKED noble horse is never sold and counts toward N. [Claude's call] "The best ones kept" was read as
+    the war horses' rule: an upgrade takes any noble horse (the game's upgrade consumes the cheapest first, RESEARCH §4), so
+    selling the dearest fetches the most for the same kept number; a one-line flip (`LanePick.Cheapest` on the noble sell
+    lane) if Anton would rather keep the dear ones.
+  - **Its own activation threshold** `NobleHorsesMinDenari` — default **20,000** (the war horses' default — Anton: "same
+    defaults"), 0–1,000,000 — applies ONLY while noble horses are kept: below it the steward neither buys nor sells them (the
+    row shows `–*`, "noble horses start at 20,000 denari" in the Horses overview). [Claude's call] With none kept (N = 0)
+    the noble horses keep step 17's rule — sold with the riding horses from `MountsMinDenari` — so 0 stays exactly today.
+  - **They count among T** like the war horses (read from `MountGoal`: W is counted "among" T, so is N): `R = max(0, T − W − N)`,
+    and the Instructions note under the three numbers says "(110 horses = 98 riding + 10 war + 2 noble, for 100 footmen)".
+  - **The goal** (§1.1 "THE GOAL"): while kept, the noble row takes a goal like the war row — key `"mounts:noble"`, the Goal
+    box, ⟲, a [–]/[+] click is a goal edit, the "Goals you set by hand" switches, the hand lanes; the autonomous steward obeys
+    it (and N) above `AutonomousMinGold`. A `"mounts:noble"` goal set in settings.json with N = 0 keeps noble horses too
+    (the row turns into the war-like row; ⟲ gives it back to the sell-only rule). [Claude's call] At N = 0 the noble row
+    takes NO goal (its cell stays the step-17 `0`, not editable) — vanilla players see exactly today's row; the number
+    switches the goal on.
+  - **Lame noble horses** are replaced like any while noble horses are kept (`ReplaceLameHorses`, the Lame horses row; the
+    noble row buys a healthy one) — at 0 the noble row sells them anyway, as since step 17. A noble horse's lock still always
+    keeps it.
+  - **Quest needs (§2.9)** keep working: a quest's noble horses are out of the steward's sell lane (a goal of yours walks the
+    full lane — it wins); the Goal shows max(N, the need) in the quest colour.
 - **[research 2026.09.27]** The requirement sits on the troop you upgrade INTO
   (`UpgradeRequiresItemFromCategory` of the target); vanilla uses `horse` and `war_horse` only. An upgrade consumes the
   **cheapest** animal of the category first and locked ones only last (kept for the record — the steward no longer
@@ -1100,7 +1142,7 @@ RESEARCH §29. Core `Snapshot\QuestNeed`, `Planning\QuestKeep`; Module `Adapter\
 
 1. **Sell first** (surplus food, surplus animals, loot groups, prisoners; LATER ticked Others) — the
    proceeds fund the buys.
-2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts (LATER → Others, the
+2. **Buy in priority order**: Food → Pack animals → Mounts → War mounts → **kept Noble horses (step 28)** (LATER → Others, the
    price-book trading of §1.3.1, answering to `MinGoldAfterDeal`).
 3. **Floors**:
    - **[step 15]** The player's own rows (touched rows and hires — and since step 16 recruits, §2.8) come before the chain:
@@ -1119,8 +1161,8 @@ RESEARCH §29. Core `Snapshot\QuestNeed`, `Planning\QuestKeep`; Module `Adapter\
    it on and with the default settings they will be happy like that, as they become richer those start activating and
    helping them"]** (Core `Planning\JobThresholds`): a job ACTS only when the purse at planning — before this visit's deal —
    is at least its threshold: `FoodMinDenari` **2,000**, `PackAnimalsMinDenari` **2,000**, `MountsMinDenari` **5,000**
-   (riding horses; the noble horses sold and the lame riding horses replaced go with them), `WarHorsesMinDenari` **20,000**
-   (0 = always). Below it the steward's own side of the job does NOTHING — no buy, no sell (a surplus is kept too); lame
+   (riding horses; the noble horses sold and the lame riding horses replaced go with them), `WarHorsesMinDenari` **20,000**,
+   **`NobleHorsesMinDenari` 20,000 — only while noble horses are kept (step 28, §2.4)** (0 = always). Below it the steward's own side of the job does NOTHING — no buy, no sell (a surplus is kept too); lame
    horses of a waiting job stay counted in their role row. The rows stay in the table at 0 (`PlanRow.StartsAtDenari`), so
    the player can still buy or sell by hand; the plan's facts list the waiting jobs (`PlanFacts.Waiting`) and the section's
    overview says `starts at 20,000 denari`. **How they relate to the floors [decided: Claude, 2026.09.28 — step 20]**: the
@@ -1371,11 +1413,13 @@ troop / hero, the count and the expected unit prices.
 | Mounts | MountsPer100Footmen | 110 | 0–300 | horses kept per 100 footmen — the war horses kept count among them, riding horses fill the rest **[Anton 2026.09.28, step 17]** |
 | Mounts | MountMaxPrice | 500 | 0–100,000 | role cap: never pay more for a footman's mount (0 = none; not scaled) |
 | Mounts | SellMountSurplus | true | — | sell above target, most expensive first |
-| Mounts | SellNobleHorses | true | — | "Sell noble horses": never bought; sold (at ≥ min sell) unless LOCKED — a lock always keeps one **[Anton 2026.09.28, step 17]** |
+| Mounts | SellNobleHorses | true | — | "Sell noble horses": never bought; sold (at ≥ min sell) unless LOCKED — a lock always keeps one **[Anton 2026.09.28, step 17]**; since step 28 only those above `NobleHorsesToKeep` (0 = all), which are bought up to it **[Anton 2026.10.01]** |
 | Mounts | ReplaceLameHorses | true | — | "Replace lame horses": sell the badly modified (lame, old) horses and pack animals and buy healthy ones; off = kept and counted **[Anton 2026.09.28, step 17]** |
 | War mounts | WarMountsEnabled | true | — | manage war horses (off: a war horse is a plain riding horse) |
 | War mounts | WarHorsesMinDenari | 20000 | 0–1,000,000 | "Manage war horses from (denari)": the purse before the deal war horses need (§3) **[Anton 2026.09.28, round 4]** |
 | War mounts | WarMountsToKeep | 10 | 0–500 | "War horses to keep" (default 0 until round 4 — **[Anton 2026.09.28]**: 10): a plain number of `war_horse` mounts, bought up to it and sold above it; they count toward the horses per 100 footmen — replaces WarMountsHorseTarget, WarMountsWarHorseTarget, WarMountsExtra and WarMountsCountAsMounts (retired, logged once) **[Anton 2026.09.28, step 17]** |
+| War mounts | NobleHorsesToKeep | 0 | 0–500 | "Noble horses to keep": a plain number of `noble_horse` mounts kept like the war horses — bought up to it at the price book's noble prices, the dearest sold above it (`SellNobleHorses`; a lock always keeps one); they count toward the horses per 100 footmen. 0 = none kept, every unlocked noble horse sold — exactly step 17 (§2.4) **[Anton 2026.10.01, step 28 — "same defaults, but number is 0 by default, some mods want nobles for upgrades, but vanilla players dont need that"]** |
+| War mounts | NobleHorsesMinDenari | 20000 | 0–1,000,000 | "Manage kept noble horses from (denari)": the purse before the deal the KEPT noble horses need (§3) — the war horses' default **[Anton 2026.10.01, step 28: "same defaults"]**; only while noble horses are kept (`NobleHorsesToKeep` > 0 or a goal of yours) — with none kept they are sold with the riding horses (`MountsMinDenari`), as since step 17 |
 | War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per war horse (0 = none; not scaled) |
 | War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
 | Prisoners | LordPrisonerAction | Keep | Keep / Ransom / Donate | "Captured lords": what the steward does with captured lords in a town — Donate where the game forbids it (or the dungeon is full) keeps them **[Anton 2026.09.28, round 4]** |
@@ -1422,7 +1466,8 @@ float slider and the file agree on the same number). A value outside its range i
 - **How it is built** **[decided: Claude, 2026.09.27 — step 5]**:
   - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; 51 since step 20's
     four activation thresholds, the food multipliers, the prisoner actions and SellLootOtherGoods (53: 52 scalars + the price
-    book; 57 since step 22's "Goals you set by hand": 55 scalars + the price book + the goals); the
+    book; 57 since step 22's "Goals you set by hand": 55 scalars + the price book + the goals; 58 with step 26's
+    QuestGoalsEnabled; 60 since step 28's NobleHorsesToKeep + NobleHorsesMinDenari); the
     prisoner list is gone since step 12, the four upgrade-horse keys since step 17), `SettingsFile` (text in, text out),
     `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.
@@ -1446,7 +1491,7 @@ float slider and the file agree on the same number). A value outside its range i
   tab or by hand; MCM shows only the multipliers and the auto-fill switches.
 - The **goals** (§1.1 "THE GOAL", round 5) live in the same file as a `Goals` object keyed by row id (`"food:grain": 60`,
   `"mounts:war": 15`), holding only the player's standing orders; its comment says what each key means. Read tolerantly: a key
-  that is no goal row (`"mounts:noble"`, `"grain"`) or a value that is not a whole number is dropped with a problem line (and the
+  that is no goal row (`"mounts:lame"`, `"grain"`) or a value that is not a whole number is dropped with a problem line (and the
   `.bak`), a number outside 0–100,000 is clamped. Edited in the Suggestion tab (a click, a typed box, ⟲) or by hand; never in
   MCM. The Suggestion tab saves with `SettingsService.SaveQuietly` — written at once, no `Changed` (the plan already re-planned
   itself), so a goal click never re-plans the window twice.
