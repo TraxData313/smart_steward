@@ -118,6 +118,12 @@ namespace SmartSteward.Core.Planning
         /// <summary>A part of ONE row (step 29's lines and the tavern rows) — its hover names the line.</summary>
         public bool IsSingleRow => RowId != null;
 
+        /// <summary>Step 31 (Anton 2026.10.01, "rename that Do button over say the food group as Do group"): the button reads
+        /// "Deal group" — a section's title line, or a line that holds a group (Lords, Others, Recruits, Your troops, Other
+        /// goods); every other part (one row, one troop side, a tavern row, a breakdown line) reads "Deal".</summary>
+        public bool IsGroup => IsSection || Kind == PlanPartKind.Lords || Kind == PlanPartKind.OtherPrisoners
+                               || Kind == PlanPartKind.Recruits || Kind == PlanPartKind.YourTroops || Kind == PlanPartKind.OtherGoods;
+
         /// <summary>Does this transaction of <paramref name="row"/> belong to the part? A troop row is split by side: its recruits
         /// belong to Recruits, its dismissals to Your troops; a breakdown line takes only its own stack.</summary>
         public bool Includes(PlanRow row, PlanTransaction tx)

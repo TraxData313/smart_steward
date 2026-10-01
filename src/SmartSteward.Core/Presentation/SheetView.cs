@@ -339,7 +339,7 @@ namespace SmartSteward.Core.Presentation
             view.FoldKeys = keys;
             view.Items = items;
             TitleGoal(plan, section, view, words);
-            // Step 27: "Do" on the title line and on the lines that are a deal of their own; step 29: on every line.
+            // Step 27: the part button on the title line and on the lines that are a deal of their own; step 29: on every line (step 31: "Deal" / "Deal group").
             view.Part = PartOf(section.Group);
             view.Deal = plan.DealOf(view.Part);
             foreach (var item in items)
