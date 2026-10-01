@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using SmartSteward.Adapter;
 using SmartSteward.Core.Execution;
 using SmartSteward.Core.Planning;
@@ -45,7 +46,7 @@ namespace SmartSteward.UI
             CloseText = UiText.S("ss_ui_close", "Close"); // was "Not now" until round 3 (Anton 2026.09.28)
             DoItText = UiText.S("ss_ui_do_it", "Do it");
             DoItHint = new HintVM();
-            Suggestion = new SuggestionTabVM(RefreshDoIt);
+            Suggestion = new SuggestionTabVM(RefreshDoIt, part => Guard("do part " + part.Id, () => RunPart(part)));
             Suggestion.SetPlan(plan, visit);
             Prices = new PricesTabVM();
             Instructions = new InstructionsTabVM();
@@ -245,12 +246,69 @@ namespace SmartSteward.UI
             RefreshDoIt();
         }
 
-        /// <summary>The player's one line about a run, through TextObjects: "Steward: 14 of 16 done. Denari 12,400 » 10,930."</summary>
-        private static string Summary(ExecutionReport report)
+        /// <summary>
+        /// "Do" on a section's title line or on a line that is a deal of its own (PLAN step 27, DESIGN §1.1 "Do just this part"):
+        /// the executor runs ONLY that part's transactions of the plan as it stands (Core <see cref="StewardPlan.DealOf"/>: the
+        /// player's edits and goals included, cut where the purse alone stops them) through Do it's own path and checks; no setting
+        /// and no goal changes. Then the window plans afresh on a new snapshot and STAYS open, the player's touched rows of every
+        /// OTHER part put back (<see cref="PlanCarryOver.Capture(StewardPlan, PlanPart)"/>).
+        /// </summary>
+        private void RunPart(PlanPart part)
+        {
+            Suggestion.FlushGoal(); // a goal typed and left by this very click goes into the part
+            ReplanIfStale();
+            var plan = Suggestion.Plan;
+            if (plan == null)
+                return;
+            var deal = plan.DealOf(part);
+            if (!deal.CanRun)
+            {
+                ModLog.Info("window", "part " + part.Id + ": not run - " + deal.Block);
+                return; // greyed: the button should not have fired
+            }
+            var carry = PlanCarryOver.Capture(plan, part);
+            ModLog.Info("window", "part " + part.Id + ": " + deal.Transactions.Count + " of " + deal.Planned + " transactions"
+                                  + (deal.CutUnits > 0 ? ", " + deal.CutUnits + " units cut (" + deal.CutBy + " " + deal.Floor + ")" : "")
+                                  + ", expected " + deal.Gold + " denari; carrying " + carry.Edits.Count + " edits of the other parts");
+            var report = PlanExecutor.Execute(plan, _visit, deal.Transactions, part.Id);
+            ModLog.Info("execute", report.LogLines().Select(line => "part " + part.Id + ": " + line));
+            string summary = Summary(report, UiLabels.PartName(part, plan));
+            InformationManager.DisplayMessage(new InformationMessage(summary));
+            StewardMenu.RefreshCurrentMenu();
+
+            var visit = SnapshotBuilder.Build(_settlement, out string whyNot);
+            if (visit == null)
+            {
+                ModLog.Info("window", "after part " + part.Id + ": no plan - " + whyNot);
+                StewardWindow.Close();
+                return;
+            }
+            _visit = visit;
+            _planStale = false;
+            var fresh = PlanFor(visit, "after part " + part.Id);
+            if (!carry.IsEmpty)
+            {
+                int applied = carry.ApplyTo(fresh);
+                ModLog.Info("plan", "carried " + applied + " of " + carry.Edits.Count + " edited rows of the other parts over");
+            }
+            Suggestion.SetPlan(fresh, visit);
+            Suggestion.SetStatus(summary);
+            RefreshDoIt();
+        }
+
+        /// <summary>The player's one line about a run, through TextObjects: "Steward: 14 of 16 done. Denari 12,400 » 10,930." — a
+        /// part's run (step 27) names the part: "Steward (Prisoners): 2 of 2 done. …".</summary>
+        private static string Summary(ExecutionReport report, string? part = null)
         {
             if (report.Abort != null)
-                return UiText.S("ss_ui_done_abort", "Steward: nothing was done - see smart_steward.log.");
-            string text = UiText.T("ss_ui_done", "Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}.")
+                return part == null
+                    ? UiText.S("ss_ui_done_abort", "Steward: nothing was done - see smart_steward.log.")
+                    : UiText.S1("ss_ui_part_done_abort", "Steward ({PART}): nothing was done - see smart_steward.log.", "PART", part);
+            var line = part == null
+                ? UiText.T("ss_ui_done", "Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}.")
+                : UiText.T("ss_ui_part_done", "Steward ({PART}): {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}.")
+                    .SetTextVariable("PART", part);
+            string text = line
                 .SetTextVariable("DONE", UiFormat.Money(report.FullyDone))
                 .SetTextVariable("ALL", UiFormat.Money(report.Planned))
                 .SetTextVariable("BEFORE", UiFormat.Money(report.GoldBefore))

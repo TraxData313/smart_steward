@@ -197,6 +197,78 @@ namespace SmartSteward.UI
             }
         }
 
+        /// <summary>A part's name for the run's message line and the log (PLAN step 27): the section's title, the line's name, a
+        /// tavern row's own name.</summary>
+        public static string PartName(PlanPart part, StewardPlan? plan)
+        {
+            switch (part.Kind)
+            {
+                case PlanPartKind.Troops: return SheetSection(SheetGroup.Troops);
+                case PlanPartKind.Food: return SheetSection(SheetGroup.Food);
+                case PlanPartKind.Horses: return SheetSection(SheetGroup.Horses);
+                case PlanPartKind.Prisoners: return SheetSection(SheetGroup.Prisoners);
+                case PlanPartKind.Other: return SheetSection(SheetGroup.Other);
+                case PlanPartKind.Lords: return UiText.S("ss_ui_sheet_lords_line", "Lords");
+                case PlanPartKind.OtherPrisoners: return UiText.S("ss_ui_sheet_others_line", "Others");
+                case PlanPartKind.Recruits: return UiText.S("ss_ui_sheet_recruits", "Recruits");
+                case PlanPartKind.YourTroops: return UiText.S("ss_ui_sheet_your_troops", "Your troops");
+                case PlanPartKind.OtherGoods: return UiText.S("ss_ui_loot_other_goods", "Other goods");
+                default:
+                    var row = part.RowId == null ? null : plan?.FindRow(part.RowId);
+                    return row == null ? part.Id : SheetView.RowName(row, null);
+            }
+        }
+
+        /// <summary>
+        /// The "Do" button's hover (PLAN step 27, DESIGN §1.1 "Do just this part"): enabled, what the part does alone in one line —
+        /// <c>Ransom 9, sell 12: +3,160 denari</c> — and, when the purse alone cuts it, how many fewer and why; greyed, why.
+        /// </summary>
+        public static string PartHint(PartDeal? deal)
+        {
+            if (deal == null)
+                return "";
+            switch (deal.Block)
+            {
+                case PartBlock.NothingToDo:
+                    return UiText.S("ss_ui_part_nothing", "Nothing to do in this part.");
+                case PartBlock.PurseFloor:
+                    return UiText.S1("ss_ui_part_floor",
+                        "Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do it.",
+                        "GOLD", UiFormat.Money(deal.Floor));
+                case PartBlock.NotEnoughGold:
+                    return UiText.S("ss_ui_part_no_gold",
+                        "Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do it.");
+            }
+            var moves = new System.Collections.Generic.List<string>();
+            void Add(int n, string text)
+            {
+                if (n > 0) moves.Add(text);
+            }
+            Add(deal.Ransomed, UiText.S1("ss_ui_part_ransom", "ransom {N}", "N", UiFormat.Money(deal.Ransomed)));
+            Add(deal.Donated, UiText.S1("ss_ui_part_donate", "to the dungeon {N}", "N", UiFormat.Money(deal.Donated)));
+            Add(deal.Sold, UiText.S1("ss_ui_part_sell", "sell {N}", "N", UiFormat.Money(deal.Sold)));
+            Add(deal.Bought, UiText.S1("ss_ui_part_buy", "buy {N}", "N", UiFormat.Money(deal.Bought)));
+            Add(deal.Hired, UiText.S1("ss_ui_part_hire", "hire {N}", "N", UiFormat.Money(deal.Hired)));
+            Add(deal.Recruited, UiText.S1("ss_ui_part_recruit", "recruit {N}", "N", UiFormat.Money(deal.Recruited)));
+            Add(deal.Dismissed, UiText.S1("ss_ui_part_dismiss", "dismiss {N}", "N", UiFormat.Money(deal.Dismissed)));
+            string what = string.Join(", ", moves);
+            if (what.Length > 0)
+                what = char.ToUpperInvariant(what[0]) + what.Substring(1);
+            var money = new System.Collections.Generic.List<string>();
+            if (deal.Gold != 0)
+                money.Add(UiText.S1("ss_ui_part_denari", "{GOLD} denari", "GOLD", UiFormat.SignedMoney(deal.Gold)));
+            if (deal.Influence > 0.05)
+                money.Add(UiText.S1("ss_ui_part_influence", "{N} influence", "N", UiFormat.SignedInfluence(deal.Influence)));
+            string text = money.Count == 0 ? what : what + ": " + string.Join(", ", money);
+            if (deal.CutUnits > 0)
+                text += "\n" + (deal.CutBy == PartBlock.PurseFloor
+                    ? UiText.S2("ss_ui_part_cut_floor", "Alone: {N} fewer than in the whole deal - it keeps your purse at {GOLD} denari.",
+                        "N", UiFormat.Money(deal.CutUnits), "GOLD", UiFormat.Money(deal.Floor))
+                    : UiText.S1("ss_ui_part_cut_gold", "Alone: {N} fewer than in the whole deal - your purse alone cannot pay for them.",
+                        "N", UiFormat.Money(deal.CutUnits)));
+            return text;
+        }
+
         /// <summary>Safe string for a name that might be missing.</summary>
         public static string OrId(string? name, string id) => string.IsNullOrEmpty(name) ? id : name!;
 

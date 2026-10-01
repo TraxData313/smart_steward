@@ -14,12 +14,16 @@ STAGE = "c"  # the build stages of step 21 (a: skeleton, b: toggles, c: Total + 
 # Column widths (px) - the table is 1506 wide (1520 minus the 14 px scrollbar lane). Round 5 (step 23, Anton 2026.09.28):
 # Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight - Item back at the far
 # left, the Goal column a typed box (GOAL_BOX) with the goal's reset button beside it (GOAL_RESET).
-PAD, ITEM, MARKET = 6, 432, 66
+# Step 27 (Anton 2026.10.01, "do just this part"): the Part column right after Result - a small "Do" button on every section
+# title and on the lines that are a deal of their own; its 62 px came from Item (432 -> 396), Denari (204 -> 190) and
+# Prisoners (92 -> 80).
+PAD, ITEM, MARKET = 6, 396, 66
 GOAL_GAP, GOAL_BOX, GOAL_RESET_GAP, GOAL_RESET = 8, 70, 4, 26
 GOAL = GOAL_BOX + GOAL_RESET_GAP + GOAL_RESET  # 100
 MINE, CHANGE_GAP, CHANGE, RESULT = 66, 8, 176, 66
-DENARI_GAP, DENARI, PARTY, PRISONERS, LAND, SEA = 8, 204, 66, 92, 104, 104
-LEFT = PAD + ITEM + MARKET + GOAL_GAP + GOAL + MINE + CHANGE_GAP + CHANGE + RESULT  # 928: everything left of Denari
+DO_GAP, DO = 6, 56
+DENARI_GAP, DENARI, PARTY, PRISONERS, LAND, SEA = 8, 190, 66, 80, 104, 104
+LEFT = PAD + ITEM + MARKET + GOAL_GAP + GOAL + MINE + CHANGE_GAP + CHANGE + RESULT + DO_GAP + DO  # 954: everything left of Denari
 NAME_PART = PAD + ITEM + MARKET  # 504: the title line's name (its numbers start at the Goal column)
 TITLE_HEIGHT, TITLE_ROW, OVERVIEW_ROW = 54, 30, 20  # round 5: the overview on its own row under the name, full width
 
@@ -59,13 +63,14 @@ def number_cells(size, color=None):
     ])
 
 
-def small_button(command, enabled, hint, label, margin_left=0):
+def small_button(command, enabled, hint, label, margin_left=0, width=34, font=22, visible=None):
     ml = f' MarginLeft="{margin_left}"' if margin_left else ""
-    return f'''<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="26" VerticalAlignment="Center"{ml}>
+    v = f' IsVisible="{visible}"' if visible else ""
+    return f'''<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="{width}" SuggestedHeight="26" VerticalAlignment="Center"{ml}{v}>
   <Children>
     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="ButtonSimpleBrush" Command.Click="{command}" IsEnabled="{enabled}" UpdateChildrenStates="true">
       <Children>
-        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="{label}" />
+        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="{font}" Text="{label}" />
       </Children>
     </ButtonWidget>
     <HintWidget DataSource="{{{hint}}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
@@ -127,6 +132,16 @@ def goal_cell():
         </ButtonWidget>
       </Children>
     </Widget>
+  </Children>
+</Widget>'''
+
+
+def do_cell():
+    """Step 27: the Part column - "Do" runs this part of the plan alone (greyed with the reason on hover when it has nothing
+    it can do alone); an empty cell on the lines that carry no part."""
+    return f'''<Widget WidthSizePolicy="Fixed" SuggestedWidth="{DO}" HeightSizePolicy="StretchToParent" MarginLeft="{DO_GAP}">
+  <Children>
+{indent(small_button("ExecuteDoPart", "@CanDoPart", "PartHint", "@DoPartText", width=DO - 8, font=17, visible="@HasPart"), 4).replace('VerticalAlignment="Center"', 'HorizontalAlignment="Center" VerticalAlignment="Center"', 1)}
   </Children>
 </Widget>'''
 
@@ -212,6 +227,8 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
         </Widget>
         <!-- Result: its hover says why it stops short of the goal (round 5) -->
 {indent(hinted_text(RESULT, "@ResultText", 19, "@TextColor", "ResultHint"), 8)}
+        <!-- Part (step 27): "Do" - just this line's deal -->
+{indent(do_cell(), 8)}
 {indent(denari_cell(19, 14), 8)}
 {indent(number_cells(19), 8)}
       </Children>
@@ -240,6 +257,7 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
         {text(MINE, "@MineText", 16, color="@MutedColor")}
         {text(CHANGE, "@ChangeText", 16, "Center", "@ChangeColor", margin_left=CHANGE_GAP)}
         {text(RESULT, "@ResultText", 16, color="@MutedColor")}
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="{DO}" HeightSizePolicy="StretchToParent" MarginLeft="{DO_GAP}" />
 {indent(denari_cell(16, 13), 8)}
 {indent(number_cells(16, "@MutedColor"), 8)}
       </Children>
@@ -287,6 +305,8 @@ title_line = f'''<!-- the section's title line: [fold] the name and its subtotal
         {text(MINE, "@MineText", 20, color="@MineColor")}
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="{CHANGE}" HeightSizePolicy="StretchToParent" MarginLeft="{CHANGE_GAP}" />
         {text(RESULT, "@ResultText", 20, color="@ResultColor")}
+        <!-- Part (step 27): "Do" - the whole section alone, folded or not -->
+{indent(do_cell(), 8)}
 {indent(denari_cell(20, 15, hint=False), 8)}
 {indent(number_cells(20), 8)}
       </Children>
@@ -320,6 +340,7 @@ heads = "\n".join([
     head(MINE, "@ColMine"),
     head(CHANGE, "@ColChange", "Center", CHANGE_GAP),
     head(RESULT, "@ColResult"),
+    head(DO, "@ColPart", "Center", DO_GAP),
     head(DENARI, "@ColDenari", "Right", DENARI_GAP),
     head(PARTY, "@ColParty"),
     head(PRISONERS, "@ColPrisoners"),
@@ -352,7 +373,7 @@ tab = f'''            <!-- ============================ Suggestion tab (DESIGN �
                     <!-- A closed market: the game's own reason, on the header line's right (round 1) -->
                     <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Right" VerticalAlignment="Top" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@MarketClosedText" IsVisible="@HasMarketNotice" />
 
-                    <!-- Column heads: Item · Market · Goal · Mine · Change · Result · Denari · Party · Prisoners · Land weight · Sea weight (round 5), the same widths as the lines -->
+                    <!-- Column heads: Item · Market · Goal · Mine · Change · Result · Part · Denari · Party · Prisoners · Land weight · Sea weight (round 5; Part step 27), the same widths as the lines -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="46" MarginRight="14" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
 {indent(heads, 24)}
@@ -529,4 +550,6 @@ else:
     end = src.index("            <!-- ============================ Prices tab")
     src = src[:start] + tab + footer + src[end:]
 open(PREFAB, "w", encoding="utf-8", newline="\n").write(src)
-print("wrote the Suggestion tab, stage", STAGE, "- left part", LEFT, "px, row", LEFT + DENARI_GAP + DENARI + PARTY + PRISONERS + LAND + SEA, "px")
+ROW = LEFT + DENARI_GAP + DENARI + PARTY + PRISONERS + LAND + SEA
+assert ROW <= 1506, f"the row is {ROW} px - the table has 1506"
+print("wrote the Suggestion tab, stage", STAGE, "- left part", LEFT, "px, row", ROW, "px")

@@ -22,6 +22,7 @@ namespace SmartSteward.UI
     public sealed class SuggestionTabVM : ViewModel
     {
         private readonly Action _onPlanChanged;
+        private readonly Action<PlanPart> _runPart;
         private StewardPlan? _plan;
         private Settlement? _settlement;
 
@@ -53,9 +54,12 @@ namespace SmartSteward.UI
         /// <summary>The Goal box being typed in (between its FocusGained and FocusLost).</summary>
         private SheetItemVM? _typingGoal;
 
-        internal SuggestionTabVM(Action onPlanChanged)
+        internal SuggestionTabVM(Action onPlanChanged, Action<PlanPart> runPart)
         {
             _onPlanChanged = onPlanChanged;
+            _runPart = runPart;
+            ColPart = UiText.S("ss_ui_col_part", "Part"); // step 27: the "Do" buttons' column
+            DoPartText = UiText.S("ss_ui_do_part", "Do");
             Words = UiLabels.SheetText();
             ColMarket = UiText.S("ss_ui_col_market", "Market");
             ColItem = UiText.S("ss_ui_col_item", "Item");
@@ -263,6 +267,15 @@ namespace SmartSteward.UI
 
         // ── clicks (called by the lines) ─────────────────────────────────────────────────────────────────
 
+        /// <summary>"Do" on a title line or a deal line (PLAN step 27): the window runs that part alone (<see cref="StewardWindowVM"/>
+        /// owns the executor and the re-plan after it).</summary>
+        internal void RunPart(PlanPart? part, PartDeal? deal)
+        {
+            if (part == null || deal == null || !deal.CanRun)
+                return; // greyed: the button should not have fired
+            _runPart(part);
+        }
+
         /// <summary>[+] / [−] on a line: a row edit (click 1, shift 5, ctrl all — the editor stops at zero, so a troop row under
         /// its line never crosses to the other side), or a troop line's bulk step (step 20's TroopBulk).</summary>
         internal void Edit(SheetItem item, int direction)
@@ -436,6 +449,12 @@ namespace SmartSteward.UI
         [DataSourceProperty] public string ColSea { get; }
 
         [DataSourceProperty] public string ColGoal { get; }
+
+        /// <summary>Step 27: the head of the "Do" buttons' column (right after Result).</summary>
+        [DataSourceProperty] public string ColPart { get; }
+
+        /// <summary>Step 27: the word on every "Do" button.</summary>
+        internal string DoPartText { get; }
         [DataSourceProperty] public string HeaderLabel { get; }
         [DataSourceProperty] public string ResetAllText { get; }
         [DataSourceProperty] public string WarningColor => UiColors.Warning;
@@ -608,6 +627,8 @@ namespace SmartSteward.UI
         private string _mineColor = UiColors.Text;
         private string _resultText = "";
         private string _resultColor = UiColors.Text;
+        private bool _hasPart;
+        private bool _canDoPart;
 
         internal SheetSectionVM(SuggestionTabVM tab, SheetSectionView view)
         {
@@ -616,6 +637,7 @@ namespace SmartSteward.UI
             Group = view.Group;
             TitleText = UiLabels.SheetSection(view.Group);
             ToggleHint = new HintVM();
+            PartHint = new HintVM();
             GoalHint = new HintVM();
             OverviewHint = new HintVM();
             Items = new MBBindingList<SheetItemVM>();
@@ -656,6 +678,10 @@ namespace SmartSteward.UI
             ResultColor = UiColors.ForLimit(view.OverviewWarning);
             OverviewHint.Text = view.Overview.Length == 0 ? ""
                 : view.OverviewNote.Length == 0 ? view.Overview : view.Overview + " " + UiFormat.Dot + " " + view.OverviewNote;
+            // Step 27: "Do" on the title line runs the whole section alone - folded or not.
+            HasPart = view.Deal != null;
+            CanDoPart = view.Deal?.CanRun ?? false;
+            PartHint.Text = UiLabels.PartHint(view.Deal);
             SyncItems(view.Items);
         }
 
@@ -701,6 +727,30 @@ namespace SmartSteward.UI
             if (_view.HasFold)
                 _tab.Fold(_view.FoldKeys, _view.IsOpen);
         });
+
+        /// <summary>Step 27: "Do" on the title line — this section alone.</summary>
+        public void ExecuteDoPart() => StewardWindowVM.Guard("do part " + Group, () => _tab.RunPart(_view.Part, _view.Deal));
+
+        // ── step 27: the "Do" button (this part alone) ──
+
+        [DataSourceProperty] public string DoPartText => _tab.DoPartText;
+        [DataSourceProperty] public HintVM PartHint { get; }
+
+        /// <summary>The line carries a "Do" button (a title line, or a line that is a deal of its own).</summary>
+        [DataSourceProperty]
+        public bool HasPart
+        {
+            get => _hasPart;
+            set { if (value != _hasPart) { _hasPart = value; OnPropertyChangedWithValue(value, nameof(HasPart)); } }
+        }
+
+        /// <summary>The part has something it can do alone (greyed otherwise, the hover says why).</summary>
+        [DataSourceProperty]
+        public bool CanDoPart
+        {
+            get => _canDoPart;
+            set { if (value != _canDoPart) { _canDoPart = value; OnPropertyChangedWithValue(value, nameof(CanDoPart)); } }
+        }
 
         // ── bound properties ─────────────────────────────────────────────────────────────────────────────
 
@@ -900,6 +950,8 @@ namespace SmartSteward.UI
         private bool _isGoalPlain;
         private bool _canResetGoal;
         private bool _canResetInChange;
+        private bool _hasPart;
+        private bool _canDoPart;
 
         /// <summary>The Goal box has the focus: an update must not write over what the player is typing.</summary>
         private bool _editing;
@@ -932,6 +984,7 @@ namespace SmartSteward.UI
             DonateHint = new HintVM();
             GoalHint = new HintVM();
             ResultHint = new HintVM();
+            PartHint = new HintVM();
             GoalResetHint = new HintVM(UiText.S("ss_ui_goal_reset_hint",
                 "Your goal - it holds in every town. Click to give the row back to the rules in the Instructions tab."));
             _goalYoursHint = UiText.S("ss_ui_goal_yours_hint",
@@ -1004,6 +1057,11 @@ namespace SmartSteward.UI
             CanResetInChange = item.CanReset && !IsGoalBox;
             ResultHint.Text = goal.ShortText;
 
+            // Step 27: "Do" on the lines that are a deal of their own (Lords, Others, Recruits, Your troops, a tavern row, Other goods).
+            HasPart = item.Deal != null;
+            CanDoPart = item.Deal?.CanRun ?? false;
+            PartHint.Text = UiLabels.PartHint(item.Deal);
+
             HasToggle = item.Choice != null;
             if (item.Choice != null)
             {
@@ -1046,6 +1104,30 @@ namespace SmartSteward.UI
         public void ExecuteRansom() => StewardWindowVM.Guard("ransom " + Key, () => { _tab.FlushGoal(); _tab.SetPrisonerAction(_item, PrisonerChoice.Ransom); });
 
         public void ExecuteDonate() => StewardWindowVM.Guard("donate " + Key, () => { _tab.FlushGoal(); _tab.SetPrisonerAction(_item, PrisonerChoice.Donate); });
+
+        /// <summary>Step 27: "Do" on this line — this part alone (the window flushes a typed goal first).</summary>
+        public void ExecuteDoPart() => StewardWindowVM.Guard("do part " + Key, () => _tab.RunPart(_item.Part, _item.Deal));
+
+        // ── step 27: the "Do" button (this part alone) ──
+
+        [DataSourceProperty] public string DoPartText => _tab.DoPartText;
+        [DataSourceProperty] public HintVM PartHint { get; }
+
+        /// <summary>The line carries a "Do" button (a title line, or a line that is a deal of its own).</summary>
+        [DataSourceProperty]
+        public bool HasPart
+        {
+            get => _hasPart;
+            set { if (value != _hasPart) { _hasPart = value; OnPropertyChangedWithValue(value, nameof(HasPart)); } }
+        }
+
+        /// <summary>The part has something it can do alone (greyed otherwise, the hover says why).</summary>
+        [DataSourceProperty]
+        public bool CanDoPart
+        {
+            get => _canDoPart;
+            set { if (value != _canDoPart) { _canDoPart = value; OnPropertyChangedWithValue(value, nameof(CanDoPart)); } }
+        }
 
         // ── the Goal box (round 5): the widget's own events only queue — the tab commits on its next tick ──
 
