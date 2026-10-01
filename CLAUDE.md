@@ -142,7 +142,7 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               RowGoal = a row's Goal cell (value, editable, yours, hands-off -*, GoalShort = why a Result stops short);
                               DO JUST THIS PART (step 27, DESIGN §1.1): PlanPart (a section or a deal line: Lords, Others, Recruits,
                               Your troops, a tavern row, Other goods) + StewardPlan.DealOf → PartDeal = that part's transactions of
-                              the plan, cut where the purse alone stops them (floors as in Do all); PlanCarryOver.Capture(plan, part)
+                              the plan, cut where the purse alone stops them (floors as in Deal all); PlanCarryOver.Capture(plan, part)
                               = the OTHER parts' edits for the re-plan after it; step 29: a part per LINE too - PlanPart.Row, RecruitRow /
                               DismissRow (a troop type's own side), StackLine (a breakdown line's stack); PlanPart.EditLeft = the edit a
                               re-plan puts back (a breakdown line leaves the rest of its row's)
@@ -187,12 +187,12 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               QuestReader (step 26: the ongoing quests' needs by reflection, one reader per vanilla quest type —
                               RESEARCH §29; a [quest] log line)
   UI/                         the Party Steward window (step 7): StewardWindow (the layer at order 305, keys, Escape,
-                              Encyclopedia focus, close), StewardWindowVM (tabs, Do it, re-plan, Guard around every
+                              Encyclopedia focus, close), StewardWindowVM (tabs, Deal all, re-plan, Guard around every
                               command), SuggestionVMs (step 21: the spreadsheet — SuggestionTabVM, SheetSectionVM per title line,
                               SheetItemVM per line updated in place by key, SheetTotalVM, WeightRowVM; step 23: the typed Goal
                               boxes — their Enter / FocusLost only QUEUE, SuggestionTabVM.FlushGoal commits on the next tick and
-                              before every command; Escape in a box = StewardWindow cancels + ClearTextFocus; step 27: the Part
-                              column's Do (every line since step 29; the footer's Do it is Do all) → StewardWindowVM.RunPart = PlanExecutor on the part's transactions, re-plan, stay open), PricesVMs (+ MultiplierBoxVM: the
+                              before every command; Escape in a box = StewardWindow cancels + ClearTextFocus; step 27: the Deal
+                              column's buttons (every line since step 29; step 31: "Deal" / "Deal group" by PlanPart.IsGroup, the footer's Deal all) → StewardWindowVM.RunPart = PlanExecutor on the part's transactions, re-plan, stay open), PricesVMs (+ MultiplierBoxVM: the
                               food and horse pairs), InstructionsVMs (the clicks' hint on top), HintVM, WindowStateHost (the folds on
                               disk), UiText/UiLabels (TextObject ids — every English ONE literal per UiText call: StringsFileTests reads
                               them from the source)

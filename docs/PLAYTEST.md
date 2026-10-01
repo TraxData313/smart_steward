@@ -3,7 +3,8 @@
 Short lists for Anton, one section per build step that needs the game. The log is
 `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\smart_steward.log` — send it with any report.
 
-Since step 29 the bottom-right button the older checklists call **Do it** reads **Do all**.
+Since step 29 the bottom-right button the older checklists call **Do it** reads **Do all**, and since step 31 **Deal all**;
+the small **Do** buttons of steps 27 and 29 read **Deal** (one line) or **Deal group** (a section or a group line).
 
 ## Step 6 — the debug door (removed in step 8 — run these checks through the window's Do it)
 
@@ -560,3 +561,20 @@ to keep" above 0, or a goal of yours on the Noble horses row). 0 = no cap. (DESI
 5. **Your goal**: type a noble goal; over the cap it stops short (price limit) — with "Your goals obey the price limits" off it
    buys anyway.
 6. **At 0 kept** nothing changes — noble horses are only sold, as before.
+
+## Step 31 — "Deal" wording (deployed 2026.10.01 — the install carries steps 24–31)
+
+Words and one column's width only — what each button does is steps 27 and 29, unchanged. (DESIGN §1.1 "Deal wording")
+
+1. **The column**: its head reads **Deal** (it read "Part").
+2. **Deal group** on every section's title line (Troops, Food, Horses, Prisoners, Other — folded too) and on **Lords**, **Others**,
+   **Recruits**, **Your troops** and **Other goods**. The words fit inside the button — say if they touch its edges.
+3. **Deal** on every other line: each food, each horse row, a loot group, a prisoner type, a troop type, a wanderer, the
+   mercenaries — and the small one on a breakdown line (open Other goods ▸): it fits its 26 px line.
+4. **Deal all**: the bottom-right button; its hover *"Carry out the whole table at once - every line's Deal in one click."*
+5. **Hovers**: a quiet group *"Nothing to do in this group."*, a quiet line *"Nothing to do on this line."*; with little gold a
+   food's Deal greys *"… Use Deal all."*
+6. **The narrower numbers**: Denari, Land weight and Sea weight lost a little room — a big sale (-1,234,567 with influence beside
+   it) and a heavy party's weights still fit their columns; the Total line under the table too.
+7. You may prefer **Do all** to **Deal all** — say so; it is one word to change back.
+8. Log: the window's lines say `deal all` / `deal …` and `after Deal all`; the run's own lines keep `part Row:food:grain: …`.
