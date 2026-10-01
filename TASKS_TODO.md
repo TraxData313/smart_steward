@@ -63,6 +63,10 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   → VANILLA: "Leave..." out of a hostile action makes you the village's defender; fst2: Leave + re-enter, then raid (RESEARCH §28)
   - [ ] Deployed 2026.09.29 by the manager after step 24 (the install carries steps 12–24), then playtest — checklist in docs/PLAYTEST.md "Step 24"
 
+- [ ] 25. BUG (Anton 2026.10.01, screenshot docs/feedback/2026-10-01-grain-hoard.png): a big food goal (grain 120 for a quest) made the
+  steward sell ALL the fish and meat — the goal ate the days target and the surplus sale drained whole kinds. Fix: a food goal counts
+  toward the days target only up to an even share (target / food kinds); above that it is a stockpile ON TOP and the other kinds keep
+  their full share; and the surplus sale never takes a kind below its even share (variety is kept)
 SHIPPING NEXT (done in main, NOT released yet):
 - MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
@@ -127,6 +131,7 @@ NEXT UPDATE — ROUND 3, building now (Anton 2026.09.28):
 - [x] (R3) The "Not now" button next to Do it is just "Close"
 - [x] (R3) Party limit is info, not a wall — header/footer shows the party after the deal (99/96), red when over
 
+- [ ] QUEST NEEDS (Anton 2026.10.01): the steward reads your active quests and adds what they ask for to its goals — grain (Headman needs grain), horses (Lord needs horses), draught animals, troops (garrison / gang recruits), maybe prisoners (manual laborers); keep them from being sold or dismissed
 - [ ] Pack animals: "keep enough to carry my load + a margin" as an alternative to a fixed number (the weight line now knows capacity)
 
 NEXT UPDATE (V1 = tavern, food, horses, armour & weapons selling, prisoners — Anton 2026.09.27):
