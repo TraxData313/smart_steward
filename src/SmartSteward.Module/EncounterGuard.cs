@@ -16,7 +16,7 @@ namespace SmartSteward
     /// (ForceRaid / ForceSupplies / ForceVolunteers), an encounter past its Begin state, a siege, captivity — or, where
     /// asked, a menu that is not the settlement's own (town, village, War Sails' port). Every place the steward acts asks
     /// here first: the arrival popup and the autonomous run, the leave warning and its "Leave anyway", the menu entry and
-    /// the executor (Do it and autonomous). Read-only: it never touches the encounter or the menu.
+    /// the executor (Deal all, a Deal and autonomous). Read-only: it never touches the encounter or the menu.
     /// <para>The raid-capture report (2026.09.29) was vanilla's own bug (RESEARCH §28) — but the guard makes sure the
     /// steward can never be part of such a chain, and its log line makes a repeat visible. The mod does not warn about
     /// vanilla's bug itself (Anton 2026.09.29: nothing in the mod that is not the steward's work).</para>

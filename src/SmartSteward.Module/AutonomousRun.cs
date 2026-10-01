@@ -12,7 +12,7 @@ namespace SmartSteward
     /// <summary>
     /// The Full-autonomous steward (DESIGN §6): on arrival — once per visit, on a quiet map (<see cref="StewardTriggers"/>)
     /// — plan with the autonomous floors (<see cref="PlanMode.Autonomous"/>: AutonomousMinGold, no tavern), carry the
-    /// plan out through the same executor as Do it, and sum it up in the message log. No window, no popup, no warning.
+    /// plan out through the same executor as Deal all, and sum it up in the message log. No window, no popup, no warning.
     /// The whole plan and every transaction go to smart_steward.log.
     /// </summary>
     internal static class AutonomousRun

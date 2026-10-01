@@ -231,7 +231,7 @@ namespace SmartSteward.UI
         }
 
         /// <summary>
-        /// The "Do" button's hover (PLAN step 27, DESIGN §1.1 "Do just this part"): enabled, what the part does alone in one line —
+        /// The Deal / Deal group button's hover (PLAN step 27, DESIGN §1.1 "Do just this part"): enabled, what the part does alone in one line —
         /// <c>Ransom 9, sell 12: +3,160 denari</c> — and, when the purse alone cuts it, how many fewer and why; greyed, why. A line
         /// of one row (step 29) names it: <c>Buy 6 Grain: -120 denari</c> (<paramref name="name"/>; null = a section or a line of
         /// many rows).
@@ -244,15 +244,15 @@ namespace SmartSteward.UI
             {
                 case PartBlock.NothingToDo:
                     return name == null
-                        ? UiText.S("ss_ui_part_nothing", "Nothing to do in this part.")
+                        ? UiText.S("ss_ui_part_nothing_group", "Nothing to do in this group.") // step 31: it says "Deal group"
                         : UiText.S("ss_ui_part_nothing_line", "Nothing to do on this line.");
                 case PartBlock.PurseFloor:
-                    return UiText.S1("ss_ui_part_floor_all",
-                        "Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do all.",
+                    return UiText.S1("ss_ui_part_floor_deal_all",
+                        "Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Deal all.",
                         "GOLD", UiFormat.Money(deal.Floor));
                 case PartBlock.NotEnoughGold:
-                    return UiText.S("ss_ui_part_no_gold_all",
-                        "Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do all.");
+                    return UiText.S("ss_ui_part_no_gold_deal_all",
+                        "Alone your purse cannot pay for it - the rest of the deal pays for it. Use Deal all.");
             }
             var moves = new System.Collections.Generic.List<string>();
             void Add(int n, string text)

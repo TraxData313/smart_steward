@@ -37,7 +37,7 @@ namespace SmartSteward.Adapter
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
         /// <param name="only">PLAN step 27, "Do just this part": run only these transactions of the plan (a part's
-        /// <see cref="PartDeal.Transactions"/>) — the same path and checks; null = the whole plan (Do it, autonomy).</param>
+        /// <see cref="PartDeal.Transactions"/>) — the same path and checks; null = the whole plan (Deal all, autonomy).</param>
         /// <param name="part">The part's name for the log (<see cref="PlanPart.Id"/>); null for the whole plan.</param>
         public static ExecutionReport Execute(StewardPlan plan, GameVisit visit, IReadOnlyList<PlanTransaction>? only = null,
             string? part = null)

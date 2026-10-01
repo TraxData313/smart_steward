@@ -34,7 +34,7 @@ namespace SmartSteward.UI
             GoalLineEnd = UiText.S("ss_ui_shortcuts_goal_end", "gives the row back to these rules.");
         }
 
-        /// <summary>Builds the groups (again after Do it: the party — its footmen, its food rate — may have changed).</summary>
+        /// <summary>Builds the groups (again after Deal all: the party — its footmen, its food rate — may have changed).</summary>
         internal void EnsureBuilt(GameVisit visit)
         {
             if (_visit == visit && _groups.Count > 0)

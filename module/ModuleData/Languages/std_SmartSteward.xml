@@ -211,6 +211,7 @@
     <string id="ss_ui_close" text="Close" />
     <string id="ss_ui_col_buy" text="Buy" />
     <string id="ss_ui_col_change" text="Change" />
+    <string id="ss_ui_col_deal" text="Deal" />
     <string id="ss_ui_col_denari" text="Denari" />
     <string id="ss_ui_col_goal" text="Goal" />
     <string id="ss_ui_col_item" text="Item" />
@@ -219,15 +220,15 @@
     <string id="ss_ui_col_max_buy" text="Max buy price" />
     <string id="ss_ui_col_min_sell" text="Min sell price" />
     <string id="ss_ui_col_mine" text="Mine" />
-    <string id="ss_ui_col_part" text="Part" />
     <string id="ss_ui_col_party" text="Party" />
     <string id="ss_ui_col_prisoners" text="Prisoners" />
     <string id="ss_ui_col_result" text="Result" />
     <string id="ss_ui_col_sea_weight" text="Sea weight" />
     <string id="ss_ui_col_sell" text="Sell" />
-    <string id="ss_ui_do_all" text="Do all" />
-    <string id="ss_ui_do_all_hint" text="Carry out the whole table at once - every line's Do in one click." />
-    <string id="ss_ui_do_part" text="Do" />
+    <string id="ss_ui_deal" text="Deal" />
+    <string id="ss_ui_deal_all" text="Deal all" />
+    <string id="ss_ui_deal_all_hint" text="Carry out the whole table at once - every line's Deal in one click." />
+    <string id="ss_ui_deal_group" text="Deal group" />
     <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
     <string id="ss_ui_done_abort" text="Steward: nothing was done - see smart_steward.log." />
     <string id="ss_ui_done_partly" text="{CUT} cut short, {SKIPPED} skipped - see smart_steward.log." />
@@ -267,12 +268,12 @@
     <string id="ss_ui_part_donate" text="to the dungeon {N}" />
     <string id="ss_ui_part_done" text="Steward ({PART}): {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
     <string id="ss_ui_part_done_abort" text="Steward ({PART}): nothing was done - see smart_steward.log." />
-    <string id="ss_ui_part_floor_all" text="Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Do all." />
+    <string id="ss_ui_part_floor_deal_all" text="Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Deal all." />
     <string id="ss_ui_part_hire" text="hire {N}" />
     <string id="ss_ui_part_influence" text="{N} influence" />
     <string id="ss_ui_part_named" text="{WHAT} {NAME}" />
-    <string id="ss_ui_part_no_gold_all" text="Alone your purse cannot pay for it - the rest of the deal pays for it. Use Do all." />
-    <string id="ss_ui_part_nothing" text="Nothing to do in this part." />
+    <string id="ss_ui_part_no_gold_deal_all" text="Alone your purse cannot pay for it - the rest of the deal pays for it. Use Deal all." />
+    <string id="ss_ui_part_nothing_group" text="Nothing to do in this group." />
     <string id="ss_ui_part_nothing_line" text="Nothing to do on this line." />
     <string id="ss_ui_part_ransom" text="ransom {N}" />
     <string id="ss_ui_part_recruit" text="recruit {N}" />

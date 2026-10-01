@@ -17,13 +17,16 @@ STAGE = "c"  # the build stages of step 21 (a: skeleton, b: toggles, c: Total + 
 # Step 27 (Anton 2026.10.01, "do just this part"): the Part column right after Result - a small "Do" button on every section
 # title and on the lines that are a deal of their own; its 62 px came from Item (432 -> 396), Denari (204 -> 190) and
 # Prisoners (92 -> 80). Step 29 (Anton 2026.10.01): the Do button on every line - the breakdown lines too (22 px there).
+# Step 31 (Anton 2026.10.01, "Do group" ... "replace with Deal"): the buttons read "Deal" / "Deal group" and the head "Deal";
+# "Deal group" is ~70 px in Galahad at 17 (the game's .fnt advances) - the column 56 -> 92 (an 84 px button), its 36 px from
+# the number columns that can spare them: Denari 190 -> 174 (widest content ~106 px), Land and Sea weight 104 -> 94 (~74 px).
 PAD, ITEM, MARKET = 6, 396, 66
 GOAL_GAP, GOAL_BOX, GOAL_RESET_GAP, GOAL_RESET = 8, 70, 4, 26
 GOAL = GOAL_BOX + GOAL_RESET_GAP + GOAL_RESET  # 100
 MINE, CHANGE_GAP, CHANGE, RESULT = 66, 8, 176, 66
-DO_GAP, DO = 6, 56
-DENARI_GAP, DENARI, PARTY, PRISONERS, LAND, SEA = 8, 190, 66, 80, 104, 104
-LEFT = PAD + ITEM + MARKET + GOAL_GAP + GOAL + MINE + CHANGE_GAP + CHANGE + RESULT + DO_GAP + DO  # 954: everything left of Denari
+DO_GAP, DO = 6, 92
+DENARI_GAP, DENARI, PARTY, PRISONERS, LAND, SEA = 8, 174, 66, 80, 94, 94
+LEFT = PAD + ITEM + MARKET + GOAL_GAP + GOAL + MINE + CHANGE_GAP + CHANGE + RESULT + DO_GAP + DO  # 990: everything left of Denari
 NAME_PART = PAD + ITEM + MARKET  # 504: the title line's name (its numbers start at the Goal column)
 TITLE_HEIGHT, TITLE_ROW, OVERVIEW_ROW = 54, 30, 20  # round 5: the overview on its own row under the name, full width
 
@@ -137,9 +140,10 @@ def goal_cell():
 
 
 def do_cell(height=26, font=17):
-    """Step 27: the Part column - "Do" runs this part of the plan alone (greyed with the reason on hover when it has nothing
+    """Step 27: the Part column (the "Deal" column since step 31) - its button runs this part of the plan alone (greyed with the reason on hover when it has nothing
     it can do alone); an empty cell on the lines that carry no part. Step 29 (Anton 2026.10.01, "can I have that Do button
-    next to every line too"): on every line - the breakdown lines too, a little smaller (their lines are 26 px)."""
+    next to every line too"): on every line - the breakdown lines too, a little smaller (their lines are 26 px). Step 31: the
+    word is the line's own - "Deal" or "Deal group" (@DoPartText)."""
     return f'''<Widget WidthSizePolicy="Fixed" SuggestedWidth="{DO}" HeightSizePolicy="StretchToParent" MarginLeft="{DO_GAP}">
   <Children>
 {indent(small_button("ExecuteDoPart", "@CanDoPart", "PartHint", "@DoPartText", width=DO - 8, font=font, visible="@HasPart", height=height), 4).replace('VerticalAlignment="Center"', 'HorizontalAlignment="Center" VerticalAlignment="Center"', 1)}
@@ -228,7 +232,7 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
         </Widget>
         <!-- Result: its hover says why it stops short of the goal (round 5) -->
 {indent(hinted_text(RESULT, "@ResultText", 19, "@TextColor", "ResultHint"), 8)}
-        <!-- Part (step 27): "Do" - just this line's deal -->
+        <!-- Deal (step 27; words step 31): "Deal" / "Deal group" - just this line's deal -->
 {indent(do_cell(), 8)}
 {indent(denari_cell(19, 14), 8)}
 {indent(number_cells(19), 8)}
@@ -237,7 +241,7 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
   </Children>
 </Widget>'''
 
-sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, small and grey; only its own "Do" (step 29) -->
+sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, small and grey; only its own "Deal" (step 29) -->
 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" IsVisible="@IsSubLine">
   <Children>
     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
@@ -258,7 +262,7 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
         {text(MINE, "@MineText", 16, color="@MutedColor")}
         {text(CHANGE, "@ChangeText", 16, "Center", "@ChangeColor", margin_left=CHANGE_GAP)}
         {text(RESULT, "@ResultText", 16, color="@MutedColor")}
-        <!-- Part (step 29): "Do" - just this kind's trades -->
+        <!-- Deal (step 29): "Deal" - just this kind's trades -->
 {indent(do_cell(22, 15), 8)}
 {indent(denari_cell(16, 13), 8)}
 {indent(number_cells(16, "@MutedColor"), 8)}
@@ -307,7 +311,7 @@ title_line = f'''<!-- the section's title line: [fold] the name and its subtotal
         {text(MINE, "@MineText", 20, color="@MineColor")}
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="{CHANGE}" HeightSizePolicy="StretchToParent" MarginLeft="{CHANGE_GAP}" />
         {text(RESULT, "@ResultText", 20, color="@ResultColor")}
-        <!-- Part (step 27): "Do" - the whole section alone, folded or not -->
+        <!-- Deal (step 27; words step 31): "Deal group" - the whole section alone, folded or not -->
 {indent(do_cell(), 8)}
 {indent(denari_cell(20, 15, hint=False), 8)}
 {indent(number_cells(20), 8)}
@@ -375,7 +379,7 @@ tab = f'''            <!-- ============================ Suggestion tab (DESIGN �
                     <!-- A closed market: the game's own reason, on the header line's right (round 1) -->
                     <TextWidget WidthSizePolicy="Fixed" SuggestedWidth="560" HeightSizePolicy="Fixed" SuggestedHeight="40" HorizontalAlignment="Right" VerticalAlignment="Top" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Right" Brush.TextVerticalAlignment="Center" Brush.FontColor="@WarningColor" Text="@MarketClosedText" IsVisible="@HasMarketNotice" />
 
-                    <!-- Column heads: Item · Market · Goal · Mine · Change · Result · Part · Denari · Party · Prisoners · Land weight · Sea weight (round 5; Part step 27), the same widths as the lines -->
+                    <!-- Column heads: Item · Market · Goal · Mine · Change · Result · Deal · Denari · Party · Prisoners · Land weight · Sea weight (round 5; Deal step 27, its name step 31), the same widths as the lines -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="26" VerticalAlignment="Top" MarginTop="46" MarginRight="14" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <Children>
 {indent(heads, 24)}

@@ -58,8 +58,9 @@ namespace SmartSteward.UI
         {
             _onPlanChanged = onPlanChanged;
             _runPart = runPart;
-            ColPart = UiText.S("ss_ui_col_part", "Part"); // step 27: the "Do" buttons' column
-            DoPartText = UiText.S("ss_ui_do_part", "Do");
+            ColPart = UiText.S("ss_ui_col_deal", "Deal"); // step 27: the buttons' column ("Part" until step 31)
+            DealText = UiText.S("ss_ui_deal", "Deal"); // step 31: "Do" -> "Deal" on a line of one thing
+            DealGroupText = UiText.S("ss_ui_deal_group", "Deal group"); // step 31: a title line and the group lines
             Words = UiLabels.SheetText();
             ColMarket = UiText.S("ss_ui_col_market", "Market");
             ColItem = UiText.S("ss_ui_col_item", "Item");
@@ -267,7 +268,7 @@ namespace SmartSteward.UI
 
         // ── clicks (called by the lines) ─────────────────────────────────────────────────────────────────
 
-        /// <summary>"Do" on a title line or a deal line (PLAN step 27): the window runs that part alone (<see cref="StewardWindowVM"/>
+        /// <summary>A Deal / Deal group button (PLAN step 27, words step 31): the window runs that part alone (<see cref="StewardWindowVM"/>
         /// owns the executor and the re-plan after it).</summary>
         internal void RunPart(PlanPart? part, PartDeal? deal)
         {
@@ -450,11 +451,14 @@ namespace SmartSteward.UI
 
         [DataSourceProperty] public string ColGoal { get; }
 
-        /// <summary>Step 27: the head of the "Do" buttons' column (right after Result).</summary>
+        /// <summary>Step 27: the head of the Deal buttons' column (right after Result) — "Deal" since step 31.</summary>
         [DataSourceProperty] public string ColPart { get; }
 
-        /// <summary>Step 27: the word on every "Do" button.</summary>
-        internal string DoPartText { get; }
+        /// <summary>Step 31: the word on a line of one thing's button (it read "Do").</summary>
+        internal string DealText { get; }
+
+        /// <summary>Step 31: the word on a title line's and a group line's button (<see cref="PlanPart.IsGroup"/>).</summary>
+        internal string DealGroupText { get; }
         [DataSourceProperty] public string HeaderLabel { get; }
         [DataSourceProperty] public string ResetAllText { get; }
         [DataSourceProperty] public string WarningColor => UiColors.Warning;
@@ -678,7 +682,7 @@ namespace SmartSteward.UI
             ResultColor = UiColors.ForLimit(view.OverviewWarning);
             OverviewHint.Text = view.Overview.Length == 0 ? ""
                 : view.OverviewNote.Length == 0 ? view.Overview : view.Overview + " " + UiFormat.Dot + " " + view.OverviewNote;
-            // Step 27: "Do" on the title line runs the whole section alone - folded or not.
+            // Step 27: the title line's button runs the whole section alone - folded or not ("Deal group" since step 31).
             HasPart = view.Deal != null;
             CanDoPart = view.Deal?.CanRun ?? false;
             PartHint.Text = UiLabels.PartHint(view.Deal);
@@ -728,15 +732,15 @@ namespace SmartSteward.UI
                 _tab.Fold(_view.FoldKeys, _view.IsOpen);
         });
 
-        /// <summary>Step 27: "Do" on the title line — this section alone.</summary>
-        public void ExecuteDoPart() => StewardWindowVM.Guard("do part " + Group, () => _tab.RunPart(_view.Part, _view.Deal));
+        /// <summary>Step 27: "Deal group" on the title line — this section alone.</summary>
+        public void ExecuteDoPart() => StewardWindowVM.Guard("deal " + Group, () => _tab.RunPart(_view.Part, _view.Deal));
 
-        // ── step 27: the "Do" button (this part alone) ──
+        // ── step 27: the part's button (this part alone) — a section's says "Deal group" (step 31) ──
 
-        [DataSourceProperty] public string DoPartText => _tab.DoPartText;
+        [DataSourceProperty] public string DoPartText => _tab.DealGroupText;
         [DataSourceProperty] public HintVM PartHint { get; }
 
-        /// <summary>The line carries a "Do" button (a title line, or a line that is a deal of its own).</summary>
+        /// <summary>The line carries a Deal button (a title line, a group line or a line of one thing).</summary>
         [DataSourceProperty]
         public bool HasPart
         {
@@ -951,6 +955,7 @@ namespace SmartSteward.UI
         private bool _canResetGoal;
         private bool _canResetInChange;
         private bool _hasPart;
+        private string _doPartText = "";
         private bool _canDoPart;
 
         /// <summary>The Goal box has the focus: an update must not write over what the player is typing.</summary>
@@ -1057,9 +1062,11 @@ namespace SmartSteward.UI
             CanResetInChange = item.CanReset && !IsGoalBox;
             ResultHint.Text = goal.ShortText;
 
-            // Step 27: "Do" on the lines that are a deal of their own (Lords, Others, Recruits, Your troops, a tavern row, Other goods);
-            // step 29: on every line — a one-row part's hover names the line ("Buy 6 Grain: -120 denari").
+            // Step 27: the button on the lines that are a deal of their own (Lords, Others, Recruits, Your troops, a tavern row, Other goods);
+            // step 29: on every line — a one-row part's hover names the line ("Buy 6 Grain: -120 denari"); step 31: "Deal group" on
+            // a line that holds a group, "Deal" on a line of one thing.
             HasPart = item.Deal != null;
+            DoPartText = item.Part != null && item.Part.IsGroup ? _tab.DealGroupText : _tab.DealText;
             CanDoPart = item.Deal?.CanRun ?? false;
             PartHint.Text = UiLabels.PartHint(item.Deal, item.Part != null && item.Part.IsSingleRow ? item.Name : null);
 
@@ -1106,15 +1113,21 @@ namespace SmartSteward.UI
 
         public void ExecuteDonate() => StewardWindowVM.Guard("donate " + Key, () => { _tab.FlushGoal(); _tab.SetPrisonerAction(_item, PrisonerChoice.Donate); });
 
-        /// <summary>Step 27: "Do" on this line — this part alone (the window flushes a typed goal first).</summary>
-        public void ExecuteDoPart() => StewardWindowVM.Guard("do part " + Key, () => _tab.RunPart(_item.Part, _item.Deal));
+        /// <summary>Step 27: the line's button — this part alone (the window flushes a typed goal first).</summary>
+        public void ExecuteDoPart() => StewardWindowVM.Guard("deal " + Key, () => _tab.RunPart(_item.Part, _item.Deal));
 
-        // ── step 27: the "Do" button (this part alone) ──
+        // ── step 27: the part's button (this part alone) — "Deal" or "Deal group" (step 31) ──
 
-        [DataSourceProperty] public string DoPartText => _tab.DoPartText;
+        /// <summary>Step 31: "Deal group" on a line that holds a group (<see cref="PlanPart.IsGroup"/>), "Deal" otherwise.</summary>
+        [DataSourceProperty]
+        public string DoPartText
+        {
+            get => _doPartText;
+            set { if (value != _doPartText) { _doPartText = value; OnPropertyChangedWithValue(value, nameof(DoPartText)); } }
+        }
         [DataSourceProperty] public HintVM PartHint { get; }
 
-        /// <summary>The line carries a "Do" button (a title line, or a line that is a deal of its own).</summary>
+        /// <summary>The line carries a Deal button (a title line, a group line or a line of one thing).</summary>
         [DataSourceProperty]
         public bool HasPart
         {
