@@ -161,7 +161,7 @@ public class FoodPlannerTests
         var plan = s.Plan();
         Assert.Equal(0, plan.Row("food:grain").Change);
         Assert.Equal(40, plan.Row("food:grain").Locked);
-        Assert.Equal(-10, plan.Row("food:fish").Change); // 50 held, target 20: only the fish can go
+        Assert.Equal(0, plan.Row("food:fish").Change);   // 50 held, target 20: only the fish could go — it is at its share (10)
     }
 
     [Fact]

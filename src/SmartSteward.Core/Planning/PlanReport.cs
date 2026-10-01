@@ -26,7 +26,8 @@ namespace SmartSteward.Core.Planning
                          + Money(t.MarketSales) + " of market gold " + Money(t.MarketGold);
             var f = plan.Facts;
             yield return "facts: eaters " + f.FoodEaters.ToString(Inv) + ", food target " + f.FoodTarget.ToString(Inv)
-                         + " (sell above " + f.FoodSellAbove.ToString("0.##", Inv) + "), pack target "
+                         + " (sell above " + f.FoodSellAbove.ToString("0.##", Inv) + ", " + f.FoodShare.ToString(Inv)
+                         + " per kind), pack target "
                          + f.PackTarget.ToString(Inv) + ", footmen " + f.Footmen.ToString(Inv) + ", horses to keep "
                          + f.MountTarget.ToString(Inv) + " (riding target " + f.RidingTarget.ToString(Inv) + ", war horses "
                          + f.WarTarget.ToString(Inv) + ")";

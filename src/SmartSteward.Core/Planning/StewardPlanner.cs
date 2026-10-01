@@ -121,6 +121,7 @@ namespace SmartSteward.Core.Planning
             facts.FoodEaters = food.Eaters;
             facts.FoodTarget = food.Target;
             facts.FoodSellAbove = food.SellAbove;
+            facts.FoodShare = food.Share;
             facts.PackTarget = pack.Target;
             facts.Footmen = mounts.Footmen;
             facts.MountTarget = mounts.MountTarget;

@@ -28,13 +28,13 @@ public class SheetGoalTests
         Assert.Equal(("15", true, true, false), (grain.Text, grain.Editable, grain.IsYours, grain.HandsOff));
         Assert.True(Item(view, "row:food:grain").CanReset);        // the ⟲ of a goal
         var fish = Item(view, "row:food:fish").Goal;
-        Assert.Equal(("5", true, false), (fish.Text, fish.Editable, fish.IsYours));
+        Assert.Equal(("10", true, false), (fish.Text, fish.Editable, fish.IsYours)); // the even share: 15 counts 10 (step 25)
         Assert.False(Item(view, "row:food:fish").CanReset);
 
         var food = view.Section(SheetGroup.Food)!;
-        Assert.Equal("20", food.Goal.Text);                          // the sum of the rows
+        Assert.Equal("25", food.Goal.Text);                          // the sum of the rows: the target + your 5 on top
         Assert.False(food.Goal.Editable);
-        Assert.Equal(("0", "20"), (food.Mine, food.Result));
+        Assert.Equal(("0", "25"), (food.Mine, food.Result));
     }
 
     [Fact]

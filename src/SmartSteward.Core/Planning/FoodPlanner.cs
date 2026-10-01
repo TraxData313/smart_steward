@@ -136,11 +136,20 @@ namespace SmartSteward.Core.Planning
                 int? pinned = ctx.PinOf(row, ManagedJob.Food);
                 _lines.Add(new Line(row, item.Held, new WalkLine(row, sellLane, held, book: row.Book), pinned));
             }
+            Share = FairShare(Target, _lines.Count);
         }
 
         public int Eaters { get; }
         public int Target { get; }
         public double SellAbove { get; }
+
+        /// <summary>The even share of the target per food kind (step 25, Anton 2026.10.01): ceil(target / the food rows) — rounded up
+        /// so the kinds together never fall short of the target. A goal of yours counts toward the target only up to it (the rest
+        /// is a stockpile on top), and the steward's surplus sale never takes a kind below it (variety is kept).</summary>
+        public int Share { get; }
+
+        internal static int FairShare(int target, int kinds) =>
+            kinds <= 0 || target <= 0 ? 0 : (target + kinds - 1) / kinds;
 
         public IReadOnlyList<PlanRow> Rows => _lines.Select(l => l.Row).ToList();
 
@@ -148,15 +157,21 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>Food the party will hold as the steward sees it: its own rows as the walk goes, the player's rows (your
         /// goals — round 5: they count toward the days goal FIRST) at their result — asked, before their buys are walked;
-        /// walked, after (<paramref name="walked"/>): the steward plans the rest around them.</summary>
+        /// walked, after (<paramref name="walked"/>): the steward plans the rest around them. A goal counts only up to the even
+        /// <see cref="Share"/> (step 25): above it is a stockpile ON TOP of the days (a quest hoard), never eating the other kinds'
+        /// share.</summary>
         private int HeldTotal(bool walked) =>
-            _lines.Sum(l => l.Pinned == null ? l.Sell.Held : l.Row.Mine + (walked ? l.Row.Book.Net : l.Pinned.Value));
+            _lines.Sum(l => l.Pinned == null
+                ? l.Sell.Held
+                : Math.Min(Share, l.Row.Mine + (walked ? l.Row.Book.Net : l.Pinned.Value)));
 
         private int TotalHeld => HeldTotal(false);
 
         /// <summary>The player's food sales first (a live re-plan, <see cref="PlanPins"/>), then the steward's surplus: only
         /// above target × (1 + tolerance), back down to the target — the most-held type first (keeps variety), only
-        /// Sell-ticked types at ≥ their min sell, never beyond the market's gold (minus what the player's later sales need).</summary>
+        /// Sell-ticked types at ≥ their min sell, never beyond the market's gold (minus what the player's later sales need) — and
+        /// never a kind below its even <see cref="Share"/> (step 25: the variety guard; short of the target it stops there). The
+        /// player's own goal sales are not guarded: the player is in control.</summary>
         public void PlanSells()
         {
             if (!_active)
@@ -168,8 +183,10 @@ namespace SmartSteward.Core.Planning
 
             if (!_stewardActs || !_ctx.Settings.SellFoodSurplus || TotalHeld <= SellAbove)
                 return;
-            PlanWalk.SellMostHeldFirst(_ctx.Walk, Steward.Select(l => l.Sell).ToList(), () => TotalHeld > Target,
-                _ctx.FoodSellCeiling);
+            var sells = Steward.Select(l => l.Sell).ToList();
+            foreach (var line in sells)
+                line.Quota = Math.Max(0, line.Held - Share);
+            PlanWalk.SellMostHeldFirst(_ctx.Walk, sells, () => TotalHeld > Target, _ctx.FoodSellCeiling);
         }
 
         /// <summary>The player's food buys first, then the steward's below the target: one unit at a time — Balanced: the

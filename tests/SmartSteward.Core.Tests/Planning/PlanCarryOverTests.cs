@@ -55,7 +55,7 @@ public class PlanCarryOverTests
         Assert.Equal(0, carry.ApplyTo(fresh));
         Assert.Equal(30, fresh.Row("food:grain").Change);         // the player's goal
         Assert.True(fresh.Row("food:grain").IsTouched);
-        Assert.Equal(40 - 35, fresh.Row("food:fish").Change);     // the steward fills the new target (40) around it
+        Assert.Equal(40 - 20, fresh.Row("food:fish").Change);     // the goal counts its even share (20), the 15 above are on top
     }
 
     [Fact]

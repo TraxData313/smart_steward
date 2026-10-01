@@ -158,7 +158,7 @@ public class InventoryLockTests
         Assert.Equal(0, grain.MaxSell);
         Assert.True(grain.LocksGuard);
         Assert.Equal(EditBlock.NothingToSell, grain.DecreaseBlock);
-        Assert.Equal(-10, plan.Row("food:fish").Change); // 50 held, target 20: only the fish can go
+        Assert.Equal(0, plan.Row("food:fish").Change);   // 50 held, target 20: only the fish could go — it is at its share (10)
 
         var pack = plan.Row("mounts:pack");
         Assert.Equal(-4, pack.Moved("mule"));
@@ -228,9 +228,8 @@ public class InventoryLockTests
         var plan = s.Plan();
         var sales = plan.Transactions.Where(t => t.Kind == TransactionKind.Sell).ToDictionary(t => t.StackKey!);
 
-        foreach (var key in new[] { "grain", "sumpter_horse", "steppe", "helm" })
+        foreach (var key in new[] { "grain", "fish", "sumpter_horse", "steppe", "helm" }) // the fish: at its even share
             Assert.DoesNotContain(key, sales.Keys);
-        Assert.Equal(10, sales["fish"].Count);
         Assert.Equal(4, sales["mule"].Count);
         Assert.Equal(1, sales["hunter"].Count);
         // Everything sold honours a lock set after the plan was made — food and horses too, now.

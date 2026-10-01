@@ -239,7 +239,7 @@ public class PlanEditingTests
             Assert.Equal(10, fish.Change);                   // balanced: 10 + 10
             plan.Increase("food:grain", EditSize.Five);
             Assert.Equal(15, plan.Row("food:grain").Change);
-            Assert.Equal(5, fish.Change);                    // round 5: a goal of 15 grain — the steward's fish fills the rest
+            Assert.Equal(10, fish.Change);                   // a goal of 15 grain counts its even share (10) — the fish keeps 10
             Assert.Equal(fishPrice, fish.UnitPriceMin);      // another category: grain's walk never moves the fish price
             if (village)
             {

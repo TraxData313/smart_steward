@@ -248,11 +248,14 @@ public class LivePlanTests
         int others = plan.Row("food:grain").Change + plan.Row("food:fish").Change;
         Assert.True(plan.Row("food:cheese").IsTouched);
 
+        int target = plan.Facts.FoodTarget;
         plan.Increase("tavern:mercenaries", EditSize.All);           // 20 more eaters: +40 food
+        Assert.Equal(target + 40, plan.Facts.FoodTarget);
         Assert.Equal(cheese, plan.Row("food:cheese").Change);        // the player's number stays…
-        // …the steward fills the rest (round 5: it gave way to the cheese goal at the click already)
-        Assert.Equal(others + 40, plan.Row("food:grain").Change + plan.Row("food:fish").Change);
-        Assert.Equal(plan.Facts.FoodTarget, plan.Totals.FoodUnitsAfter);
+        // …the steward fills the rest: the target less what the cheese goal counts (up to the even share — step 25)
+        int counted = Math.Min(plan.Row("food:cheese").Result, plan.Facts.FoodShare);
+        Assert.Equal(plan.Facts.FoodTarget - counted, plan.Row("food:grain").Result + plan.Row("food:fish").Result);
+        Assert.True(plan.Row("food:grain").Change + plan.Row("food:fish").Change > others);
     }
 
     [Fact]
@@ -275,8 +278,12 @@ public class LivePlanTests
         plan.Increase("food:grain", EditSize.Five);
         Assert.Equal(grain + 5, plan.Row("food:grain").Change);
         Assert.Equal(grain + 5 + 30, plan.Row("food:grain").ManualGoal);
-        Assert.Equal(fish + cheese - 5, plan.Row("food:fish").Change + plan.Row("food:cheese").Change);
-        Assert.Equal(plan.Facts.FoodTarget, plan.Totals.FoodUnitsAfter);
+        // The steward's two share the target less what the goal counts — up to the even share (step 25); the rest is on top.
+        int counted = Math.Min(plan.Row("food:grain").Result, plan.Facts.FoodShare);
+        Assert.Equal(plan.Facts.FoodTarget - counted, plan.Row("food:fish").Result + plan.Row("food:cheese").Result);
+        // Before: grain 30 (above the share 27, never sold) + fish 25 + cheese 25 = 80. A goal of 35 counts 27: the 8 above are on
+        // top, so the steward's two fill 53 (+3 on what they bought before).
+        Assert.Equal(fish + cheese + 3, plan.Row("food:fish").Change + plan.Row("food:cheese").Change);
     }
 
     [Fact]

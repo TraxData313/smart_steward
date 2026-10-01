@@ -27,6 +27,10 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>Food is sold only while held is ABOVE this: target × (1 + tolerance/100).</summary>
         public double FoodSellAbove { get; internal set; }
+
+        /// <summary>The even share per food kind: ceil(target / food rows) — a goal counts toward the target up to it, the
+        /// surplus sale never takes a kind below it (step 25).</summary>
+        public int FoodShare { get; internal set; }
         public int PackTarget { get; internal set; }
         /// <summary>Men on foot in the party after the deal (the game's <c>NumberOfMenWithoutHorse</c> + the footmen hired).</summary>
         public int Footmen { get; internal set; }

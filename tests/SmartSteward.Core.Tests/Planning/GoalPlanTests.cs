@@ -28,32 +28,97 @@ public class GoalPlanTests
     public void A_standing_food_goal_is_planned_first_and_the_steward_fills_the_rest()
     {
         var s = TwoFoods();
-        s.Settings.Goals["food:grain"] = 15;
+        s.Settings.Goals["food:grain"] = 8;            // below the even share (20 / 2 kinds = 10): it counts fully (step 25)
         var plan = s.Plan();
         var grain = plan.Row("food:grain");
-        Assert.Equal(15, grain.Change);
+        Assert.Equal(8, grain.Change);
         Assert.True(grain.IsTouched);                  // yours: the ⟲ shows
-        Assert.Equal(15, grain.ManualGoal);
-        Assert.Equal(5, plan.Row("food:fish").Change);  // the days goal (20) minus your 15
+        Assert.Equal(8, grain.ManualGoal);
+        Assert.Equal(12, plan.Row("food:fish").Change); // the days goal (20) minus your 8
         Assert.False(plan.Row("food:fish").IsTouched);
 
         var cell = RowGoal.Of(grain);
-        Assert.Equal(15, cell.Value);
+        Assert.Equal(8, cell.Value);
         Assert.True(cell.IsYours && cell.Editable && !cell.IsShort && !cell.HandsOff);
         var fish = RowGoal.Of(plan.Row("food:fish"));
-        Assert.Equal(5, fish.Value);                    // the steward's goal: its share of the days goal
+        Assert.Equal(12, fish.Value);                   // the steward's goal: its share of the days goal
         Assert.True(fish.Editable && !fish.IsYours);
     }
 
     [Fact]
-    public void Goals_past_the_target_and_its_tolerance_make_the_stewards_food_surplus()
+    public void A_goal_past_the_even_share_is_a_stockpile_on_top_and_the_stewards_food_keeps_its_share()
     {
-        // [Claude's call] your goals count first; what is left of the target (nothing) is the steward's.
+        // Step 25 (Anton 2026.10.01): your goal counts toward the target (20) only up to the even share (10); the 20 above it
+        // are on top. The fish (20 held) is surplus down to its own share — never drained.
         var s = new Scenario().Party(10).Food("grain", market: 100, buy: 10).Food("fish", held: 20, sell: 10);
         s.Settings.Goals["food:grain"] = 30;
         var plan = s.Plan();
+        Assert.Equal(10, plan.Facts.FoodShare);
         Assert.Equal(30, plan.Row("food:grain").Change);
-        Assert.Equal(-20, plan.Row("food:fish").Change); // 30 + 20 > 25: sold down toward the target — all of it
+        Assert.Equal(-10, plan.Row("food:fish").Change); // 10 counted + 20 > 25: sold down to the target — the fish keeps 10
+    }
+
+    [Fact]
+    public void A_quest_hoard_never_drains_the_other_kinds()
+    {
+        // Anton's playtest (docs/feedback/2026-10-01-grain-hoard.png): 9 kinds, a target of 235 (40 days, 10% tolerance),
+        // grain typed at 120 — the steward sold ALL the fish and meat. Now grain counts 27 (ceil 235 / 9), the 8 others share
+        // the rest: nothing is sold, the market's little butter and cheese are bought.
+        var s = new Scenario().Party(94).Gold(200_000)
+            .Food("beer", held: 19).Food("butter", held: 19, market: 1, buy: 10).Food("cheese", held: 19, market: 2, buy: 10)
+            .Food("date_fruit", held: 19).Food("fish", held: 24, sell: 7).Food("grain", held: 128, market: 17, buy: 5, sell: 5)
+            .Food("grapes", held: 20).Food("meat", held: 24, sell: 16).Food("olives", held: 19);
+        foreach (var unsold in new[] { "beer", "butter", "cheese", "date_fruit", "grapes", "olives" })
+            s.Settings.PriceBook[unsold] = new PriceBookEntry { Sell = false };
+        s.Snap.Party.DailyFoodUse = 94 * 0.0625; // 40 days x 94 eaters = 235, the screenshot's target
+        s.Settings.FoodSurplusTolerancePercent = 10;
+        s.Settings.Goals["food:grain"] = 120;
+        var plan = s.Plan();
+        Assert.Equal(235, plan.Facts.FoodTarget);
+        Assert.Equal(27, plan.Facts.FoodShare);
+        Assert.Equal(-8, plan.Row("food:grain").Change);  // your goal: 128 → 120 (your sale is not guarded)
+        Assert.Equal(0, plan.Row("food:fish").Change);
+        Assert.Equal(0, plan.Row("food:meat").Change);
+        Assert.Equal(1, plan.Row("food:butter").Change);
+        Assert.Equal(2, plan.Row("food:cheese").Change);
+        Assert.Equal(9, plan.Rows.Count(r => r.Type == RowType.Food && r.Result > 0)); // every kind kept
+
+        LivePlanTests.ApplyDoIt(s, plan);
+        foreach (var row in s.Plan().Rows.Where(r => r.Type == RowType.Food))
+            Assert.True(row.Change == 0, row.Id + " " + row.Change);  // Do it leaves nothing new to suggest
+    }
+
+    [Fact]
+    public void Without_a_goal_the_surplus_sale_stops_at_the_even_share()
+    {
+        // The variety guard (step 25): target 20 over 2 kinds = 10 each; 60 grain held but only the fish may be sold — the fish
+        // goes down to its share and no further, though the total stays above the target.
+        var s = new Scenario().Party(10).Food("grain", held: 60).Food("fish", held: 30, sell: 10);
+        s.Settings.PriceBook["grain"] = new PriceBookEntry { Sell = false };
+        var plan = s.Plan();
+        Assert.Equal(10, plan.Facts.FoodShare);
+        Assert.Equal(0, plan.Row("food:grain").Change);
+        Assert.Equal(-20, plan.Row("food:fish").Change);  // 30 → 10, never 0
+
+        LivePlanTests.ApplyDoIt(s, plan);
+        Assert.Equal(0, s.Plan().Row("food:fish").Change); // still above the target: the guard holds the same line again
+    }
+
+    [Fact]
+    public void A_goal_below_the_share_counts_fully_and_one_above_counts_only_the_share()
+    {
+        var s = new Scenario().Party(20).Food("grain", market: 200, buy: 10).Food("fish", market: 200, buy: 10)
+            .Food("cheese", market: 200, buy: 10).Food("olives", market: 200, buy: 10); // target 40, share 10
+        s.Settings.Goals["food:grain"] = 4;
+        var plan = s.Plan();
+        Assert.Equal(10, plan.Facts.FoodShare);
+        Assert.Equal(40, plan.Totals.FoodUnitsAfter);     // 4 counted fully: the steward's three kinds share 36
+        Assert.Equal(36, plan.Rows.Where(r => r.Type == RowType.Food && r.ItemId != "grain").Sum(r => r.Result));
+
+        s.Settings.Goals["food:grain"] = 50;
+        plan = s.Plan();
+        Assert.Equal(80, plan.Totals.FoodUnitsAfter);     // 10 counted + 40 on top; the three others share 30
+        Assert.Equal(30, plan.Rows.Where(r => r.Type == RowType.Food && r.ItemId != "grain").Sum(r => r.Result));
     }
 
     [Fact]
