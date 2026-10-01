@@ -412,3 +412,18 @@ while you are still inside, the game then counts you as the village's DEFENDER, 
    `[guard] …: the steward stands aside - a hostile action is starting` / `- the party is in a Raid (map event …)`; the
    "Party Steward" entry is greyed ("The steward waits until the fighting is over.") if a fight is on while its menu shows.
 5. **Nothing else changed**: arrival popup, leave question, Do it, the autonomous steward work as before in a quiet town.
+
+## Step 25 — a big food goal keeps the other kinds (NOT deployed yet: the game was running — quit it, run `tools\deploy.ps1`)
+
+A food goal counts toward the days only up to the even share (target / food kinds); above it is a stockpile on top. The
+steward's surplus sale never takes a kind below that share.
+
+1. **The grain hoard.** In a town, type Grain = 120 (or any number far above the others). Fish, meat and the rest are NOT sold
+   — every kind keeps about target / kinds; the steward may buy a little of the thin kinds instead.
+2. **The Food title's Goal** = the days target + what your goal holds above its share (e.g. 235 + 93); the footer's days go up
+   with the hoard (the game eats every kind alike).
+3. **No goal, too much food.** With far more food than the days need, the steward sells down toward the target but leaves every
+   kind at least its share — no kind goes to 0.
+4. **Your own sale is not guarded.** Type a goal BELOW what you hold (e.g. Fish = 0): it is sold, all of it.
+5. **Do it, then reopen the window**: nothing new is suggested for food.
+6. The log's `facts:` line shows the share: `food target 235 (sell above 258.5, 27 per kind)`.

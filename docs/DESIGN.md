@@ -67,7 +67,7 @@ disagree, this block wins.
   | Troops title | the party size limit; **Mine** = members now, **red when over the limit** [Anton] | no |
   | a wanderer, the mercenaries, Recruits, Your troops, a troop row | empty [Anton: "no goal changes here"] | no |
   | a food row | yours, or the steward's: the row's planned Result — its share of the days goal (the days goal is a total, not per kind) [Claude's call] | **yes** |
-  | Food title | the sum of the rows' goals [Anton via the manager] | no |
+  | Food title | the sum of the rows' goals [Anton via the manager] — the target + any goal's stockpile above the even share (§2.1, step 25) | no |
   | Pack animals · Riding horses · War horses | yours, or the steward's: `PackAnimalsTarget` · the riding target (T − the war, noble and lame horses kept, §2.3) · `WarMountsToKeep` | **yes** |
   | Noble horses · Lame horses | 0 (they are only ever sold) | no |
   | Horses title | the sum of the role rows' goals [Claude's call] | no |
@@ -89,9 +89,12 @@ disagree, this block wins.
   `PlanCarryOver` no longer carries them (the settings do). A fresh plan with goals plans twice (the second time with the goals'
   own gold known, so the steward's earlier phases leave it — `PlanPins.SellGoldAfter…/SpendAfter…`, as in a re-plan).
 - **The policy fills the rest** [Anton: "every food item that's goal is not manually set will be determined by those rules"]:
-  your food goals count toward the days goal FIRST (as the goal's Result), the steward's food rows share what is left — buy
-  up to the target, sell above target + tolerance down to it. [Claude's call] So goals that alone pass the target + tolerance
-  make the steward's own food rows surplus: they are sold like any surplus (most-held first, down to the target — or all of them).
+  your food goals count toward the days goal FIRST (as the goal's Result) — **but only up to the even share, `ceil(target / food
+  rows)`; above it a goal is a stockpile on top [manager for Anton, 2026.10.01 — step 25, §2.1]** — the steward's food rows share
+  what is left — buy up to the target, sell above target + tolerance down to it, never a kind below the even share. ~~[Claude's
+  call] So goals that alone pass the target + tolerance make the steward's own food rows surplus: they are sold like any surplus
+  (most-held first, down to the target — or all of them).~~ (Retired 2026.10.01: it drained whole kinds — a quest hoard of grain
+  sold all the fish and meat.)
   A riding-horse goal is a plain number (it no longer follows the footmen until ⟲); a war-horse goal replaces `WarMountsToKeep`
   here and counts toward T, so the steward's riding horses fill the rest around it; a pack goal replaces `PackAnimalsTarget`.
 - **A [–]/[+] click on a food or pack / riding / war row IS a goal edit** [Anton via the manager: "one concept per row, one ⟲"]:
@@ -609,14 +612,32 @@ pure Core logic fed a snapshot of the party and the market (§5).
 - **Sell surplus** (`SellFoodSurplus`, default on): only when held > target ×
   (1 + `FoodSurplusTolerancePercent`/100) (default **25**) — sell back down to the target,
   most-held type first (keeps variety), only Sell-ticked types, only at ≥ their final min sell
-  price (§1.3).
+  price (§1.3), never a type below its even share (step 25, below).
 - **[decided: Claude, 2026.09.27 — step 4]** The target counts only the prisoners who stay — those
   this visit ransoms or donates are not fed. Two types held equally when selling → the dearer goes first.
 - **[step 15]** The eaters are the party AFTER the deal: the men the plan hires eat from today, and the target follows every
   hire and every prisoner kept or ransomed live (§1.1, the live re-plan).
 - **Manual goals [Anton 2026.09.28, round 5]** (§1.1 "THE GOAL"): a food with a goal typed (or clicked) in the Suggestion tab
-  keeps that goal in every town until its ⟲ — walked first, counted toward the target first; the steward's food rows share
-  what is left of the target. Below `FoodMinDenari` a goal still acts (unless `ManualGoalsWaitForThresholds`), the others show `–*`.
+  keeps that goal in every town until its ⟲ — walked first. Below `FoodMinDenari` a goal still acts (unless
+  `ManualGoalsWaitForThresholds`), the others show `–*`.
+- **The even share — a goal is not the days [decided by the manager for Anton, 2026.10.01 — step 25]** (Anton's playtest,
+  `docs/feedback/2026-10-01-grain-hoard.png`: grain typed at 120 for a quest ate the 235 target, and the steward sold ALL the
+  fish and meat; Anton: *"if I have chosen to keep all kinds of food, even if one is very high, it must not sell the others"*).
+  Replaces round 5's "a goal is counted toward the target first, the steward's rows share what is left":
+  - **Even share** = `ceil(Target / food rows)` — the rows of the Food section (kinds held or buyable here, goals included),
+    rounded UP so the kinds together never fall short of the target; 0 when the target or the rows are 0 (Core
+    `FoodPlanner.Share`, the log's facts line `… per kind`).
+  - A food goal counts toward the days target only up to it: **counted = min(the goal's result, share)**. Anything above is a
+    **stockpile ON TOP** of the days (a quest hoard); the steward's own kinds share `Target − Σ counted`. A goal at or below the
+    share counts fully, as before. (The screenshot: share 27, grain counts 27, the 8 others share 208 — nothing is sold.)
+  - **Variety guard**: the steward's surplus sale never takes a kind below the even share — it may still sell kinds above the
+    share toward the target; when it cannot reach the target without breaking the guard it stops there (no new UI: the row's
+    Goal is its Result, so nothing is "short"; the log's facts line shows the share). The player's own goal sales (a goal below
+    what is held) are NOT guarded — the player is in control.
+  - The Food title's Goal stays the sum of the rows' goals, so it shows what will be kept: the target + the stockpile above the
+    share (when the market can fill the steward's kinds). The footer's days count all food, the hoard included — the game eats
+    every kind alike.
+  - No new setting: the share follows the target and the kinds.
 - **Locked food is managed** **[Anton 2026.09.28, playtest round 2]**: food LOCKED in the inventory screen counts as held
   and is sold as surplus by the rules above like any other (most-held type first, down to the target) — unless
   `LocksProtectFoodAndHorses` (default **off**; on = locked food is counted but never sold, the old way). See §2.6.
