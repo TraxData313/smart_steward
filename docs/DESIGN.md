@@ -158,6 +158,51 @@ disagree, this block wins.
     the top gained a second line, *"Type a goal in the Goal column (food, pack animals, riding and war horses) and press Enter - it
     holds in every town until [⟲] gives the row back to these rules."* (the ⟲ drawn as the button's own icon).
 
+**DO JUST THIS PART [Anton 2026.10.01 — decided by the manager for Anton, PLAN step 27]** — *"can you add me a new col with a
+button next to each thing like the prisoners etc if I want to get only that part done but not change my settings like for how
+im now with the grain stuff - i dont want to do the full steward but want to ransom my prisoners, so add that button where I can
+do specific deals separately"*. (Core `Planning\PlanPart`, `PartDeal`, `StewardPlan.DealOf`; `SheetView` gives each line its
+part; the window's `RunPart`.)
+- **The column**: a narrow column right AFTER **Result**, headed "Part", a small "Do" button (`ButtonSimpleBrush`, the word
+  through UiText) [Claude's call — why there and not at the far right: the controls stay together — Change shapes the line,
+  Result shows where it ends, Do runs it — and the number columns stay one block; at the far right the button would sit
+  ~1,500 px from the name it belongs to, and it would move whenever the Sea column hides]. Widths (one table,
+  `tools\gen-suggestion-tab.py`): Item 432 → 396, Denari 204 → 190, Prisoners 92 → 80; the Do column 6 + 56.
+- **Where**: on every section's TITLE line (Troops, Food, Horses, Prisoners, Other) — folded or not, a folded section's button
+  works the same — and on the lines that are a deal of their own: **Lords**, **Others**, **Recruits**, **Your troops**, **each
+  tavern row** (a wanderer, the mercenaries) and **Other goods**. Item-level rows get none — one food, a horse role, a troop
+  type, a prisoner type, the loot groups Armour / Melee / Ranged / Shields (the Other title runs them), a breakdown line — so
+  the table stays glanceable.
+- **What it runs**: ONLY that part's transactions of the CURRENT plan as shown — your edits, your goals, a quest's food goal
+  included, at the plan's own prices (`StewardPlan.DealOf(part)` filters `StewardPlan.Transactions` by row; a troop row by its
+  side: Recruits = its recruits, Your troops = its dismissals) — through the SAME executor path as Do it (`PlanExecutor`: the
+  live price against each row's limit, the market's gold, the purse, the lock rules, the dungeon, `EncounterGuard`). It changes
+  NO setting and NO goal.
+- **The money — honest about running alone** [manager for Anton; how: Claude's call]: the part's ransoms and sales come first
+  (as in Do it), then each purchase stops at the floor its row answers to in Do it — the steward's food at `MinGoldAfterDeal`,
+  its animals at the higher animal floor, a goal of yours (or a quest's) at the goals' floors (none with
+  `ManualGoalsKeepPurseFloor` off) — then the hires and recruits stop where the purse no longer pays (a wanderer needs MORE than
+  his price, like vanilla). So **where the part differs from the same rows inside Do it**:
+  - Its buys or hires that the OTHER parts' sales and ransoms paid for inside the whole deal are cut (a row cut once buys no
+    other stack — its prices were walked on units it never bought). The hover says so: *"Alone: 12 fewer than in the whole
+    deal - it keeps your purse at 1,000 denari."* / *"… - your purse alone cannot pay for them."* Everything cut → greyed.
+  - Nothing else: the prices are the whole deal's — a town's price walks per item CATEGORY and every category lives in one
+    section (food, horses, gear, goods), so a part's prices alone are the same (should a mod put one category in two parts,
+    the executor's live price check still holds each row's limit and the log shows the drift). The prisoners' split is the
+    plan's: Others alone donate exactly what the line shows, never more because the lords' room is free.
+  - The plan is for the party after the WHOLE deal (the live re-plan): Food run alone buys the food planned for the mercenaries
+    you queued even if you never hire them — the re-plan afterwards then shows any surplus. Run Troops first if that matters.
+- **Greyed** (`PartDeal.Block`) with the reason on hover: *"Nothing to do in this part."* · *"Alone it would take your purse
+  below 1,000 denari - the rest of the deal pays for it. Use Do it."* · *"Alone your purse cannot pay for it - the rest of the
+  deal pays for it. Use Do it."* **Enabled**, the hover says what it will do in one line: *"Ransom 9: +3,160 denari"*, *"Buy 24,
+  sell 5: –310 denari"*, *"Hire 9, recruit 5, dismiss 4: –1,600 denari"*, *"To the dungeon 4: +3.2 influence"* (+ the cut line).
+- **Afterwards** the window plans afresh on a new snapshot (as after Do it) and STAYS OPEN; the player's touched rows of every
+  OTHER part are put back (`PlanCarryOver.Capture(plan, part)` → `StewardPlan.Restore`, the settings re-plan's own carry-over:
+  rows by id, clamped to the new limits, walked first; a troop row by its side — after Recruits its dismissals stay); the part's
+  own edits were carried out and are not put back (a row the executor cut short is proposed anew). Goals are settings and stay
+  anyway. Not kept: the Your troops line's undo order (as after any settings re-plan). The log gets Do it's own report lines,
+  tagged `part <name>`; the status line and the message log say `Steward (Prisoners): 2 of 2 done. Denari …`.
+
 **THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
 standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,
 `Planning\Overburden` —, step 21 BUILT the window on it (2026.09.28, "As built" below); where this block and the older text
@@ -1183,6 +1228,8 @@ troop / hero, the count and the expected unit prices.
   them); the log shows the difference. Mercenaries: what is still on offer, capped by the purse (never by the party size limit).
 - Every run is logged — gold before, each transaction with its real unit prices and its drift from the plan, gold
   after — and the player gets a one-line summary.
+- **[step 27]** "Do just this part" (§1.1) hands the executor only that part's transactions (`PartDeal.Transactions`, cut
+  where the purse alone stops them) — the same path, the same checks; the log's lines are tagged `part <name>`.
 
 ---
 
