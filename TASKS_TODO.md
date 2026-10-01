@@ -81,6 +81,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 28. NOBLE HORSES TO KEEP (Anton 2026.10.01 — "some mods want nobles for upgrades"): a "Noble horses to keep" number like
   war horses (same threshold, buys up to it, sells the rest unless locked), default 0 = today's behaviour; a typed goal on the row
   - [ ] Deployed at the end of step 28 (the game was closed — the install carries steps 24–28), then playtest — checklist in docs/PLAYTEST.md "Step 28"
+- [ ] 29. DO ON EVERY LINE (Anton 2026.10.01 — "can I have that Do button next to every line too, so that say I want to just update one
+  specific food"): the Part column's Do button on every item row too (each food, horse row, troop type, prisoner, other good) — it
+  does only that row; and the bottom-right "Do it" button is renamed "Do all" (every text that names it follows)
 SHIPPING NEXT (done in main, NOT released yet):
 - "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
 - "Do" just this part: a Part column with a Do button on every section and on Lords, Others, Recruits, Your troops, each tavern row and Other goods — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
