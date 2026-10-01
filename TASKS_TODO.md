@@ -88,6 +88,10 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 30. NOBLE HORSE MAX PRICE (Anton 2026.10.01 — "I want max price per noble horse to be able to be different from war horse"):
   its own "Noble horse max price" setting beside WarMountMaxPrice, used when buying kept noble horses (today: no cap)
   - [ ] Deployed at the end of step 30 (the install carries steps 24–30), then playtest — checklist in docs/PLAYTEST.md "Step 30"
+- [ ] 31. "DEAL" WORDING (Anton 2026.10.01 — "rename that Do button over say the food group as Do group … and maybe Do in all places
+  there replace with Deal, deal I think will feel more natural"): the Part column's buttons say "Deal" on a single line and "Deal group"
+  on a section title and on the lines that hold a group (Recruits, Your troops, Lords, Others, Other goods); the bottom "Do all" → "Deal all"
+  (manager's call for one word everywhere — Anton may keep "Do all"); every text naming them follows
 SHIPPING NEXT (done in main, NOT released yet):
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
 - A "Do" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Do all"
