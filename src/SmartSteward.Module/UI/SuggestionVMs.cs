@@ -925,6 +925,7 @@ namespace SmartSteward.UI
         private string _nameText = "";
         private bool _isLink;
         private string _noteText = "";
+        private string _questNoteText = "";
         private bool _isIndented;
         private bool _hasExpander;
         private bool _isExpanderOpen;
@@ -975,6 +976,7 @@ namespace SmartSteward.UI
             DecreaseHint = new HintVM();
             DenariHint = new HintVM();
             FoldHint = new HintVM();
+            QuestNoteHint = new HintVM();
             ResetHint = new HintVM(IsLine
                 ? UiText.S("ss_ui_reset_line_hint", "Hand the rows you moved on this line back to the steward.")
                 : UiText.S("ss_ui_reset_hint", "Your number - the steward plans around it. Click to hand the row back to the steward."));
@@ -1007,7 +1009,10 @@ namespace SmartSteward.UI
             _item = item;
             NameText = item.Name;
             IsLink = item.IsLink;
-            NoteText = item.Note;
+            // Step 32: the quest part first, in the quest colour, right after the name; the grey note after it ("· 10 each").
+            QuestNoteText = item.QuestNote;
+            QuestNoteHint.Text = item.QuestNoteHint;
+            NoteText = item.NoteAfterQuest;
             IsIndented = item.Indented;
             HasExpander = item.FoldKey != null;
             IsExpanderOpen = item.IsOpen;
@@ -1209,6 +1214,10 @@ namespace SmartSteward.UI
         [DataSourceProperty] public HintVM FoldHint { get; }
         [DataSourceProperty] public HintVM DenariHint { get; }
 
+        /// <summary>Step 32: the quests behind the quest note, by their titles.</summary>
+        [DataSourceProperty] public HintVM QuestNoteHint { get; }
+        [DataSourceProperty] public string QuestColor => UiColors.Quest;
+
         [DataSourceProperty]
         public string NameText
         {
@@ -1231,6 +1240,22 @@ namespace SmartSteward.UI
             get => _noteText;
             set { if (value != _noteText) { _noteText = value; OnPropertyChangedWithValue(value, nameof(NoteText)); } }
         }
+
+        /// <summary>Step 32: <c>120 needed for quest</c> — empty (and hidden) when no quest touches the line.</summary>
+        [DataSourceProperty]
+        public string QuestNoteText
+        {
+            get => _questNoteText;
+            set
+            {
+                if (value == _questNoteText) return;
+                _questNoteText = value;
+                OnPropertyChangedWithValue(value, nameof(QuestNoteText));
+                OnPropertyChanged(nameof(HasQuestNote));
+            }
+        }
+
+        [DataSourceProperty] public bool HasQuestNote => _questNoteText.Length > 0;
 
         [DataSourceProperty]
         public bool IsIndented

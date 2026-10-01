@@ -350,6 +350,14 @@
     <string id="ss_ui_sheet_per_kind" text="per kind" />
     <string id="ss_ui_sheet_pieces" text="pieces" />
     <string id="ss_ui_sheet_prisoners" text="prisoners" />
+    <string id="ss_ui_sheet_quest_ask_for" text="Your quests ask for:" />
+    <string id="ss_ui_sheet_quest_below" text="Below what your quests need:" />
+    <string id="ss_ui_sheet_quest_kept_for" text="Kept for your quests:" />
+    <string id="ss_ui_sheet_quest_note_held" text="for quest, held" />
+    <string id="ss_ui_sheet_quest_note_held_many" text="for quests, held" />
+    <string id="ss_ui_sheet_quest_note_needed" text="needed for quest" />
+    <string id="ss_ui_sheet_quest_note_needed_many" text="needed for quests" />
+    <string id="ss_ui_sheet_quest_you_hold" text="you hold" />
     <string id="ss_ui_sheet_ransom" text="ransom" />
     <string id="ss_ui_sheet_ransomed" text="ransomed" />
     <string id="ss_ui_sheet_recruiting" text="recruiting" />

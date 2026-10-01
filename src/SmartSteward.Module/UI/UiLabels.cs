@@ -120,6 +120,16 @@ namespace SmartSteward.UI
             ShortNothingToSell = UiText.S("ss_ui_sheet_short_nothing_to_sell", "nothing more it may sell (locked or unticked)"),
             ShortSurplusKept = UiText.S("ss_ui_sheet_short_surplus_kept", "selling the surplus is off in the Instructions"),
             ShortNotPossibleHere = UiText.S("ss_ui_sheet_short_not_here", "not possible here"),
+            // Step 26's quest hover (it went out in English only until step 32 — now translatable like the rest).
+            QuestKeptFor = UiText.S("ss_ui_sheet_quest_kept_for", "Kept for your quests:"),
+            QuestBelow = UiText.S("ss_ui_sheet_quest_below", "Below what your quests need:"),
+            QuestYouHold = UiText.S("ss_ui_sheet_quest_you_hold", "you hold"),
+            // Step 32: the quest note after a name ("Grain  120 needed for quest").
+            QuestNoteNeeded = UiText.S("ss_ui_sheet_quest_note_needed", "needed for quest"),
+            QuestNoteNeededMany = UiText.S("ss_ui_sheet_quest_note_needed_many", "needed for quests"),
+            QuestNoteHeld = UiText.S("ss_ui_sheet_quest_note_held", "for quest, held"),
+            QuestNoteHeldMany = UiText.S("ss_ui_sheet_quest_note_held_many", "for quests, held"),
+            QuestAskFor = UiText.S("ss_ui_sheet_quest_ask_for", "Your quests ask for:"),
         };
 
         /// <summary>The tooltip of a greyed [+] / [−] (DESIGN §1.1: "the button greys with the reason").</summary>

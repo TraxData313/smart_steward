@@ -42,6 +42,18 @@ def text(width, value, size=19, align="Right", color=None, margin_left=0, visibl
             f'Brush.TextHorizontalAlignment="{align}" Brush.TextVerticalAlignment="Center"{c} Text="{value}"{v}{extra} />')
 
 
+def quest_note(size):
+    """Step 32 (Anton 2026.10.01, "'Grain' -> 'Grain (100 needed for quest)'"): the quest note right after the name, in the
+    quest colour, its hover naming the quests - a label of its own (a Gauntlet TextWidget has ONE font colour), before the
+    grey note so the Item cell's clip never cuts it."""
+    return f'''<Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" IsVisible="@HasQuestNote">
+  <Children>
+    {text(0, "@QuestNoteText", size, "Left", "@QuestColor")}
+    <HintWidget DataSource="{{QuestNoteHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />
+  </Children>
+</Widget>'''
+
+
 def denari_cell(size, small, hint=True):
     hint_xml = ('\n  <HintWidget DataSource="{DenariHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" '
                 'Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />') if hint else ""
@@ -199,6 +211,7 @@ main_line = f'''<!-- a line: a row, a troop line or a prisoner line (32 px, mock
                     <HintWidget DataSource="{{LinkHint}}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsEnabled="false" />
                   </Children>
                 </ButtonWidget>
+{indent(quest_note(15), 16)}
                 {text(0, "@NoteText", 15, "Left", "@MutedColor", margin_left=10)}
               </Children>
             </ListPanel>
@@ -252,6 +265,7 @@ sub_line = f'''<!-- a breakdown line (26 px): one kind inside a row's fold, smal
               <Children>
                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="64" HeightSizePolicy="StretchToParent" />
                 {text(0, "@NameText", 16, "Left", "@MutedColor")}
+{indent(quest_note(14), 16)}
                 {text(0, "@NoteText", 14, "Left", "@MutedColor", margin_left=10)}
               </Children>
             </ListPanel>
