@@ -164,7 +164,7 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               detail rows, PlanMetrics per line/section/Total, the header texts, the weight table with slowdown -
                               SheetWords = its English words (the window fills them — UiLabels.SheetText); PriceBookOrder (step 20) =
                               cheapest first; SheetView (step 21) = the lines ON SCREEN built from the sheet after every click: every
-                              cell as text + colour, the notes after the names, the Denari tooltips, every button's live block (a troop
+                              cell as text + colour, the notes after the names (step 32: the quest note first, light blue), the Denari tooltips, every button's live block (a troop
                               row under its line shows only its side), the folds applied — a folded part is never asked for blocks;
                               SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults;
                               SheetGoalCell (step 22) = the Goal column per line and title line (SheetItem.Goal, SheetSectionView.Goal /

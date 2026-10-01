@@ -78,6 +78,9 @@ disagree, this block wins.
   A title shows `–*` when every row under it is hands-off (below).
   **[step 26, §2.9]** A row a quest keeps something on shows the quest's need in this cell, in the quest colour, its hover
   naming the quests; a goal you typed still wins.
+  **[step 32, Anton 2026.10.01 — "can you add some info, maybe next to the name 'Grain' -> 'Grain (100 needed for quest)' or
+  something like that indicating to the player that?"]** The NOTE AFTER THE NAME says it too: `Grain  120 needed for quest ·
+  10 each` — see §2.9 "The quest note".
 - **A manual goal is a STANDING ORDER** [Anton: "if I change it add a reset button and it will reset to the one determined by my
   policy in instructions"]: it holds in every town, across sessions and restarts, until its ⟲ gives the row back to the
   Instructions policy. Kept in `settings.json` as the commented **`Goals`** object (§7 group "Goals you set by hand", §8) — global
@@ -1207,6 +1210,28 @@ RESEARCH §29. Core `Snapshot\QuestNeed`, `Planning\QuestKeep`; Module `Adapter\
   otherwise empty) — and its hover names the quests in the game's own titles: *"Kept for your quests: Ryibelet Needs Grain
   Seeds – 120 Grain"* (one line per quest; *", you hold 5"* when fewer are held than it asks). A goal of yours keeps its gold,
   the hover then saying when it is below the quests' need. A title line's Goal stays the plain sum.
+- **The quest note after the name** (PLAN step 32) **[Anton 2026.10.01 — "can you add some info, maybe next to the name
+  'Grain' -> 'Grain (100 needed for quest)' or something like that indicating to the player that?"]** — every line a quest
+  touches says so right after its name, in the quest colour: `Grain  120 needed for quest · 10 each` (Core `SheetItem.QuestNote`,
+  built by `SheetView`; the hover on it: *"Your quests ask for:"* + one line per quest, as the Goal's).
+  - **The number is what the QUESTS ask**, summed over the quests on the line (`220 needed for quests` — "quests" when there
+    are several) — not what the line keeps [Claude's call: it is Anton's "100 needed for quest"; a need served from two lines —
+    one breed among riding and war horses, bandits of two types, laborers of two prisoner types — shows on both, and the hover
+    says what is held].
+  - **Met**: when what the party holds already covers every quest on the line, `120 for quest, held` (the game's fonts have no
+    ✓ — RESEARCH §14).
+  - **Where**: every row (food; pack / riding / war / noble / lame horses; the loot groups and Other goods; a troop type —
+    under Your troops and under Recruits alike; a prisoner type), every breakdown line whose item a quest names (one breed,
+    one good), and the lines that hold a group of rows folded in the everyday view — **Lords, Others, Your troops** (their rows'
+    quests, each once). NOT a section's title line (Food, Horses…) and not Recruits (a quest keeps men you hold).
+  - **Drawn** [Claude's call, why]: a label of its own right after the name, light blue (`UiColors.Quest`), then the grey note
+    joined by a dot (`· 10 each`, `SheetItem.NoteAfterQuest`). Two labels because a Gauntlet TextWidget has ONE font colour
+    (rich-text spans would need a brush style of our own); the quest part FIRST because the Item cell (396 px) clips at its right
+    edge — the quest part is the one that must never be cut, and Anton asked for it "next to the name". The name itself is
+    never cut (it comes first); a long grey note may be. `120 needed for quest` is ~113 px at font 15 (the .fnt advances), so even an indented troop row
+    (44 px) with a ~200 px name keeps the whole quest part inside the 396.
+  - Words: `ss_ui_sheet_quest_note_needed` / `_needed_many` / `_held` / `_held_many`, the hover head `ss_ui_sheet_quest_ask_for`
+    (step 26's three hover words went out English-only until step 32; now `ss_ui_sheet_quest_kept_for`, `_below`, `_you_hold`).
 - **The switch**: `QuestGoalsEnabled` — "Keep what your quests need" (Goals group, default **on**; registry, settings file,
   MCM, Instructions). Off: quests are not read at all — the old way.
 - **Covered** (RESEARCH §29): Headman Needs Grain, Army Needs Supply (grain; wine as an Other good; its livestock is never

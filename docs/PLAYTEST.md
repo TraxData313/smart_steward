@@ -578,3 +578,18 @@ Words and one column's width only — what each button does is steps 27 and 29, 
    it) and a heavy party's weights still fit their columns; the Total line under the table too.
 7. You may prefer **Do all** to **Deal all** — say so; it is one word to change back.
 8. Log: the window's lines say `deal all` / `deal …` and `after Deal all`; the run's own lines keep `part Row:food:grain: …`.
+
+## Step 32 — the quest note by the name (NOT deployed yet — the game was running; quit it and run tools\deploy.ps1)
+
+Your words: *"'Grain' -> 'Grain (100 needed for quest)'"*. (DESIGN §2.9 "The quest note after the name")
+
+1. **Take a grain quest** (a headman's "Needs Grain Seeds") and open the steward in a town: the Grain row reads
+   **Grain  120 needed for quest · 10 each** — the quest part light blue, right after the name; the price grey after it.
+2. **Hover the blue words**: *"Your quests ask for:"* and the quest by its title, *", you hold 20"* while you are short.
+3. **Held**: with the grain in your bags the note reads **120 for quest, held**.
+4. **Two quests** on one thing add up: **80 needed for quests**.
+5. **Elsewhere**: a horse quest on its horse row and on the breed's line under ▸; tools or weapons on their Other line; garrison
+   troops or bandits on their troop row and on **Your troops**; laborers or a rival on the prisoner row and on **Others** /
+   **Lords**. The section title lines (Food, Horses…) do NOT carry it.
+6. **Nothing cut**: the names stay whole and the blue part fits the Item column — a long grey note after it may be cut; say if
+   the blue part ever is.
