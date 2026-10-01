@@ -76,6 +76,8 @@
     <string id="ss_hint_MountsEnabled" text="Keep horses for the men who walk, so the party moves faster. Default: on." />
     <string id="ss_hint_MountsMinDenari" text="The steward starts managing riding horses once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them, nor sells noble or lame horses. 0 = always. Default: 5,000. Range: 0 to 1,000,000." />
     <string id="ss_hint_MountsPer100Footmen" text="Horses kept for every 100 men on foot: 110 is one each plus 10% spare. The war horses you keep count among them; riding horses fill the rest. Default: 110. Range: 0 to 300." />
+    <string id="ss_hint_NobleHorsesMinDenari" text="When you keep noble horses, the steward starts managing them once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. With none to keep they are sold with the riding horses. 0 = always. Default: 20,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_NobleHorsesToKeep" text="How many noble horses the party keeps, like the war horses - bought up to it at their prices in the Prices tab, the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. They count among the horses per 100 footmen. 0 = none kept: every noble horse you did not lock is sold. Default: 0. Range: 0 to 500." />
     <string id="ss_hint_PackAnimalMaxPrice" text="Never pay more than this for one pack animal, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 300. Range: 0 to 100,000." />
     <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
     <string id="ss_hint_PackAnimalsMinDenari" text="The steward starts managing pack animals once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
@@ -91,7 +93,7 @@
     <string id="ss_hint_SellLootOrder" text="Which pieces go first when the market cannot pay for everything: the cheapest (the most weight for the denari), the lowest price per weight, or the most expensive (the game's own habit). Default: Cheapest first." />
     <string id="ss_hint_SellLootOtherGoods" text="Include every trade good that is not food or an animal - wool, salt, pottery, jewelry, iron... - in the sale, one Other goods line. Goods you lock in the inventory are never sold. Default: on." />
     <string id="ss_hint_SellMountSurplus" text="Sell riding horses above the target, the dearest first. Default: on." />
-    <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no troop ever needs one. The steward never buys them and sells the party's noble horses, never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
+    <string id="ss_hint_SellNobleHorses" text="Noble horses are for you and your companions - no vanilla troop needs one. The steward sells the party's noble horses above the number to keep (Noble horses to keep, 0 by default), never below their min sell price in the Prices tab. A noble horse you lock in the inventory is always kept, and a kept one carries a footman. Default: on." />
     <string id="ss_hint_SellPackAnimalSurplus" text="Sell pack animals above the target, the dearest first. Default: on." />
     <string id="ss_hint_SellWarMountSurplus" text="Sell war horses above the number to keep, the dearest first. Default: on." />
     <string id="ss_hint_ShowMercenaries" text="List the mercenary band in the town's tavern. Default: on." />
@@ -153,6 +155,8 @@
     <string id="ss_set_MountsEnabled" text="Manage riding horses" />
     <string id="ss_set_MountsMinDenari" text="Manage riding horses from (denari)" />
     <string id="ss_set_MountsPer100Footmen" text="Horses per 100 footmen" />
+    <string id="ss_set_NobleHorsesMinDenari" text="Manage kept noble horses from (denari)" />
+    <string id="ss_set_NobleHorsesToKeep" text="Noble horses to keep" />
     <string id="ss_set_PackAnimalMaxPrice" text="Max price per pack animal" />
     <string id="ss_set_PackAnimalsEnabled" text="Manage pack animals" />
     <string id="ss_set_PackAnimalsMinDenari" text="Manage pack animals from (denari)" />
@@ -238,7 +242,7 @@
     <string id="ss_ui_info_goals" text="How the goals you type in the Suggestion tab's Goal column meet the money rules. The steward's own rows always keep them." />
     <string id="ss_ui_info_mounts" text="Riding horses follow these rules until you type their goal in the Suggestion tab." />
     <string id="ss_ui_info_pack" text="Pack animals follow these rules until you type their goal in the Suggestion tab." />
-    <string id="ss_ui_info_war" text="War horses follow these rules until you type their goal in the Suggestion tab." />
+    <string id="ss_ui_info_war_noble" text="War horses - and the noble horses you keep - follow these rules until you type their goal in the Suggestion tab." />
     <string id="ss_ui_instructions_intro" text="Your standing orders to the steward. Changes are saved at once - to settings.json, and Mod Options shows them too. Hover a name for what it does." />
     <string id="ss_ui_link_hint" text="Open in the Encyclopedia" />
     <string id="ss_ui_loot_armour" text="Armour" />
@@ -248,6 +252,7 @@
     <string id="ss_ui_loot_shields" text="Shields" />
     <string id="ss_ui_market_closed" text="Market closed: {REASON}" />
     <string id="ss_ui_mounts_note" text="({TOTAL} horses = {RIDING} riding + {WAR} war, for {FOOTMEN} footmen)" />
+    <string id="ss_ui_mounts_note_noble" text="({TOTAL} horses = {RIDING} riding + {WAR} war + {NOBLE} noble, for {FOOTMEN} footmen)" />
     <string id="ss_ui_no_plan" text="Smart Steward: nothing to plan here ({WHY})." />
     <string id="ss_ui_nothing_to_do" text="Nothing to do." />
     <string id="ss_ui_open_failed" text="Smart Steward: the window could not open - see smart_steward.log." />
@@ -273,6 +278,7 @@
     <string id="ss_ui_prices_intro_pairs" text="Final = your base price × its group's multiplier. An empty box uses the grey average price where auto-fill is on (Instructions tab, Prices). Unticked items are never bought or sold. Cheapest first." />
     <string id="ss_ui_prices_mounts" text="Mounts" />
     <string id="ss_ui_prices_noble" text="Noble horses — sell only" />
+    <string id="ss_ui_prices_noble_kept" text="Noble horses" />
     <string id="ss_ui_prices_pack" text="Pack animals" />
     <string id="ss_ui_prices_reset_hint" text="Clear your prices - the grey average applies again" />
     <string id="ss_ui_prices_sell_times" text="sell ×" />
@@ -309,6 +315,7 @@
     <string id="ss_ui_sheet_horses_to_keep" text="horses to keep" />
     <string id="ss_ui_sheet_influence" text="influence" />
     <string id="ss_ui_sheet_job_food" text="food" />
+    <string id="ss_ui_sheet_job_noble" text="noble horses" />
     <string id="ss_ui_sheet_job_pack" text="pack animals" />
     <string id="ss_ui_sheet_job_riding" text="riding horses" />
     <string id="ss_ui_sheet_job_war" text="war horses" />
@@ -325,6 +332,7 @@
     <string id="ss_ui_sheet_mercenaries" text="mercenaries" />
     <string id="ss_ui_sheet_min" text="min" />
     <string id="ss_ui_sheet_no_slowdown" text="none" />
+    <string id="ss_ui_sheet_noble_start" text="noble horses start at" />
     <string id="ss_ui_sheet_not_managed" text="Not managed yet: the steward starts on" />
     <string id="ss_ui_sheet_nothing_sold" text="nothing sold" />
     <string id="ss_ui_sheet_on_foot" text="on foot" />

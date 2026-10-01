@@ -54,7 +54,8 @@ namespace SmartSteward.UI
                     System.Func<StewardSettings, string>? note = null;
                     if (def.Key == nameof(StewardSettings.FoodDays))
                         note = settings => FoodDaysNote(def, settings, visit);
-                    else if (def.Key == nameof(StewardSettings.MountsPer100Footmen) || def.Key == nameof(StewardSettings.WarMountsToKeep))
+                    else if (def.Key == nameof(StewardSettings.MountsPer100Footmen) || def.Key == nameof(StewardSettings.WarMountsToKeep)
+                             || def.Key == nameof(StewardSettings.NobleHorsesToKeep))
                         note = settings => MountsNote(settings, visit);
                     vm.Settings.Add(new SettingLineVM(def, this, note));
                 }
@@ -80,7 +81,8 @@ namespace SmartSteward.UI
                 case SettingsRegistry.Mounts:
                     return UiText.S("ss_ui_info_mounts", "Riding horses follow these rules until you type their goal in the Suggestion tab.");
                 case SettingsRegistry.WarMounts:
-                    return UiText.S("ss_ui_info_war", "War horses follow these rules until you type their goal in the Suggestion tab.");
+                    return UiText.S("ss_ui_info_war_noble",
+                        "War horses - and the noble horses you keep - follow these rules until you type their goal in the Suggestion tab.");
                 default:
                     return "";
             }
@@ -94,6 +96,12 @@ namespace SmartSteward.UI
             int footmen = System.Math.Max(0, visit.Snapshot.Party?.Footmen ?? 0);
             int war = MountGoal.War(settings);
             int riding = MountGoal.Riding(settings, footmen);
+            int noble = MountGoal.Noble(settings);
+            if (noble > 0) // step 28: the kept noble horses count among them like the war horses
+                return UiText.T("ss_ui_mounts_note_noble", "({TOTAL} horses = {RIDING} riding + {WAR} war + {NOBLE} noble, for {FOOTMEN} footmen)")
+                    .SetTextVariable("TOTAL", UiFormat.Money(riding + war + noble)).SetTextVariable("RIDING", UiFormat.Money(riding))
+                    .SetTextVariable("WAR", UiFormat.Money(war)).SetTextVariable("NOBLE", UiFormat.Money(noble))
+                    .SetTextVariable("FOOTMEN", UiFormat.Money(footmen)).ToString();
             return UiText.S4("ss_ui_mounts_note", "({TOTAL} horses = {RIDING} riding + {WAR} war, for {FOOTMEN} footmen)",
                        "TOTAL", UiFormat.Money(riding + war), "RIDING", UiFormat.Money(riding), "WAR", UiFormat.Money(war),
                        "FOOTMEN", UiFormat.Money(footmen));

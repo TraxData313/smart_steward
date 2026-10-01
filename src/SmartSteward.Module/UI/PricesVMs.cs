@@ -71,7 +71,7 @@ namespace SmartSteward.UI
             AddSubGroup(horses, items, PriceBookGroup.PackAnimals, UiText.S("ss_ui_prices_pack", "Pack animals"));
             AddSubGroup(horses, items, PriceBookGroup.Mounts, UiText.S("ss_ui_prices_mounts", "Mounts"));
             AddSubGroup(horses, items, PriceBookGroup.WarMounts, UiText.S("ss_ui_prices_war_mounts", "War mounts"));
-            AddSubGroup(horses, items, PriceBookGroup.NobleHorses, UiText.S("ss_ui_prices_noble", "Noble horses — sell only"));
+            AddSubGroup(horses, items, PriceBookGroup.NobleHorses, NobleTitle(SettingsHost.Current));
             if (horses.Lines.Count > 0)
                 groups.Add(horses);
 
@@ -79,12 +79,18 @@ namespace SmartSteward.UI
             ModLog.Info("window", "prices tab: " + items.Count + " items");
         }
 
+        /// <summary>"Noble horses — sell only", or "Noble horses" while some are kept (step 28: they are bought then too).</summary>
+        internal static string NobleTitle(StewardSettings settings) =>
+            PriceBook.IsSellOnly(PriceBookGroup.NobleHorses, settings)
+                ? UiText.S("ss_ui_prices_noble", "Noble horses — sell only")
+                : UiText.S("ss_ui_prices_noble_kept", "Noble horses");
+
         private void AddSubGroup(PriceGroupVM group, List<PriceBookItem> items, PriceBookGroup kind, string title)
         {
             var sub = items.Where(i => i.Group == kind).ToList();
             if (sub.Count == 0)
                 return;
-            group.Lines.Add(PriceLineVM.SubHeader(title));
+            group.Lines.Add(PriceLineVM.SubHeader(title, kind));
             foreach (var item in sub)
                 group.Lines.Add(new PriceLineVM(item, this));
         }
@@ -290,10 +296,11 @@ namespace SmartSteward.UI
         private string _sellBaseColor = UiColors.Text;
         private bool _canReset;
 
-        private PriceLineVM(string subHeader)
+        private PriceLineVM(string subHeader, PriceBookGroup group)
         {
             IsSubHeader = true;
-            SubHeaderText = subHeader;
+            _subGroup = group;
+            _subHeaderText = subHeader;
             NameText = "";
             ItemId = "";
             ResetHint = new HintVM();
@@ -304,21 +311,36 @@ namespace SmartSteward.UI
             _item = item;
             _tab = tab;
             IsItem = true;
-            HasBuy = item.Group != PriceBookGroup.NobleHorses; // noble horses are never bought (step 17)
-            SubHeaderText = "";
+            _hasBuy = !PriceBook.IsSellOnly(item.Group, SettingsHost.Current); // noble horses: only while kept (step 17, 28)
+            _subHeaderText = "";
             NameText = item.Name;
             ItemId = item.ItemId;
             ResetHint = new HintVM(UiText.S("ss_ui_prices_reset_hint", "Clear your prices - the grey average applies again"));
         }
 
-        internal static PriceLineVM SubHeader(string title) => new PriceLineVM(title);
+        internal static PriceLineVM SubHeader(string title, PriceBookGroup group) => new PriceLineVM(title, group);
+
+        /// <summary>The group a sub-header heads (its title follows the settings — the noble horses', step 28).</summary>
+        private readonly PriceBookGroup _subGroup;
+        private string _subHeaderText;
+        private bool _hasBuy;
 
         internal string ItemId { get; }
 
         internal void Refresh(StewardSettings settings, bool includeTypedTexts)
         {
             if (_item == null)
+            {
+                if (IsSubHeader && _subGroup == PriceBookGroup.NobleHorses)
+                    SetText(ref _subHeaderText, PricesTabVM.NobleTitle(settings), nameof(SubHeaderText));
                 return;
+            }
+            bool hasBuy = !PriceBook.IsSellOnly(_item.Group, settings); // step 28: the noble horses' buy column while kept
+            if (hasBuy != _hasBuy)
+            {
+                _hasBuy = hasBuy;
+                OnPropertyChangedWithValue(hasBuy, nameof(HasBuy));
+            }
             var view = PriceRowView.Of(_item.ItemId, _item.Group, settings, _item.Averages);
             BuyTicked = view.BuyTicked;
             SellTicked = view.SellTicked;
@@ -371,9 +393,10 @@ namespace SmartSteward.UI
         [DataSourceProperty] public bool IsSubHeader { get; }
         [DataSourceProperty] public bool IsItem { get; }
 
-        /// <summary>The buy half of the row shows (every group but the noble horses — sell only, step 17).</summary>
-        [DataSourceProperty] public bool HasBuy { get; }
-        [DataSourceProperty] public string SubHeaderText { get; }
+        /// <summary>The buy half of the row shows (every group but the noble horses — sell only, step 17 — unless some are kept,
+        /// step 28).</summary>
+        [DataSourceProperty] public bool HasBuy => _hasBuy;
+        [DataSourceProperty] public string SubHeaderText => _subHeaderText;
         [DataSourceProperty] public string NameText { get; }
         [DataSourceProperty] public HintVM ResetHint { get; }
         [DataSourceProperty] public string MutedColor => UiColors.Muted;
