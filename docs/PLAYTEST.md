@@ -543,3 +543,20 @@ plans again and stays open, exactly like step 27's section buttons. The big bott
 10. **During a fight** nothing runs (the same guard — a `[guard]` log line).
 11. Log: the run is tagged `part Row:food:grain: …` / `part StackLine:…`; the window's lines say `after Do all`.
 12. Look: the Part column is no wider than in step 27 — say if a row looks busier than you like with a Do on every line.
+
+## Step 30 — noble horse max price (deployed 2026.10.01 — the install carries steps 24–30)
+
+Mod Options / Instructions → War mounts: a new **Max price per noble horse** (default **10,000**) right under **Max price per
+war horse** (2,000). It caps the price of each noble horse the steward buys for you — only while you keep some ("Noble horses
+to keep" above 0, or a goal of yours on the Noble horses row). 0 = no cap. (DESIGN §2.4)
+
+1. **The setting**: it sits right after "Max price per war horse", its hover says *"… 0 = no cap. Not scaled by the buy
+   multiplier. Only matters while you keep noble horses."*; `settings.json` carries `NobleHorseMaxPrice` with its comment.
+2. **Buying under the cap**: set Noble horses to keep = 2, visit a town that sells noble horses (Aserai, Imperial, Vlandian
+   … are worth 4,000–8,500) with 20,000+ denari — the Noble horses row buys at most 10,000 each.
+3. **Over the cap**: lower it to 5,000 — the dearer breeds drop out (the Result hover says the price limit), the cheaper ones
+   (a Battanian one) may still be bought. Raise it to 0 — only the Prices tab's max buy limits them.
+4. **War and noble apart**: change the war horse cap — the noble row does not move, and the other way round.
+5. **Your goal**: type a noble goal; over the cap it stops short (price limit) — with "Your goals obey the price limits" off it
+   buys anyway.
+6. **At 0 kept** nothing changes — noble horses are only sold, as before.

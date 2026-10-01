@@ -1361,6 +1361,20 @@ Anton took "Ryibelet Needs Grain Seeds" and had to type a grain goal so the stew
 
 ---
 
+## 30. What a horse is worth — the noble horse cap (verified in step 30, 2026.10.01)
+
+Vanilla horse items carry no `value` attribute: `ItemObject.Value` comes from `DefaultItemValueModel.CalculateValue`
+(`TaleWorlds.Core\DefaultItemValueModel.cs`) = `(int)(100 × 2.75^clamp(tier, −1, 7.5) × (1 + 0.2 × (appearance − 1)) +
+100 × max(0, appearance − 1))`, the horse tier `CalculateHorseTier` = speed × 0.12 + maneuver × 0.07 + extra_health × 0.01 +
+charge_damage × 0.15 − 11.5 (the stats from `<Horse …>` in `SandBoxCore\ModuleData\items\horses_and_others.xml`; the market
+horses have `appearance="0"` → × 0.8). Computed for v1.4.8:
+- **noble_horse, merchandise** (`t3_*`): Battanian 4,219 · Sturgian 6,073 · Khuzait 7,140 · Vlandian 7,900 · Imperial 8,394 ·
+  Aserai 8,480. Not merchandise (`is_merchandise="false"` — lords' gear, loot only): `noble_horse_*` 20,049–44,134,
+  `noble_horse` 97,154, `storm_charger` 1,786.
+- **war_horse, merchandise** (`t2_*`, `war_camel`, `charger`): 925–1,630 — why the war cap's 2,000 buys them all.
+- **horse, merchandise**: 217–368 (`hunter` 316).
+A town's buy price of an animal = value × bpf (clamped 0.8–1.3, §8) × (1 + 0.06) → a noble horse costs ~3,600–11,700.
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.

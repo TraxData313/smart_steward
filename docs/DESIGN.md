@@ -394,7 +394,7 @@ surplus is counted once every other kept horse is known — `PlanReplay.AnimalSe
 Ids: `mounts:pack`, `mounts:riding`, `mounts:war`, `mounts:noble`, `mounts:lame`.
 
 "Eligible" = buy-ticked in the Prices tab, priced within its own max (§1.3) AND within the role cap
-(`PackAnimalMaxPrice`, `MountMaxPrice`, `WarMountMaxPrice`) AND plain — a modified animal is never bought (lame and old
+(`PackAnimalMaxPrice`, `MountMaxPrice`, `WarMountMaxPrice`, `NobleHorseMaxPrice` — step 30) AND plain — a modified animal is never bought (lame and old
 ones by Anton's rule, step 17; any other modifier since step 4). Each step re-walks the marginal
 prices (§4.1), so the next `[+]` picks the next cheapest. The row shows the total and the unit
 range (`3 × 180–240 = 630`); Market = eligible units on offer. A small `▸` expands the row into its
@@ -847,7 +847,8 @@ pure Core logic fed a snapshot of the party and the market (§5).
     17** (§2.3 "Noble horses"): the sell-only row, sold with the riding horses at `MountsMinDenari`, no buy, no goal, the Prices
     tab's "Noble horses — sell only" — the step-17 tests are unchanged.
   - **N > 0 works exactly like the war horses**: the steward buys up to N — the cheapest ELIGIBLE (Buy-ticked, plain, at most
-    its price-book max: average buy × 1.2, §1.3; no role cap) — and sells the rest above N, **the dearest first** (the war
+    its price-book max: average buy × 1.2, §1.3; ~~no role cap~~ since step 30 AND ≤ `NobleHorseMaxPrice`, below) — and sells
+    the rest above N, **the dearest first** (the war
     horses' rule and the noble row's own ranking since step 17), with `SellNobleHorses` (off: the surplus is kept, the Result
     hover says so); a LOCKED noble horse is never sold and counts toward N. [Claude's call] "The best ones kept" was read as
     the war horses' rule: an upgrade takes any noble horse (the game's upgrade consumes the cheapest first, RESEARCH §4), so
@@ -868,6 +869,21 @@ pure Core logic fed a snapshot of the party and the market (§5).
   - **Lame noble horses** are replaced like any while noble horses are kept (`ReplaceLameHorses`, the Lame horses row; the
     noble row buys a healthy one) — at 0 the noble row sells them anyway, as since step 17. A noble horse's lock still always
     keeps it.
+  - **Max price per noble horse** **[Anton 2026.10.01, step 30 — "I want max price per noble horse to be able to be different
+    from war horse"]** — `NobleHorseMaxPrice`, default **10,000**, 0–100,000, the War mounts group right after "Max price per
+    war horse": the noble row's role cap, exactly the war cap's semantics — the buy limit is the LOWER of the price-book max
+    and the cap, **0 = no cap**, never scaled by the buy multiplier, a goal of yours obeys it while "Your goals obey the price
+    limits" (`ManualGoalsObeyPriceCaps`) is on and ignores it when off, like every horse goal (§1.1). Step 28 had no cap
+    [Claude's call then: any war-sized cap would buy no noble horse]. **Why 10,000** [decided: Claude, 2026.10.01 — step 30]:
+    the game prices a horse from its stats (`DefaultItemValueModel.CalculateValue` = 100 × 2.75^tier, tier = speed × 0.12 +
+    maneuver × 0.07 + extra health × 0.01 + charge × 0.15 − 11.5, × 0.8 at appearance 0); the six noble horses a market sells
+    (SandBoxCore `horses_and_others.xml`, `t3_*`) are worth Battanian 4,219 · Sturgian 6,073 · Khuzait 7,140 · Vlandian 7,900 ·
+    Imperial 8,394 · Aserai 8,480, and an animal's town buy price is value × 0.8–1.3 (supply/demand) × 1.06 (RESEARCH §8) —
+    so 10,000 buys every breed at an even market and most at a dear one, and stops the overpriced ones. (The lords' named
+    noble horses, 20,000–97,000, are not merchandise — loot only.) **No auto-fill switch to mirror**: the war cap pairs with
+    `AutoFillWarMountPrices` (off — then the cap is the war horses' ONLY buy limit), but noble prices always auto-fill (§1.3),
+    so the noble cap only ever trims the price book's max (average buy × 1.2). It matters only while noble horses are kept
+    (`NobleHorsesToKeep` > 0 or a `mounts:noble` goal); the war and noble caps are independent.
   - **Quest needs (§2.9)** keep working: a quest's noble horses are out of the steward's sell lane (a goal of yours walks the
     full lane — it wins); the Goal shows max(N, the need) in the quest colour.
 - **[research 2026.09.27]** The requirement sits on the troop you upgrade INTO
@@ -1456,6 +1472,7 @@ troop / hero, the count and the expected unit prices.
 | War mounts | NobleHorsesToKeep | 0 | 0–500 | "Noble horses to keep": a plain number of `noble_horse` mounts kept like the war horses — bought up to it at the price book's noble prices, the dearest sold above it (`SellNobleHorses`; a lock always keeps one); they count toward the horses per 100 footmen. 0 = none kept, every unlocked noble horse sold — exactly step 17 (§2.4) **[Anton 2026.10.01, step 28 — "same defaults, but number is 0 by default, some mods want nobles for upgrades, but vanilla players dont need that"]** |
 | War mounts | NobleHorsesMinDenari | 20000 | 0–1,000,000 | "Manage kept noble horses from (denari)": the purse before the deal the KEPT noble horses need (§3) — the war horses' default **[Anton 2026.10.01, step 28: "same defaults"]**; only while noble horses are kept (`NobleHorsesToKeep` > 0 or a goal of yours) — with none kept they are sold with the riding horses (`MountsMinDenari`), as since step 17 |
 | War mounts | WarMountMaxPrice | 2000 | 0–100,000 | role cap: never pay more per war horse (0 = none; not scaled) |
+| War mounts | NobleHorseMaxPrice | 10000 | 0–100,000 | "Max price per noble horse": role cap per KEPT noble horse bought — the war cap's semantics (0 = none; not scaled; the lower of it and the price-book max), only while noble horses are kept; 10,000 buys every vanilla merchandise noble horse (worth 4,219–8,480) at an even market (§2.4) **[Anton 2026.10.01, step 30 — "I want max price per noble horse to be able to be different from war horse"]** |
 | War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
 | Prisoners | LordPrisonerAction | Keep | Keep / Ransom / Donate | "Captured lords": what the steward does with captured lords in a town — Donate where the game forbids it (or the dungeon is full) keeps them **[Anton 2026.09.28, round 4]** |
 | Prisoners | PrisonerAction | Ransom | Keep / Ransom / Donate | "Other prisoners": every other prisoner — Donate fills the dungeon most valuable first, the rest (or all, where the game forbids it) ransomed; replaces `RansomPrisoners` (true), `RansomHeroPrisoners` (false) and `DonatePrisonersWhenPossible` (false) — an old file's values carry over once, logged **[Anton 2026.09.28, round 4]** |
