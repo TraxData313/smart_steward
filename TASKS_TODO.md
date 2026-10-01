@@ -63,11 +63,13 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   → VANILLA: "Leave..." out of a hostile action makes you the village's defender; fst2: Leave + re-enter, then raid (RESEARCH §28)
   - [ ] Deployed 2026.09.29 by the manager after step 24 (the install carries steps 12–24), then playtest — checklist in docs/PLAYTEST.md "Step 24"
 
-- [ ] 25. BUG (Anton 2026.10.01, screenshot docs/feedback/2026-10-01-grain-hoard.png): a big food goal (grain 120 for a quest) made the
+- [x] 25. BUG (Anton 2026.10.01, screenshot docs/feedback/2026-10-01-grain-hoard.png): a big food goal (grain 120 for a quest) made the
   steward sell ALL the fish and meat — the goal ate the days target and the surplus sale drained whole kinds. Fix: a food goal counts
   toward the days target only up to an even share (target / food kinds); above that it is a stockpile ON TOP and the other kinds keep
   their full share; and the surplus sale never takes a kind below its even share (variety is kept)
+  - [ ] Deploy (the game was running at the end of step 25), then playtest — checklist in docs/PLAYTEST.md "Step 25"
 SHIPPING NEXT (done in main, NOT released yet):
+- A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
 - MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
 - Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
 - No arrival popup where you cannot trade or the steward has no rows
