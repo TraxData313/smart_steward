@@ -58,6 +58,10 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>The party's load and carrying capacity now, on land and (with ships) at sea, and what one more member,
         /// mount, pack animal or prisoner changes them by — the footer's weight line (round 3, RESEARCH §19).</summary>
         public CarryInfo Carry { get; set; } = new CarryInfo();
+
+        /// <summary>What the player's ongoing quests ask the party to hold (step 26, DESIGN §2.9) — read afresh for every plan, never
+        /// stored; empty with <c>QuestGoalsEnabled</c> off or when no quest wants anything the steward trades.</summary>
+        public List<QuestNeed> QuestNeeds { get; set; } = new List<QuestNeed>();
     }
 
     /// <summary>

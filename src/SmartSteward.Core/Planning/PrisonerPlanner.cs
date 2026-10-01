@@ -75,13 +75,16 @@ namespace SmartSteward.Core.Planning
                     ToDungeonFirst = action == Settings.PrisonerChoice.Donate && donate,
                     MayRansom = ransom && !(prisoner.IsHero && action == Settings.PrisonerChoice.Donate),
                 };
+                // Step 26: the prisoners a quest keeps (a landowner's laborers, a lord's rival) are never ransomed nor donated.
+                int free = Math.Max(0, prisoner.Count - ctx.Quests.Prisoner(prisoner.TroopId));
                 var row = new PlanRow("prisoner:" + prisoner.TroopId, PlanSectionKind.Prisoners, RowType.Prisoner)
                 {
                     Name = prisoner.Name,
                     TroopId = prisoner.TroopId,
                     Mine = prisoner.Count,
-                    MaxSell = info.MayRansom ? prisoner.Count : info.ToDungeonFirst ? Math.Min(prisoner.Count, room) : 0,
+                    MaxSell = info.MayRansom ? free : info.ToDungeonFirst ? Math.Min(free, room) : 0,
                     Prisoner = info,
+                    Quest = ctx.Quests.ForPrisoner(prisoner.TroopId),
                 };
                 // A live re-plan keeps the player's own number of prisoners to move (a touched row, PlanPins); the steward moves
                 // them all or none by the row's action.

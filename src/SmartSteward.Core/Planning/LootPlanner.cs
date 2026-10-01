@@ -70,12 +70,14 @@ namespace SmartSteward.Core.Planning
                 if (free.Count == 0)
                     continue;
                 free.Sort(_order);
+                // Step 26: the pieces a quest keeps (a gang's axes, a village's tools) are counted in Mine but never sold.
                 var lane = new TradeLane(TradeDirection.Sell, LanePick.InOrder,
-                    free.Select(s => new LaneStack(s, s.Count, null)));
+                    free.Select(s => new LaneStack(s, ctx.Quests.Free(s), null)));
                 var row = new PlanRow("loot:" + group, PlanSectionKind.Other, RowType.Loot)
                 {
                     LootGroup = group,
-                    Mine = lane.Capacity,
+                    Mine = free.Sum(s => s.Count),
+                    Quest = ctx.Quests.ForStacks(free),
                     Locked = held.Where(ctx.IsGuarded).Sum(s => s.Count),
                     LocksGuard = ctx.LockGuards(ItemKind.Equipment), // always: locks keep guarding armour and weapons
                     OverValueCap = held.Where(s => !ctx.IsGuarded(s) && cap > 0 && s.UnitValue > cap).Sum(s => s.Count),

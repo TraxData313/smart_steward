@@ -354,7 +354,7 @@ namespace SmartSteward.Core.Planning
             int giveWay = 0;
             foreach (var other in Rows)
             {
-                if (other.IsTouched || ReferenceEquals(other, row) || PartyAfter.ChangesParty(other))
+                if (other.WalksFirst || ReferenceEquals(other, row) || PartyAfter.ChangesParty(other))
                     continue;
                 foreach (var tally in other.Tallies)
                     if (tally.Direction == Pricing.TradeDirection.Buy)
@@ -516,13 +516,13 @@ namespace SmartSteward.Core.Planning
         /// walked as touched — it will be, once moved.</summary>
         internal EditBlock Trial(PlanRow row, int value)
         {
-            var outcome = Walk(r => ReferenceEquals(r, row) ? value : r.Change, r => r.IsTouched || ReferenceEquals(r, row));
+            var outcome = Walk(r => ReferenceEquals(r, row) ? value : r.Change, r => r.WalksFirst || ReferenceEquals(r, row));
             var own = outcome.Of(row);
             if (own.IsShort)
                 return own.Short == EditBlock.None ? EditBlock.NeededByAnotherRow : own.Short;
             // A goal row's edit re-plans the steward's rows (round 5): they give way — only the player's other rows count.
             foreach (var other in outcome.Rows)
-                if (other.IsShort && (!row.TakesGoal || other.Row.IsTouched))
+                if (other.IsShort && (!row.TakesGoal || other.Row.WalksFirst))
                     return SharedLimit(other.Short) ? other.Short : EditBlock.NeededByAnotherRow;
             if (value > 0 && Unaffordable(outcome, row))
                 return EditBlock.NotEnoughGold;
@@ -541,7 +541,7 @@ namespace SmartSteward.Core.Planning
             int giveWay = 0;
             foreach (var o in outcome.Rows)
             {
-                if (o.Row.IsTouched || ReferenceEquals(o.Row, row) || PartyAfter.ChangesParty(o.Row))
+                if (o.Row.WalksFirst || ReferenceEquals(o.Row, row) || PartyAfter.ChangesParty(o.Row))
                     continue;
                 foreach (var tally in o.Book.Tallies)
                     if (tally.Direction == Pricing.TradeDirection.Buy)

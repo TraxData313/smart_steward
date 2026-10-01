@@ -56,7 +56,9 @@ namespace SmartSteward.Core.Planning
                     Mine = Math.Max(0, t.InParty),
                     Market = onOffer ? t.OnOffer : (int?)null,
                     MaxBuy = Math.Max(0, t.OnOffer),
-                    MaxSell = t.CanDismiss ? Math.Max(0, t.InParty) : 0,
+                    // Step 26: the men a quest keeps (a garrison's troop type, a gang's bandits) are never dismissed.
+                    MaxSell = t.CanDismiss ? Math.Max(0, t.InParty - ctx.Quests.Troop(t.TroopId)) : 0,
+                    Quest = ctx.Quests.ForTroop(t.TroopId),
                     Troop = new TroopRowInfo
                     {
                         Tier = Math.Max(0, t.Tier),

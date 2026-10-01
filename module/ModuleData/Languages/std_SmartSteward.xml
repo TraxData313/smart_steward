@@ -82,6 +82,7 @@
     <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
     <string id="ss_hint_PrisonerAction" text="What the steward does with every other prisoner in a town: keep them, ransom them for denari, or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence - the most valuable first; those that do not fit, or all of them where the game does not allow it, are ransomed. Default: Ransom for denari." />
+    <string id="ss_hint_QuestGoalsEnabled" text="The steward reads your ongoing quests and keeps what they ask for - the grain for a headman, the horses for a lord, the troops for a garrison, the prisoners for a landowner: never sold, ransomed, donated or dismissed. A food a quest asks for is bought up to the need, like a goal of yours. A goal you type still wins. Off: quests are not read. Default: on." />
     <string id="ss_hint_ReplaceLameHorses" text="Sell the party's lame and old horses and pack animals and buy healthy ones in their place. When off they are kept - a lame horse still carries a footman. The steward never buys one either way. Default: on." />
     <string id="ss_hint_SellFoodSurplus" text="Sell food above the target plus the tolerance below, back down to the target, most-held kind first. Default: on." />
     <string id="ss_hint_SellLoot" text="Offer to sell captured gear in groups (armour, melee weapons, ranged, shields) and your other goods, in the Other section. Default: off." />
@@ -156,6 +157,7 @@
     <string id="ss_set_PackAnimalsTarget" text="Pack animals to keep" />
     <string id="ss_set_PopupOnlyWithChanges" text="Only open with suggestions" />
     <string id="ss_set_PrisonerAction" text="Other prisoners" />
+    <string id="ss_set_QuestGoalsEnabled" text="Keep what your quests need" />
     <string id="ss_set_ReplaceLameHorses" text="Replace lame horses" />
     <string id="ss_set_SellFoodSurplus" text="Sell surplus food" />
     <string id="ss_set_SellLoot" text="Sell loot" />

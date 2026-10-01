@@ -26,8 +26,13 @@ namespace SmartSteward.Core.Planning
             Party = PartyAfter.Of(snapshot);
             Floors = MoneyFloors.For(settings, mode);
             GoalFloors = MoneyFloors.ForGoals(settings, mode);
+            Quests = new QuestKeep(snapshot, settings);
             Walk = new WalkState(new MarketState(oracle, snapshot.MarketGold), snapshot.PlayerGold);
         }
+
+        /// <summary>What the player's quests keep and ask for (step 26, DESIGN §2.9) — <see cref="QuestKeep.None"/>-like when the
+        /// switch is off or no quest wants anything.</summary>
+        public QuestKeep Quests { get; }
 
         /// <summary>The player's standing goals by row id (the plan's own copy — <see cref="ManualGoals"/>).</summary>
         public IReadOnlyDictionary<string, int> Goals { get; }
@@ -43,13 +48,27 @@ namespace SmartSteward.Core.Planning
         /// for a row that takes a goal, YOUR GOAL (round 5 — <c>goal − Mine</c>; 0 while it waits for <paramref name="job"/>'s
         /// threshold under <c>ManualGoalsWaitForThresholds</c>), marking the row as yours; for any other row its touched
         /// quantity. Null = the steward's row.
+        /// <para>Step 26 (DESIGN §2.9): a food a quest asks for and the party holds less of is an automatic goal — pinned at
+        /// <c>need − Mine</c>, walked first like a goal of yours under the same switches (it waits with the steward under
+        /// <c>ManualGoalsWaitForThresholds</c>), but NOT touched (no ⟲: it follows the quest). A goal of yours wins.</para>
         /// </summary>
         public int? PinOf(PlanRow row, ManagedJob? job)
         {
             if (!row.TakesGoal)
                 return Pins.TryGet(row.Id, out int pin) ? pin : (int?)null;
             if (!Goals.TryGetValue(row.Id, out int goal))
-                return null;
+            {
+                var quest = row.Quest;
+                if (quest?.FoodGoal == null || row.Mine >= quest.FoodGoal.Value)
+                    return null;
+                if (job != null && Settings.ManualGoalsWaitForThresholds && !JobActive(job.Value))
+                {
+                    row.GoalShort = GoalShort.Threshold;
+                    return null; // it waits with the steward - the food it holds is still kept
+                }
+                quest.Buys = true;
+                return quest.FoodGoal.Value - row.Mine;
+            }
             row.ManualGoal = goal;
             row.IsTouched = true;
             if (job != null && Settings.ManualGoalsWaitForThresholds && !JobActive(job.Value))

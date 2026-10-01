@@ -107,7 +107,7 @@ namespace SmartSteward.Core.Execution
             var floors = plan.Floors;
             var row = plan.FindRow(transaction.RowId);
             bool animal = row != null && row.Section == PlanSectionKind.Mounts;
-            if (row != null && row.TakesGoal && row.IsTouched && plan.Settings != null)
+            if (row != null && row.TakesGoal && row.WalksFirst && plan.Settings != null)
             {
                 // A goal of the player's (round 5) answers to the goals' floors — AutonomousMinGold at least, while autonomous.
                 var goals = MoneyFloors.ForGoals(plan.Settings, plan.Mode);
@@ -211,7 +211,7 @@ namespace SmartSteward.Core.Execution
                 return null;
             var row = plan.FindRow(transaction.RowId);
             // A goal of the player's (round 5) walked its hand lanes — without the limits when ManualGoalsObeyPriceCaps is off.
-            bool hand = row != null && row.TakesGoal && row.IsTouched;
+            bool hand = row != null && row.TakesGoal && row.WalksFirst; // a quest's food goal too (step 26)
             var lane = transaction.Kind == TransactionKind.Sell
                 ? hand ? row!.HandSellLane : row?.SellLane
                 : hand ? row!.HandBuyLane : row?.BuyLane;

@@ -95,20 +95,25 @@ namespace SmartSteward.Core.Planning
                     ? new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
                         item.Offered.Select(s => new LaneStack(s, s.Count, book.FinalMaxBuy)))
                     : TradeLane.Empty(TradeDirection.Buy);
-                var sellLane = book.SellTicked
+                // Step 26: the units a quest keeps are out of the steward's sell lane; a goal of yours walks the full lane (it wins).
+                var fullSell = book.SellTicked
                     ? new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
                         item.Held.Where(s => !ctx.IsGuarded(s)).Select(s => new LaneStack(s, s.Count, book.FinalMinSell)))
+                    : TradeLane.Empty(TradeDirection.Sell);
+                var sellLane = book.SellTicked
+                    ? new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
+                        item.Held.Where(s => !ctx.IsGuarded(s)).Select(s => new LaneStack(s, ctx.Quests.Free(s), book.FinalMinSell)))
                     : TradeLane.Empty(TradeDirection.Sell);
 
                 // Round 5: with ManualGoalsObeyPriceCaps off a goal buys and sells this food at any price — its own lanes
                 // without the limits (the ticks still decide the stacks); the steward's own walk keeps the limits.
-                TradeLane? handBuy = null, handSell = null;
+                TradeLane? handBuy = null, handSell = sellLane.Capacity == fullSell.Capacity ? null : fullSell;
                 if (ctx.GoalsIgnoreCaps)
                 {
                     handBuy = book.BuyTicked
                         ? new TradeLane(TradeDirection.Buy, LanePick.Cheapest, item.Offered.Select(s => new LaneStack(s, s.Count, null)))
                         : TradeLane.Empty(TradeDirection.Buy);
-                    handSell = PlanContext.Unlimited(sellLane);
+                    handSell = PlanContext.Unlimited(fullSell);
                 }
 
                 int held = item.Held.Sum(s => s.Count);
@@ -125,13 +130,14 @@ namespace SmartSteward.Core.Planning
                     LocksGuard = ctx.LockGuards(ItemKind.Food),
                     Market = item.Offered.Sum(s => s.Count),
                     MaxBuy = PlanMath.EligibleOnOffer(handBuy ?? buyLane, ctx.Market),
-                    MaxSell = sellLane.Capacity,
+                    MaxSell = (handSell ?? sellLane).Capacity,
                     PriceBook = book,
                     BuyLane = buyLane,
                     SellLane = sellLane,
                     HandBuyLaneOverride = handBuy,
                     HandSellLaneOverride = handSell,
                     StartsAtDenari = startsAt,
+                    Quest = ctx.Quests.ForStacks(item.Held, item.Id),
                 };
                 int? pinned = ctx.PinOf(row, ManagedJob.Food);
                 _lines.Add(new Line(row, item.Held, new WalkLine(row, sellLane, held, book: row.Book), pinned));
@@ -160,10 +166,14 @@ namespace SmartSteward.Core.Planning
         /// walked, after (<paramref name="walked"/>): the steward plans the rest around them. A goal counts only up to the even
         /// <see cref="Share"/> (step 25): above it is a stockpile ON TOP of the days (a quest hoard), never eating the other kinds'
         /// share.</summary>
+        /// <para>Step 26: the units a quest keeps on a steward row count the same way — up to the share, the rest on top (they are
+        /// never sold, so the row's held units never fall below them).</para>
         private int HeldTotal(bool walked) =>
             _lines.Sum(l => l.Pinned == null
-                ? l.Sell.Held
+                ? l.Sell.Held - QuestKept(l) + Math.Min(QuestKept(l), Share)
                 : Math.Min(Share, l.Row.Mine + (walked ? l.Row.Book.Net : l.Pinned.Value)));
+
+        private static int QuestKept(Line line) => Math.Min(line.Sell.Held, line.Row.Quest?.Kept ?? 0);
 
         private int TotalHeld => HeldTotal(false);
 

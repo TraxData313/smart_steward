@@ -109,6 +109,14 @@ namespace SmartSteward.Core.Presentation
 
         /// <summary>The Result's hover when short: <c>Short of the goal: keeps your purse at 1,000 denari.</c>; empty otherwise.</summary>
         public string ShortText { get; internal set; } = "";
+
+        /// <summary>The quests decide this goal (step 26, DESIGN §2.9) — the quest colour (<see cref="UiColors.Quest"/>).</summary>
+        public bool IsQuest { get; internal set; }
+
+        /// <summary>The quests on the line, in the game's own titles: <c>Kept for your quests:</c> + one line per quest
+        /// (<c>Ryibelet Needs Grain Seeds – 120 Grain</c>, <c>…, you hold 5</c>); <c>Below what your quests need: …</c> under a goal
+        /// of yours that is below them; empty when no quest touches the line.</summary>
+        public string QuestHint { get; internal set; } = "";
     }
 
     /// <summary>
@@ -362,6 +370,8 @@ namespace SmartSteward.Core.Presentation
                 HandsOff = goal.HandsOff,
                 Short = goal.Short,
                 Text = goal.HandsOff ? words.HandsOffMark : goal.Value == null ? "" : UiFormat.Money(goal.Value.Value),
+                IsQuest = goal.IsQuest,
+                QuestHint = QuestHint(goal, words),
             };
             if (goal.HandsOff && goal.StartsAt != null)
                 cell.Hint = words.NotManagedYet + " " + JobWord(row, words) + " " + words.At + " " + UiFormat.Money(goal.StartsAt.Value)
@@ -370,6 +380,25 @@ namespace SmartSteward.Core.Presentation
             if (goal.IsShort)
                 cell.ShortText = words.ShortOfGoal + " " + ShortWords(row, goal, plan, words) + ".";
             return cell;
+        }
+
+        /// <summary>The quests behind a goal, in words (step 26): the head, then one line per quest — its title, the amount it asks
+        /// and what, and what the party holds when that is less.</summary>
+        internal static string QuestHint(RowGoal goal, SheetWords words)
+        {
+            if (goal.Quest == null || goal.Quest.Quests.Count == 0 || (goal.IsYours && !goal.BelowQuest))
+                return "";
+            var lines = new List<string> { goal.IsYours ? words.QuestBelow : words.QuestKeptFor };
+            foreach (var state in goal.Quest.Quests)
+            {
+                var need = state.Need;
+                string line = need.Title + " " + UiFormat.Minus + " " + UiFormat.Money(need.Amount)
+                              + (string.IsNullOrEmpty(need.What) ? "" : " " + need.What);
+                if (state.IsShort)
+                    line += ", " + words.QuestYouHold + " " + UiFormat.Money(state.Kept);
+                lines.Add(line);
+            }
+            return string.Join("\n", lines);
         }
 
         /// <summary>The job a row's threshold belongs to, in words (food, pack animals, riding horses — the noble horses go with
@@ -490,12 +519,17 @@ namespace SmartSteward.Core.Presentation
             var cells = line.Details.Select(r => GoalCell(r, plan, words)).ToList();
             int sum = cells.Sum(c => c.Value ?? 0);
             var shortCell = cells.FirstOrDefault(c => c.Short != GoalShort.None);
+            var quests = cells.Where(c => c.IsQuest && c.QuestHint.Length > 0).ToList();
             return new SheetGoalCell
             {
                 Value = sum,
                 Text = UiFormat.Money(sum),
                 Short = shortCell?.Short ?? GoalShort.None,
                 ShortText = shortCell?.ShortText ?? "",
+                // Step 26: a prisoner a quest keeps colours the Lords / Others line too; its hover gathers the rows' quests.
+                IsQuest = quests.Count > 0,
+                QuestHint = quests.Count == 0 ? ""
+                    : words.QuestKeptFor + "\n" + string.Join("\n", quests.SelectMany(c => c.QuestHint.Split('\n').Skip(1)).Distinct()),
             };
         }
 
@@ -526,7 +560,8 @@ namespace SmartSteward.Core.Presentation
                 DenariHint = shows ? Hint(row, words) : "",
                 HasSpinner = true,
                 CanReset = row.IsTouched,
-                Goal = GoalCell(row, sheet.Plan, words),
+                // A troop row under Recruits shows no goal (its Mine is "–"); under Your troops the men a quest keeps (step 26).
+                Goal = side == TroopSide.Recruit ? SheetGoalCell.Empty : GoalCell(row, sheet.Plan, words),
             };
             // Each line moves only its own side of a row (step 20's rule for the lines, step 21 for the rows under them).
             switch (side)

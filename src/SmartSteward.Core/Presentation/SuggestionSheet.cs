@@ -171,6 +171,17 @@ namespace SmartSteward.Core.Presentation
         public string ShortNothingToSell { get; set; } = "nothing more it may sell (locked or unticked)";
         public string ShortSurplusKept { get; set; } = "selling the surplus is off in the Instructions";
         public string ShortNotPossibleHere { get; set; } = "not possible here";
+
+        // ── Step 26: quest needs in the Goal column (DESIGN §2.9) ──
+
+        /// <summary>The quest hover's head: <c>Kept for your quests:</c>, then one line per quest.</summary>
+        public string QuestKeptFor { get; set; } = "Kept for your quests:";
+
+        /// <summary>A goal of yours below the quests' need: <c>Below what your quests need:</c>, then the quests.</summary>
+        public string QuestBelow { get; set; } = "Below what your quests need:";
+
+        /// <summary><c>, you hold 5</c> — the party holds fewer than the quest asks for.</summary>
+        public string QuestYouHold { get; set; } = "you hold";
     }
 
     /// <summary>One always-visible line of a section: a plan row shown on its own, or an aggregate line over detail rows.</summary>

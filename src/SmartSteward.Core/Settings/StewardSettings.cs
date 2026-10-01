@@ -111,6 +111,9 @@ namespace SmartSteward.Core.Settings
         /// <summary>A manual goal buys and sells only within the price book (max buy / min sell) and the role caps. Off: at any
         /// price — the ticks still hold.</summary>
         public bool ManualGoalsObeyPriceCaps { get; set; } = true;
+        /// <summary>"Keep what your quests need" (step 26, DESIGN §2.9): the steward reads the player's ongoing quests and keeps what
+        /// they ask for; a food a quest asks for is bought up to the need like a goal of yours. Off: quests are not read.</summary>
+        public bool QuestGoalsEnabled { get; set; } = true;
         /// <summary>The standing goals typed or clicked in the Suggestion tab, by row id (<c>food:grain</c>, <c>mounts:pack</c>,
         /// <c>mounts:riding</c>, <c>mounts:war</c>) → the Result the row should end at; a row without one follows the policy
         /// (<see cref="ManualGoals"/>). Global like the price book, never in the save.</summary>

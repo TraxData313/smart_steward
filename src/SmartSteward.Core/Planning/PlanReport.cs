@@ -113,6 +113,11 @@ namespace SmartSteward.Core.Planning
             if (row.OverValueCap > 0) sb.Append(" (+").Append(row.OverValueCap.ToString(Inv)).Append(" over value cap)");
             sb.Append(", change ").Append(SignedCount(row.Change));
             if (row.IsTouched) sb.Append(" (yours, suggested ").Append(SignedCount(row.SuggestedChange)).Append(')');
+            if (row.Quest != null) // step 26: what the player's quests keep here (and a food's quest goal, bought toward)
+                sb.Append(" (quests keep ").Append(row.Quest.Kept.ToString(Inv))
+                    .Append(row.Quest.FoodGoal == null ? "" : ", quest goal " + row.Quest.FoodGoal.Value.ToString(Inv)
+                                                              + (row.Quest.Buys ? " - buying" : ""))
+                    .Append(')');
             sb.Append(", result ").Append(row.Result.ToString(Inv))
                 .Append(", market ").Append(row.Market == null ? "-" : row.Market.Value.ToString(Inv))
                 .Append(", max buy ").Append(row.MaxBuy.ToString(Inv)).Append(" / sell ").Append(row.MaxSell.ToString(Inv));

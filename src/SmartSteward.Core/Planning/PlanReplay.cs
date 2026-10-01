@@ -126,7 +126,7 @@ namespace SmartSteward.Core.Planning
             var walk = new WalkState(market, inputs.Snapshot.PlayerGold, log);
             var all = rows.Select(r => new RowWalk(r, changeOf(r))).ToList();
             List<RowWalk> Of(params RowType[] types) => all.Where(o => Array.IndexOf(types, o.Row.Type) >= 0).ToList();
-            touchedOf ??= r => r.IsTouched;
+            touchedOf ??= r => r.WalksFirst; // touched rows, and a food a quest buys toward (step 26)
             var players = new HashSet<PlanRow>(rows.Where(touchedOf));
             // The player's rows first, then the steward's (with nothing touched: one pass, the planner's order).
             var passes = players.Count == 0 ? new[] { false } : new[] { true, false };

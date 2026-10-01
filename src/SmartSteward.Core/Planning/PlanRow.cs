@@ -394,6 +394,14 @@ namespace SmartSteward.Core.Planning
         /// <summary>Why the Result stops short of the goal, where the planner knows it.</summary>
         public GoalShort GoalShort { get; internal set; }
 
+        /// <summary>What the player's quests keep on this row (step 26, DESIGN §2.9): the units never sold, ransomed, donated or
+        /// dismissed by the steward, a food's automatic goal, and the quests behind them; null = no quest touches the row.</summary>
+        public QuestRowInfo? Quest { get; internal set; }
+
+        /// <summary>The row walks first in its phase, as the player's: touched (a goal of yours, a click), or a food a quest makes the
+        /// row buy toward (<see cref="QuestRowInfo.Buys"/>) — the planner pins it, so the editor's walk must take it first too.</summary>
+        internal bool WalksFirst => IsTouched || (Quest?.Buys ?? false);
+
         /// <summary>The lanes a goal of yours walks when <c>ManualGoalsObeyPriceCaps</c> is off — the row's own lanes without the
         /// price limits (the ticks still hold); null = the row's lanes (<see cref="BuyLane"/>, <see cref="SellLane"/>). The
         /// steward's own walk always keeps the limits.</summary>
@@ -476,6 +484,7 @@ namespace SmartSteward.Core.Planning
             StewardGoal = planned.StewardGoal;
             GoalWaits = planned.GoalWaits;
             GoalShort = planned.GoalShort;
+            Quest = planned.Quest;
             HandBuyLaneOverride = planned.HandBuyLaneOverride;
             HandSellLaneOverride = planned.HandSellLaneOverride;
             Prisoner = planned.Prisoner;

@@ -33,6 +33,16 @@ namespace SmartSteward.Core.Planning
         /// <summary>Why the Result stops short of <see cref="Value"/> (<see cref="GoalShort.None"/> when it reaches it).</summary>
         public GoalShort Short { get; private set; }
 
+        /// <summary>The quests decide this goal (step 26, DESIGN §2.9): a quest keeps units on the row (or a food's automatic goal) and
+        /// no goal of yours is typed — the quest colour; <see cref="Value"/> is the larger of the policy's goal and the quests' need.</summary>
+        public bool IsQuest { get; private set; }
+
+        /// <summary>The quests on the row (the hover names them) — also when a goal of yours wins; null = none.</summary>
+        public QuestRowInfo? Quest { get; private set; }
+
+        /// <summary>A goal of yours below what the quests need (it wins; the hover says so).</summary>
+        public bool BelowQuest { get; private set; }
+
         /// <summary>The Result differs from the goal and the plan knows why.</summary>
         public bool IsShort => Short != GoalShort.None;
 
@@ -40,19 +50,34 @@ namespace SmartSteward.Core.Planning
         {
             if (row == null) throw new ArgumentNullException(nameof(row));
             var goal = new RowGoal();
+            var quest = row.Quest; // step 26: what the player's quests keep on the row
+            goal.Quest = quest;
             switch (row.Type)
             {
                 case RowType.Tavern:
+                    return goal; // Anton: "no goal changes here"
                 case RowType.Troop:
-                    return goal; // Anton: "no goal changes here" — the Troops title carries the party limit
+                    // Anton: "no goal changes here" — the Troops title carries the party limit; only the men a quest keeps show.
+                    if (quest != null)
+                    {
+                        goal.Value = quest.Kept;
+                        goal.IsQuest = true;
+                    }
+                    return goal;
                 case RowType.Loot:
                     goal.Value = 0; // everything unlocked is sold (Anton: "others goal=0")
                     break;
                 case RowType.Prisoner:
-                    goal.Value = row.Prisoner?.Action == PrisonerChoice.Keep ? row.Mine : 0; // "prisoners course goal=0"
+                    bool keep = row.Prisoner?.Action == PrisonerChoice.Keep;
+                    goal.Value = keep ? row.Mine : 0; // "prisoners course goal=0"
+                    if (quest != null)
+                    {
+                        goal.Value = Math.Max(goal.Value.Value, quest.Kept);
+                        goal.IsQuest = true;
+                    }
                     // The steward moves every prisoner of a Ransom / Donate row it can; one left on an untouched row cannot go
                     // here (no ransom broker in a village, a lord to donate where the game forbids it or the dungeon is full).
-                    if (goal.Value == 0 && row.Result > 0 && !row.IsTouched)
+                    if (row.Result > goal.Value && !row.IsTouched)
                         goal.Short = GoalShort.NotPossibleHere;
                     return goal;
                 default:
@@ -63,6 +88,14 @@ namespace SmartSteward.Core.Planning
                         {
                             goal.Value = row.ManualGoal;
                             goal.IsYours = true;
+                            goal.BelowQuest = quest != null && row.ManualGoal.Value < quest.Need; // yours wins (DESIGN §2.9)
+                            break;
+                        }
+                        if (quest != null)
+                        {
+                            // The quests' goal: at least what they need — above the steward's where it acts.
+                            goal.Value = row.StartsAtDenari != null ? quest.Need : Math.Max(row.StewardGoal ?? row.Result, quest.Need);
+                            goal.IsQuest = true;
                             break;
                         }
                         if (row.StartsAtDenari != null)
@@ -71,11 +104,22 @@ namespace SmartSteward.Core.Planning
                         goal.Value = row.StewardGoal ?? row.Result;
                         break;
                     }
-                    // The noble and lame horse rows: only ever sold.
+                    // The noble and lame horse rows: only ever sold — but what a quest keeps stays.
+                    if (quest != null)
+                    {
+                        goal.Value = quest.Kept;
+                        goal.IsQuest = true;
+                        break;
+                    }
                     if (row.StartsAtDenari != null)
                         return HandsOffAt(goal, row.StartsAtDenari.Value);
                     goal.Value = 0;
                     break;
+            }
+            if (row.Type == RowType.Loot && quest != null)
+            {
+                goal.Value = quest.Kept; // the pieces a quest keeps instead of 0
+                goal.IsQuest = true;
             }
             if (goal.Value != null && row.Result != goal.Value)
                 goal.Short = row.GoalShort;

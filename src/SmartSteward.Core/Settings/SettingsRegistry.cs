@@ -161,6 +161,12 @@ namespace SmartSteward.Core.Settings
                 + "min sell prices. Off: they buy and sell at any price. An item unticked in the Prices tab is never traded "
                 + "either way.",
                 s => s.ManualGoalsObeyPriceCaps, (s, v) => s.ManualGoalsObeyPriceCaps = v),
+            new BoolSetting(nameof(StewardSettings.QuestGoalsEnabled), Goals, "Keep what your quests need",
+                "The steward reads your ongoing quests and keeps what they ask for - the grain for a headman, the horses for a "
+                + "lord, the troops for a garrison, the prisoners for a landowner: never sold, ransomed, donated or dismissed. A food "
+                + "a quest asks for is bought up to the need, like a goal of yours. A goal you type still wins. Off: quests are "
+                + "not read.",
+                s => s.QuestGoalsEnabled, (s, v) => s.QuestGoalsEnabled = v),
             new GoalsSetting(nameof(StewardSettings.Goals), Goals, "Goals",
                 "The goals you set in the Suggestion tab - where a row should end after the deal - kept for every town until "
                 + "you click its reset. By row: \"food:\" and the item id for a food, \"mounts:pack\" (pack animals), "

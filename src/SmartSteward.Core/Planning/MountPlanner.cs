@@ -86,11 +86,11 @@ namespace SmartSteward.Core.Planning
 
             if (settings.MountsEnabled)
             {
-                var sellLane = SellLane(_riding);
+                var sellLane = SellLane(_riding, true);
                 var buyLane = BuyLane(s => MountGoal.IsRiding(s, settings), settings.MountMaxPrice);
                 RidingRow = RoleRow(RidingId, RowType.Mount, MountRole.Riding, null, _riding, sellLane, buyLane);
                 RidingRow.StartsAtDenari = ctx.StartsAt(ManagedJob.Mounts);
-                HandLanes(RidingRow, s => MountGoal.IsRiding(s, settings));
+                HandLanes(RidingRow, s => MountGoal.IsRiding(s, settings), _riding);
                 _ridingBuy = new LaneCursor(buyLane);
                 _ridingSell = new WalkLine(RidingRow, sellLane, book: RidingRow.Book);
                 _ridingPinned = ctx.PinOf(RidingRow, ManagedJob.Mounts);
@@ -99,13 +99,13 @@ namespace SmartSteward.Core.Planning
             if (settings.WarMountsEnabled
                 && (_warHeld > 0 || WarTarget > 0 || ctx.Pins.Contains(WarId) || ctx.Goals.ContainsKey(WarId)))
             {
-                var sellLane = SellLane(_war);
+                var sellLane = SellLane(_war, true);
                 var buyLane = BuyLane(s => MountGoal.IsWar(s, settings), settings.WarMountMaxPrice);
                 WarRow = RoleRow(WarId, RowType.WarMount, MountRole.War, MountGoal.WarHorse, _war, sellLane, buyLane);
                 WarRow.Target = WarTarget;
                 WarRow.StewardGoal = WarTarget;
                 WarRow.StartsAtDenari = ctx.StartsAt(ManagedJob.WarHorses);
-                HandLanes(WarRow, s => MountGoal.IsWar(s, settings));
+                HandLanes(WarRow, s => MountGoal.IsWar(s, settings), _war);
                 _warBuy = new LaneCursor(buyLane);
                 _warSell = new WalkLine(WarRow, sellLane, book: WarRow.Book);
                 _warPinned = ctx.PinOf(WarRow, ManagedJob.WarHorses);
@@ -113,7 +113,7 @@ namespace SmartSteward.Core.Planning
 
             if (settings.SellNobleHorses && _nobleHeld > 0)
             {
-                var sellLane = SellLane(_noble);
+                var sellLane = SellLane(_noble, true);
                 NobleRow = RoleRow(NobleId, RowType.Mount, MountRole.Noble, MountGoal.NobleHorse, _noble, sellLane, null);
                 NobleRow.LocksGuard = true; // a lock always keeps a noble horse — one locked after the plan too, at the click
                 NobleRow.StartsAtDenari = ctx.StartsAt(ManagedJob.Mounts);
@@ -161,7 +161,7 @@ namespace SmartSteward.Core.Planning
                     || !_ctx.Settings.SellMountSurplus || !RidingActs)
                     return 0;
                 int bought = Bought(WarRow);
-                bool sellableLeft = RidingRow.MaxSell - Sold(RidingRow) > 0;
+                bool sellableLeft = RidingRow.SellLane!.Capacity - Sold(RidingRow) > 0; // the steward's lane: what quests keep is out
                 return bought > 0 && sellableLeft && Counted() > MountTarget ? bought : 0;
             }
         }
@@ -176,15 +176,21 @@ namespace SmartSteward.Core.Planning
 
         /// <summary>Round 5: with ManualGoalsObeyPriceCaps off a goal buys any plain, Buy-ticked horse of the row's kind and sells at
         /// any price — the row's hand lanes (the steward's own walk keeps the limits).</summary>
-        private void HandLanes(PlanRow row, Func<ItemStack, bool> kind)
+        /// <para>Step 26: the horses a quest keeps are out of the steward's sell lane; a goal of yours walks the full lane - it wins.</para>
+        private void HandLanes(PlanRow row, Func<ItemStack, bool> kind, List<ItemStack> held)
         {
-            if (!_ctx.GoalsIgnoreCaps)
-                return;
-            row.HandBuyLaneOverride = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
-                _ctx.MarketStacks(ItemKind.Mount).Where(s => !s.IsModified && kind(s) && _ctx.Book(s)!.BuyTicked)
-                    .Select(s => new LaneStack(s, s.Count, null)));
-            row.HandSellLaneOverride = PlanContext.Unlimited(row.SellLane!);
-            row.MaxBuy = PlanMath.EligibleOnOffer(row.HandBuyLaneOverride, _ctx.Market);
+            var full = SellLane(held, false);
+            if (full.Capacity != row.SellLane!.Capacity)
+                row.HandSellLaneOverride = full;
+            if (_ctx.GoalsIgnoreCaps)
+            {
+                row.HandBuyLaneOverride = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
+                    _ctx.MarketStacks(ItemKind.Mount).Where(s => !s.IsModified && kind(s) && _ctx.Book(s)!.BuyTicked)
+                        .Select(s => new LaneStack(s, s.Count, null)));
+                row.HandSellLaneOverride = PlanContext.Unlimited(full);
+                row.MaxBuy = PlanMath.EligibleOnOffer(row.HandBuyLaneOverride, _ctx.Market);
+            }
+            row.MaxSell = row.HandSellLane!.Capacity;
         }
 
         private PlanRow RoleRow(string id, RowType type, MountRole role, string? category, List<ItemStack> stacks,
@@ -201,16 +207,18 @@ namespace SmartSteward.Core.Planning
                 MaxSell = sellLane.Capacity,
                 BuyLane = buyLane,
                 SellLane = sellLane,
+                Quest = _ctx.Quests.ForStacks(stacks),
             };
             row.MaxBuy = row.Market ?? 0;
             return row;
         }
 
-        /// <summary>What a row may sell: its stacks not guarded by a lock and Sell-ticked, each at its own min sell price.</summary>
-        private TradeLane SellLane(IEnumerable<ItemStack> stacks) =>
+        /// <summary>What a row may sell: its stacks not guarded by a lock and Sell-ticked, each at its own min sell price - without
+        /// the units a quest keeps (<paramref name="steward"/>: the steward's lane; false: a goal of yours, which wins - step 26).</summary>
+        private TradeLane SellLane(IEnumerable<ItemStack> stacks, bool steward) =>
             new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
                 stacks.Where(s => !_ctx.IsGuarded(s) && _ctx.Book(s)!.SellTicked)
-                    .Select(s => new LaneStack(s, s.Count, _ctx.MinSellOf(s))));
+                    .Select(s => new LaneStack(s, steward ? _ctx.Quests.Free(s) : s.Count, _ctx.MinSellOf(s))));
 
         /// <summary>What a row may buy: plain (unmodified) horses of its kind, Buy-ticked, under the price book AND the role cap.</summary>
         private TradeLane BuyLane(Func<ItemStack, bool> kind, int roleCap) =>

@@ -47,8 +47,10 @@ namespace SmartSteward.Core.Planning
             if (_stacks.Count == 0)
                 return;
 
+            // Step 26: a lame horse a quest keeps (any modifier counts for the quest - the cheapest are kept first) is never sold;
+            // unsold, it still counts toward its role (LeftOf).
             var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
-                _stacks.Select(s => new LaneStack(s, s.Count, ctx.MinSellOf(s))));
+                _stacks.Select(s => new LaneStack(s, ctx.Quests.Free(s), ctx.MinSellOf(s))));
             Row = new PlanRow(RowId, PlanSectionKind.Mounts, RowType.Mount)
             {
                 Role = MountRole.Lame,
@@ -59,6 +61,7 @@ namespace SmartSteward.Core.Planning
                 Market = null,
                 MaxSell = sellLane.Capacity,
                 SellLane = sellLane,
+                Quest = ctx.Quests.ForStacks(_stacks),
             };
             _sell = new WalkLine(Row, sellLane, book: Row.Book);
             if (ctx.Pins.TryGet(Row.Id, out int pin))

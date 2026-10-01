@@ -20,9 +20,11 @@ public class GoalsSettingsTests
         Assert.False(s.ManualGoalsWaitForThresholds); // your goal is your order
         Assert.True(s.ManualGoalsKeepPurseFloor);
         Assert.True(s.ManualGoalsObeyPriceCaps);
+        Assert.True(s.QuestGoalsEnabled); // step 26: keep what your quests need, on by default
         Assert.Empty(s.Goals);
         Assert.Equal("Goals you set by hand", SettingsRegistry.GroupLabel(SettingsRegistry.Goals));
-        Assert.Equal(new[] { "ManualGoalsWaitForThresholds", "ManualGoalsKeepPurseFloor", "ManualGoalsObeyPriceCaps", "Goals" },
+        Assert.Equal(new[] { "ManualGoalsWaitForThresholds", "ManualGoalsKeepPurseFloor", "ManualGoalsObeyPriceCaps", "QuestGoalsEnabled",
+                "Goals" },
             SettingsRegistry.InGroup(SettingsRegistry.Goals).Select(d => d.Key));
     }
 

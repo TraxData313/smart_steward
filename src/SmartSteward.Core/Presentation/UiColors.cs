@@ -36,6 +36,10 @@ namespace SmartSteward.Core.Presentation
         /// <summary>A goal the player typed (round 5): gold, beside its ⟲ — his standing order, not the steward's.</summary>
         public const string Yours = "#F2C35CFF";
 
+        /// <summary>A goal the player's quests decide (step 26, DESIGN §2.9): light blue — neither yours (gold) nor the steward's
+        /// (plain).</summary>
+        public const string Quest = "#8FC7E8FF";
+
         /// <summary>By the sign of a row's change: + green, − red, 0 grey.</summary>
         public static string ForChange(int change) => change > 0 ? Buy : change < 0 ? Sell : Muted;
 

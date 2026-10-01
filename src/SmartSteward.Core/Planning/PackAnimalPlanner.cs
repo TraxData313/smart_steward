@@ -35,9 +35,13 @@ namespace SmartSteward.Core.Planning
             if (!settings.PackAnimalsEnabled || !ctx.Snapshot.CanTrade)
                 return;
 
-            var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
+            // Step 26: the animals a quest keeps are out of the steward's sell lane; a goal of yours walks the full lane (it wins).
+            var fullSell = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
                 _held.Where(s => !ctx.IsGuarded(s) && ctx.Book(s)!.SellTicked)
                     .Select(s => new LaneStack(s, s.Count, ctx.MinSellOf(s))));
+            var sellLane = new TradeLane(TradeDirection.Sell, LanePick.MostExpensive,
+                _held.Where(s => !ctx.IsGuarded(s) && ctx.Book(s)!.SellTicked)
+                    .Select(s => new LaneStack(s, ctx.Quests.Free(s), ctx.MinSellOf(s))));
             var buyLane = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
                 ctx.MarketStacks(ItemKind.PackAnimal)
                     .Where(s => !s.IsModified && ctx.Book(s)!.BuyTicked)
@@ -49,13 +53,13 @@ namespace SmartSteward.Core.Planning
                 return;
 
             // Round 5: with ManualGoalsObeyPriceCaps off a goal buys any plain, Buy-ticked pack animal and sells at any price.
-            TradeLane? handBuy = null, handSell = null;
+            TradeLane? handBuy = null, handSell = sellLane.Capacity == fullSell.Capacity ? null : fullSell;
             if (ctx.GoalsIgnoreCaps)
             {
                 handBuy = new TradeLane(TradeDirection.Buy, LanePick.Cheapest,
                     ctx.MarketStacks(ItemKind.PackAnimal).Where(s => !s.IsModified && ctx.Book(s)!.BuyTicked)
                         .Select(s => new LaneStack(s, s.Count, null)));
-                handSell = PlanContext.Unlimited(sellLane);
+                handSell = PlanContext.Unlimited(fullSell);
             }
 
             Row = new PlanRow(RowId, PlanSectionKind.Mounts, RowType.Pack)
@@ -66,13 +70,14 @@ namespace SmartSteward.Core.Planning
                 LocksGuard = ctx.LockGuards(ItemKind.PackAnimal),
                 Target = Target,
                 Market = PlanMath.EligibleOnOffer(buyLane, ctx.Market),
-                MaxSell = sellLane.Capacity,
+                MaxSell = (handSell ?? sellLane).Capacity,
                 BuyLane = buyLane,
                 SellLane = sellLane,
                 HandBuyLaneOverride = handBuy,
                 HandSellLaneOverride = handSell,
                 StartsAtDenari = ctx.StartsAt(ManagedJob.PackAnimals),
                 StewardGoal = Target,
+                Quest = ctx.Quests.ForStacks(_held),
             };
             Row.MaxBuy = handBuy == null ? Row.Market ?? 0 : PlanMath.EligibleOnOffer(handBuy, ctx.Market);
             _buy = new WalkLine(Row, buyLane, book: Row.Book);
