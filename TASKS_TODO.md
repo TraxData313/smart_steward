@@ -85,6 +85,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   specific food"): the Part column's Do button on every item row too (each food, horse row, troop type, prisoner, other good) — it
   does only that row; and the bottom-right "Do it" button is renamed "Do all" (every text that names it follows)
   - [ ] Deployed at the end of step 29 (the install carries steps 24–29), then playtest — checklist in docs/PLAYTEST.md "Step 29"
+- [ ] 30. NOBLE HORSE MAX PRICE (Anton 2026.10.01 — "I want max price per noble horse to be able to be different from war horse"):
+  its own "Noble horse max price" setting beside WarMountMaxPrice, used when buying kept noble horses (today: no cap)
 SHIPPING NEXT (done in main, NOT released yet):
 - A "Do" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Do all"
 - "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
