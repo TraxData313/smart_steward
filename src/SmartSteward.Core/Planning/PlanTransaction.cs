@@ -56,6 +56,28 @@ namespace SmartSteward.Core.Planning
             HonoursLock = kind == TransactionKind.Sell && row.LocksGuard;
         }
 
+        /// <summary>The first <paramref name="count"/> units of <paramref name="source"/> (a part run alone, PLAN step 27: the purse
+        /// stopped it there) — the same stack / troop / hero, its first prices, the influence in proportion.</summary>
+        private PlanTransaction(PlanTransaction source, int count)
+        {
+            Kind = source.Kind;
+            RowId = source.RowId;
+            Count = count;
+            UnitPrices = source.UnitPrices.Take(count).ToArray();
+            Gold = UnitPrices.Sum();
+            Influence = source.Count > 0 ? source.Influence * count / source.Count : 0;
+            StackKey = source.StackKey;
+            ItemId = source.ItemId;
+            ModifierId = source.ModifierId;
+            TroopId = source.TroopId;
+            HeroId = source.HeroId;
+            HonoursLock = source.HonoursLock;
+        }
+
+        /// <summary>This transaction with only its first <paramref name="count"/> units (1 … <see cref="Count"/>).</summary>
+        internal PlanTransaction Cut(int count) =>
+            count >= Count ? this : new PlanTransaction(this, Math.Max(0, count));
+
         public TransactionKind Kind { get; }
         public string RowId { get; }
 

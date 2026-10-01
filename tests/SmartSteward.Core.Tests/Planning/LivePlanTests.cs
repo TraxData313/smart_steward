@@ -558,11 +558,14 @@ public class LivePlanTests
     }
 
     /// <summary>What the executor does to the world, done to the snapshot: every transaction of the plan.</summary>
-    internal static void ApplyDoIt(Scenario s, StewardPlan plan)
+    internal static void ApplyDoIt(Scenario s, StewardPlan plan) => ApplyTransactions(s, plan.Transactions);
+
+    /// <summary>What the executor does to the world, done to the snapshot: these transactions (a part run alone — step 27).</summary>
+    internal static void ApplyTransactions(Scenario s, IEnumerable<PlanTransaction> transactions)
     {
         var snap = s.Snap;
         double perEater = FoodGoal.PerEaterPerDay(snap); // the game's rate per eater (perks) stays; the eaters change
-        foreach (var tx in plan.Transactions)
+        foreach (var tx in transactions)
         {
             switch (tx.Kind)
             {

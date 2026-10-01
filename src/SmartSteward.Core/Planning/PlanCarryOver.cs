@@ -33,12 +33,21 @@ namespace SmartSteward.Core.Planning
         public bool IsEmpty => _edits.Count == 0;
 
         /// <summary>The touched rows of <paramref name="plan"/>.</summary>
-        public static PlanCarryOver Capture(StewardPlan plan)
+        public static PlanCarryOver Capture(StewardPlan plan) => Capture(plan, null);
+
+        /// <summary>
+        /// The touched rows of <paramref name="plan"/> that <paramref name="done"/> did NOT carry out (PLAN step 27: a part ran alone,
+        /// the window plans afresh on the world it left, and the player's hand on every OTHER part goes back on the new plan). A
+        /// troop row counts by its side: after Recruits its dismissal stays, after Your troops its recruits. A row the part ran is
+        /// dropped even when the executor cut it short — the fresh plan proposes it anew.
+        /// </summary>
+        public static PlanCarryOver Capture(StewardPlan plan, PlanPart? done)
         {
             if (plan == null) throw new ArgumentNullException(nameof(plan));
             var edits = new List<KeyValuePair<string, int>>();
             foreach (var row in plan.Rows)
-                if (row.IsTouched && !row.TakesGoal) // round 5: a goal row's hand is its goal — the settings carry it
+                if (row.IsTouched && !row.TakesGoal // round 5: a goal row's hand is its goal — the settings carry it
+                    && (done == null || !done.CoversEdit(row)))
                     edits.Add(new KeyValuePair<string, int>(row.Id, row.Change));
             return new PlanCarryOver(edits);
         }

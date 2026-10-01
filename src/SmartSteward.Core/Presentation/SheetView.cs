@@ -191,6 +191,13 @@ namespace SmartSteward.Core.Presentation
 
         /// <summary>The game allows donating here — else the Donate button greys (mockup choice 7).</summary>
         public bool DonateAllowed { get; internal set; }
+
+        /// <summary>The part this line's "Do" button carries out alone (PLAN step 27): the Lords / Others, Recruits / Your troops
+        /// lines, each tavern row and the Other goods line; null = no button (an item-level row).</summary>
+        public PlanPart? Part { get; internal set; }
+
+        /// <summary>What <see cref="Part"/> does alone — the button's state and hover.</summary>
+        public PartDeal? Deal { get; internal set; }
     }
 
     /// <summary>One section as the window binds it: its title line (name, overview, subtotal) and the lines under it as they
@@ -231,6 +238,12 @@ namespace SmartSteward.Core.Presentation
         public bool IsOpen { get; internal set; }
 
         public IReadOnlyList<SheetItem> Items { get; internal set; } = Array.Empty<SheetItem>();
+
+        /// <summary>The section as a part of its own (PLAN step 27): its title line's "Do" button — folded or not.</summary>
+        public PlanPart Part { get; internal set; } = PlanPart.Food;
+
+        /// <summary>What the section does alone.</summary>
+        public PartDeal? Deal { get; internal set; }
     }
 
     /// <summary>
@@ -322,7 +335,54 @@ namespace SmartSteward.Core.Presentation
             view.FoldKeys = keys;
             view.Items = items;
             TitleGoal(plan, section, view, words);
+            // Step 27: "Do" on the title line and on the lines that are a deal of their own.
+            view.Part = PartOf(section.Group);
+            view.Deal = plan.DealOf(view.Part);
+            foreach (var item in items)
+            {
+                item.Part = PartOf(item);
+                if (item.Part != null)
+                    item.Deal = plan.DealOf(item.Part);
+            }
             return view;
+        }
+
+        /// <summary>A section as a part (PLAN step 27).</summary>
+        public static PlanPart PartOf(SheetGroup group)
+        {
+            switch (group)
+            {
+                case SheetGroup.Troops: return PlanPart.Troops;
+                case SheetGroup.Food: return PlanPart.Food;
+                case SheetGroup.Horses: return PlanPart.Horses;
+                case SheetGroup.Prisoners: return PlanPart.Prisoners;
+                default: return PlanPart.Other;
+            }
+        }
+
+        /// <summary>The part a line carries out alone (PLAN step 27) — the lines that are a deal of their own: Lords, Others,
+        /// Recruits, Your troops, each tavern row (a wanderer, the mercenaries), Other goods. Null for every other line: an
+        /// item-level row (one food, one troop type, a loot group, a horse role) or a breakdown line gets no button.</summary>
+        public static PlanPart? PartOf(SheetItem item)
+        {
+            switch (item.Kind)
+            {
+                case SheetItemKind.Lords: return PlanPart.Lords;
+                case SheetItemKind.OtherPrisoners: return PlanPart.OtherPrisoners;
+                case SheetItemKind.Recruits: return PlanPart.Recruits;
+                case SheetItemKind.YourTroops: return PlanPart.YourTroops;
+                case SheetItemKind.Row:
+                    var row = item.Row;
+                    if (row == null || item.Side != TroopSide.None)
+                        return null;
+                    if (row.Type == RowType.Tavern)
+                        return PlanPart.TavernRow(row.Id);
+                    if (row.Type == RowType.Loot && row.LootGroup == LootGroup.OtherGoods)
+                        return PlanPart.OtherGoods;
+                    return null;
+                default:
+                    return null;
+            }
         }
 
         /// <summary>The title line's Goal, Mine and Result (round 5).</summary>
