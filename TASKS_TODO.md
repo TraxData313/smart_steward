@@ -96,6 +96,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 - [x] 32. QUEST NOTE BY THE NAME (Anton 2026.10.01 — "next to the name 'Grain' -> 'Grain (100 needed for quest)'"): every line a quest
   needs shows it after its name, in the quest colour — "Grain  120 needed for quest" (food, horses, goods, troops, prisoners)
   - [ ] Deploy (the game was running at the end of step 32), then playtest — checklist in docs/PLAYTEST.md "Step 32"
+- [ ] 33. POLISHES (Anton 2026.10.02): (a) folding the Troops section must leave ONE line, like every other section — today its sub-lines
+  (Your troops, Recruits, tavern rows) stay visible; (b) the message-log line "Steward: 44 of 44 ..." reads like the Steward SKILL changed —
+  say "Steward report: N deals made · gold ± · influence ± · prisoners ransomed/donated"
 SHIPPING NEXT (done in main, NOT released yet):
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
 - A "Deal" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Deal all" (it read "Do it")
