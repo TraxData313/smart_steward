@@ -579,7 +579,7 @@ Words and one column's width only — what each button does is steps 27 and 29, 
 7. You may prefer **Do all** to **Deal all** — say so; it is one word to change back.
 8. Log: the window's lines say `deal all` / `deal …` and `after Deal all`; the run's own lines keep `part Row:food:grain: …`.
 
-## Step 32 — the quest note by the name (NOT deployed yet — the game was running; quit it and run tools\deploy.ps1)
+## Step 32 — the quest note by the name (deployed at the end of step 33)
 
 Your words: *"'Grain' -> 'Grain (100 needed for quest)'"*. (DESIGN §2.9 "The quest note after the name")
 
