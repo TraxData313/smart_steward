@@ -18,23 +18,16 @@
     <tag language="English" />
   </tags>
   <strings>
-    <string id="ss_auto_cut_short" text="cut short" />
     <string id="ss_auto_donated" text="donated" />
     <string id="ss_auto_failed" text="Smart Steward: the autonomous steward failed - see smart_steward.log." />
     <string id="ss_auto_food" text="food" />
-    <string id="ss_auto_gold" text="denari" />
-    <string id="ss_auto_head" text="Steward at {SETTLEMENT}:" />
-    <string id="ss_auto_head_short" text="Steward:" />
     <string id="ss_auto_influence" text="influence" />
     <string id="ss_auto_kind" text="kind" />
     <string id="ss_auto_kinds" text="kinds" />
     <string id="ss_auto_mounts" text="mounts" />
-    <string id="ss_auto_nothing_done" text="nothing was done" />
     <string id="ss_auto_other" text="other" />
     <string id="ss_auto_prisoners" text="prisoners" />
     <string id="ss_auto_ransomed" text="ransomed" />
-    <string id="ss_auto_see_log" text="see smart_steward.log" />
-    <string id="ss_auto_skipped" text="skipped" />
     <string id="ss_auto_sold" text="sold" />
     <string id="ss_grp_Food" text="Food" />
     <string id="ss_grp_General" text="General" />
@@ -127,6 +120,23 @@
     <string id="ss_opt_SellLootOrder_MostExpensive" text="Most expensive first" />
     <string id="ss_quest_bandits" text="bandits" />
     <string id="ss_quest_weapons" text="weapons" />
+    <string id="ss_report_cut_short" text="{N} cut short" />
+    <string id="ss_report_deals_many" text="{N} deals made" />
+    <string id="ss_report_deals_none" text="no deals made" />
+    <string id="ss_report_deals_one" text="1 deal made" />
+    <string id="ss_report_denari" text="{N} denari" />
+    <string id="ss_report_donated_many" text="{N} prisoners donated" />
+    <string id="ss_report_donated_one" text="1 prisoner donated" />
+    <string id="ss_report_head" text="Steward report:" />
+    <string id="ss_report_head_at" text="Steward report at {SETTLEMENT}:" />
+    <string id="ss_report_head_jobs" text="Steward report, by job:" />
+    <string id="ss_report_head_part" text="Steward report ({PART}):" />
+    <string id="ss_report_influence" text="{N} influence" />
+    <string id="ss_report_nothing_done" text="nothing was done" />
+    <string id="ss_report_ransomed_many" text="{N} prisoners ransomed" />
+    <string id="ss_report_ransomed_one" text="1 prisoner ransomed" />
+    <string id="ss_report_see_log" text="see smart_steward.log" />
+    <string id="ss_report_skipped" text="{N} skipped" />
     <string id="ss_set_AutoFillFoodPrices" text="Average prices for food" />
     <string id="ss_set_AutoFillPackAndMountPrices" text="Average prices for pack animals and horses" />
     <string id="ss_set_AutoFillWarMountPrices" text="Average prices for war horses" />
@@ -229,9 +239,6 @@
     <string id="ss_ui_deal_all" text="Deal all" />
     <string id="ss_ui_deal_all_hint" text="Carry out the whole table at once - every line's Deal in one click." />
     <string id="ss_ui_deal_group" text="Deal group" />
-    <string id="ss_ui_done" text="Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
-    <string id="ss_ui_done_abort" text="Steward: nothing was done - see smart_steward.log." />
-    <string id="ss_ui_done_partly" text="{CUT} cut short, {SKIPPED} skipped - see smart_steward.log." />
     <string id="ss_ui_empty" text="Nothing for the steward to do here." />
     <string id="ss_ui_enum_hint" text="Click for the next choice" />
     <string id="ss_ui_failed" text="Smart Steward: something went wrong - the window closed. See smart_steward.log." />
@@ -266,8 +273,6 @@
     <string id="ss_ui_part_denari" text="{GOLD} denari" />
     <string id="ss_ui_part_dismiss" text="dismiss {N}" />
     <string id="ss_ui_part_donate" text="to the dungeon {N}" />
-    <string id="ss_ui_part_done" text="Steward ({PART}): {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}." />
-    <string id="ss_ui_part_done_abort" text="Steward ({PART}): nothing was done - see smart_steward.log." />
     <string id="ss_ui_part_floor_deal_all" text="Alone it would take your purse below {GOLD} denari - the rest of the deal pays for it. Use Deal all." />
     <string id="ss_ui_part_hire" text="hire {N}" />
     <string id="ss_ui_part_influence" text="{N} influence" />

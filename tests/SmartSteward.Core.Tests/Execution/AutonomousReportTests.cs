@@ -7,9 +7,9 @@ using SmartSteward.Core.Tests.Planning;
 namespace SmartSteward.Core.Tests.Execution;
 
 /// <summary>
-/// The Full-autonomous steward's message-log report (DESIGN §6, PLAN step 8): one entry per job that did something
-/// and the purse, a line of its own for trouble, nothing at all when nothing happened — from the executor's REAL
-/// outcomes, in the game fonts' glyphs (en-dash minus, » arrow, · between jobs).
+/// The Full-autonomous steward's message-log report (DESIGN §6, PLAN step 8; step 33: "Steward report" first): the
+/// summary line (deals, denari, influence, prisoners, the trouble at its end), then one entry per job that did something,
+/// nothing at all when nothing happened — from the executor's REAL outcomes, in the game fonts' glyphs (en-dash minus, · between jobs).
 /// </summary>
 public class AutonomousReportTests
 {
@@ -46,18 +46,20 @@ public class AutonomousReportTests
     }
 
     [Fact]
-    public void One_line_names_every_job_that_did_something_then_the_purse()
+    public void The_summary_line_then_every_job_that_did_something()
     {
         var (plan, _) = Sargot();
         Assert.Equal(20, plan.Rows.Where(r => r.Type == RowType.Food).Sum(r => r.Change)); // target 2 × 10 men
         var summary = AutonomousReport.From(plan, AsPlanned(plan, 312_400));
 
-        var lines = summary.Lines("Steward at Sargot:", "Steward:");
+        var lines = summary.Lines("Steward report at Sargot:", "Steward report, by job:");
 
-        Assert.Equal(
-            "Steward at Sargot: food +20 (2 kinds) –220 · mounts +4 –720 · other 41 sold +2,132 · "
-            + "prisoners 12 ransomed +960 · denari 312,400 » 314,552",
-            Assert.Single(lines));
+        int deals = plan.Transactions.Count;
+        Assert.Equal(new[]
+        {
+            "Steward report at Sargot: " + deals + " deals made · +2,152 denari · 12 prisoners ransomed",
+            "Steward report, by job: food +20 (2 kinds) –220 · mounts +4 –720 · other 41 sold +2,132 · prisoners 12 ransomed +960",
+        }, lines);
         Assert.Equal(new[] { StewardJob.Food, StewardJob.Mounts, StewardJob.Other, StewardJob.Prisoners },
             summary.Jobs.Select(j => j.Job));
         Assert.False(summary.IsEmpty);
@@ -73,11 +75,11 @@ public class AutonomousReportTests
         var summary = AutonomousReport.From(plan, AsPlanned(plan, 100_000));
 
         Assert.True(summary.IsEmpty);
-        Assert.Empty(summary.Lines("Steward at X:", "Steward:"));
+        Assert.Empty(summary.Lines("Steward report at X:", "Steward report, by job:"));
     }
 
     [Fact]
-    public void Skipped_and_cut_short_transactions_get_their_own_line_and_only_real_units_count()
+    public void Skipped_and_cut_short_transactions_end_the_summary_and_only_real_units_count()
     {
         var (plan, _) = Sargot();
         var report = new ExecutionReport(312_400);
@@ -92,26 +94,30 @@ public class AutonomousReportTests
         report.GoldAfter = 312_400 + 960 + 30 * 52;
 
         var summary = AutonomousReport.From(plan, report);
-        var lines = summary.Lines("Steward at Sargot:", "Steward:");
+        var lines = summary.Lines("Steward report at Sargot:", "Steward report, by job:");
 
-        Assert.Equal(2, lines.Count);
-        Assert.Equal("Steward at Sargot: other 30 sold +1,560 · prisoners 12 ransomed +960 · denari 312,400 » 314,920",
-            lines[0]);
         int buys = plan.Transactions.Count(t => t.Kind == TransactionKind.Buy);
-        Assert.Equal("Steward: 1 cut short, " + buys + " skipped — see smart_steward.log", lines[1]);
+        Assert.Equal(new[]
+        {
+            "Steward report at Sargot: 2 deals made · +2,520 denari · 12 prisoners ransomed · 1 cut short, " + buys
+                + " skipped — see smart_steward.log",
+            "Steward report, by job: other 30 sold +1,560 · prisoners 12 ransomed +960",
+        }, lines);
     }
 
     [Fact]
-    public void All_skipped_gives_only_the_trouble_line()
+    public void All_skipped_gives_only_the_summary_with_its_trouble()
     {
         var (plan, _) = Sargot();
         var report = new ExecutionReport(312_400);
         foreach (var t in plan.Transactions)
             report.Add(t).Stop(SkipReason.NotAllowedHere);
 
-        var lines = AutonomousReport.From(plan, report).Lines("Steward at Sargot:", "Steward:");
+        report.GoldAfter = 312_400;
+        var lines = AutonomousReport.From(plan, report).Lines("Steward report at Sargot:", "Steward report, by job:");
 
-        Assert.Equal("Steward: " + plan.Transactions.Count + " skipped — see smart_steward.log", Assert.Single(lines));
+        Assert.Equal("Steward report at Sargot: no deals made · " + plan.Transactions.Count + " skipped — see smart_steward.log",
+            Assert.Single(lines));
     }
 
     [Fact]
@@ -120,9 +126,9 @@ public class AutonomousReportTests
         var (plan, _) = Sargot();
         var report = new ExecutionReport(312_400) { Abort = "the party is no longer in Sargot" };
 
-        var lines = AutonomousReport.From(plan, report).Lines("Steward at Sargot:", "Steward:");
+        var lines = AutonomousReport.From(plan, report).Lines("Steward report at Sargot:", "Steward report, by job:");
 
-        Assert.Equal("Steward: nothing was done — see smart_steward.log", Assert.Single(lines));
+        Assert.Equal("Steward report at Sargot: nothing was done — see smart_steward.log", Assert.Single(lines));
     }
 
     [Fact]
@@ -163,12 +169,19 @@ public class AutonomousReportTests
         var words = new ReportWords
         {
             Food = "Essen", Mounts = "Pferde", Other = "Beute", Prisoners = "Gefangene",
-            Kind = "Sorte", Kinds = "Sorten", Sold = "verkauft", Ransomed = "freigekauft", Gold = "Gold",
+            Kind = "Sorte", Kinds = "Sorten", Sold = "verkauft", Ransomed = "freigekauft",
+        };
+        var summaryWords = new SummaryWords
+        {
+            DealsMany = n => n + " Geschäfte", Denari = n => n + " Dinar", RansomedMany = n => n + " Gefangene freigekauft",
         };
 
-        var line = AutonomousReport.From(plan, AsPlanned(plan, 312_400)).Lines("Verwalter in Sargot:", "Verwalter:", words)[0];
+        var lines = AutonomousReport.From(plan, AsPlanned(plan, 312_400))
+            .Lines("Verwalterbericht in Sargot:", "Nach Aufgabe:", words, summaryWords);
 
-        Assert.Equal("Verwalter in Sargot: Essen +20 (2 Sorten) –220 · Pferde +4 –720 · Beute 41 verkauft +2,132 · "
-            + "Gefangene 12 freigekauft +960 · Gold 312,400 » 314,552", line);
+        Assert.Equal("Verwalterbericht in Sargot: " + plan.Transactions.Count + " Geschäfte · +2,152 Dinar · 12 Gefangene freigekauft",
+            lines[0]);
+        Assert.Equal("Nach Aufgabe: Essen +20 (2 Sorten) –220 · Pferde +4 –720 · Beute 41 verkauft +2,132 · "
+            + "Gefangene 12 freigekauft +960", lines[1]);
     }
 }

@@ -210,6 +210,25 @@ namespace SmartSteward.UI
             }
         }
 
+        /// <summary>The "Steward report:" line's words (PLAN step 33, Core <see cref="SmartSteward.Core.Execution.SummaryWords"/>) —
+        /// the window's Deal all / Deal and the autonomous steward share them.</summary>
+        public static SmartSteward.Core.Execution.SummaryWords SummaryWords() => new SmartSteward.Core.Execution.SummaryWords
+        {
+            DealsOne = UiText.S("ss_report_deals_one", "1 deal made"),
+            DealsMany = n => UiText.S1("ss_report_deals_many", "{N} deals made", "N", n),
+            DealsNone = UiText.S("ss_report_deals_none", "no deals made"),
+            Denari = n => UiText.S1("ss_report_denari", "{N} denari", "N", n),
+            Influence = n => UiText.S1("ss_report_influence", "{N} influence", "N", n),
+            RansomedOne = UiText.S("ss_report_ransomed_one", "1 prisoner ransomed"),
+            RansomedMany = n => UiText.S1("ss_report_ransomed_many", "{N} prisoners ransomed", "N", n),
+            DonatedOne = UiText.S("ss_report_donated_one", "1 prisoner donated"),
+            DonatedMany = n => UiText.S1("ss_report_donated_many", "{N} prisoners donated", "N", n),
+            CutShort = n => UiText.S1("ss_report_cut_short", "{N} cut short", "N", n),
+            Skipped = n => UiText.S1("ss_report_skipped", "{N} skipped", "N", n),
+            NothingDone = UiText.S("ss_report_nothing_done", "nothing was done"),
+            SeeLog = UiText.S("ss_report_see_log", "see smart_steward.log"),
+        };
+
         /// <summary>A part's name for the run's message line and the log (PLAN step 27): the section's title, the line's name, a
         /// tavern row's own name.</summary>
         public static string PartName(PlanPart part, StewardPlan? plan)

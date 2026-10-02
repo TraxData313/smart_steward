@@ -49,10 +49,12 @@ namespace SmartSteward
                 var report = PlanExecutor.Execute(plan, visit);
                 ModLog.Info("execute", report.LogLines());
                 var summary = AutonomousReport.From(plan, report);
+                // Step 33: "Steward report at X:" - the old "Steward at X:" read like the Steward skill had changed (Anton).
                 var lines = summary.Lines(
-                    UiText.S1("ss_auto_head", "Steward at {SETTLEMENT}:", "SETTLEMENT", visit.Settlement.Name?.ToString() ?? ""),
-                    UiText.S("ss_auto_head_short", "Steward:"),
-                    Words());
+                    UiText.S1("ss_report_head_at", "Steward report at {SETTLEMENT}:", "SETTLEMENT", visit.Settlement.Name?.ToString() ?? ""),
+                    UiText.S("ss_report_head_jobs", "Steward report, by job:"),
+                    Words(),
+                    UiLabels.SummaryWords());
                 foreach (var line in lines)
                 {
                     ModLog.Info("auto", line);
@@ -81,11 +83,6 @@ namespace SmartSteward
             Ransomed = UiText.S("ss_auto_ransomed", "ransomed"),
             Donated = UiText.S("ss_auto_donated", "donated"),
             Influence = UiText.S("ss_auto_influence", "influence"),
-            Gold = UiText.S("ss_auto_gold", "denari"),
-            CutShort = UiText.S("ss_auto_cut_short", "cut short"),
-            Skipped = UiText.S("ss_auto_skipped", "skipped"),
-            NothingDone = UiText.S("ss_auto_nothing_done", "nothing was done"),
-            SeeLog = UiText.S("ss_auto_see_log", "see smart_steward.log"),
         };
     }
 }

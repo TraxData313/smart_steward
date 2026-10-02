@@ -297,28 +297,15 @@ namespace SmartSteward.UI
             RefreshDoIt();
         }
 
-        /// <summary>The player's one line about a run, through TextObjects: "Steward: 14 of 16 done. Denari 12,400 » 10,930." — a
-        /// part's run (step 27) names the part: "Steward (Prisoners): 2 of 2 done. …".</summary>
+        /// <summary>The player's one line about a run (PLAN step 33 — the old "Steward: 14 of 16 done. …" read like the Steward
+        /// SKILL had changed, Anton 2026.10.02): Core <see cref="RunSummary"/> — "Steward report: 14 deals made · +1,470 denari ·
+        /// 12 prisoners ransomed"; a part's run (step 27) names the part: "Steward report (Prisoners): …".</summary>
         private static string Summary(ExecutionReport report, string? part = null)
         {
-            if (report.Abort != null)
-                return part == null
-                    ? UiText.S("ss_ui_done_abort", "Steward: nothing was done - see smart_steward.log.")
-                    : UiText.S1("ss_ui_part_done_abort", "Steward ({PART}): nothing was done - see smart_steward.log.", "PART", part);
-            var line = part == null
-                ? UiText.T("ss_ui_done", "Steward: {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}.")
-                : UiText.T("ss_ui_part_done", "Steward ({PART}): {DONE} of {ALL} done. Denari {BEFORE} » {AFTER}.")
-                    .SetTextVariable("PART", part);
-            string text = line
-                .SetTextVariable("DONE", UiFormat.Money(report.FullyDone))
-                .SetTextVariable("ALL", UiFormat.Money(report.Planned))
-                .SetTextVariable("BEFORE", UiFormat.Money(report.GoldBefore))
-                .SetTextVariable("AFTER", UiFormat.Money(report.GoldAfter))
-                .ToString();
-            if (report.CutShort + report.NotDone > 0)
-                text += " " + UiText.S2("ss_ui_done_partly", "{CUT} cut short, {SKIPPED} skipped - see smart_steward.log.",
-                    "CUT", UiFormat.Money(report.CutShort), "SKIPPED", UiFormat.Money(report.NotDone));
-            return text;
+            string head = part == null
+                ? UiText.S("ss_report_head", "Steward report:")
+                : UiText.S1("ss_report_head_part", "Steward report ({PART}):", "PART", part);
+            return RunSummary.From(report).Line(head, UiLabels.SummaryWords());
         }
 
         /// <summary>Runs a command, a two-way setter or a settings callback; any exception is logged and closes the

@@ -62,11 +62,6 @@ namespace SmartSteward.Core.Execution
         public string Ransomed { get; set; } = "ransomed";
         public string Donated { get; set; } = "donated";
         public string Influence { get; set; } = "influence";
-        public string Gold { get; set; } = "denari";
-        public string CutShort { get; set; } = "cut short";
-        public string Skipped { get; set; } = "skipped";
-        public string NothingDone { get; set; } = "nothing was done";
-        public string SeeLog { get; set; } = "see smart_steward.log";
 
         public string JobName(StewardJob job)
         {
@@ -82,23 +77,25 @@ namespace SmartSteward.Core.Execution
 
     /// <summary>
     /// The Full-autonomous steward's report (DESIGN §6): after the deal, a short summary for the game's message log —
-    /// one entry per job that did something, then the purse:
-    /// <c>Steward at Sargot: food +24 (5 kinds) –310 · mounts +3 –540 · armour &amp; weapons 41 sold +2,130 · prisoners
-    /// 12 ransomed +980 · denari 312,400 » 314,660</c>; skipped or cut-short transactions get a line of their own
-    /// (<c>Steward: 2 skipped — see smart_steward.log</c>); nothing happened → no lines at all. The full detail goes to
-    /// the log file (<see cref="ExecutionReport.LogLines"/>).
+    /// since step 33 (Anton 2026.10.02: the old "Steward …" line read like the Steward SKILL had changed) the
+    /// <see cref="RunSummary"/> line first, then one entry per job that did something:
+    /// <c>Steward report at Sargot: 46 deals made · +2,240 denari · 12 prisoners ransomed</c> /
+    /// <c>Steward report, by job: food +24 (5 kinds) –310 · mounts +3 –540 · other 41 sold +2,130 · prisoners 12 ransomed
+    /// +980</c>; skipped or cut-short transactions end the first line (<c>· 2 skipped — see smart_steward.log</c>); nothing
+    /// happened → no lines at all. The full detail goes to the log file (<see cref="ExecutionReport.LogLines"/>).
     /// </summary>
     public sealed class AutonomousReport
     {
-        private AutonomousReport(List<JobResult> jobs, int goldBefore, int goldAfter, int cutShort, int skipped, bool aborted)
+        private AutonomousReport(List<JobResult> jobs, ExecutionReport report)
         {
             Jobs = jobs;
-            GoldBefore = goldBefore;
-            GoldAfter = goldAfter;
-            CutShort = cutShort;
-            Skipped = skipped;
-            Aborted = aborted;
+            Summary = RunSummary.From(report);
+            GoldBefore = report.GoldBefore;
+            GoldAfter = report.GoldAfter;
         }
+
+        /// <summary>The run as one "Steward report:" line (step 33).</summary>
+        public RunSummary Summary { get; }
 
         /// <summary>The jobs that did something, in job order.</summary>
         public IReadOnlyList<JobResult> Jobs { get; }
@@ -107,16 +104,16 @@ namespace SmartSteward.Core.Execution
         public int GoldAfter { get; }
 
         /// <summary>Transactions done only in part.</summary>
-        public int CutShort { get; }
+        public int CutShort => Summary.CutShort;
 
         /// <summary>Transactions not done at all.</summary>
-        public int Skipped { get; }
+        public int Skipped => Summary.Skipped;
 
         /// <summary>The run never started (the party had left, …).</summary>
-        public bool Aborted { get; }
+        public bool Aborted => Summary.Aborted;
 
         /// <summary>Nothing done and nothing went wrong — no message.</summary>
-        public bool IsEmpty => Jobs.Count == 0 && CutShort + Skipped == 0 && !Aborted;
+        public bool IsEmpty => Jobs.Count == 0 && Summary.Deals == 0 && !Summary.HasTrouble;
 
         /// <summary>Sums the executor's outcomes per job; a transaction's job is its row's section in the plan (the
         /// kind decides when the row is unknown).</summary>
@@ -165,8 +162,7 @@ namespace SmartSteward.Core.Execution
             }
 
             var jobs = results.Values.Where(r => r.DidSomething).OrderBy(r => r.Job).ToList();
-            return new AutonomousReport(jobs, report.GoldBefore, report.GoldAfter, report.CutShort, report.NotDone,
-                report.Abort != null);
+            return new AutonomousReport(jobs, report);
         }
 
         private static StewardJob? JobOf(StewardPlan plan, PlanTransaction t)
@@ -196,31 +192,19 @@ namespace SmartSteward.Core.Execution
         }
 
         /// <summary>
-        /// The message-log lines: the jobs line (only when a job did something) and the trouble line (only when
-        /// something was skipped, cut short or the run aborted). <paramref name="header"/> opens the jobs line
-        /// ("Steward at Sargot:"), <paramref name="shortHeader"/> the trouble line ("Steward:").
+        /// The message-log lines (step 33): the <see cref="RunSummary"/> line opened by <paramref name="header"/> ("Steward report
+        /// at Sargot:" — the trouble, if any, at its end), then the jobs line opened by <paramref name="jobsHeader"/> ("Steward
+        /// report, by job:") when a job did something. Nothing happened → no lines.
         /// </summary>
-        public IReadOnlyList<string> Lines(string header, string shortHeader, ReportWords? words = null)
+        public IReadOnlyList<string> Lines(string header, string jobsHeader, ReportWords? words = null, SummaryWords? summaryWords = null)
         {
             words ??= new ReportWords();
             var lines = new List<string>();
+            if (IsEmpty)
+                return lines;
+            lines.Add(Summary.Line(header, summaryWords));
             if (Jobs.Count > 0)
-            {
-                var parts = Jobs.Select(j => Describe(j, words)).ToList();
-                parts.Add(words.Gold + " " + UiFormat.Money(GoldBefore) + " " + UiFormat.Arrow + " " + UiFormat.Money(GoldAfter));
-                lines.Add(header + " " + string.Join(" " + UiFormat.Dot + " ", parts));
-            }
-            if (Aborted)
-            {
-                lines.Add(shortHeader + " " + words.NothingDone + " " + UiFormat.None + " " + words.SeeLog);
-            }
-            else if (CutShort + Skipped > 0)
-            {
-                var trouble = new List<string>();
-                if (CutShort > 0) trouble.Add(UiFormat.Money(CutShort) + " " + words.CutShort);
-                if (Skipped > 0) trouble.Add(UiFormat.Money(Skipped) + " " + words.Skipped);
-                lines.Add(shortHeader + " " + string.Join(", ", trouble) + " " + UiFormat.None + " " + words.SeeLog);
-            }
+                lines.Add(jobsHeader + " " + string.Join(" " + UiFormat.Dot + " ", Jobs.Select(j => Describe(j, words))));
             return lines;
         }
 

@@ -238,8 +238,9 @@ public class ExecutionTests
         Assert.Equal(1, report.CutShort);
         Assert.Equal(0, report.NotDone);
         Assert.Contains("stopped: Error", ExecutionReport.Describe(o));
-        var lines = AutonomousReport.From(plan, report).Lines("Steward at X:", "Steward:");
-        Assert.Contains(lines, l => l.StartsWith("Steward: 1 cut short", StringComparison.Ordinal));
+        report.GoldAfter = 1_000 + tx.Gold;
+        var lines = AutonomousReport.From(plan, report).Lines("Steward report at X:", "Steward report, by job:");
+        Assert.EndsWith("1 cut short — see smart_steward.log", lines[0], StringComparison.Ordinal);
     }
 
     [Fact]
