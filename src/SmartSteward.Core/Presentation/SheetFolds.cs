@@ -12,14 +12,17 @@ namespace SmartSteward.Core.Presentation
     /// <list type="bullet">
     /// <item>the sections' detail rows — <see cref="Food"/>, <see cref="Horses"/>, <see cref="Prisoners"/>, <see cref="Other"/>
     ///   (folded, a section shows its title line and the lines that always stay: Lords and Others);</item>
-    /// <item>the two troop lines' rows — <see cref="Recruits"/>, <see cref="YourTroops"/> (the Troops title opens and closes
-    ///   both: mockup choice 8);</item>
+    /// <item>the Troops section — <see cref="Troops"/> (PLAN step 33, Anton 2026.10.02: folded = its title line ALONE, like
+    ///   Food / Horses / Other; until then the title folded the two troop lines' rows and the lines stayed);</item>
+    /// <item>the two troop lines' rows — <see cref="Recruits"/>, <see cref="YourTroops"/> (each line's own ▸; remembered under
+    ///   a folded Troops, so opening Troops shows them as they were);</item>
     /// <item>a row's per-type breakdown (▸) — the five horse role rows and the Other goods row.</item>
     /// </list>
     /// The names are the file's words — never rename one.
     /// </summary>
     public static class SheetFolds
     {
+        public const string Troops = "Troops";
         public const string Recruits = "Recruits";
         public const string YourTroops = "YourTroops";
         public const string Food = "Food";
@@ -36,7 +39,7 @@ namespace SmartSteward.Core.Presentation
         /// <summary>Every key, in the table's order.</summary>
         public static IReadOnlyList<string> All { get; } = new[]
         {
-            Recruits, YourTroops, Food, Horses, PackAnimals, RidingHorses, WarHorses, NobleHorses, LameHorses, Prisoners, Other,
+            Troops, Recruits, YourTroops, Food, Horses, PackAnimals, RidingHorses, WarHorses, NobleHorses, LameHorses, Prisoners, Other,
             OtherGoods,
         };
 
@@ -50,11 +53,12 @@ namespace SmartSteward.Core.Presentation
             Recruits, YourTroops, Food, PackAnimals, RidingHorses, WarHorses, NobleHorses, LameHorses, Prisoners, OtherGoods,
         };
 
-        /// <summary>The section's own fold (Troops has none: its title folds both troop lines).</summary>
+        /// <summary>The section's own fold (Troops since step 33 — before, its title folded both troop lines' rows).</summary>
         public static string? OfSection(SheetGroup group)
         {
             switch (group)
             {
+                case SheetGroup.Troops: return Troops;
                 case SheetGroup.Food: return Food;
                 case SheetGroup.Horses: return Horses;
                 case SheetGroup.Prisoners: return Prisoners;
@@ -90,7 +94,7 @@ namespace SmartSteward.Core.Presentation
 
         /// <summary>
         /// The step-18/20 file's section names (<c>"CollapsedSections"</c>: Tavern, Troops, Food, Mounts, Other — once
-        /// ArmourAndWeapons —, Prisoners) as today's keys: Troops folded both halves (now Recruits + Your troops), Mounts is
+        /// ArmourAndWeapons —, Prisoners) as today's keys: Troops folded both halves (now Troops + Recruits + Your troops), Mounts is
         /// Horses; the Tavern has no fold any more (its lines always show) — known, nothing. Null for a name it never had.
         /// </summary>
         public static IReadOnlyList<string>? FromOldSection(string? name)
@@ -98,7 +102,7 @@ namespace SmartSteward.Core.Presentation
             switch ((name ?? "").Trim().ToLowerInvariant())
             {
                 case "tavern": return Array.Empty<string>();
-                case "troops": return new[] { Recruits, YourTroops };
+                case "troops": return new[] { Troops, Recruits, YourTroops };
                 case "food": return new[] { Food };
                 case "mounts": return new[] { Horses };
                 case "other":
@@ -109,6 +113,6 @@ namespace SmartSteward.Core.Presentation
         }
 
         /// <summary>The old file's sections that meant something then (for the migration: named = folded, else open).</summary>
-        internal static IReadOnlyList<string> OldSectionKeys { get; } = new[] { Recruits, YourTroops, Food, Horses, Other, Prisoners };
+        internal static IReadOnlyList<string> OldSectionKeys { get; } = new[] { Troops, Recruits, YourTroops, Food, Horses, Other, Prisoners };
     }
 }

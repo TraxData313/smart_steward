@@ -28,6 +28,7 @@ public class WindowStateTests
             Assert.Null(problem);
             Assert.Equal(Everyday, state.Folded);
             Assert.False(state.IsFolded(SheetFolds.Horses));   // Horses and Other open, as drawn
+            Assert.False(state.IsFolded(SheetFolds.Troops));   // Troops open: its lines show, their rows folded
             Assert.False(state.IsFolded(SheetFolds.Other));
         }
     }
@@ -94,6 +95,7 @@ public class WindowStateTests
             out var problem);
         Assert.Null(problem);
         Assert.True(state.IsFolded(SheetFolds.Recruits) && state.IsFolded(SheetFolds.YourTroops));
+        Assert.True(state.IsFolded(SheetFolds.Troops));                  // step 33: the section to its one line, as then
         Assert.True(state.IsFolded(SheetFolds.Horses) && state.IsFolded(SheetFolds.Other));
         Assert.False(state.IsFolded(SheetFolds.Food));
         Assert.False(state.IsFolded(SheetFolds.Prisoners));
@@ -103,7 +105,7 @@ public class WindowStateTests
 
         var empty = WindowState.Parse("{ \"CollapsedSections\": [] }", out problem);
         Assert.Null(problem);
-        Assert.False(empty.IsFolded(SheetFolds.Food) || empty.IsFolded(SheetFolds.Recruits));
+        Assert.False(empty.IsFolded(SheetFolds.Food) || empty.IsFolded(SheetFolds.Recruits) || empty.IsFolded(SheetFolds.Troops));
     }
 
     [Theory]
@@ -140,7 +142,7 @@ public class WindowStateTests
         Assert.Equal(SheetFolds.PackAnimals, SheetFolds.OfRow(plan.Row("mounts:pack")));
         Assert.Equal(SheetFolds.OtherGoods, SheetFolds.OfRow(plan.Row("loot:OtherGoods")));
         Assert.Null(SheetFolds.OfRow(plan.Row("loot:Armour")));
-        Assert.Null(SheetFolds.OfSection(SheetGroup.Troops));
+        Assert.Equal(SheetFolds.Troops, SheetFolds.OfSection(SheetGroup.Troops));   // step 33
         Assert.Equal(SheetFolds.Horses, SheetFolds.OfSection(SheetGroup.Horses));
     }
 }

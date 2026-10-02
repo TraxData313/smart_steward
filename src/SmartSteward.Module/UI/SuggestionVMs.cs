@@ -605,8 +605,8 @@ namespace SmartSteward.UI
 
     /// <summary>
     /// One section of the spreadsheet: its title line — ▸/▾, the name, the overview and the subtotal in every number column
-    /// (mockup choice 3) — and the lines under it. A click on the title folds or opens the section (Troops: both troop lines,
-    /// mockup choice 8), remembered in window_state.json.
+    /// (mockup choice 3) — and the lines under it. A click on the title folds or opens the section (folded = the title line
+    /// alone — Troops too since step 33), remembered in window_state.json.
     /// </summary>
     public sealed class SheetSectionVM : ViewModel
     {

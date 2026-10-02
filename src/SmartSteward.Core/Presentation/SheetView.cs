@@ -252,11 +252,11 @@ namespace SmartSteward.Core.Presentation
         /// <summary>Mine is past a limit — the Troops title: more members now than the party size limit (red — Anton, round 5).</summary>
         public bool MineWarning { get; internal set; }
 
-        /// <summary>What a click on the title folds: the section's own key, or — Troops — both troop lines (mockup choice 8).</summary>
+        /// <summary>What a click on the title folds: the section's own key (Troops too since step 33 — before, both troop lines' rows).</summary>
         public IReadOnlyList<string> FoldKeys { get; internal set; } = Array.Empty<string>();
         public bool HasFold => FoldKeys.Count > 0;
 
-        /// <summary>▾ (something of it is open) — a click then folds everything it names; ▸ opens everything.</summary>
+        /// <summary>▾ (the section is open) — a click then folds it to its title line; ▸ opens it.</summary>
         public bool IsOpen { get; internal set; }
 
         public IReadOnlyList<SheetItem> Items { get; internal set; } = Array.Empty<SheetItem>();
@@ -317,6 +317,12 @@ namespace SmartSteward.Core.Presentation
             switch (section.Group)
             {
                 case SheetGroup.Troops:
+                    // Step 33 (Anton 2026.10.02: "That Troops dropdown never folds up into one line"): the section has a fold of
+                    // its own — folded = the title line alone; the lines' own folds (Recruits, Your troops) stay remembered under it.
+                    keys.Add(SheetFolds.Troops);
+                    view.IsOpen = !isFolded(SheetFolds.Troops);
+                    if (!view.IsOpen)
+                        break;
                     foreach (var line in section.Lines)
                     {
                         switch (line.Kind)
@@ -326,7 +332,6 @@ namespace SmartSteward.Core.Presentation
                                 bool recruits = line.Kind == SheetLineKind.Recruits;
                                 string key = recruits ? SheetFolds.Recruits : SheetFolds.YourTroops;
                                 bool open = !isFolded(key);
-                                keys.Add(key);
                                 items.Add(TroopLine(plan, line, key, open, words));
                                 if (open)
                                     foreach (var row in line.Details)
@@ -338,7 +343,6 @@ namespace SmartSteward.Core.Presentation
                                 break;
                         }
                     }
-                    view.IsOpen = keys.Any(k => !isFolded(k));
                     break;
                 default:
                     foreach (var line in section.Lines)

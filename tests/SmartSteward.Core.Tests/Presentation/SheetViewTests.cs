@@ -38,7 +38,7 @@ public class SheetViewTests
             troops.Items.Skip(6).Select(i => i.Key));
         Assert.True(troops.Items.Skip(3).Where(i => i.Kind == SheetItemKind.Row).All(i => i.Indented));
         Assert.False(troops.Items[2].Indented || troops.Items[5].Indented);
-        Assert.Equal(new[] { SheetFolds.Recruits, SheetFolds.YourTroops }, troops.FoldKeys);
+        Assert.Equal(new[] { SheetFolds.Troops }, troops.FoldKeys);         // step 33: the section's own fold
         Assert.True(troops.IsOpen);
         Assert.Equal(troops.Items.Count, troops.Items.Select(i => i.Key).Distinct().Count()); // keys are unique
     }
@@ -95,7 +95,7 @@ public class SheetViewTests
         var troops = view.Section(SheetGroup.Troops)!;
         Assert.Equal(new[] { SheetItemKind.Row, SheetItemKind.Row, SheetItemKind.Recruits, SheetItemKind.YourTroops },
             troops.Items.Select(i => i.Kind));
-        Assert.False(troops.IsOpen);
+        Assert.True(troops.IsOpen);                                            // step 33: the section open, its lines' rows folded
         Assert.False(troops.Items[2].IsOpen);
 
         var food = view.Section(SheetGroup.Food)!;
@@ -111,6 +111,36 @@ public class SheetViewTests
         Assert.Equal(new[] { "Armour", "Melee weapons", "Ranged", "Shields", "Other goods" }, other.Items.Select(i => i.Name));
         Assert.Equal(SheetFolds.OtherGoods, other.Items.Last().FoldKey);
         Assert.False(other.Items.Last().IsOpen);                               // its ▸ closed
+    }
+
+    [Fact]
+    public void Troops_folded_is_its_title_line_alone_and_its_lines_folds_are_kept_underneath()
+    {
+        // Step 33 (Anton 2026.10.02: "That Troops dropdown never folds up into one line, it folds and unfolds the sub lines").
+        var plan = SuggestionSheetTests.Lycaron().Plan;
+        var state = new WindowState();
+        state.SetFolded(SheetFolds.YourTroops, false);                         // Your troops' rows open, Recruits' folded
+        state.SetFolded(SheetFolds.Troops, true);
+
+        var troops = SheetView.Build(plan, null, state.IsFolded).Section(SheetGroup.Troops)!;
+        Assert.Empty(troops.Items);                                            // the title line alone - no tavern, no lines
+        Assert.False(troops.IsOpen);
+        Assert.Equal(new[] { SheetFolds.Troops }, troops.FoldKeys);            // a click opens the section, nothing else
+        Assert.Equal(PlanPart.Troops, troops.Part);                            // Deal group still works on the folded title
+        Assert.NotNull(troops.Deal);
+        Assert.Equal(plan.DealOf(PlanPart.Troops).CanRun, troops.Deal!.CanRun);
+        Assert.Equal((M + "2,040", "+1"), (troops.Cells.Denari, troops.Cells.Party)); // the subtotal stays
+
+        state.SetFolded(SheetFolds.Troops, false);                             // opened again: the lines as they were
+        troops = SheetView.Build(plan, null, state.IsFolded).Section(SheetGroup.Troops)!;
+        Assert.True(troops.IsOpen);
+        Assert.Equal(new[]
+        {
+            SheetItemKind.Row, SheetItemKind.Row, SheetItemKind.Recruits, SheetItemKind.YourTroops,
+            SheetItemKind.Row, SheetItemKind.Row, SheetItemKind.Row,
+        }, troops.Items.Select(i => i.Kind));
+        Assert.False(troops.Items[2].IsOpen);
+        Assert.True(troops.Items[3].IsOpen);
     }
 
     [Fact]
