@@ -95,11 +95,14 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deployed at the end of step 31 (the install carries steps 24–31), then playtest — checklist in docs/PLAYTEST.md "Step 31"
 - [x] 32. QUEST NOTE BY THE NAME (Anton 2026.10.01 — "next to the name 'Grain' -> 'Grain (100 needed for quest)'"): every line a quest
   needs shows it after its name, in the quest colour — "Grain  120 needed for quest" (food, horses, goods, troops, prisoners)
-  - [ ] Deploy (the game was running at the end of step 32), then playtest — checklist in docs/PLAYTEST.md "Step 32"
-- [ ] 33. POLISHES (Anton 2026.10.02): (a) folding the Troops section must leave ONE line, like every other section — today its sub-lines
+  - [ ] Deployed at the end of step 33 (the install carries steps 32–33), then playtest — checklist in docs/PLAYTEST.md "Step 32"
+- [x] 33. POLISHES (Anton 2026.10.02): (a) folding the Troops section must leave ONE line, like every other section — today its sub-lines
   (Your troops, Recruits, tavern rows) stay visible; (b) the message-log line "Steward: 44 of 44 ..." reads like the Steward SKILL changed —
   say "Steward report: N deals made · gold ± · influence ± · prisoners ransomed/donated"
+  - [ ] Deployed (the install carries steps 32–33), then playtest — checklist in docs/PLAYTEST.md "Step 33"
 SHIPPING NEXT (done in main, NOT released yet):
+- Folding Troops leaves its title line alone, like Food — Recruits and Your troops come back as you left them
+- The message log says "Steward report: 12 deals made · +1,470 denari · +2.4 influence · 8 prisoners ransomed" (it said "Steward: 12 of 12 done…", which read like the Steward skill)
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
 - A "Deal" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Deal all" (it read "Do it")
 - "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen

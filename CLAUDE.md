@@ -152,7 +152,9 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
   Execution/                  ExecutionBudget (per-unit purse / market gold / row price limit / the autonomous
                               floor, the lock check StoppedByLock, hire rules),
                               TransactionOutcome + ExecutionReport (real prices, drift, why it stopped, log lines),
-                              AutonomousReport (the autonomous steward's message-log lines, words from outside)
+                              AutonomousReport (the autonomous steward's message-log lines, words from outside);
+                              RunSummary (step 33) = the "Steward report: N deals made · ±denari · influence · prisoners" line
+                              of every run (Deal all, a part's Deal, autonomous — never a bare "Steward:", it read like the skill)
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
@@ -166,7 +168,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               cheapest first; SheetView (step 21) = the lines ON SCREEN built from the sheet after every click: every
                               cell as text + colour, the notes after the names (step 32: the quest note first, light blue), the Denari tooltips, every button's live block (a troop
                               row under its line shows only its side), the folds applied — a folded part is never asked for blocks;
-                              SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults;
+                              SheetFolds (step 21) = every fold key of window_state.json ("Folded") + the everyday-view defaults
+                              (step 33: Troops has its own section fold - folded = the title line alone);
                               SheetGoalCell (step 22) = the Goal column per line and title line (SheetItem.Goal, SheetSectionView.Goal /
                               Mine / MineWarning) — step 23's window binds it; GoalInput (step 23) = what a typed Goal box
                               holds when left (unchanged / invalid → revert / a goal, clamped).

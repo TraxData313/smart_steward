@@ -18,7 +18,7 @@ Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load
    upgrade horses for troops ready to upgrade, loot sold cheapest first, prisoners ransomed.)
 3. **Compare prices**: press **Cancel**, open the vanilla Trade screen, and check a few first-unit prices against the
    popup's (the log also has a `price self-check` line — it should say *all equal*).
-4. **Execute**: open the door again, press **Execute**. A message sums it up ("Steward: N of N done…").
+4. **Execute**: open the door again, press **Execute**. A message sums it up ("Steward report: N deals made…").
    Check: gold changed by about the popup's amount; the inventory has the new food/horses and lost the sold loot;
    the prisoners are gone and the gold came in; locked armour and weapons were not sold. Any "cut short" or "skipped"? The log
    says why.
@@ -88,8 +88,8 @@ question is on; the autonomous steward is off. Mod Options (or settings.json) ch
 8. **Full-autonomous steward.** Tick General → **Full-autonomous steward**. Its floor, Money → **Keep while
    autonomous**, is 100,000: below it the steward only sells and ransoms (tick Sell loot to see it); set it to e.g.
    1,000 to watch it buy. Enter a town: no window, no question on leaving — just a line in the message log (bottom
-   left) like `Steward at Sargot: food +24 (2 kinds) –310 · mounts +3 –540 · armour & weapons 41 sold +2,130 ·
-   prisoners 12 ransomed +980 · gold 312,400 » 314,660`. Check gold and inventory match. Never a tavern hire.
+   left) like `Steward report at Sargot: 46 deals made · +2,240 denari · 12 prisoners ransomed`, then
+   `Steward report, by job: food +24 (2 kinds) –310 · mounts +3 –540 · other 41 sold +2,130 · prisoners 12 ransomed +980`. Check gold and inventory match. Never a tavern hire.
    Nothing to do → no line. The Party Steward entry still opens the window.
 9. **Old settings file.** A settings.json that still said `"AutoExecute"` now says `"AutonomousSteward"` with the
    same value (the log: `"AutoExecute" is now AutonomousSteward`).
@@ -474,7 +474,7 @@ see it (your edits and goals included) — no setting, no goal changes — then 
 
 1. **Your case first: ransom only.** In a town with prisoners and a grain goal you do not want touched: hover the Prisoners
    title's **Do** — *"Ransom 12: +3,400 denari"*. Click it: the prisoners are ransomed, the grain and everything else stay as
-   they were, the window stays open, the status line says *"Steward (Prisoners): 2 of 2 done. Denari …"*.
+   they were, the window stays open, the status line says *"Steward report (Prisoners): 1 deal made · +3,400 denari · 12 prisoners ransomed"*.
 2. **Lords / Others alone**: with both lines on Ransom, Do on **Others** ransoms only the common prisoners; the lords stay (and
    are still proposed).
 3. **Folded**: fold Food, hover and click its title's Do — it works the same folded.
@@ -527,7 +527,7 @@ plans again and stays open, exactly like step 27's section buttons. The big bott
 
 1. **Your case: one food.** In a town where the steward wants to buy several foods, hover the **Grain** line's Do —
    *"Buy 6 Grain: -120 denari"*. Click it: only grain is bought; the other foods, horses, prisoners stay proposed; the status
-   line says *"Steward (Grain): 1 of 1 done. Denari …"*. The other food rows may now suggest a little differently — the days
+   line says *"Steward report (Grain): 1 deal made · -120 denari"*. The other food rows may now suggest a little differently — the days
    goal is nearer; that is intended (the re-plan is the truth after every Do).
 2. **A quiet line greys**: a food with nothing to buy or sell — its Do is grey, the hover *"Nothing to do on this line."*
 3. **The floor still holds**: with little denari and a lord to ransom, the grain's Do buys only down to your 1,000 denari
@@ -593,3 +593,18 @@ Your words: *"'Grain' -> 'Grain (100 needed for quest)'"*. (DESIGN §2.9 "The qu
    **Lords**. The section title lines (Food, Horses…) do NOT carry it.
 6. **Nothing cut**: the names stay whole and the blue part fits the Item column — a long grey note after it may be cut; say if
    the blue part ever is.
+
+## Step 33 — Troops folds to one line, "Steward report" (deployed)
+
+Your words: *"That Troops dropdown never folds up into one line"* and *"'Steward: 44 of 44...' is confusing"*. (DESIGN §1.1 Folds,
+§6 "The report line")
+
+1. **Troops folded**: click the Troops title — ONLY its title line stays (no wanderers, no Recruits, no Your troops), like Food.
+   Its **Deal group** still works from the folded line.
+2. **Opened again**: Recruits and Your troops come back folded or open as you left them; their own ▸ still work. Restart the
+   game — Troops stays folded or open as you left it.
+3. **Deal all** in a town: the message log (and the window's status line) says
+   *"Steward report: 12 deals made · +1,470 denari · 8 prisoners ransomed"* — never "Steward: 12 of 12 done".
+4. **A line's Deal**: *"Steward report (Grain): 1 deal made · -120 denari"*.
+5. **Donate** prisoners (Lords or Others on Donate): *"… · +2.4 influence · 4 prisoners donated"*.
+6. **Full-autonomous steward**: two lines — *"Steward report at Sargot: …"* and *"Steward report, by job: food +24 …"*.

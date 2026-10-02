@@ -206,7 +206,8 @@ part; the window's `RunPart`.)
   rows by id, clamped to the new limits, walked first; a troop row by its side — after Recruits its dismissals stay); the part's
   own edits were carried out and are not put back (a row the executor cut short is proposed anew). Goals are settings and stay
   anyway. Not kept: the Your troops line's undo order (as after any settings re-plan). The log gets Deal all's own report lines,
-  tagged `part <name>`; the status line and the message log say `Steward (Prisoners): 2 of 2 done. Denari …`.
+  tagged `part <name>`; the status line and the message log say `Steward (Prisoners): 2 of 2 done. Denari …` — since step 33
+  `Steward report (Prisoners): 1 deal made · +3,400 denari · 12 prisoners ransomed` (§6 "The report line").
 
 **DO ON EVERY LINE · "DO ALL" [Anton 2026.10.01, PLAN step 29]** — *"can I have that Do button next to every line too, so that say
 I want to just update one specific food, and maybe the bottom right button 'Do it' -> 'Do all'"*. Step 27's "item-level rows get
@@ -222,7 +223,7 @@ none" is reversed; everything else of "Do just this part" above holds for a line
   under both Recruits and Your troops does only its own side: under Recruits its recruits (`RecruitRow`), under Your troops its
   dismissals (`DismissRow`) — the other side greys "Nothing to do". **A breakdown line** runs only its row's trades of that one
   stack (`StackLine`, the item + modifier). Same executor path, floors, checks and `EncounterGuard` as Deal all; the log lines are
-  tagged `part Row:food:grain` / `part StackLine:mounts:riding/…`; the status line names the line: `Steward (Grain): 1 of 1 done…`.
+  tagged `part Row:food:grain` / `part StackLine:mounts:riding/…`; the status line names the line: `Steward (Grain): 1 of 1 done…` (step 33: `Steward report (Grain): …`).
 - **Hover**: enabled = one line of what it does, naming the line — *"Buy 6 Grain: -120 denari"*, *"Ransom 8 T1 Looter: +160
   denari"* (+ step 27's cut line); greyed = step 27's reasons (*"… Use Deal all."*).
 - **Rows that share a walk** [Claude's call, how it reads]: the food kinds share the days goal and the horse roles share the
@@ -270,7 +271,7 @@ two blocks say "Do", the button now reads "Deal" or "Deal group".
   must not stand on a "Deal" button).
 - **The log**: the window's guard tags `deal all` / `deal <part>` and `after Deal all`; the executor's report lines keep their
   `part <id>` tag (`part Row:food:grain` — the code's part ids, for reading the log, not the player's word). The status line is
-  unchanged (`Steward (Grain): 1 of 1 done…`). Release texts: the Workshop page, `WorkshopCreate.xml`, the preview thumbnail.
+  unchanged (`Steward (Grain): 1 of 1 done…`; step 33 reworded it, §6). Release texts: the Workshop page, `WorkshopCreate.xml`, the preview thumbnail.
 
 **THE SPREADSHEET (round 4) — APPROVED by Anton 2026.09.28** ("beautiful"; docs/mockups/README.md holds the ten choices, all
 standing, and the two changes below; step 20 built the Core model — `Presentation\SuggestionSheet`, `Planning\PlanMetrics`,
@@ -330,8 +331,11 @@ way to present it and expand it nicely, easyly trackable, this way I can see all
     leaves. Title lines 38 px, lines 32, breakdown lines 26 (small, grey, no buttons). The **Sea kg column hides** without
     ships (it would be all blanks).
   - **Folds** (`SheetFolds`, remembered in window_state.json under `"Folded"`): Food, Horses, Prisoners, Other (a section
-    folded = its title line + Lords / Others), Recruits and Your troops (the Troops title folds or opens both — ▾ while either
-    is open), the five horse role rows' ▸ and the Other goods ▸. **With no file the everyday view of the approved mockup**
+    folded = its title line + Lords / Others), **Troops** (since step 33 — Anton 2026.10.02: *"That Troops dropdown never
+    folds up into one line, it folds and unfolds the sub lines"*: folded = its title line ALONE, the tavern rows, Recruits and
+    Your troops hidden, its Deal group still on the title; until then the title folded both troop lines' rows and the lines
+    stayed), Recruits and Your troops (each line's own ▸ — remembered under a folded Troops, so opening it shows them as they
+    were; a step-18/20 file's "Troops" folds all three), the five horse role rows' ▸ and the Other goods ▸. **With no file the everyday view of the approved mockup**
     (Recruits, Your troops, Food, the prisoner rows and every ▸ folded; Horses and Other open) — until step 21 no file meant
     everything open. A step-18/20 file (`"CollapsedSections"`) is read once in its own terms (Troops = both lines, Mounts =
     Horses, Tavern = nothing).
@@ -1413,10 +1417,23 @@ troop / hero, the count and the expected unit prices.
     so "set the limits very high" is how the player loosens it.
   - The tavern is NEVER hired autonomously (its rows start at 0 by design, §2.7).
   - **Report**: after the deal, a short summary in the game's message log (bottom-left, the
-    "battle log"), one line per job that did something, e.g.
-    `Steward at Sargot: food +24 (5 kinds) −310 · mounts +3 −540 · armour & weapons 41 sold +2,130
-    · prisoners 12 ransomed +980 · gold 312,400 → 314,660`. Skipped/cut-short items get one line
-    ("2 skipped — see log"). Nothing happened → no message. The full detail goes to the log file.
+    "battle log") — since step 33 the report line below, then the jobs, e.g.
+    `Steward report at Sargot: 46 deals made · +2,240 denari · 12 prisoners ransomed` /
+    `Steward report, by job: food +24 (5 kinds) −310 · mounts +3 −540 · other 41 sold +2,130 · prisoners 12 ransomed +980`.
+    Skipped/cut-short items end the first line ("· 2 skipped — see smart_steward.log"). Nothing happened → no message. The
+    full detail goes to the log file.
+  - **The report line** **[Anton 2026.10.02 — PLAN step 33: *"the line in the battle log 'Steward: 44 of 44...' is confusing,
+    like that something changed with my Steward skill, make it 'Steward report: deals made, gold influence change, prisoners
+    ransomed/donated' something like that"*]** — every message-log line about a run starts **"Steward report"**, never a bare
+    "Steward:" (the game's own skill lines name the skill so): Deal all `Steward report: 44 deals made · +3,120 denari · +2.4
+    influence · 9 prisoners ransomed · 3 prisoners donated`; a part's Deal `Steward report (Prisoners): …`; the autonomous
+    steward `Steward report at Sargot: …` + `Steward report, by job: …`. Deals = transactions that moved anything; denari = the
+    purse's real change (after − before); influence = the donations'; each part only when not zero (`no deals made`, `1 deal
+    made`, `1 prisoner ransomed`); trouble at the end (`1 cut short, 2 skipped — see smart_steward.log`), an aborted run
+    `Steward report: nothing was done — see smart_steward.log`. Core `Execution\RunSummary` (words `SummaryWords`, ids
+    `ss_report_*`). The window's status line shows the same text. **[decided: Claude, 2026.10.02]** the purse's before » after
+    left the line (the change is what Anton asked for; the header shows the purse), and the autonomous jobs line stays as the
+    detail under it.
 - `ModEnabled` (default on) master switch: off = no menu entry, no popup, no warning (the wrapped leave options let
   every leave straight through), no autonomy.
 - **How the triggers behave** **[decided: Claude, 2026.09.27 — step 8]** (`Module\StewardTriggers`, `AutonomousRun`;
@@ -1443,9 +1460,8 @@ troop / hero, the count and the expected unit prices.
   - **The autonomous plan never even lists the tavern** (not only "never hires"): nothing to hire, nothing to report.
     **[step 16]** Nor the troops section (§2.8): the steward never recruits or dismisses by itself.
   - `AutonomousMinGold` sits in the **Money** group with the other floors; its range tops out at 10,000,000.
-  - **The report** is one message line — jobs joined by ` · `, as the example above, in the fonts' glyphs (en-dash minus,
-    `»`) — plus the trouble line `Steward: 1 cut short, 2 skipped — see smart_steward.log` (or `nothing was done` when the
-    run could not start). The counts are the executor's real ones, not the plan's. The jobs: food (with the kinds
+  - **The report** is the report line (above, step 33) and the jobs line — jobs joined by ` · `, in the fonts' glyphs
+    (en-dash minus); until step 33 it was `Steward at Sargot: … · denari 312,400 » 314,660` with a trouble line of its own. The counts are the executor's real ones, not the plan's. The jobs: food (with the kinds
     bought), mounts (the whole horses section: pack, riding, war, noble, lame), armour & weapons, prisoners (ransomed / donated,
     influence).
   - **Every campaign starts clean** **[decided: Claude, 2026.09.28 — step 12]**: every campaign start and end (a new game,
