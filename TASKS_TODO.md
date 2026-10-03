@@ -100,10 +100,13 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   (Your troops, Recruits, tavern rows) stay visible; (b) the message-log line "Steward: 44 of 44 ..." reads like the Steward SKILL changed —
   say "Steward report: N deals made · gold ± · influence ± · prisoners ransomed/donated"
   - [ ] Deployed (the install carries steps 32–33), then playtest — checklist in docs/PLAYTEST.md "Step 33"
-- [ ] 34. CASTLES (Anton 2026.10.03 — "could you make it work in castles for the prisoners donations there"): the steward in a
+- [x] 34. CASTLES (Anton 2026.10.03 — "could you make it work in castles for the prisoners donations there"): the steward in a
   castle — menu entry, arrival popup, autonomy — with ONLY the Prisoners part: Donate to the castle's dungeon where the game allows it
   (own kingdom, not your clan's, room); no market, so nothing to ransom, buy or sell there — research the castle's donate rules first
+  + popup only once INSIDE (never on the approach / hail-the-guard screens) and only with a donation to make (Anton 2026.10.03)
+  - [ ] Deployed at the end of step 34 (the install carries steps 32–34), then playtest — checklist in docs/PLAYTEST.md "Step 34"
 SHIPPING NEXT (done in main, NOT released yet):
+- Castles: "Party Steward" in the castle menu, the popup once you are inside and only with prisoners to donate ("Open on entering a castle", on), the autonomous steward too — only the Prisoners part: donated to the dungeon most valuable first (lords too, your kingdom, not your clan's), nothing ransomed there; the window says why when it cannot
 - Folding Troops leaves its title line alone, like Food — Recruits and Your troops come back as you left them
 - The message log says "Steward report: 12 deals made · +1,470 denari · +2.4 influence · 8 prisoners ransomed" (it said "Steward: 12 of 12 done…", which read like the Steward skill)
 - "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
@@ -197,6 +200,7 @@ NOT FULLY DECIDED (Anton's calls — defaults already chosen, see DESIGN):
 - [x] Donating fills the dungeon with the most valuable prisoners first (most influence) — ok? (DESIGN §2.5) → Anton 2026.09.28: yes
 
 NOTICED (things spotted during a step, left for later):
+- [ ] Release day: the Steam description says "Towns and villages only — castles have no market" — castles now take donations (step 34)
 - [ ] Release day: the Steam description and README say "noble horses sold unless you lock them" — still true by default; mention the optional "Noble horses to keep" (step 28)?
 - [ ] Old ..\reference\game-decompiled differs from v1.4.8 in 4 files — step 2 made ..\reference\game-decompiled-1.4.8
 - [ ] TrainingBattles' TrainingWindow.Close() never calls ReleaseMovie, and its prefabs carry MouseScrollAxis (gone in 1.4.8) — fix there; ours does both right (step 7)

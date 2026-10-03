@@ -366,7 +366,7 @@ green-ish, sell = red-ish, untouched = grey). One row per item (or prisoner troo
 touches, plus rows for ticked item types the market has but the plan left at 0 (so the player
 can add by hand).
 
-**A closed market says why** **[decided: Claude, 2026.09.28 — step 12, playtest round 1]**: when the game does not let
+**A closed market says why** (a castle has its own notice in the same place — §2.5.1, step 34) **[decided: Claude, 2026.09.28 — step 12, playtest round 1]**: when the game does not let
 the player trade here, the tab shows `Market closed: <reason>` in the game's own words (the disabled Trade option's text:
 war, crime, a raid, nothing on offer, disguise — or ours where the game gives none: looted, being raided) — in place of
 the table when nothing can be done, else on the header line's right above it. The log's snapshot line carries the same
@@ -930,7 +930,7 @@ pure Core logic fed a snapshot of the party and the market (§5).
 
 ### 2.5 Prisoners — keep, ransom or donate
 
-- Only in towns (villages have no ransom broker).
+- In towns (villages have no ransom broker) and — donations only — in castles (§2.5.1, step 34).
 - **Two actions** **[Anton 2026.09.28, playtest round 4 — "A toggle ransom/donate lords. Then a toggle to offload them to ransom
   for money or to dungeon for Influence … maybe two lines - one for the lords if any one for the others"]** (they replace
   `RansomPrisoners`, `RansomHeroPrisoners` and `DonatePrisonersWhenPossible`): `LordPrisonerAction` (lords, default **Keep**)
@@ -962,11 +962,31 @@ pure Core logic fed a snapshot of the party and the market (§5).
     the dungeon, and there is room (`PrisonerSizeLimit − NumberOfPrisoners`; donate up to it, ransom
     the rest). **A mercenary qualifies** (his faction is the kingdom he serves).
   - Influence per donated prisoner = `0.2 × ransomValue^0.4` (≈1 for a recruit), ×1.2 under
-    Military Coronae. Castles also take donations but are a non-goal (§9).
+    Military Coronae. ~~Castles also take donations but are a non-goal (§9).~~ Castles take them by the same rule — §2.5.1
+    **[Anton 2026.10.03, step 34]**.
 - **[decided: Claude, 2026.09.27 — step 4]** Donations fill the room most valuable first (influence
   grows with the ransom value; the room is what runs out), the rest is ransomed. ~~Heroes are not donated
   either unless `RansomHeroPrisoners`.~~ (round 4: `LordPrisonerAction` decides.) Kept rows stay at 0 (the player may add them
   by hand); locked prisoners get no row.
+
+#### 2.5.1 Castles — donations only **[Anton 2026.10.03, step 34 — *"could you make it work in castles for the prisoners donations there"*]**
+
+- **What happens in a castle**: ONLY the Prisoners part. A castle has a dungeon but no market, no ransom broker, no tavern, no
+  notables (RESEARCH §31) — so no food, horses, other goods, tavern or troops rows, and no job waits for the purse.
+- **Donate** works exactly as in a town: the game's own rule (`game_menu_castle_leave_prisoners_on_condition` is the town's
+  too) — the castle of the player's kingdom (a mercenary's included), not his own clan's, the dungeon open to him, room
+  `PrisonerSizeLimit − NumberOfPrisoners`; filled most valuable first; **lords may be donated too** (vanilla's donate screen
+  takes every prisoner) when `LordPrisonerAction` is Donate; influence by the same formula (`0.2 × ransom^0.4`, × 1.2 Military
+  Coronae). What does not fit STAYS — there is no broker to ransom it.
+- **Ransom does nothing in a castle**: a Ransom row has nowhere to go (no change, no [−]); Keep stays Keep. The Lords /
+  Others toggles keep their standing order (Ransom still means "at the next town's broker"; the hover says so).
+- **Where the castle forbids donating** (another kingdom's, your clan's own, no dungeon access, a full dungeon) the prisoner
+  rows still show, all at 0, the Donate toggle greys and its hover says why; the castle notice above the table says it too.
+- **The window** shows the Prisoners section alone, under a castle notice in the closed-market notice's place — never "Market
+  closed": *"A castle has no market - the steward only donates prisoners here."*, + *"Donating is not possible here: {why}"* or
+  *"You hold no prisoners."* (Core `Presentation\CastleNotice`, words `CastleWords`). Header, Total line, footer and the Deal
+  buttons work as in a town; the Prices and Instructions tabs are untouched.
+- Menu entry, arrival popup, leave warning and the Full-autonomous steward: §6.
 
 ### 2.6 Loot — sold in groups, cheapest first
 
@@ -1084,7 +1104,7 @@ limit, just show me that I'm above it — and add all my troops like with the go
 list what is on offer at the top and what I have, so I can manage them, drop some of mine and recruit new."*
 
 The tavern's sibling, right after it (§1.1). **Towns and villages** (a village's headman and rural notables have volunteers
-too); castles have no market and no steward. One row per troop type — never every troop in the game, never a hero:
+too); castles have no market and no recruits — no troops section there (§2.5.1, step 34). One row per troop type — never every troop in the game, never a hero:
 - **Recruits on offer** (the first half, its own header row): every troop type the settlement's notables offer YOU now —
   the game's own recruit screen, exactly: each notable who can have recruits, each of his six volunteer slots the game's
   volunteer model opens to you (relation, faction, war, perks — RESEARCH §21), behind the game's "Recruit troops" gate (a
@@ -1388,7 +1408,16 @@ troop / hero, the count and the expected unit prices.
 ## 6. When the window appears
 
 - **Settlement menu entry**: "Party Steward" in the town menu and the village menu — always
-  there when the mod is enabled — and in War Sails' port menu (below).
+  there when the mod is enabled — and in War Sails' port menu (below), and in the castle's own menu (below).
+- **Castles** **[Anton 2026.10.03, step 34]** (§2.5.1, RESEARCH §31): "Party Steward" in the `castle` menu right after "Go to
+  the dungeon" — the menu the player is INSIDE the castle in; never on the gate menus (`castle_outside`, `castle_guard`, the
+  bribe, entry granted / denied). The arrival = `SettlementEntered` (which fires already at the gate) then the first `castle`
+  menu opening — **only once he has entered** (Anton 2026.10.03: *"also only pop up when I enter (not on the screen apprach
+  and hail the guard"*). Switch `AutoPopupOnCastleEnter` (on). **The popup opens only when the plan donates someone**, whatever
+  `PopupOnlyWithChanges` says (Anton 2026.10.03: *"also no need to pop up if I dont have prisoners on me"*) — no prisoners, only
+  locked ones, ones a quest keeps, Keep, a forbidden or full dungeon → shut (`ArrivalPopup.DecideCastle`, verdict
+  `NothingToDonate`). The leave warning guards `castle/leave` (a donation unreviewed asks, like a town). The Full-autonomous
+  steward donates in a castle as in a town — and nothing else there.
 - **Docking into a port (War Sails)** **[Anton 2026.09.28, playtest round 3]**: a party that sails into a town lands in
   War Sails' port menu, never the town menu (RESEARCH §18) — so the port counts as arriving: the arrival popup (or the
   Full-autonomous run) comes on docking, once per visit, with the town's rules (`AutoPopupOnTownEnter`, the closed-market
@@ -1498,6 +1527,7 @@ troop / hero, the count and the expected unit prices.
 | General | ModEnabled | true | — | master switch |
 | General | AutoPopupOnTownEnter | true | — | open the window when entering a town |
 | General | AutoPopupOnVillageEnter | true | — | open the window when entering a village |
+| General | AutoPopupOnCastleEnter | true | — | open the window when entering a castle — only with prisoners to donate there (§6) **[Anton 2026.10.03, step 34]** |
 | General | PopupOnlyWithChanges | true | — | auto-open only when there is something to do |
 | General | WarnIfNotReviewed | true | — | ask before leaving with unreviewed suggestions |
 | General | AutonomousSteward | false | — | "Full-autonomous steward": plan and carry out on arrival, report in the message log (§6) — replaces `AutoExecute` **[Anton 2026.09.27]** |
@@ -1643,7 +1673,8 @@ float slider and the file agree on the same number). A value outside its range i
 - No trade-route planning (where to sell what) — that is a different mod. **[Anton 2026.09.27]**
   LATER, the price book's Others (§1.3.1) will allow simple buy-below / sell-above trading at whatever town the
   party is in (§1.3); weapons and armour never.
-- Castles have no market: nothing happens there.
+- ~~Castles have no market: nothing happens there.~~ **[Anton 2026.10.03, step 34]** Castles have no market: only prisoner
+  donations happen there (§2.5.1).
 - All player-facing text goes through TextObject string ids (English only at release; other
   languages can be added by translators later). **[step 9]** The ids and their English are gathered in
   `module\ModuleData\Languages\std_SmartSteward.xml` (the game's own strings format — the English source a

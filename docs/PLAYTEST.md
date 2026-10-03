@@ -608,3 +608,29 @@ Your words: *"That Troops dropdown never folds up into one line"* and *"'Steward
 4. **A line's Deal**: *"Steward report (Grain): 1 deal made · -120 denari"*.
 5. **Donate** prisoners (Lords or Others on Donate): *"… · +2.4 influence · 4 prisoners donated"*.
 6. **Full-autonomous steward**: two lines — *"Steward report at Sargot: …"* and *"Steward report, by job: food +24 …"*.
+
+## Step 34 — the steward in castles, prisoner donations (deployed 2026.10.03)
+
+Your words: *"could you make it work in castles for the prisoners donations there"*, *"also only pop up when I enter (not on
+the screen apprach and hail the guard"*, *"also no need to pop up if I dont have prisoners on me"*. (DESIGN §2.5.1, §6;
+RESEARCH §31)
+
+Set **Others** (and, to try it, **Lords**) to **Donate** first; carry some prisoners.
+
+1. **Gate**: ride to a castle that makes you hail the guard — nothing pops up on the approach / hail / bribe screens, and they
+   have no "Party Steward" entry.
+2. **Inside**: once in the castle's own menu, the window pops up — the **Prisoners section alone** (no food, horses, other,
+   tavern, troops), above it *"A castle has no market - the steward only donates prisoners here."* — never "Market closed".
+3. **Donate**: Deal all (or the Prisoners' Deal group) — the most valuable go to the dungeon first; the log says
+   *"Steward report: … · +N influence · N prisoners donated"*; a donated lord sits in the castle's dungeon (check its prisoners).
+4. **Room**: in a castle with a nearly full dungeon, only what fits is donated — the rest STAYS with you (no ransom in a castle).
+5. **Ransom on Others**: in a castle nothing moves, no popup; the Ransom hover says a castle has no broker. In the next town they
+   are ransomed as usual.
+6. **No prisoners** (or only locked ones / Keep): no popup in a castle; the menu entry opens the window with *"… You hold no
+   prisoners."* (or the rows at 0).
+7. **Your own clan's castle**, and **another kingdom's**: no popup; the menu entry shows the prisoners at 0, Donate greyed, its
+   hover and the notice say why (*"it is your own clan's …"* / *"it is not your kingdom's."*).
+8. **Leave** a castle with a donation you never looked at (popup closed by the switch "Open on entering a castle" off): the leave
+   question comes, as in a town.
+9. **Full-autonomous steward** on: entering a castle donates by itself, one *"Steward report at <castle>: …"* line.
+10. The **Instructions** tab has "Open on entering a castle" (on) under General; the Prices tab is unchanged.

@@ -158,7 +158,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
   Presentation/               the window's pure half (step 7): UiFormat (numbers in the fonts' glyphs, typed-number
                               parsing), UiColors, UiInput (Shift/Ctrl → EditSize), RowCells (the Suggestion columns),
                               PlanFooter (warnings, CanExecute), PriceBookEditor + PriceRowView (Prices tab),
-                              SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule); SectionSummary (step 18: the
+                              SettingEdit (Instructions tab), ArrivalPopup (step 12: the popup's rule; step 34: a castle's — only with a donation), CastleNotice (step 34: the castle's
+                              line above the table + the donate reasons, words CastleWords); SectionSummary (step 18: the
                               folded line + SectionGroup; since step 21 only TroopName serves), WindowState (window_state.json - the folds,
                               keyed by SheetFolds since step 21);
                               SuggestionSheet (step 20) = the round-4 spreadsheet the step-21 window binds: SheetGroup sections in the
@@ -174,6 +175,8 @@ src/SmartSteward.Core/        netstandard2.0, no game refs — pure logic, unit-
                               Mine / MineWarning) — step 23's window binds it; GoalInput (step 23) = what a typed Goal box
                               holds when left (unchanged / invalid → revert / a goal, clamped).
                               Planning/PlanCarryOver = edits kept over a re-plan
+                              CASTLES (step 34, DESIGN §2.5.1): SettlementKind.Castle + PrisonInfo.DonateBlock (GameRules.DonateBlockOf);
+                              PlanContext.IsCastle / HasDungeon / MarketOpen - a castle plans the Prisoners alone (donations only)
 src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModule (entry point),
                               SmartStewardBehavior (SyncData stores nothing; forwards the campaign events to
                               StewardTriggers), ModLog, SettingsHost (the one
@@ -199,9 +202,9 @@ src/SmartSteward.Module/      net472 → SmartSteward.dll — game glue: SubModu
                               food and horse pairs), InstructionsVMs (the clicks' hint on top), HintVM, WindowStateHost (the folds on
                               disk), UiText/UiLabels (TextObject ids — every English ONE literal per UiText call: StringsFileTests reads
                               them from the source)
-  StewardMenu.cs              "Party Steward" in the town and village menus (+ War Sails' port menu, added by id at its first
+  StewardMenu.cs              "Party Steward" in the town, village and (step 34) castle menus (+ War Sails' port menu, added by id at its first
                               opening — step 14) → opens the window
-  StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map, the leave warning (LeaveGuard wraps
+  StewardTriggers.cs          (step 8) per-visit memory: arrival popup on a QUIET map (step 34: castles too, on the castle menu only), the leave warning (LeaveGuard wraps
                               the leave options lazily at their menu's first opening), the IsSettlementBusy veto
   AutonomousRun.cs            (step 8) the Full-autonomous steward: autonomous plan → executor → message-log report
   CampaignSession.cs          (step 12) every campaign start/end resets the window + triggers; a generation stamp so nothing
