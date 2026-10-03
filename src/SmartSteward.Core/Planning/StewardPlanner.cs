@@ -148,6 +148,8 @@ namespace SmartSteward.Core.Planning
         {
             var s = ctx.Settings;
             var waiting = new List<KeyValuePair<ManagedJob, int>>();
+            if (ctx.IsCastle)
+                return waiting; // step 34: no market jobs at a castle at all - nothing waits for the purse
             foreach (var job in JobThresholds.All)
             {
                 bool enabled = job == ManagedJob.Food ? s.FoodEnabled

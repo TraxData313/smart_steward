@@ -210,6 +210,12 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The game allows donating here — else the Donate button greys (mockup choice 7).</summary>
         public bool DonateAllowed { get; internal set; }
 
+        /// <summary>Why donating is not possible here (step 34) — the Donate button's hover names it.</summary>
+        public DonateBlock DonateBlock { get; internal set; }
+
+        /// <summary>Step 34: the line is a castle's — the toggle's hovers speak of the castle (no ransom broker there).</summary>
+        public bool InCastle { get; internal set; }
+
         /// <summary>A breakdown line's stack (<see cref="SheetItemKind.SubLine"/>); null otherwise.</summary>
         public string? StackKey { get; internal set; }
 
@@ -662,6 +668,8 @@ namespace SmartSteward.Core.Presentation
                 Cells = SheetCellTexts.Of(line.Metrics, words),
                 Choice = line.Action,
                 DonateAllowed = sheet.DonateAllowedHere,
+                DonateBlock = sheet.DonateBlock,
+                InCastle = sheet.IsCastle,
                 Goal = LineGoal(line, sheet.Plan, words),
             };
             // Step 32: the Lords / Others lines carry their rows' quests, like their Goal's quest colour (step 26).

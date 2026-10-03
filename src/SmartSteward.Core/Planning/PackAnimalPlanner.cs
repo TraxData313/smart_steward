@@ -32,7 +32,7 @@ namespace SmartSteward.Core.Planning
             Target = Math.Max(0, settings.PackAnimalsTarget);
             _held = ctx.Inventory(ItemKind.PackAnimal).Where(s => !lame.Holds(s)).ToList();
             _heldCount = _held.Sum(s => s.Count);
-            if (!settings.PackAnimalsEnabled || !ctx.Snapshot.CanTrade)
+            if (!settings.PackAnimalsEnabled || !ctx.MarketOpen)
                 return;
 
             // Step 26: the animals a quest keeps are out of the steward's sell lane; a goal of yours walks the full lane (it wins).

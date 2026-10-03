@@ -97,6 +97,18 @@ public class GameRulesTests
         Assert.Equal(expected, GameRules.DonateAllowed(town, faction, ownClan, dungeon));
     }
 
+    [Theory] // step 34: the first failing condition in the game's order, then the room (RESEARCH §31)
+    [InlineData(true, true, false, true, 5, DonateBlock.None)]
+    [InlineData(false, true, false, true, 5, DonateBlock.NoDungeon)]
+    [InlineData(true, false, true, false, 5, DonateBlock.NotYourKingdom)]
+    [InlineData(true, true, true, false, 5, DonateBlock.YourClansFief)]
+    [InlineData(true, true, false, false, 5, DonateBlock.NoDungeonAccess)]
+    [InlineData(true, true, false, true, 0, DonateBlock.DungeonFull)]
+    public void Why_donating_is_not_possible(bool dungeon, bool faction, bool ownClan, bool access, int room, DonateBlock expected)
+    {
+        Assert.Equal(expected, GameRules.DonateBlockOf(dungeon, faction, ownClan, access, room));
+    }
+
     [Fact]
     public void Skill_tag_names_the_best_two()
     {

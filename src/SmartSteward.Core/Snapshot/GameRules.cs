@@ -108,11 +108,25 @@ namespace SmartSteward.Core.Snapshot
 
         /// <summary>
         /// Donating prisoners is offered (DESIGN §2.5, <c>game_menu_castle_leave_prisoners_on_condition</c>): a
-        /// town of the player's own map faction that his clan does NOT own (own fiefs get "Manage prisoners" and
-        /// no influence), whose dungeon he may enter. A mercenary qualifies — his map faction is the kingdom.
+        /// fortification — a town or (step 34, RESEARCH §31) a castle — of the player's own map faction that his clan does
+        /// NOT own (own fiefs get "Manage prisoners" and no influence), whose dungeon he may enter. A mercenary qualifies — his
+        /// map faction is the kingdom.
         /// </summary>
-        public static bool DonateAllowed(bool isTown, bool sameMapFaction, bool ownClanFief, bool dungeonAccess) =>
-            isTown && sameMapFaction && !ownClanFief && dungeonAccess;
+        public static bool DonateAllowed(bool hasDungeon, bool sameMapFaction, bool ownClanFief, bool dungeonAccess) =>
+            hasDungeon && sameMapFaction && !ownClanFief && dungeonAccess;
+
+        /// <summary>Why donating is not possible (step 34), the first failing condition in the game's order: a dungeon, the
+        /// kingdom, the clan, the access; then the room (a full dungeon greys vanilla's option). <see cref="DonateBlock.None"/>
+        /// = allowed with room.</summary>
+        public static DonateBlock DonateBlockOf(bool hasDungeon, bool sameMapFaction, bool ownClanFief, bool dungeonAccess,
+            int room)
+        {
+            if (!hasDungeon) return DonateBlock.NoDungeon;
+            if (!sameMapFaction) return DonateBlock.NotYourKingdom;
+            if (ownClanFief) return DonateBlock.YourClansFief;
+            if (!dungeonAccess) return DonateBlock.NoDungeonAccess;
+            return room <= 0 ? DonateBlock.DungeonFull : DonateBlock.None;
+        }
 
         /// <summary>A short tag of a wanderer's best skills, e.g. "Scouting 120, Riding 95": the highest values
         /// first (ties by name), at most <paramref name="count"/>, zeros left out; null when nothing is left.</summary>

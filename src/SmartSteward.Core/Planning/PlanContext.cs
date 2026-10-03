@@ -152,6 +152,16 @@ namespace SmartSteward.Core.Planning
 
         public bool IsTown => Snapshot.SettlementKind == SettlementKind.Town;
 
+        /// <summary>Step 34: a castle — only the prisoners' donations happen there (RESEARCH §31).</summary>
+        public bool IsCastle => Snapshot.SettlementKind == SettlementKind.Castle;
+
+        /// <summary>The market rows exist: the game lets the player trade here — and never in a castle, which has no market
+        /// (step 34), whatever the snapshot says.</summary>
+        public bool MarketOpen => Snapshot.CanTrade && !IsCastle;
+
+        /// <summary>A dungeon to donate to: a town or a castle (a fortification).</summary>
+        public bool HasDungeon => IsTown || IsCastle;
+
         /// <summary>Does the steward's own side of this job act — the purse before the deal at least its threshold
         /// (<see cref="JobThresholds"/>, round 4)? The player's own rows walk either way.</summary>
         public bool JobActive(ManagedJob job) => JobThresholds.IsActive(job, Settings, Snapshot.PlayerGold);

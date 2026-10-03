@@ -37,7 +37,7 @@ namespace SmartSteward.Core.Planning
         {
             _ctx = ctx;
             var settings = ctx.Settings;
-            if (!settings.ReplaceLameHorses || !ctx.Snapshot.CanTrade)
+            if (!settings.ReplaceLameHorses || !ctx.MarketOpen)
                 return;
             foreach (var stack in ctx.Inventory(ItemKind.PackAnimal).Concat(ctx.Inventory(ItemKind.Mount)))
                 if (Replaces(ctx, stack))

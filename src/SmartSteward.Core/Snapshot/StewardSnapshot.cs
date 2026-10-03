@@ -7,6 +7,33 @@ namespace SmartSteward.Core.Snapshot
     {
         Town,
         Village,
+
+        /// <summary>Step 34 (Anton 2026.10.03): a castle — a dungeon but no market, no ransom broker, no tavern, no recruits
+        /// (RESEARCH §31). The steward only donates prisoners there.</summary>
+        Castle,
+    }
+
+    /// <summary>Why the game does not let the player donate prisoners here (step 34) — vanilla's own conditions in the order
+    /// <c>game_menu_castle_leave_prisoners_on_condition</c> and the dungeon option check them (RESEARCH §5, §31).</summary>
+    public enum DonateBlock
+    {
+        /// <summary>Donating is allowed (and the dungeon has room).</summary>
+        None,
+
+        /// <summary>A village: no dungeon at all.</summary>
+        NoDungeon,
+
+        /// <summary>The settlement is not of the player's kingdom (his map faction).</summary>
+        NotYourKingdom,
+
+        /// <summary>The player's own clan's fief: the game offers "Manage prisoners" there, never a donation (no influence).</summary>
+        YourClansFief,
+
+        /// <summary>The player may not enter the dungeon (limited access, the bribe not paid).</summary>
+        NoDungeonAccess,
+
+        /// <summary>Allowed, but the dungeon is full (<c>PrisonerSizeLimit ≤ NumberOfPrisoners</c> — vanilla greys the option).</summary>
+        DungeonFull,
     }
 
     /// <summary>
@@ -332,8 +359,12 @@ namespace SmartSteward.Core.Snapshot
         /// <summary>A town whose tavern district (the ransom broker) the player may enter.</summary>
         public bool CanRansom { get; set; }
 
-        /// <summary>DESIGN §2.5: own faction, not own clan, dungeon access.</summary>
+        /// <summary>DESIGN §2.5: own faction, not own clan, dungeon access — a town or (step 34) a castle.</summary>
         public bool DonateAllowed { get; set; }
+
+        /// <summary>Why donating is not possible here (step 34) — the window says it; <see cref="DonateBlock.None"/> when it is.
+        /// A full dungeon is <see cref="DonateBlock.DungeonFull"/> with <see cref="DonateAllowed"/> still true.</summary>
+        public DonateBlock DonateBlock { get; set; }
 
         /// <summary><c>PrisonerSizeLimit − NumberOfPrisoners</c> of the settlement.</summary>
         public int DungeonRoom { get; set; }

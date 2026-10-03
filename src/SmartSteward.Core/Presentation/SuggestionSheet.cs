@@ -376,6 +376,12 @@ namespace SmartSteward.Core.Presentation
         /// <summary>The game allows donating prisoners here — else the Donate toggle greys (mockup choice 7).</summary>
         public bool DonateAllowedHere { get; private set; }
 
+        /// <summary>Why not (step 34): the Donate toggle's hover and a castle's notice say it.</summary>
+        public DonateBlock DonateBlock { get; private set; }
+
+        /// <summary>Step 34: the plan is a castle's — the Prisoners section alone, donations only.</summary>
+        public bool IsCastle { get; private set; }
+
         public SheetSection? Section(SheetGroup group) => Sections.FirstOrDefault(s => s.Group == group);
 
         public static SuggestionSheet Of(StewardPlan plan, SheetWords? words = null)
@@ -389,7 +395,11 @@ namespace SmartSteward.Core.Presentation
             {
                 ShowSea = t.Carry.ShowSea,
                 RansomAllowedHere = snapshot.SettlementKind == SettlementKind.Town && (snapshot.Prison?.CanRansom ?? false),
-                DonateAllowedHere = snapshot.SettlementKind == SettlementKind.Town && (snapshot.Prison?.DonateAllowed ?? false),
+                // Step 34: a castle's dungeon takes donations by the town's own rule (RESEARCH §31).
+                DonateAllowedHere = snapshot.SettlementKind != SettlementKind.Village && (snapshot.Prison?.DonateAllowed ?? false),
+                DonateBlock = snapshot.SettlementKind == SettlementKind.Village ? DonateBlock.NoDungeon
+                    : snapshot.Prison?.DonateBlock ?? DonateBlock.None,
+                IsCastle = snapshot.SettlementKind == SettlementKind.Castle,
             };
 
             var sections = new List<SheetSection>();

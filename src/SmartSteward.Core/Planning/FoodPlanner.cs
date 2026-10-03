@@ -60,7 +60,7 @@ namespace SmartSteward.Core.Planning
             Target = FoodGoal.Target(settings.FoodDays, FoodGoal.PerEaterPerDay(ctx.Snapshot), Eaters);
             SellAbove = Math.Round(Target * (1 + Math.Max(0, settings.FoodSurplusTolerancePercent) / 100.0), 6);
 
-            _active = settings.FoodEnabled && ctx.Snapshot.CanTrade;
+            _active = settings.FoodEnabled && ctx.MarketOpen;
             if (!_active)
                 return;
             // Round 4: below FoodMinDenari the steward neither buys nor sells food - the rows stay for the player's hand.

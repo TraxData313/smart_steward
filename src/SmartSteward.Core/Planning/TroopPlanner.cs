@@ -34,7 +34,8 @@ namespace SmartSteward.Core.Planning
         public static List<PlanRow> Plan(PlanContext ctx)
         {
             var rows = new List<PlanRow>();
-            if (!ctx.Settings.ShowTroops)
+            // Step 34: a castle has no notables, no recruits and no troops section - only its dungeon (RESEARCH §31).
+            if (!ctx.Settings.ShowTroops || ctx.IsCastle)
                 return rows;
             var types = (ctx.Snapshot.Troops ?? new List<TroopStack>())
                 .Where(t => t != null && !string.IsNullOrEmpty(t.TroopId))

@@ -17,6 +17,10 @@ namespace SmartSteward.Core.Presentation
 
         /// <summary>PopupOnlyWithChanges and no row moves anything.</summary>
         NoChanges,
+
+        /// <summary>Step 34: a castle where the steward donates nothing (no prisoners, donating forbidden, a full dungeon,
+        /// or Keep) — whatever PopupOnlyWithChanges says: a castle's window only ever donates.</summary>
+        NothingToDonate,
     }
 
     /// <summary>
@@ -37,8 +41,15 @@ namespace SmartSteward.Core.Presentation
             return PopupVerdict.Open;
         }
 
+        /// <summary>Step 34 — a castle (DESIGN §6): there is no market to be closed, and the popup opens only when the plan
+        /// moves something (a donation), PopupOnlyWithChanges or not.</summary>
+        public static PopupVerdict DecideCastle(bool hasChanges) =>
+            hasChanges ? PopupVerdict.Open : PopupVerdict.NothingToDonate;
+
         public static PopupVerdict Decide(StewardPlan plan, bool marketOpen, bool onlyWithChanges)
         {
+            if (plan.Snapshot?.SettlementKind == Snapshot.SettlementKind.Castle)
+                return DecideCastle(plan.HasChanges);
             bool hasRows = false;
             foreach (var _ in plan.Rows)
             {
@@ -56,6 +67,7 @@ namespace SmartSteward.Core.Presentation
                 case PopupVerdict.MarketClosed: return "the market is closed";
                 case PopupVerdict.NothingPlanned: return "nothing planned";
                 case PopupVerdict.NoChanges: return "nothing to suggest";
+                case PopupVerdict.NothingToDonate: return "nothing to donate at the castle";
                 default: return "opens";
             }
         }

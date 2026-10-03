@@ -93,7 +93,7 @@ namespace SmartSteward.Core.Planning
             _nobleKeeping = ctx.NobleKeeping;
             RidingTarget = settings.MountsEnabled ? MountGoal.Riding(settings, Footmen) : 0;
 
-            if (!ctx.Snapshot.CanTrade)
+            if (!ctx.MarketOpen)
                 return;
 
             if (settings.MountsEnabled)

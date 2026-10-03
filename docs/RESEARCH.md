@@ -1398,6 +1398,13 @@ donations there"*). Not yet seen in game.
   `castle_outside` — never the `castle` menu, so no arrival there. `IncidentsCampaignBehaviour` rolls entering incidents on the
   first `castle` GameMenuOpened too and leaving incidents on `castle/leave` (the quiet-map wait and `IsSettlementBusy` cover them
   as in a town).
+- **The gate menus — the party is "in" but not inside** (`EncounterGameMenuBehavior.AddGameMenus`): `castle_outside` (the
+  approach: "Approach the gates and hail the guard.", "Besiege the castle.", "Leave..."), `castle_guard` ("You approach the
+  gate. The men on the walls watch you closely." — asking to be let in), `castle_enter_bribe` (the bribe), `menu_castle_entry_granted`
+  ("the guards open the gates…" → `castle`) and `menu_castle_entry_denied` (→ `castle_outside`). `SettlementEntered` has
+  ALREADY fired on all of them (`PlayerEncounter.Init`, above) — so the steward's visit starts there, but its arrival waits for
+  the **`castle`** menu itself, the one the player is inside (Anton 2026.10.03: *"only pop up when I enter (not on the screen
+  apprach and hail the guard"*), and the Party Steward entry is added to `castle` only. None of the gate menus' leaves is guarded.
 - **Who may donate — the same rule as a town**: `game_menu_castle_leave_prisoners_on_condition` checks `IsFortification`
   (towns AND castles), then shows the option only when `OwnerClan != Clan.PlayerClan && MapFaction == Hero.MainHero.MapFaction`
   (a mercenary qualifies, §5), greyed when `Party.PrisonerSizeLimit <= Party.NumberOfPrisoners` ("str_dungeon_size_limit_exceeded").

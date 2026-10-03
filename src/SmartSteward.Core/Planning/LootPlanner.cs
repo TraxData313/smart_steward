@@ -56,7 +56,7 @@ namespace SmartSteward.Core.Planning
                 return price;
             });
 
-            if (!ctx.Snapshot.CanTrade || !settings.SellLoot)
+            if (!ctx.MarketOpen || !settings.SellLoot)
                 return;
 
             int cap = settings.SellLootMaxItemValue;

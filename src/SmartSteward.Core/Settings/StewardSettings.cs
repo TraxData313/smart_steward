@@ -79,6 +79,8 @@ namespace SmartSteward.Core.Settings
         public bool ModEnabled { get; set; } = true;
         public bool AutoPopupOnTownEnter { get; set; } = true;
         public bool AutoPopupOnVillageEnter { get; set; } = true;
+        /// <summary>Step 34: the castle's arrival popup — it opens only when the steward donates something there.</summary>
+        public bool AutoPopupOnCastleEnter { get; set; } = true;
         /// <summary>Auto-open only when the plan has a change (<c>StewardPlan.HasChanges</c>).</summary>
         public bool PopupOnlyWithChanges { get; set; } = true;
         public bool WarnIfNotReviewed { get; set; } = true;

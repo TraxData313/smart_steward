@@ -7,7 +7,7 @@ using SmartSteward.Core.Snapshot;
 namespace SmartSteward.Core.Planning
 {
     /// <summary>
-    /// Prisoners (DESIGN §2.5): towns only. One row per troop — lowest tier first, the lords last (round 4: "add the Tier to the
+    /// Prisoners (DESIGN §2.5): towns, and (step 34) castles — donations only, no ransom broker there. One row per troop — lowest tier first, the lords last (round 4: "add the Tier to the
     /// prisoners too and make them sorted like the troops lower->higher tier"). Locked prisoners are never ransomed nor
     /// donated and get no row (like vanilla's "Ransom your prisoners"). Two actions (round 4, Anton 2026.09.28 — they replace
     /// RansomPrisoners / RansomHeroPrisoners / DonatePrisonersWhenPossible): <c>LordPrisonerAction</c> for the lords (Keep by
@@ -43,7 +43,7 @@ namespace SmartSteward.Core.Planning
         public static bool CanRansom(PlanContext ctx) => ctx.IsTown && (ctx.Snapshot.Prison ?? new PrisonInfo()).CanRansom;
 
         /// <summary>The game lets the player donate prisoners here (own faction, not own clan, dungeon access).</summary>
-        public static bool CanDonate(PlanContext ctx) => ctx.IsTown && (ctx.Snapshot.Prison ?? new PrisonInfo()).DonateAllowed;
+        public static bool CanDonate(PlanContext ctx) => ctx.HasDungeon && (ctx.Snapshot.Prison ?? new PrisonInfo()).DonateAllowed;
 
         public static int DungeonRoom(PlanContext ctx) => Math.Max(0, (ctx.Snapshot.Prison ?? new PrisonInfo()).DungeonRoom);
 
@@ -56,7 +56,9 @@ namespace SmartSteward.Core.Planning
             var rows = new List<PlanRow>();
             bool ransom = CanRansom(ctx);
             bool donate = CanDonate(ctx);
-            if (!ransom && !donate)
+            // Step 34: a castle keeps its rows even where donating is forbidden — every one at 0, nowhere to go (no ransom broker
+            // in a castle) — so the window shows the prisoners and says why; a town without broker or dungeon has no rows.
+            if (!ransom && !donate && !ctx.IsCastle)
                 return rows;
 
             int room = DungeonRoom(ctx);
