@@ -1375,6 +1375,56 @@ horses have `appearance="0"` → × 0.8). Computed for v1.4.8:
 - **horse, merchandise**: 217–368 (`hunter` 316).
 A town's buy price of an animal = value × bpf (clamped 0.8–1.3, §8) × (1 + 0.06) → a noble horse costs ~3,600–11,700.
 
+## 31. Castles — the dungeon without a market (verified in step 34, 2026.10.03)
+
+Read in `game-decompiled-1.4.8` for PLAN step 34 (Anton 2026.10.03: *"could you make it work in castles for the prisoners
+donations there"*). Not yet seen in game.
+
+- **The castle's menus** (`PlayerTownVisitCampaignBehavior.AddGameMenus`): main menu **`castle`** (title "Castle",
+  `game_menu_castle_on_init`) with `castle_prison` ("Go to the dungeon" → menu `castle_dungeon`), `manage_garrison`,
+  `manage_production`, `open_stash`, `leave_troops_to_garrison` ("Donate troops to garrison"), `take_a_walk_around_the_castle`,
+  `castle_lords_hall`, `town_wait`, `castle_return_to_army` and **`leave`** ("Leave", isLeave, `game_menu_town_town_leave_on_condition`
+  → `game_menu_settlement_leave_on_consequence` — the town's own leave). `castle_dungeon` holds the SAME options as the town's
+  `town_keep_dungeon`: `town_prison_leave_prisoners` ("Donate prisoners", `game_menu_castle_leave_prisoners_on_condition` — the
+  one condition both share), `town_prison_manage_prisoners`, `town_prison`. **No trade, no tavern district, no recruit option,
+  no notables** — so no market, no ransom broker (`town_backstreet` is the town's only), no wanderers, mercenaries or volunteers.
+  `castle_prison`'s own condition greys it at war with the castle's faction and on limited access without the bribe paid
+  (`CanMainHeroEnterDungeon` — the same check §5's `DungeonAccess` makes).
+- **Arrival** (`DefaultEncounterGameMenuModel`): a castle encounter opens **`castle_outside`** (`EncounterGameMenuBehavior.
+  game_menu_castle_outside_on_init`), which switches straight to `castle` on full direct access (own faction, own clan, neutral
+  with no crime) — or after "Approach the gates" is granted (`castle_guard` → `game_request_entry_to_castle_approved_continue` →
+  `castle`). `PlayerEncounter.Init` runs `EnterSettlement()` → `SettlementEntered` BEFORE the menu, as for a town (§15), so
+  the arrival rule is the town's: `SettlementEntered`, then the first `castle` menu opening. A crime or war keeps the party at
+  `castle_outside` — never the `castle` menu, so no arrival there. `IncidentsCampaignBehaviour` rolls entering incidents on the
+  first `castle` GameMenuOpened too and leaving incidents on `castle/leave` (the quiet-map wait and `IsSettlementBusy` cover them
+  as in a town).
+- **Who may donate — the same rule as a town**: `game_menu_castle_leave_prisoners_on_condition` checks `IsFortification`
+  (towns AND castles), then shows the option only when `OwnerClan != Clan.PlayerClan && MapFaction == Hero.MainHero.MapFaction`
+  (a mercenary qualifies, §5), greyed when `Party.PrisonerSizeLimit <= Party.NumberOfPrisoners` ("str_dungeon_size_limit_exceeded").
+  The player's own clan's castle offers "Manage prisoners" instead (and no influence — below).
+- **Lords too**: the donate screen (`PartyScreenHelper.OpenScreenAsDonatePrisoners`) is the town's — `Hero.MainHero.
+  CurrentSettlement.Town` (a castle HAS a `Town` component, `IsCastle`), `AddGarrisonParty()` when none, room
+  `PrisonerSizeLimit − PrisonRoster.Count` (the stack-count slip, §5). `DonatePrisonerTransferableDelegate` lets EVERY prisoner on
+  the player's side move (`type == Prisoner`, heroes not excluded); `DonatePrisonersDoneHandler` calls
+  `EnterSettlementAction.ApplyForPrisoner(hero, settlement)` for each lord, then ONE `OnPrisonerDonatedToSettlement(MainParty,
+  roster, settlement)`. So **a lord can be donated to a castle exactly as to a town** — the steward's `LordPrisonerAction`
+  Donate applies unchanged.
+- **Influence — the same formula**: `InfluenceGainCampaignBehavior.OnPrisonerDonatedToSettlement` (no settlement-type test)
+  returns when `donatedSettlement.OwnerClan == Clan.PlayerClan && donatingParty.ActualClan == Clan.PlayerClan`, else sums
+  `DefaultPrisonerDonationModel.CalculateInfluenceGainAfterPrisonerDonation` = `0.2 × PrisonerRansomValue(prisoner,
+  donor)^0.4` (no settlement term) → `GainKingdomInfluenceAction.ApplyForDonatePrisoners` (× 1.2 Military Coronae, §5).
+  `CharacterRelationCampaignBehavior` also listens: per donated LORD, `CalculateRelationGainAfterHeroPrisonerDonate` (relation
+  ≤ 0 between the lord and the castle owner's clan leader → up to +20/+30/+40 for a member / clan leader / ruler) with the
+  owner clan's leader — towns and castles alike.
+- **Ransom is impossible in a castle**: `SellPrisonersAction` is reached for the player only from the tavern district's
+  `sell_all_prisoners` / `sell_some_prisoners` (`town_backstreet`, towns only, §5). (Its `settlement != null` branch is the
+  AI's sale to a settlement.)
+- **No market**: a castle's `Town.MarketData` exists but the castle menu offers no trade; `Town.AllTowns` holds no castle (§13),
+  so a castle-bound village's average prices exclude nothing. The steward reads no market at a castle.
+- **The executor's donate path works unchanged** (`PlanExecutor.Donate`): `settlement.Town.GarrisonParty` / `AddGarrisonParty`,
+  `settlement.Party.PrisonRoster`, `EnterSettlementAction.ApplyForPrisoner`, the event — all on `Settlement`/`Town`, castle or
+  town.
+
 ## Gotchas (one line each)
 
 1. **Old decompile ≠ 1.4.8** in 4 files — cite `game-decompiled-1.4.8`.
@@ -1486,6 +1536,8 @@ A town's buy price of an animal = value × bpf (clamped 0.8–1.3, §8) × (1 + 
 75. **Quest fields are private, the quest classes public** — read the plain field by reflection (the
     `AutoGeneratedGetMemberValue_*` statics are internal too); `GangLeaderNeedsWeaponsIssueQuest._requestedWeaponClass`
     is not even saved (§29).
+76. **A castle donates exactly like a town** (`IsFortification`; own kingdom, not your clan's, room; lords too, same influence)
+    but has no market, no ransom broker, no recruits; its menu is `castle`, its leave `castle/leave` (§31).
 
 ---
 
