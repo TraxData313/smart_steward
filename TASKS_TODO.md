@@ -100,6 +100,9 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   (Your troops, Recruits, tavern rows) stay visible; (b) the message-log line "Steward: 44 of 44 ..." reads like the Steward SKILL changed —
   say "Steward report: N deals made · gold ± · influence ± · prisoners ransomed/donated"
   - [ ] Deployed (the install carries steps 32–33), then playtest — checklist in docs/PLAYTEST.md "Step 33"
+- [ ] 34. CASTLES (Anton 2026.10.03 — "could you make it work in castles for the prisoners donations there"): the steward in a
+  castle — menu entry, arrival popup, autonomy — with ONLY the Prisoners part: Donate to the castle's dungeon where the game allows it
+  (own kingdom, not your clan's, room); no market, so nothing to ransom, buy or sell there — research the castle's donate rules first
 SHIPPING NEXT (done in main, NOT released yet):
 - Folding Troops leaves its title line alone, like Food — Recruits and Your troops come back as you left them
 - The message log says "Steward report: 12 deals made · +1,470 denari · +2.4 influence · 8 prisoners ransomed" (it said "Steward: 12 of 12 done…", which read like the Steward skill)
