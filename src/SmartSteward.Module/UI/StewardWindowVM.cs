@@ -97,7 +97,7 @@ namespace SmartSteward.UI
             var plan = Suggestion.Plan;
             return plan == null
                 ? Core.Presentation.PopupVerdict.NothingPlanned
-                : ArrivalPopup.Decide(plan, _visit.Snapshot.CanTrade, onlyWithChanges);
+                : ArrivalPopup.Decide(plan, _visit.Snapshot.CanTrade, onlyWithChanges); // a castle: only with a donation (step 34)
         }
 
         /// <summary>Every frame while open: the window closes itself when the party is no longer where it planned.</summary>

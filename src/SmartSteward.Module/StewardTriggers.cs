@@ -20,8 +20,8 @@ namespace SmartSteward
     /// the leave warning. The behavior forwards the campaign events here; <see cref="Tick"/> runs every application
     /// frame (SubModule). Everything lives in memory — per visit, never in the save.
     /// <list type="bullet">
-    /// <item><b>Arrival</b> = <c>SettlementEntered</c> for the main party, then the first <c>town</c> / <c>village</c>
-    ///   menu opening (it re-fires on every return to the menu — RESEARCH §10 — so the visit remembers it is done) — or,
+    /// <item><b>Arrival</b> = <c>SettlementEntered</c> for the main party, then the first <c>town</c> / <c>village</c> /
+    ///   (step 34) <c>castle</c> menu opening (it re-fires on every return to the menu — RESEARCH §10 — so the visit remembers it is done) — or,
     ///   docking at a town by sea under War Sails, the first <c>port_menu</c> opening (round 3, RESEARCH §18: the sea
     ///   arrival goes <c>naval_town_outside</c> → <c>port_menu</c> and never shows the town menu until the player walks
     ///   in). The port menu also gets the "Party Steward" entry (<see cref="StewardMenu.EnsurePortEntry"/>).</item>
@@ -90,6 +90,7 @@ namespace SmartSteward
             ("village", "leave_set_sail"),
             ("village", "leave_at_sea"),
             ("port_menu", "sail_option"),
+            ("castle", "leave"), // step 34 (RESEARCH §31): the castle's only leave
         };
 
         // ── campaign events (forwarded by SmartStewardBehavior) ─────────────────────────────────────────
@@ -141,10 +142,10 @@ namespace SmartSteward
             if (party == null || party != MobileParty.MainParty)
                 return;
             EnsureCurrent();
-            if (settlement == null || !(settlement.IsTown || settlement.IsVillage))
+            if (settlement == null || !IsStewardSettlement(settlement))
             {
                 if (settlement != null)
-                    ModLog.Info("trigger", "entered " + settlement.Name + " - not a town or a village");
+                    ModLog.Info("trigger", "entered " + settlement.Name + " - not a town, a castle or a village");
                 _visit = null;
                 return;
             }
@@ -197,7 +198,12 @@ namespace SmartSteward
         /// Sails — the port's (RESEARCH §18). Once per visit whichever comes first: a town entered by land never shows the
         /// port first, and walking from the port into the town (or back) is the same visit.</summary>
         private static bool IsArrivalMenu(string? menuId, Settlement settlement) =>
-            menuId == "town" || menuId == "village" || (menuId == StewardMenu.PortMenuId && settlement.IsTown);
+            menuId == "town" || menuId == "village" || (menuId == StewardMenu.PortMenuId && settlement.IsTown)
+            || (menuId == StewardMenu.CastleMenuId && settlement.IsCastle);
+
+        /// <summary>Where the steward works: towns, villages and (step 34, only the prisoners' donations) castles.</summary>
+        internal static bool IsStewardSettlement(Settlement settlement) =>
+            settlement.IsTown || settlement.IsVillage || settlement.IsCastle;
 
         /// <summary>The window opened at <paramref name="settlement"/> — the player has seen the suggestions.</summary>
         public static void MarkReviewed(Settlement? settlement)
@@ -350,7 +356,9 @@ namespace SmartSteward
                 AutonomousRun.Run(settlement);
                 return;
             }
-            bool popup = settlement.IsTown ? settings.AutoPopupOnTownEnter : settings.AutoPopupOnVillageEnter;
+            bool popup = settlement.IsTown ? settings.AutoPopupOnTownEnter
+                : settlement.IsCastle ? settings.AutoPopupOnCastleEnter // step 34: opens only with a donation (ArrivalPopup)
+                : settings.AutoPopupOnVillageEnter;
             if (!popup)
                 return;
             ModLog.Info("trigger", "arrival popup at " + settlement.Name
@@ -374,7 +382,7 @@ namespace SmartSteward
             {
                 EnsureCurrent();
                 var here = MobileParty.MainParty?.CurrentSettlement;
-                if (here == null || !(here.IsTown || here.IsVillage) || IsLootedVillage(here))
+                if (here == null || !IsStewardSettlement(here) || IsLootedVillage(here))
                     return false;
                 string? busy = EncounterGuard.WhyBusy(here, checkMenu: true);
                 if (busy != null)

@@ -14,7 +14,7 @@ namespace SmartSteward
     /// The steward stands aside while the player's encounter is anything but a quiet settlement visit (PLAN step 24,
     /// RESEARCH §28): a battle or a MapEvent of the party or of the settlement, a hostile action being started
     /// (ForceRaid / ForceSupplies / ForceVolunteers), an encounter past its Begin state, a siege, captivity — or, where
-    /// asked, a menu that is not the settlement's own (town, village, War Sails' port). Every place the steward acts asks
+    /// asked, a menu that is not the settlement's own (town, village, castle, War Sails' port). Every place the steward acts asks
     /// here first: the arrival popup and the autonomous run, the leave warning and its "Leave anyway", the menu entry and
     /// the executor (Deal all, a Deal and autonomous). Read-only: it never touches the encounter or the menu.
     /// <para>The raid-capture report (2026.09.29) was vanilla's own bug (RESEARCH §28) — but the guard makes sure the
@@ -24,7 +24,7 @@ namespace SmartSteward
     internal static class EncounterGuard
     {
         /// <summary>The settlement menus the steward lives in.</summary>
-        private static readonly string[] SettlementMenus = { "town", "village", StewardMenu.PortMenuId };
+        private static readonly string[] SettlementMenus = { "town", "village", StewardMenu.CastleMenuId, StewardMenu.PortMenuId };
 
         private static string? _lastLogged;
 

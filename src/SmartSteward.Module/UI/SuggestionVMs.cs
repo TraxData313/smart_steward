@@ -92,6 +92,9 @@ namespace SmartSteward.UI
         /// <summary>The spreadsheet's words (Core builds the texts, the words come from TextObjects).</summary>
         internal SheetWords Words { get; }
 
+        /// <summary>Step 34: the castle's notice and the donate reasons' words.</summary>
+        internal CastleWords CastleWords { get; } = UiLabels.CastleWords();
+
         internal StewardPlan? Plan => _plan;
 
         /// <summary>Shows a (new) plan. A closed market (the snapshot's <c>TradeClosedReason</c>, the game's own words) is said at
@@ -101,8 +104,10 @@ namespace SmartSteward.UI
             _plan = plan;
             _settlement = visit.Settlement;
             var snap = visit.Snapshot;
-            MarketClosedText = snap.CanTrade ? ""
-                : UiText.S1("ss_ui_market_closed", "Market closed: {REASON}", "REASON", snap.TradeClosedReason ?? "");
+            // Step 34: a castle has no market to close - its notice says what the steward does there and, if it cannot, why.
+            MarketClosedText = CastleNotice.Of(snap, CastleWords)
+                ?? (snap.CanTrade ? ""
+                    : UiText.S1("ss_ui_market_closed", "Market closed: {REASON}", "REASON", snap.TradeClosedReason ?? ""));
             Refresh();
             if (_shown)
                 Adapter.TavernKnowledge.LearnAboutListed(_settlement, plan);
@@ -963,6 +968,7 @@ namespace SmartSteward.UI
         private bool _editing;
 
         private readonly string _goalYoursHint;
+        private readonly string _ransomHint;
         private readonly string _goalStewardHint;
 
         internal SheetItemVM(SuggestionTabVM tab, SheetItem item)
@@ -986,8 +992,9 @@ namespace SmartSteward.UI
             DonateText = UiText.S("ss_ui_toggle_donate", "Donate");
             KeepHint = new HintVM(UiText.S("ss_ui_toggle_keep_hint",
                 "Keep them: the steward proposes nothing (you may still ransom by hand below). Your standing order - saved like the Instructions tab."));
-            RansomHint = new HintVM(UiText.S("ss_ui_toggle_ransom_hint",
-                "Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab."));
+            _ransomHint = UiText.S("ss_ui_toggle_ransom_hint",
+                "Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab.");
+            RansomHint = new HintVM(_ransomHint);
             DonateHint = new HintVM();
             GoalHint = new HintVM();
             ResultHint = new HintVM();
@@ -1080,10 +1087,19 @@ namespace SmartSteward.UI
             {
                 Choice = item.Choice.Value;
                 CanDonate = item.DonateAllowed;
-                DonateHint.Text = item.DonateAllowed
-                    ? UiText.S("ss_ui_toggle_donate_hint",
-                        "Donate them to this town's dungeon for influence, the most valuable first - what does not fit is ransomed (lords kept). Your standing order - saved like the Instructions tab.")
-                    : UiText.S("ss_ui_toggle_donate_off", "The game does not let you donate prisoners here.");
+                // Step 34: a castle has no ransom broker - what does not fit stays; the reason why not, the game's own condition.
+                DonateHint.Text = !item.DonateAllowed
+                    ? UiText.S1("ss_ui_toggle_donate_off_why", "The game does not let you donate prisoners here: {REASON}", "REASON",
+                        CastleNotice.Reason(item.DonateBlock, _tab.CastleWords))
+                    : item.InCastle
+                        ? UiText.S("ss_ui_toggle_donate_hint_castle",
+                            "Donate them to this castle's dungeon for influence, the most valuable first - a castle has no ransom broker, so what does not fit stays with you. Your standing order - saved like the Instructions tab.")
+                        : UiText.S("ss_ui_toggle_donate_hint",
+                            "Donate them to this town's dungeon for influence, the most valuable first - what does not fit is ransomed (lords kept). Your standing order - saved like the Instructions tab.");
+                RansomHint.Text = item.InCastle
+                    ? UiText.S("ss_ui_toggle_ransom_hint_castle",
+                        "Ransom them at a town's ransom broker - a castle has none, so here they stay. Your standing order - saved like the Instructions tab.")
+                    : _ransomHint;
             }
         }
 

@@ -43,6 +43,7 @@
     <string id="ss_hint_AutoFillFoodPrices" text="Food you gave no price in the Prices tab uses its average price as the base. Default: on." />
     <string id="ss_hint_AutoFillPackAndMountPrices" text="Pack animals and riding horses you gave no price use their average price as the base. Default: on." />
     <string id="ss_hint_AutoFillWarMountPrices" text="War horses you gave no price use their average price as the base. When off, they are bought only under the war horse price cap until you type a price. (Noble horses always show their average sell price - they are only ever sold.) Default: off." />
+    <string id="ss_hint_AutoPopupOnCastleEnter" text="Open the Party Steward window when your party enters a castle - only when it has prisoners to donate there. Default: on." />
     <string id="ss_hint_AutoPopupOnTownEnter" text="Open the Party Steward window when your party enters a town. Default: on." />
     <string id="ss_hint_AutoPopupOnVillageEnter" text="Open the Party Steward window when your party enters a village. Default: on." />
     <string id="ss_hint_AutonomousMinGold" text="While the full-autonomous steward is on, it never takes your purse below this - both floors above rise to it when they are lower. Raise the price limits to let it spend more freely, never this. Default: 100,000. Range: 0 to 10,000,000." />
@@ -140,6 +141,7 @@
     <string id="ss_set_AutoFillFoodPrices" text="Average prices for food" />
     <string id="ss_set_AutoFillPackAndMountPrices" text="Average prices for pack animals and horses" />
     <string id="ss_set_AutoFillWarMountPrices" text="Average prices for war horses" />
+    <string id="ss_set_AutoPopupOnCastleEnter" text="Open on entering a castle" />
     <string id="ss_set_AutoPopupOnTownEnter" text="Open on entering a town" />
     <string id="ss_set_AutoPopupOnVillageEnter" text="Open on entering a village" />
     <string id="ss_set_AutonomousMinGold" text="Keep while autonomous (denari)" />
@@ -218,6 +220,9 @@
     <string id="ss_ui_block_recruiting_type" text="Men of this type are being recruited under Recruits - take that back there first." />
     <string id="ss_ui_block_sell_only" text="Only ever sold, ransomed or donated - never bought." />
     <string id="ss_ui_block_waits" text="Your goals wait until your purse reaches this job's threshold (Instructions: Goals you set by hand)." />
+    <string id="ss_ui_castle_no_market" text="A castle has no market - the steward only donates prisoners here." />
+    <string id="ss_ui_castle_no_prisoners" text="You hold no prisoners." />
+    <string id="ss_ui_castle_not_here" text="Donating is not possible here: {REASON}" />
     <string id="ss_ui_close" text="Close" />
     <string id="ss_ui_col_buy" text="Buy" />
     <string id="ss_ui_col_change" text="Change" />
@@ -239,6 +244,11 @@
     <string id="ss_ui_deal_all" text="Deal all" />
     <string id="ss_ui_deal_all_hint" text="Carry out the whole table at once - every line's Deal in one click." />
     <string id="ss_ui_deal_group" text="Deal group" />
+    <string id="ss_ui_donate_block_access" text="you may not enter its dungeon." />
+    <string id="ss_ui_donate_block_clan" text="it is your own clan's (manage its prisoners in the dungeon)." />
+    <string id="ss_ui_donate_block_full" text="its dungeon is full." />
+    <string id="ss_ui_donate_block_kingdom" text="it is not your kingdom's." />
+    <string id="ss_ui_donate_block_none" text="there is no dungeon." />
     <string id="ss_ui_empty" text="Nothing for the steward to do here." />
     <string id="ss_ui_enum_hint" text="Click for the next choice" />
     <string id="ss_ui_failed" text="Smart Steward: something went wrong - the window closed. See smart_steward.log." />
@@ -405,11 +415,13 @@
     <string id="ss_ui_title" text="Party Steward — {SETTLEMENT}" />
     <string id="ss_ui_toggle_donate" text="Donate" />
     <string id="ss_ui_toggle_donate_hint" text="Donate them to this town's dungeon for influence, the most valuable first - what does not fit is ransomed (lords kept). Your standing order - saved like the Instructions tab." />
-    <string id="ss_ui_toggle_donate_off" text="The game does not let you donate prisoners here." />
+    <string id="ss_ui_toggle_donate_hint_castle" text="Donate them to this castle's dungeon for influence, the most valuable first - a castle has no ransom broker, so what does not fit stays with you. Your standing order - saved like the Instructions tab." />
+    <string id="ss_ui_toggle_donate_off_why" text="The game does not let you donate prisoners here: {REASON}" />
     <string id="ss_ui_toggle_keep" text="Keep" />
     <string id="ss_ui_toggle_keep_hint" text="Keep them: the steward proposes nothing (you may still ransom by hand below). Your standing order - saved like the Instructions tab." />
     <string id="ss_ui_toggle_ransom" text="Ransom" />
     <string id="ss_ui_toggle_ransom_hint" text="Ransom them for denari at the ransom broker. Your standing order - saved like the Instructions tab." />
+    <string id="ss_ui_toggle_ransom_hint_castle" text="Ransom them at a town's ransom broker - a castle has none, so here they stay. Your standing order - saved like the Instructions tab." />
     <string id="ss_ui_total" text="Total" />
     <string id="ss_ui_troops_minus_hint" text="Dismiss from the lowest tier up, the wounded first. Shift 5, Ctrl all." />
     <string id="ss_ui_troops_plus_hint" text="Bring back the men you dropped, the last dropped first. Shift 5, Ctrl all." />
@@ -432,7 +444,7 @@
     <string id="ss_why_looted" text="This village has been looted." />
     <string id="ss_why_market_closed" text="Trading is not possible here right now." />
     <string id="ss_why_no_settlement" text="not in a settlement" />
-    <string id="ss_why_not_town_or_village" text="not a town or a village" />
+    <string id="ss_why_not_settlement_kind" text="not a town, a castle or a village" />
     <string id="ss_why_raided" text="The village is being raided." />
   </strings>
 </base>

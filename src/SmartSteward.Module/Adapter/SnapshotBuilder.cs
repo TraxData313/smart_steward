@@ -24,7 +24,8 @@ namespace SmartSteward.Adapter
     internal static class SnapshotBuilder
     {
         /// <summary>The snapshot of the party at <paramref name="settlement"/>; null (with the reason — player-facing, so
-        /// through TextObject ids) anywhere the steward does not work — castles, hideouts, the open map.</summary>
+        /// through TextObject ids) anywhere the steward does not work — hideouts, the open map. A castle (step 34) is read
+        /// for its dungeon only: no market, no tavern, no troops (RESEARCH §31).</summary>
         public static GameVisit? Build(Settlement? settlement, out string whyNot)
         {
             whyNot = "";
@@ -36,22 +37,25 @@ namespace SmartSteward.Adapter
                 return null;
             }
             bool isTown = settlement.IsTown;
-            if (!isTown && !settlement.IsVillage)
+            bool isCastle = settlement.IsCastle;
+            if (!isTown && !isCastle && !settlement.IsVillage)
             {
-                whyNot = UI.UiText.S("ss_why_not_town_or_village", "not a town or a village");
+                whyNot = UI.UiText.S("ss_why_not_settlement_kind", "not a town, a castle or a village");
                 return null;
             }
 
             var snap = new StewardSnapshot
             {
-                SettlementKind = isTown ? SettlementKind.Town : SettlementKind.Village,
+                SettlementKind = isTown ? SettlementKind.Town : isCastle ? SettlementKind.Castle : SettlementKind.Village,
                 PlayerGold = hero.Gold,
-                MarketGold = settlement.SettlementComponent?.Gold ?? 0,
+                MarketGold = isCastle ? 0 : settlement.SettlementComponent?.Gold ?? 0,
             };
             var elements = new Dictionary<string, EquipmentElement>(StringComparer.Ordinal);
 
-            snap.CanTrade = CanTradeNow(settlement, out string? closedReason);
-            snap.TradeClosedReason = snap.CanTrade ? null : closedReason;
+            // Step 34: a castle has no market at all - not a closed one (no reason to show); the window says it is a castle.
+            string? closedReason = null;
+            snap.CanTrade = !isCastle && CanTradeNow(settlement, out closedReason);
+            snap.TradeClosedReason = snap.CanTrade || isCastle ? null : closedReason;
             ReadParty(snap, main);
             bool ships = HasShips(main);
             ReadItems(main.ItemRoster, snap.Inventory, elements, InventoryLocks(), main, ships);
@@ -64,7 +68,8 @@ namespace SmartSteward.Adapter
             ReadPrisoners(snap, settlement, main, hero);
             if (isTown)
                 ReadTavern(snap, settlement, main, hero);
-            ReadTroops(snap, settlement, main, hero);
+            if (!isCastle)
+                ReadTroops(snap, settlement, main, hero);
             // Step 26 (DESIGN §2.9): what the player's quests ask the party to hold - read afresh, never stored.
             if (SettingsHost.Current.QuestGoalsEnabled)
                 snap.QuestNeeds = QuestReader.Read();
@@ -230,11 +235,22 @@ namespace SmartSteward.Adapter
         /// <summary>Donating is allowed here right now (DESIGN §2.5, <see cref="GameRules.DonateAllowed"/>).</summary>
         public static bool DonateAllowedNow(Settlement settlement)
         {
+            DonateBlockNow(settlement, out bool allowed);
+            return allowed;
+        }
+
+        /// <summary>The donate rule's verdict and, when not, why (step 34 — a town or a castle, the game's own order,
+        /// <see cref="GameRules.DonateBlockOf"/>). <paramref name="allowed"/> = <see cref="GameRules.DonateAllowed"/> (a full
+        /// dungeon is allowed, with no room).</summary>
+        public static DonateBlock DonateBlockNow(Settlement settlement, out bool allowed)
+        {
             var hero = Hero.MainHero;
-            return GameRules.DonateAllowed(settlement.IsTown,
-                settlement.MapFaction != null && settlement.MapFaction == hero.MapFaction,
-                settlement.OwnerClan == Clan.PlayerClan,
-                DungeonAccess(settlement));
+            bool hasDungeon = settlement.IsTown || settlement.IsCastle;
+            bool sameFaction = settlement.MapFaction != null && settlement.MapFaction == hero.MapFaction;
+            bool ownClan = settlement.OwnerClan == Clan.PlayerClan;
+            bool access = hasDungeon && DungeonAccess(settlement);
+            allowed = GameRules.DonateAllowed(hasDungeon, sameFaction, ownClan, access);
+            return GameRules.DonateBlockOf(hasDungeon, sameFaction, ownClan, access, hasDungeon ? DungeonRoom(settlement) : 0);
         }
 
         /// <summary>Free places in the dungeon: <c>PrisonerSizeLimit − NumberOfPrisoners</c> (men, not stacks —
@@ -293,7 +309,8 @@ namespace SmartSteward.Adapter
                        .Sum(x => x.Count).ToString(inv)
                    + "; prisoners " + s.Prisoners.Sum(p => p.Count).ToString(inv) + " in " + s.Prisoners.Count.ToString(inv)
                    + " stacks (ransom " + (s.Prison.CanRansom ? "yes" : "no") + ", donate "
-                   + (s.Prison.DonateAllowed ? "yes, room " + s.Prison.DungeonRoom.ToString(inv) : "no") + "); tavern "
+                   + (s.Prison.DonateAllowed ? "yes, room " + s.Prison.DungeonRoom.ToString(inv) : "no")
+                   + (s.Prison.DonateBlock != DonateBlock.None ? " - " + s.Prison.DonateBlock : "") + "); tavern "
                    + (s.Tavern == null ? "none"
                        : s.Tavern.Wanderers.Count.ToString(inv) + " wanderers, "
                          + (s.Tavern.Mercenaries == null ? "no band" : s.Tavern.Mercenaries.Available.ToString(inv) + " " + s.Tavern.Mercenaries.Name
@@ -592,6 +609,7 @@ namespace SmartSteward.Adapter
         private static void ReadPrisoners(StewardSnapshot snap, Settlement settlement, MobileParty main, Hero hero)
         {
             bool isTown = settlement.IsTown;
+            bool hasDungeon = isTown || settlement.IsCastle; // step 34: a castle's dungeon takes donations too
             var locks = PrisonerLocks();
             var models = Campaign.Current.Models;
             var kingdom = Clan.PlayerClan?.Kingdom;
@@ -601,7 +619,7 @@ namespace SmartSteward.Adapter
                 var c = element.Character;
                 if (c == null || element.Number <= 0 || (c.IsHero && c.HeroObject == hero))
                     continue;
-                float influence = isTown
+                float influence = hasDungeon
                     ? models.PrisonerDonationModel.CalculateInfluenceGainAfterPrisonerDonation(main.Party, c, settlement)
                     : 0f;
                 snap.Prisoners.Add(new PrisonerStack
@@ -617,12 +635,14 @@ namespace SmartSteward.Adapter
                     IsLocked = locks.Contains(c.StringId),
                 });
             }
+            var block = DonateBlockNow(settlement, out bool donateAllowed);
             snap.Prison = new PrisonInfo
             {
-                // the ransom broker lives in the tavern district (town_backstreet)
+                // the ransom broker lives in the tavern district (town_backstreet) - a castle has none (RESEARCH §31)
                 CanRansom = isTown && CanAccess(settlement, "tavern"),
-                DonateAllowed = isTown && DonateAllowedNow(settlement),
-                DungeonRoom = isTown ? DungeonRoom(settlement) : 0,
+                DonateAllowed = donateAllowed,
+                DonateBlock = block,
+                DungeonRoom = hasDungeon ? DungeonRoom(settlement) : 0,
             };
         }
 

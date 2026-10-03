@@ -9,7 +9,8 @@ using TaleWorlds.CampaignSystem.Settlements;
 namespace SmartSteward
 {
     /// <summary>
-    /// "Party Steward" in the town and village menus (DESIGN §6), right after Trade — opens the window. Always there
+    /// "Party Steward" in the town and village menus (DESIGN §6), right after Trade — and (step 34) in the castle's, right after
+    /// "Go to the dungeon" — opens the window. Always there
     /// while the mod is enabled (ModEnabled), the Full-autonomous steward included. The arrival popup, the leave
     /// warning and autonomy are <see cref="StewardTriggers"/> (PLAN step 8).
     /// <para>War Sails' port (round 3): a party docking at a town by sea lands in the DLC's <c>port_menu</c> (RESEARCH
@@ -24,6 +25,9 @@ namespace SmartSteward
         /// <summary>War Sails' port menu (NavalDLC <c>NavalTransitionCampaignBehavior</c>) — looked up by id only.</summary>
         public const string PortMenuId = "port_menu";
 
+        /// <summary>The castle's main menu (vanilla <c>PlayerTownVisitCampaignBehavior</c>, step 34).</summary>
+        public const string CastleMenuId = "castle";
+
         private const string EntryText = "{=ss_menu}Party Steward";
 
         /// <summary>From the behavior's OnSessionLaunched, after vanilla built its menus (RESEARCH §10).</summary>
@@ -32,7 +36,10 @@ namespace SmartSteward
             foreach (var menuId in new[] { "town", "village" })
                 starter.AddGameMenuOption(menuId, OptionId, EntryText, OnCondition, OnConsequence,
                     false, IndexAfter(menuId, "trade"));
-            ModLog.Info("campaign", "Party Steward added to the town and village menus");
+            // Step 34 (RESEARCH §31): the castle has no Trade - the entry goes right after "Go to the dungeon".
+            starter.AddGameMenuOption(CastleMenuId, OptionId, EntryText, OnCondition, OnConsequence,
+                false, IndexAfter(CastleMenuId, "castle_prison"));
+            ModLog.Info("campaign", "Party Steward added to the town, village and castle menus");
         }
 
         /// <summary>Adds the entry to War Sails' port menu (right after its Trade) the first time that menu opens in a

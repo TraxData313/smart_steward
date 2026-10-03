@@ -212,6 +212,19 @@ namespace SmartSteward.UI
 
         /// <summary>The "Steward report:" line's words (PLAN step 33, Core <see cref="SmartSteward.Core.Execution.SummaryWords"/>) —
         /// the window's Deal all / Deal and the autonomous steward share them.</summary>
+        /// <summary>Step 34: the castle's notice and the donate reasons (<see cref="CastleNotice"/>).</summary>
+        public static CastleWords CastleWords() => new CastleWords
+        {
+            NoMarket = UiText.S("ss_ui_castle_no_market", "A castle has no market - the steward only donates prisoners here."),
+            NoPrisoners = UiText.S("ss_ui_castle_no_prisoners", "You hold no prisoners."),
+            NotHere = reason => UiText.S1("ss_ui_castle_not_here", "Donating is not possible here: {REASON}", "REASON", reason),
+            NotYourKingdom = UiText.S("ss_ui_donate_block_kingdom", "it is not your kingdom's."),
+            YourClansFief = UiText.S("ss_ui_donate_block_clan", "it is your own clan's (manage its prisoners in the dungeon)."),
+            NoDungeonAccess = UiText.S("ss_ui_donate_block_access", "you may not enter its dungeon."),
+            DungeonFull = UiText.S("ss_ui_donate_block_full", "its dungeon is full."),
+            NoDungeon = UiText.S("ss_ui_donate_block_none", "there is no dungeon."),
+        };
+
         public static SmartSteward.Core.Execution.SummaryWords SummaryWords() => new SmartSteward.Core.Execution.SummaryWords
         {
             DealsOne = UiText.S("ss_report_deals_one", "1 deal made"),
