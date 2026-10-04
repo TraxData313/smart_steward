@@ -65,7 +65,7 @@ namespace SmartSteward.Adapter
                 return report;
             }
 
-            Donate(transactions.Where(t => t.Kind == TransactionKind.Donate).ToList(), report, settlement, main);
+            Donate(ExecutionBudget.DonationOrder(transactions.Where(t => t.Kind == TransactionKind.Donate)), report, settlement, main);
             Ransom(transactions.Where(t => t.Kind == TransactionKind.Ransom).ToList(), report, settlement, main);
             foreach (var tx in transactions.Where(t => t.Kind == TransactionKind.Dismiss))
                 Dismiss(report.Add(tx), main);

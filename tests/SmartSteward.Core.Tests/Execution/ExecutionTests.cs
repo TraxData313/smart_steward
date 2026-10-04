@@ -146,6 +146,20 @@ public class ExecutionTests
     }
 
     [Fact]
+    public void Donations_run_most_valuable_first_so_a_smaller_room_at_the_click_keeps_the_cheap_men()
+    {
+        var s = new Scenario().Prisoner("looter", 8, 20, influence: 0.66)
+            .Prisoner("khans_guard", 2, 275, influence: 1.89).Prisoner("raider", 4, 62, influence: 1.04);
+        s.Snap.Prison = new PrisonInfo { DonateAllowed = true, DungeonRoom = 50 };
+        s.Settings.PrisonerAction = PrisonerChoice.Donate;
+        var donations = s.Plan().Transactions.Where(t => t.Kind == TransactionKind.Donate).ToList();
+        Assert.Equal(3, donations.Count);
+
+        var order = ExecutionBudget.DonationOrder(donations).Select(t => t.TroopId).ToList();
+        Assert.Equal(new[] { "khans_guard", "raider", "looter" }, order);
+    }
+
+    [Fact]
     public void The_report_counts_and_logs_every_transaction()
     {
         var plan = Scenario.BusyTown().Plan();

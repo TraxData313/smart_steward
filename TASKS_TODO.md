@@ -106,6 +106,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + popup only once INSIDE (never on the approach / hail-the-guard screens) and only with a donation to make (Anton 2026.10.03)
   - [ ] Deployed at the end of step 34 (the install carries steps 32–34), then playtest — checklist in docs/PLAYTEST.md "Step 34"
 SHIPPING NEXT (done in main, NOT released yet):
+- Donating: if the dungeon has less room at your click than when the window planned, the most valuable prisoners still go first and the cheap ones stay with you
 - Castles: "Party Steward" in the castle menu, the popup once you are inside and only with prisoners to donate ("Open on entering a castle", on), the autonomous steward too — only the Prisoners part: donated to the dungeon most valuable first (lords too, your kingdom, not your clan's), nothing ransomed there; the window says why when it cannot
 - Folding Troops leaves its title line alone, like Food — Recruits and Your troops come back as you left them
 - The message log says "Steward report: 12 deals made · +1,470 denari · +2.4 influence · 8 prisoners ransomed" (it said "Steward: 12 of 12 done…", which read like the Steward skill)

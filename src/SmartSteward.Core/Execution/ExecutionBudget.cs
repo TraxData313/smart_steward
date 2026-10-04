@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Pricing;
 
@@ -186,6 +188,16 @@ namespace SmartSteward.Core.Execution
             }
             return n;
         }
+
+        /// <summary>
+        /// The order the executor donates in: the most influence per man first (it grows with the ransom value — the
+        /// planner's own "most valuable first", PrisonerPlanner.Split), then troop id. The plan already fits the room it
+        /// saw; this keeps the right men going when the dungeon has LESS room at the click (the plan lists the rows in
+        /// table order, cheapest first — they would have taken the room).
+        /// </summary>
+        public static List<PlanTransaction> DonationOrder(IEnumerable<PlanTransaction> donations) =>
+            donations.OrderByDescending(t => t.Count > 0 ? t.Influence / t.Count : 0)
+                .ThenBy(t => t.TroopId ?? "", System.StringComparer.Ordinal).ToList();
 
         /// <summary>
         /// Does the inventory lock stop this item transaction at the click? Only a sale whose lock guards it
