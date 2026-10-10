@@ -1,70 +1,49 @@
 # Smart Steward
 
-![Smart Steward](Screenshots/preview_thumbnail.jpg)
+![The Party Steward window in Onira: food rows with the steward's suggestions, then Deal all](Screenshots/cover.jpg)
 
-A *Mount & Blade II: Bannerlord* mod that takes the logistics chores off your hands.
+A mod for Mount & Blade II: Bannerlord.
 
-Ride into a town or village and your **Party Steward** lays out, in one table, what the party needs —
-nudge any row with `[–]` `[+]` (click ±1, Shift ±5, Ctrl all), then **Deal all**. Five jobs:
+Made by two of us: the code and all technical work by Claude (Opus 5.5), an AI; the idea, feedback and
+playtesting by [Trax](https://github.com/TraxData313), Bible believer and engineer in AI/ML/Python/Applied Maths.
 
-- **Tavern** — wanderers and the tavern's mercenaries, hired with a click (never suggested: your choice)
-- **Food** — enough for everyone, varied for morale, surplus sold
-- **Horses** — pack animals and a horse per footman (a set number of war horses among them); noble horses sold unless
-  locked, lame ones replaced by healthy ones
-- **Armour & weapons** — loot sold in bulk groups (off until you turn it on)
-- **Prisoners** — ransomed, or donated to your kingdom's dungeons for influence
+It takes the logistics chores off your hands. Ride into a town, village or castle and your **Party Steward** shows,
+in one table, what the party needs. Nudge any row (click ±1, Shift ±5, Ctrl all), then **Deal all**, or **Deal**
+just one line.
 
-Plus an optional **Full-autonomous steward** for the rich: it does it all on arrival, never below your gold
-floor, and reports in the message log. Every number is a setting — in the window's Instructions tab, in MCM
-(optional), or in a commented `Documents\Mount and Blade II Bannerlord\Configs\SmartSteward\settings.json`.
-No Harmony; nothing is stored in the save.
+- **Food**: enough for everyone, varied for morale, surplus sold
+- **Horses**: pack animals, a horse for every footman, the war horses you want kept; noble horses sold, lame ones replaced
+- **Troops**: recruit what the notables offer, dismiss the lowest tiers; hire wanderers and mercenaries from the tavern
+- **Prisoners**: ransomed, or donated to your kingdom's dungeons for influence (castles too)
+- **Loot**: armour and weapons sold in bulk groups (off until you turn it on)
+- **Goals**: type your own number for any food or horse row; it holds in every town. What your quests need is kept
+- **Full-autonomous steward** (off by default): does it all on arrival, never below your gold floor
 
-Game: Bannerlord **v1.4.8** (War Sails fine, not needed). Release: **Steam Workshop** (link once published).
-The player-facing page is [tools/STEAM-DESCRIPTION.bbcode](tools/STEAM-DESCRIPTION.bbcode).
+Every number is a setting: in the window, in MCM, or in a commented `settings.json`.
+No Harmony, and nothing is stored in your save, so you can add or remove it mid-campaign.
 
-## Building
+## Install
 
-- **.NET 8 SDK** (builds the net472 module and the netstandard2.0 core — no Visual Studio needed).
-- Bannerlord and [MCM v5](https://steamcommunity.com/sharedfiles/filedetails/?id=2859238197) installed:
-  their DLLs are referenced from the install, never copied. If yours live elsewhere than the Steam defaults
-  in `Directory.Build.props`, create a git-ignored `Directory.Build.props.user` beside it:
-  ```xml
-  <Project><PropertyGroup>
-    <GameFolder>D:\Games\Mount &amp; Blade II Bannerlord</GameFolder>
-    <McmBinFolder>D:\Games\...\2859238197\bin\Win64_Shipping_Client</McmBinFolder>
-  </PropertyGroup></Project>
-  ```
+1. Download the zip from the [GitHub Releases page](https://github.com/TraxData313/smart_steward/releases/latest),
+   or subscribe on the [Steam Workshop](STEAM_WORKSHOP_URL).
+2. Extract it into `Mount & Blade II Bannerlord\Modules\`.
+3. Enable it in the launcher.
 
-```powershell
-dotnet build -c Release          # warning-free
-dotnet test                      # the Core's unit tests
-powershell -ExecutionPolicy Bypass -File tools\deploy.ps1         # install as "Smart Steward (dev)" (quit the game first)
-powershell -ExecutionPolicy Bypass -File tools\check-soft-deps.ps1  # still loads without MCM?
-powershell -ExecutionPolicy Bypass -File tools\check-gui.ps1        # the window's prefab vs this game
-powershell -ExecutionPolicy Bypass -File tools\package.ps1          # all of it + dist\SmartSteward and a zip
-```
+For Bannerlord v1.4.8 (War Sails fine, not needed). Nothing is required.
+[Mod Configuration Menu](https://steamcommunity.com/sharedfiles/filedetails/?id=2859238197) is optional.
 
-Uploading is [tools/WORKSHOP-UPLOAD.md](tools/WORKSHOP-UPLOAD.md) (the game's own Workshop uploader).
+![The Troops and Horses parts of the table](Screenshots/02_suggestion_troops_horses.jpg)
 
-## The docs
+![The Instructions tab: every standing order, saved at once](Screenshots/03_instructions_general_money.jpg)
 
-| File | What it holds |
-|---|---|
-| [docs/DESIGN.md](docs/DESIGN.md) | the spec — every feature, every setting with its default, the algorithms |
-| [docs/RESEARCH.md](docs/RESEARCH.md) | verified game-API facts from the decompiled v1.4.8 code, and the gotchas |
-| [docs/PLAYTEST.md](docs/PLAYTEST.md) | the in-game checklists, step by step |
-| [TASKS_TODO.md](TASKS_TODO.md) / [TASKS_DONE.md](TASKS_DONE.md) | the board / the real changelog |
-| [CLAUDE.md](CLAUDE.md) | how the work is done here, and the repository layout |
-| [concept.txt](concept.txt) | the original idea, in the author's words |
+Free and open — public domain ([Unlicense](LICENSE)). Do whatever you like with it.
 
-## Translations
+To thank me, open [my GitHub profile](https://github.com/TraxData313) and read my top pinned.
 
-Welcome. Every player-facing text is in
-[module/ModuleData/Languages/std_SmartSteward.xml](module/ModuleData/Languages/std_SmartSteward.xml) (English,
-the game's own strings format). Copy it into `Languages\XX\`, translate the texts, add a `language_data.xml` —
-the file's header says exactly how. The English there is generated from the code, so edit a translation's
-copy, never the source.
+<details>
+<summary>How it works</summary>
 
-## License
+Building, the tools, the design docs and translations are in [docs/TECHNICAL.md](docs/TECHNICAL.md).
+The full specification is [docs/DESIGN.md](docs/DESIGN.md).
 
-Public domain ([Unlicense](LICENSE)).
+</details>
