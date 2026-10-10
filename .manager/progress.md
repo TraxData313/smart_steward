@@ -50,3 +50,23 @@ Facts found by the manager:
   For step 2: gh release create v1.0.0 with dist\SmartSteward_v1.0.0.zip (no tag exists yet). For step 3: uploader from
   a scratch folder (WORKSHOP-UPLOAD.md steps 5-8), then ItemId into WorkshopUpdate.xml + STEAM_WORKSHOP_URL in README;
   gallery images via Chrome on the item page (01..07 in order). TASKS_TODO SHIPPING NEXT untouched (step 4).
+- HOLD 2026-10-10: Toni asked for an overview (screens + README) BEFORE going live. Files sent to him; waiting for his OK
+  or changes before step 2 (GitHub release) and step 3 (Steam).
+- GO 2026-10-10: Toni approved as is ("go, release it on GitHub and Steam"). Steps 2-4 cleared to run.
+- THEN Toni stopped it (before any release): "not clear at a glance that it AUTOMATES food, horses, prisoners...".
+  New step 1b before 2: (1) thumbnail tagline "Food, horses, troops, prisoners — handled in one click.", strip as verbs
+  BUYS FOOD · REPLACES HORSES · RANSOMS PRISONERS · SELLS LOOT, window art dimmed, gold glow on Deal all; (2) first line of
+  Steam desc + README = "Automates your party's logistics..."; (3) try a variant thumbnail with a before→after line. Show Toni again before going live.
+- Step 1b done 2026-10-10 (commit 1e925cf, pushed). Nothing published. Thumbnail + cover rebuilt by
+  python tools\make_thumbnail.py [--variant v2]: art = the WHOLE real window (shot 01) at brightness 0.5, its real
+  Deal all button (source box 1815,1200-2063,1252) drawn again from the same pixels undimmed, x1.7 (cover x1.6), in a
+  gold glow; title, tagline "Food, horses, troops, prisoners — handled in one click.", verbs BUYS FOOD · REPLACES
+  HORSES / RANSOMS PRISONERS · SELLS LOOT (two lines on the thumbnail, four stacked on the cover, which is now art left
+  / words right). Screenshots\preview_thumbnail.jpg 150 KB, cover.jpg 149 KB; v2 = + "5 days of food → 40 days ·
+  12 prisoners → +3,400 denari" -> preview_thumbnail_v2.jpg 160 KB, cover_v2.jpg 159 KB. v2 figures are EXAMPLE
+  numbers, not from any shot (the shots' party was already stocked: food ~39 » 40 days, no prisoners). Checked full
+  size and 256 px: tagline, verbs and Deal all read; the v2 line reads at 256 but is small. README first line (bold,
+  under the cover), STEAM-DESCRIPTION.bbcode first line ([b]...[/b], 7,238 bytes) and WorkshopCreate.xml
+  ItemDescription now open "Automates your party's logistics...". dist zip unchanged (package.ps1 ships only
+  SubModule.xml, the 2 DLLs, GUI\Prefabs, ModuleData\Languages - no images/docs). Toni picks v1 or v2 before step 2;
+  if v2, point WorkshopCreate's Image (and README) at the _v2 files.
