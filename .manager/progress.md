@@ -20,7 +20,7 @@ Facts found by the manager:
        screenshots copied into the repo + chosen, cover/thumbnail from the real GUI, workshop XML paths fixed, package.ps1 green. Commit + push.
 2. [x] GitHub release v1.0.0 with the dist zip.
 3. [x] Steam: create the item (Private) with description, then extra screenshots via Chrome, then Public; README/WorkshopUpdate get the item id. Commit + push.
-4. [ ] Board: TASKS_DONE entry, TASKS_TODO SHIPPING NEXT cleared / release noted.
+4. [x] Board: TASKS_DONE entry, TASKS_TODO SHIPPING NEXT cleared / release noted.
 
 ## Log
 - Step 1 done 2026-10-10 (commits b3785f3, e3bdb14, 4de24d8, 49f94b8, pushed). Nothing published.
@@ -86,3 +86,4 @@ Facts found by the manager:
   Smart Steward, file_size 790,472, app 261550, tags Utility/UI/Native/Singleplayer/v1.4.8, description = the bbcode,
   not banned. No agreement prompt. OPEN: gallery 01..07 NOT added - Claude in Chrome was not connected (no browsers);
   needs Toni by hand or a later Chrome session (item page > Owner Controls > Add/edit images & videos). No required items.
+- Step 4 done 2026-10-10: TASKS_DONE entry for v1.0.0, SHIPPING NEXT cleared (release noted + the gallery line open), NOTICED: D: paths in Directory.Build.props / CLAUDE.md. Release complete.

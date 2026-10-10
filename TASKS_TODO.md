@@ -106,59 +106,8 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + popup only once INSIDE (never on the approach / hail-the-guard screens) and only with a donation to make (Anton 2026.10.03)
   - [ ] Deployed at the end of step 34 (the install carries steps 32–34), then playtest — checklist in docs/PLAYTEST.md "Step 34"
 SHIPPING NEXT (done in main, NOT released yet):
-- Donating: if the dungeon has less room at your click than when the window planned, the most valuable prisoners still go first and the cheap ones stay with you
-- Castles: "Party Steward" in the castle menu, the popup once you are inside and only with prisoners to donate ("Open on entering a castle", on), the autonomous steward too — only the Prisoners part: donated to the dungeon most valuable first (lords too, your kingdom, not your clan's), nothing ransomed there; the window says why when it cannot
-- Folding Troops leaves its title line alone, like Food — Recruits and Your troops come back as you left them
-- The message log says "Steward report: 12 deals made · +1,470 denari · +2.4 influence · 8 prisoners ransomed" (it said "Steward: 12 of 12 done…", which read like the Steward skill)
-- "Max price per noble horse" (War mounts, 10,000): the kept noble horses have a price cap of their own, apart from the war horses' 2,000 (0 = none)
-- A "Deal" on every line too — one food, one horse breed, one troop type (its own side), one prisoner type, one good — runs just that line, the window re-plans and stays open; the big button is now "Deal all" (it read "Do it")
-- "Noble horses to keep" (War mounts group, 0 by default = as before): above 0 noble horses are kept like war horses — bought up to the number at their Prices-tab price, the rest sold, from 20,000 denari ("Manage kept noble horses from"), a Goal box on the row; they count among the horses for your footmen
-- "Deal" just this part: a Deal column with a "Deal group" button on every section and on Lords, Others, Recruits, Your troops and Other goods (a "Deal" on each tavern row) — runs only that part as shown (your edits and goals), changes no settings, the window re-plans and stays open
-- The steward keeps what your quests need (grain, horses, tools, troops, prisoners…) and buys a quest's grain — light blue in the Goal column, and after the item's name ("Grain  120 needed for quest", "… for quest, held"), the quest named on hover
-- A big food goal (a quest hoard) no longer drains the other kinds — it is kept on top of the days; surplus sales never take a kind below its fair share
-- MCM's mod list shows "Smart Steward", not "{=ss_mcm_title}Smart Steward" (not deployed yet - the game was running)
-- Every load starts the steward clean (window, visit, pending popup dropped); the log tells a stuck Left Alt and where each window open came from
-- No arrival popup where you cannot trade or the steward has no rows
-- A closed market says why in the window ("Market closed: …", the game's own words) and in the log
-- ~~Upgrade horses set per kind~~ → Horses simplified: "Horses per 100 footmen" keeps T horses, "War horses to keep" (a plain number, default 0) among them, riding horses the rest — no upgrade counting; the old upgrade-horse settings are retired (logged once)
-- Noble horses: never bought, sold unless you lock them ("Sell noble horses"); their own sell-only row, and "Noble horses — sell only" in the Prices tab (unless you keep some — step 28 above)
-- Lame and old horses: never bought; "Replace lame horses" (on) sells them and buys healthy ones in their place
-- Prisoners: ransom all or none — the "Prisoners to ransom" list is gone ("Include lords" stays)
-- Prices tab: the item name is the first column
-- Locked food and horses are managed too (counted, sold as surplus) — locks keep guarding armour & weapons; "Locks protect food & horses" brings the old way back
-- The party size limit never blocks a hire — the footer shows the party after the deal (Party 99/96), red when over
-- Docking at a port (War Sails) brings the steward too: the arrival popup / autonomous run on docking, "Party Steward" in the port menu
-- ~~Weight line like the food: "Weight 1,000 +120 kg » 1,120 kg · capacity land 1,500 / sea 1,000"~~ → ~~two lines "Land: …" / "Sea: …"~~ → the footer's weight table (step 21)
-- The "Not now" button is "Close"
-- A wanderer's name opens a complete Encyclopedia page (the steward's tavern section counts as the tavern district)
-- Live re-plan: hires and prisoners kept or ransomed re-plan the food and horses at once — your own rows (⟲ shown) stay and go first
-- Food goal in days: "Keep food for [40] days (~2.0 per soul)" at your party's own rate, perks included; an old "Food per man" converts once (× 20)
-- Troops section right after the Tavern (towns and villages): the recruits the notables offer you, then your own troops — [+] recruits, [-] dismisses (the wounded first), past the party limit; food and horses follow
-- A closed market keeps the table for what you can still do there (troops, wanderers), the reason above it
-- ~~Click a section's name to fold it to one line~~ → fold a section to its title line (its subtotals) — it stays folded across towns and restarts (window_state.json, never the save)
-- Herd: "110 / 200 before the herd slows you" — the game's own rule, the party after the deal, red when over (the Horses title line since step 21)
-- Troops show their tier ("T1 Vlandian Recruit"): yours lowest tier first, recruits on offer highest first; the folded Troops line has its own [-] (lowest tier out) and [+] (best recruits in)
-- Jobs switch on as you get richer: food and pack animals from 2,000 denari, riding horses from 5,000, war horses from 20,000 (settings; below it the steward leaves the job alone) — and 10 war horses kept by default
-- Food has price multipliers of its own (×2.0 buy / ×0.5 sell — grain at 10 bought up to 20); the old pair are the horse multipliers now (your values carried over)
-- Prisoners: "Captured lords" (Keep) and "Other prisoners" (Ransom) — each Keep / Ransom / Donate; donating where the game forbids it ransoms the others and keeps the lords; prisoners by tier, lowest first (your old switches carried over)
-- "Armour & weapons" is now "Other", with an Other goods row: wool, salt, pottery, jewelry… sold in bulk, cheapest first ("Sell other goods")
-- Prices tab: cheapest first inside each group
-- Troops: "Your troops" [-] drops the lowest tier first and [+] brings them back in reverse; "Recruits" [+] hires the best tier first (the lines of the new window, step 21)
-- The Suggestion tab is ONE spreadsheet: ~~Market · Item · Mine · Change · Result · Denari · Party · Prisoners · Land kg · Sea kg~~ (round 5's order below) — every section's title line is its subtotal, a Total line under the table that never scrolls
-- Header "Denari 69,358 » 89,189 (+19,831)" + small green influence; colours by meaning (green in, red out), zeros blank
-- Troops in one section: each wanderer, the mercenaries, Recruits and Your troops — each opens its rows by tier (a type on offer that you hold shows under both, each side on its own)
-- Prisoners: "Lords" and "Others" lines with Keep | Ransom | Donate — the toggle is your standing order (Donate greyed where the game forbids it); prisoner rows show their tier, lowest first, names open the Encyclopedia
-- Footer = only the weight table: Land / Sea × before · change · after · capacity · left · slowdown, with the game's own speed icon (the horse; the ship at sea)
-- Every fold remembered (sections, Recruits, Your troops, each horse row, Other goods); the first window opens in the everyday view
-- "denari" in every money text; the "Click ±1 · Shift ±5 · Ctrl all" hint moved to the top of the Instructions tab; the Prices tab has Food's own multiplier boxes beside the horses'
-- Goals: a click on a food, pack, riding or war horse row is a standing order kept in settings.json for every town until its ⟲ — the steward plans around it (Reset all keeps them); the autonomous steward obeys them too
-- Instructions: "Goals you set by hand" — your goals wait for the thresholds (off), keep the purse floors (on), obey the price limits (on)
-- Weight, not kg: "Land weight" / "Sea weight", "lowest price per weight"
-- The Goal column: Item · Market · Goal · Mine · Change · Result · … — type a goal for a food, pack animals, riding or war horses (Enter or click away), gold with its ⟲ while yours; "–*" below a threshold, hover says why
-- Troops title: Goal = party size limit, Mine red when you are over it; each title's overview on its own row under the name
-- A Result short of its goal says why on hover; Escape in a text box leaves the box, a second Escape closes the window
-- Instructions: a line on Food and the horse groups ("… follows these rules until you type its goal"), and the goal line in the hint on top
-- The steward stands aside during any fight or hostile action (no popup, leave question, autonomy or Do all; the menu entry greys)
+- v1.0.0 released 2026.10.10 — everything landed so far is in it (GitHub release + Workshop item 3817263044, public)
+- [ ] Workshop gallery: add Screenshots 01-07 on the item page (Owner Controls > Add/edit images & videos)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
@@ -259,3 +208,4 @@ NOTICED (things spotted during a step, left for later):
 - [ ] Release day: the Steam page and README say nothing of the Part column's "Do" (one part alone) — add a line
 - [ ] Step 27: a part run alone carries out the plan made for the party after the WHOLE deal (Food buys for queued hires too) — the re-plan then shows the surplus; plan each part for itself if Anton finds it surprising
 - [ ] Step 23: a very large typed goal walks one price per unit (like Ctrl on the row): 400 grain on the benchmark's plan = ~620 game prices, ~19 ms — watch the first click in game with a huge market
+- [ ] Directory.Build.props and CLAUDE.md still point the game at D:\SteamLibrary — the game moved to C:\Program Files (x86)\Steam\steamapps\common (the .user file covers builds)
