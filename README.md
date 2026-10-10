@@ -1,6 +1,8 @@
 # Smart Steward
 
-![The Party Steward window in Onira: food rows with the steward's suggestions, then Deal all](Screenshots/cover.jpg)
+![Smart Steward: the Party Steward window, its Deal all button ringed in gold - food, horses, troops, prisoners handled in one click](Screenshots/cover.jpg)
+
+**Automates your party's logistics. Ride into a town and the steward works out what you need — food, horses, troops, prisoners, loot — and does it all with one click (or by itself, if you let it).**
 
 A mod for Mount & Blade II: Bannerlord.
 

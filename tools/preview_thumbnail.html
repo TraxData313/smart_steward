@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <!--
-  The Steam Workshop preview (1024 x 1024), in the house style of the sibling mods (TrainingBattles, Better Skirmisher
-  Separation): gold frame, Palatino small caps title over a dark fade, one tagline. The art is the REAL Party Steward
-  window (Screenshots\01_suggestion_food.jpg, cropped by the script to title, tabs, Denari and the Food rows).
-  Rendered by:  python tools\make_thumbnail.py      (writes Screenshots\preview_thumbnail.jpg, under Steam's 1 MB)
-  ART_IMG is replaced by the script with the cropped panel's file URI.
+  The Steam Workshop preview (1024 x 1024), in the house style of the sibling mods (gold frame, Palatino small caps
+  title over a dark fade). The art is the WHOLE real Party Steward window (Screenshots\01_suggestion_food.jpg), dimmed
+  so the words carry the message; its real "Deal all" button is shown again undimmed, a little larger, in a gold glow
+  (the .deal box = the button's own pixels, placed by the script) so the eye lands on "one click".
+  Rendered by:  python tools\make_thumbnail.py [--variant v2]   (v2 adds the .proof before -> after line)
+  The script replaces ART_IMG (the art's file URI), VARIANT (v1/v2) and the DEAL_* pixel values.
 -->
 <html>
 <head>
@@ -17,42 +18,54 @@
     font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
   }
   .art {
-    position: absolute; left: 34px; top: 34px; width: 956px; height: 618px; border-radius: 16px 16px 0 0;
-    background: url('ART_IMG') center top / 956px 618px no-repeat;
-    filter: brightness(1.12) contrast(1.06);
+    position: absolute; left: 34px; top: 40px; width: 956px; height: 583px; border-radius: 16px;
+    background: url('ART_IMG') 0 0 / 956px 583px no-repeat;
+    filter: brightness(0.5) saturate(0.85);
   }
   .shade {
     position: absolute; inset: 0;
     background:
-      radial-gradient(ellipse 120% 90% at 50% 30%, rgba(0,0,0,0) 50%, rgba(13,10,7,0.5) 85%, rgba(13,10,7,0.85) 100%),
-      linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 49%, rgba(13,10,7,0.8) 53%, rgba(13,10,7,1) 56%);
+      radial-gradient(ellipse 120% 90% at 50% 30%, rgba(0,0,0,0) 50%, rgba(13,10,7,0.45) 85%, rgba(13,10,7,0.8) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 54%, rgba(13,10,7,0.7) 60%, rgba(13,10,7,1) 64%);
+  }
+  .deal {
+    position: absolute; left: DEAL_LEFTpx; top: DEAL_TOPpx; width: DEAL_Wpx; height: DEAL_Hpx;
+    background: url('ART_IMG') -DEAL_BXpx -DEAL_BYpx / 956px 583px no-repeat;
+    transform: scale(1.7); transform-origin: 70% 50%; border-radius: 10px;
+    box-shadow: 0 0 0 2px rgba(240, 200, 100, 0.95), 0 0 14px 4px rgba(240, 196, 90, 0.85), 0 0 40px 14px rgba(232, 180, 70, 0.45);
   }
   .frame {
     position: absolute; inset: 22px;
     border: 3px solid rgba(214, 178, 94, 0.85); border-radius: 26px;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 60px rgba(0,0,0,0.35);
   }
-  .titleblock { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; }
-  .ornament { color: #d6b25e; font-size: 26px; letter-spacing: 14px; text-shadow: 0 2px 6px rgba(0,0,0,0.9); margin-bottom: 6px; }
+  .titleblock { position: absolute; left: 40px; right: 40px; bottom: 58px; text-align: center; }
   h1 {
-    color: #e8c874; font-size: 112px; font-weight: 600; letter-spacing: 5px; font-variant: small-caps; line-height: 1;
+    color: #e8c874; font-size: 104px; font-weight: 600; letter-spacing: 5px; font-variant: small-caps; line-height: 1;
     text-shadow: 0 3px 10px rgba(0,0,0,0.95), 0 0 45px rgba(232, 200, 116, 0.28);
   }
-  .tagline { margin-top: 16px; color: #f0e4c8; font-size: 40px; font-style: italic; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
-  .features { margin-top: 18px; color: #cdb27a; font-size: 28px; font-variant: small-caps; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0,0,0,0.95); }
-  .features .dot { color: #8a7448; padding: 0 9px; }
+  .tagline { margin-top: 14px; color: #f4ead2; font-size: 40px; font-style: italic; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
+  .verbs { margin-top: 20px; color: #e2c47e; font-size: 34px; font-weight: 600; letter-spacing: 2px; line-height: 1.3; text-shadow: 0 2px 6px rgba(0,0,0,0.95); }
+  .verbs .dot { color: #8a7448; padding: 0 12px; }
+  .proof { display: none; margin-top: 16px; color: #cfe0a8; font-size: 30px; line-height: 1.2; text-shadow: 0 2px 6px rgba(0,0,0,0.95); }
+  .proof .arrow { color: #e8c874; padding: 0 6px; }
+  .proof .dot { color: #8a7448; padding: 0 12px; }
+  .v2 .proof { display: block; }
+  .v2 .titleblock { bottom: 46px; }
+  .v2 h1 { font-size: 96px; }
 </style>
 </head>
-<body>
+<body class="VARIANT">
   <div class="canvas">
     <div class="art"></div>
     <div class="shade"></div>
+    <div class="deal"></div>
     <div class="frame"></div>
     <div class="titleblock">
-      <div class="ornament">✦ ✦ ✦</div>
       <h1>Smart Steward</h1>
-      <div class="tagline">Your steward, finally doing the steward's job.</div>
-      <div class="features">food <span class="dot">·</span> horses <span class="dot">·</span> troops <span class="dot">·</span> prisoners <span class="dot">·</span> loot</div>
+      <div class="tagline">Food, horses, troops, prisoners —<br>handled in one click.</div>
+      <div class="verbs">BUYS FOOD <span class="dot">·</span> REPLACES HORSES<br>RANSOMS PRISONERS <span class="dot">·</span> SELLS LOOT</div>
+      <div class="proof">5 days of food <span class="arrow">→</span> 40 days <span class="dot">·</span> 12 prisoners <span class="arrow">→</span> +3,400 denari</div>
     </div>
   </div>
 </body>

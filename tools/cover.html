@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
-  The README cover (1600 x 900): the real Party Steward window on top (Screenshots\01_suggestion_food.jpg, cropped by
-  the script from the title down to the Horses line), then the title block in the thumbnail's style - gold frame,
-  Palatino small caps, one tagline. Rendered by:  python tools\make_thumbnail.py  (writes Screenshots\cover.jpg)
-  ART_IMG is replaced by the script with the cropped panel's file URI.
+  The README cover (1600 x 900): the WHOLE real Party Steward window on the left (Screenshots\01_suggestion_food.jpg),
+  dimmed, with its real "Deal all" button shown again undimmed in a gold glow; the words on the right in the
+  thumbnail's style (gold frame, Palatino small caps). Rendered by:  python tools\make_thumbnail.py [--variant v2]
+  The script replaces ART_IMG, VARIANT (v1/v2) and the DEAL_* pixel values.
 -->
 <html>
 <head>
@@ -16,38 +16,49 @@
     font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
   }
   .art {
-    position: absolute; left: 32px; top: 32px; width: 1536px; height: 648px; border-radius: 16px 16px 0 0;
-    background: url('ART_IMG') center top / 1536px 648px no-repeat;
-    filter: brightness(1.1) contrast(1.05);
+    position: absolute; left: 50px; top: 145px; width: 1000px; height: 610px; border-radius: 14px;
+    background: url('ART_IMG') 0 0 / 1000px 610px no-repeat;
+    filter: brightness(0.5) saturate(0.85);
   }
   .shade {
     position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse 120% 100% at 50% 30%, rgba(0,0,0,0) 55%, rgba(13,10,7,0.5) 88%, rgba(13,10,7,0.8) 100%),
-      linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, rgba(13,10,7,0.85) 72%, rgba(13,10,7,1) 78%);
+    background: radial-gradient(ellipse 110% 110% at 35% 50%, rgba(0,0,0,0) 55%, rgba(13,10,7,0.5) 85%, rgba(13,10,7,0.8) 100%);
+  }
+  .deal {
+    position: absolute; left: DEAL_LEFTpx; top: DEAL_TOPpx; width: DEAL_Wpx; height: DEAL_Hpx;
+    background: url('ART_IMG') -DEAL_BXpx -DEAL_BYpx / 1000px 610px no-repeat;
+    transform: scale(1.6); transform-origin: 70% 50%; border-radius: 10px;
+    box-shadow: 0 0 0 2px rgba(240, 200, 100, 0.95), 0 0 14px 4px rgba(240, 196, 90, 0.85), 0 0 40px 14px rgba(232, 180, 70, 0.45);
   }
   .frame {
     position: absolute; inset: 20px;
     border: 3px solid rgba(214, 178, 94, 0.85); border-radius: 26px;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 60px rgba(0,0,0,0.35);
   }
-  .titleblock { position: absolute; left: 0; right: 0; bottom: 52px; text-align: center; }
+  .titleblock { position: absolute; left: 1072px; right: 40px; top: 0; bottom: 0; display: flex; flex-direction: column;
+                justify-content: center; text-align: center; }
   h1 {
-    color: #e8c874; font-size: 96px; font-weight: 600; letter-spacing: 5px; font-variant: small-caps; line-height: 1;
+    color: #e8c874; font-size: 96px; font-weight: 600; letter-spacing: 4px; font-variant: small-caps; line-height: 0.95;
     text-shadow: 0 3px 10px rgba(0,0,0,0.95), 0 0 45px rgba(232, 200, 116, 0.28);
   }
-  .tagline { margin-top: 12px; color: #f0e4c8; font-size: 38px; font-style: italic; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
-  .tagline .dot { color: #d6b25e; font-style: normal; padding: 0 14px; }
+  .tagline { margin-top: 26px; color: #f4ead2; font-size: 33px; font-style: italic; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
+  .verbs { margin-top: 30px; color: #e2c47e; font-size: 29px; font-weight: 600; letter-spacing: 2px; line-height: 1.55; text-shadow: 0 2px 6px rgba(0,0,0,0.95); }
+  .proof { display: none; margin-top: 26px; color: #cfe0a8; font-size: 26px; line-height: 1.35; }
+  .proof .arrow { color: #e8c874; padding: 0 6px; }
+  .v2 .proof { display: block; }
 </style>
 </head>
-<body>
+<body class="VARIANT">
   <div class="canvas">
     <div class="art"></div>
     <div class="shade"></div>
+    <div class="deal"></div>
     <div class="frame"></div>
     <div class="titleblock">
-      <h1>Smart Steward</h1>
-      <div class="tagline">Your steward, finally doing the steward's job.</div>
+      <h1>Smart<br>Steward</h1>
+      <div class="tagline"><span style="white-space: nowrap">Food, horses, troops, prisoners —</span><br>handled in one click.</div>
+      <div class="verbs">BUYS FOOD<br>REPLACES HORSES<br>RANSOMS PRISONERS<br>SELLS LOOT</div>
+      <div class="proof">5 days of food <span class="arrow">→</span> 40 days<br>12 prisoners <span class="arrow">→</span> +3,400 denari</div>
     </div>
   </div>
 </body>
