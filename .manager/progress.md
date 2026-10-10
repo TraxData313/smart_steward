@@ -18,7 +18,7 @@ Facts found by the manager:
 ## Steps
 1. [x] Release prep: version v1.0.0, README rewritten in the sibling's style, Steam description refreshed to today's features,
        screenshots copied into the repo + chosen, cover/thumbnail from the real GUI, workshop XML paths fixed, package.ps1 green. Commit + push.
-2. [ ] GitHub release v1.0.0 with the dist zip.
+2. [x] GitHub release v1.0.0 with the dist zip.
 3. [ ] Steam: create the item (Private) with description, then extra screenshots via Chrome, then Public; README/WorkshopUpdate get the item id. Commit + push.
 4. [ ] Board: TASKS_DONE entry, TASKS_TODO SHIPPING NEXT cleared / release noted.
 
@@ -55,6 +55,7 @@ Facts found by the manager:
 - GO 2026-10-10: Toni approved as is ("go, release it on GitHub and Steam"). Steps 2-4 cleared to run.
 - THEN Toni stopped it (before any release): "not clear at a glance that it AUTOMATES food, horses, prisoners...".
   New step 1b before 2: (1) thumbnail tagline "Food, horses, troops, prisoners — handled in one click.", strip as verbs
+  [Toni chose v1 2026-10-10 and said "go live on GitHub and Steam"; v2 images to be removed, script variant kept]
   BUYS FOOD · REPLACES HORSES · RANSOMS PRISONERS · SELLS LOOT, window art dimmed, gold glow on Deal all; (2) first line of
   Steam desc + README = "Automates your party's logistics..."; (3) try a variant thumbnail with a before→after line. Show Toni again before going live.
 - Step 1b done 2026-10-10 (commit 1e925cf, pushed). Nothing published. Thumbnail + cover rebuilt by
@@ -70,3 +71,7 @@ Facts found by the manager:
   ItemDescription now open "Automates your party's logistics...". dist zip unchanged (package.ps1 ships only
   SubModule.xml, the 2 DLLs, GUI\Prefabs, ModuleData\Languages - no images/docs). Toni picks v1 or v2 before step 2;
   if v2, point WorkshopCreate's Image (and README) at the _v2 files.
+- Step 2 done 2026-10-10: v2 images removed (commit 877f7a9, make_thumbnail.py --variant v2 kept; README/WorkshopCreate/
+  WORKSHOP-UPLOAD already point at cover.jpg / preview_thumbnail.jpg). dist zip checked current (v1.0.0, no src/module change
+  since its build at 49f94b8). GitHub release https://github.com/TraxData313/smart_steward/releases/tag/v1.0.0 - tag v1.0.0
+  on 877f7a9, title "Smart Steward v1.0.0", Latest, asset SmartSteward_v1.0.0.zip = 262,493 bytes. Nothing on Steam yet.
