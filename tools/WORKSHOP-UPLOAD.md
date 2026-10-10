@@ -8,7 +8,7 @@ The upload path is Bannerlord's **own official uploader** —
 It rides the **already-logged-in Steam client**: no SteamCMD, no password, no Steam Guard.
 Just have Steam running and logged in. (Proven twice: ImmersiveAI and TrainingBattles ship this way.)
 
-Item: **not created yet** — `WorkshopCreate.xml` makes it (once), then `WorkshopUpdate.xml` forever, through
+Item: **3817263044** — https://steamcommunity.com/sharedfiles/filedetails/?id=3817263044 (created 2026-10-10). `WorkshopCreate.xml` made it (once — never again), then `WorkshopUpdate.xml` forever, through
 `make_workshop_update.py` (same flow as `..\better-skirmisher-separation`, item 3811452468).
 
 ## Release day — the first upload (once)
@@ -35,7 +35,7 @@ Item: **not created yet** — `WorkshopCreate.xml` makes it (once), then `Worksh
    in the working directory), Steam open:
    ```powershell
    cd $env:TEMP
-   & "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Asus ROG\Documents\GitHub\smart_steward\tools\WorkshopCreate.xml"
+   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Asus ROG\Documents\GitHub\smart_steward\tools\WorkshopCreate.xml"
    ```
    Success = **"Item created. Item ID is …"** + **"Uploading done!"** in the output (the exit code lies —
    see the quirks). Put the id into `tools\WorkshopUpdate.xml` (`FILL_IN_AFTER_CREATE`) and the "Item:" line above.
@@ -43,7 +43,7 @@ Item: **not created yet** — `WorkshopCreate.xml` makes it (once), then `Worksh
    **8000 UTF-8 bytes**; the script checks again):
    ```powershell
    $task = python tools\make_workshop_update.py --notes "v1.0.0 - first release." --visibility Private
-   & "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" $task
+   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" $task
    ```
 7. **On the item page** (Owner Controls — the uploader cannot do these): "Add/edit images & videos" → the
    gallery `Screenshots\01_…` to `07_…` in that order (each under 1 MB). Do **not** add MCM as a *Required item* —
@@ -62,7 +62,7 @@ Item: **not created yet** — `WorkshopCreate.xml` makes it (once), then `Worksh
 3. **Upload** (Steam open, from a scratch folder; `--no-description` keeps the page text as it is):
    ```powershell
    $task = python tools\make_workshop_update.py --notes "v1.0.1 - what changed."
-   & "D:\SteamLibrary\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" $task
+   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" $task
    ```
 
 ## Uploader quirks (decompiled 2026.07.13 for ImmersiveAI — trust these)

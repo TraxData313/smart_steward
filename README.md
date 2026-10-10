@@ -27,7 +27,7 @@ No Harmony, and nothing is stored in your save, so you can add or remove it mid-
 ## Install
 
 1. Download the zip from the [GitHub Releases page](https://github.com/TraxData313/smart_steward/releases/latest),
-   or subscribe on the [Steam Workshop](STEAM_WORKSHOP_URL).
+   or subscribe on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3817263044).
 2. Extract it into `Mount & Blade II Bannerlord\Modules\`.
 3. Enable it in the launcher.
 

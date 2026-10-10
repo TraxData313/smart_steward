@@ -10,7 +10,7 @@
              Same quirks as WorkshopCreate.xml: <Tasks> must be the file's first node, comments only inside
              GetItem/UpdateItem, the title comes from SubModule.xml <Name>, and the tool ends on a harmless
              press-any-key crash - trust "Uploading done!" in the output. -->
-        <ItemId Value="FILL_IN_AFTER_CREATE"/>
+        <ItemId Value="3817263044"/>
     </GetItem>
     <UpdateItem>
         <ModuleFolder Value="C:\Users\Asus ROG\Documents\GitHub\smart_steward\dist\SmartSteward"/>
