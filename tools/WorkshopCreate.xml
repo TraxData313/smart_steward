@@ -12,12 +12,13 @@
              ("Smart Steward"), not from this file. The tool ends by writing steam_workshop_uploader.txt to the
              working directory and crashing on a harmless press-any-key read when run non-interactively - judge
              success by "Item created. Item ID is ..." + "Uploading done!" in the output, never the exit code.
-             ItemDescription is only a placeholder pitch: the real page is tools\STEAM-DESCRIPTION.bbcode, pasted
-             on the item page (Owner Controls). Tags: the Bannerlord Workshop's own filter names (checked on the
-             Workshop browse page 2026.09.28); the version tag = <game>\bin\Win64_Shipping_Client\Version.xml.
+             ItemDescription is only a placeholder pitch: the real page is tools\STEAM-DESCRIPTION.bbcode, sent right
+             after the create by tools\make_workshop_update.py (with WorkshopUpdate.xml). Image = the square preview
+             written by tools\make_thumbnail.py (under 1 MB). Tags: the Bannerlord Workshop's own filter names (checked
+             on the Workshop browse page 2026.09.28); the version tag = <game>\bin\Win64_Shipping_Client\Version.xml.
              NEVER run this file again after the item exists - it would create a second item. Use WorkshopUpdate.xml. -->
-        <ModuleFolder Value="C:\Users\Trax\Documents\BannerlordMods\smart_steward\dist\SmartSteward"/>
-        <ItemDescription Value="Your party's steward, at last doing the steward's job. Ride into a town or village and one glanceable table shows what the party needs: food (enough, and varied), pack animals, horses for your footmen, horses for the upgrades waiting, loot to sell in bulk, prisoners to ransom - and who is sitting in the tavern for hire. Nudge any row (click 1, Shift 5, Ctrl all), then Deal all. Every number is yours to set; MCM optional. No Harmony, nothing stored in the save. Full description coming."/>
+        <ModuleFolder Value="C:\Users\Asus ROG\Documents\GitHub\smart_steward\dist\SmartSteward"/>
+        <ItemDescription Value="Your steward, finally doing the steward's job. Ride into a town, village or castle and one glanceable table shows what the party needs: food (enough, and varied), pack animals, horses for your footmen and the war horses you keep, recruits and dismissals, loot to sell in bulk, prisoners to ransom or donate - and who is sitting in the tavern for hire. Nudge any row (click 1, Shift 5, Ctrl all), then Deal all. Every number is yours to set; MCM optional. No Harmony, nothing stored in the save."/>
         <Tags>
             <Tag Value="Utility" />
             <Tag Value="UI" />
@@ -25,7 +26,7 @@
             <Tag Value="Singleplayer" />
             <Tag Value="v1.4.8" />
         </Tags>
-        <Image Value="C:\Users\Trax\Documents\BannerlordMods\smart_steward\Screenshots\preview_thumbnail.jpg"/>
+        <Image Value="C:\Users\Asus ROG\Documents\GitHub\smart_steward\Screenshots\preview_thumbnail.jpg"/>
         <Visibility Value="Private"/>
     </UpdateItem>
 </Tasks>
