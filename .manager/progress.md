@@ -87,3 +87,8 @@ Facts found by the manager:
   not banned. No agreement prompt. OPEN: gallery 01..07 NOT added - Claude in Chrome was not connected (no browsers);
   needs Toni by hand or a later Chrome session (item page > Owner Controls > Add/edit images & videos). No required items.
 - Step 4 done 2026-10-10: TASKS_DONE entry for v1.0.0, SHIPPING NEXT cleared (release noted + the gallery line open), NOTICED: D: paths in Directory.Build.props / CLAUDE.md. Release complete.
+
+## Phase 2 (Toni 2026-10-10, after release): gallery added by Toni on Steam by hand.
+5. [x] README: remake / rearrange closer to ..\better-skirmisher-separation's README style. Commit + push.
+6. [ ] Toni's GitHub profile README (TraxData313/TraxData313): add Smart Steward in the style of its existing entries. Commit + push.
+- Step 5 done (manager, by hand): README in the sibling's order - cover, made-by, one prose paragraph (automation first), bold Settings line, Install, licence, thank-you; screenshots 01-03 moved into a <details>.

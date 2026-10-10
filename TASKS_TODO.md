@@ -107,7 +107,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   - [ ] Deployed at the end of step 34 (the install carries steps 32–34), then playtest — checklist in docs/PLAYTEST.md "Step 34"
 SHIPPING NEXT (done in main, NOT released yet):
 - v1.0.0 released 2026.10.10 — everything landed so far is in it (GitHub release + Workshop item 3817263044, public)
-- [ ] Workshop gallery: add Screenshots 01-07 on the item page (Owner Controls > Add/edit images & videos)
+- [x] Workshop gallery: Screenshots 01-07 added by Toni (2026.10.10)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited
