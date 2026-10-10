@@ -1,0 +1,52 @@
+# Manager progress — Smart Steward release (2026-10-10)
+
+## Task (Toni)
+"Smart Steward is tested and finished — post it like ..\better-skirmisher-separation: I took a few F12 screenshots
+of the GUI; go live, post it public on git and live on Steam." = explicit green light for GitHub release + PUBLIC Workshop item.
+
+Recipe = ..\better-skirmisher-separation\.manager\progress.md Phases 4-5 (README as short main page, Unlicense line,
+"read my top pinned" thank-you, AI-authorship line, cover + thumbnail, GitHub Release with dist zip, Workshop via the game's
+TaleWorlds.MountAndBlade.SteamWorkshop.exe riding the logged-in Steam client, extra images + required items via Chrome,
+then Public).
+
+Facts found by the manager:
+- Screenshots: C:\Program Files (x86)\Steam\userdata\258577504\760\remote\261550\screenshots\20261010*_1.jpg (13 shots, 20:52-20:59).
+- Repo github.com/TraxData313/smart_steward is ALREADY PUBLIC. No GitHub release yet. SubModule.xml version v0.1.0.
+- No Workshop item yet (WorkshopUpdate.xml ItemId = FILL_IN_AFTER_CREATE; its ModuleFolder path still says C:\Users\Trax — old machine).
+- Existing: tools/package.ps1, STEAM-DESCRIPTION.bbcode, WORKSHOP-UPLOAD.md, WorkshopCreate/Update.xml, preview_thumbnail.html, render-preview.ps1.
+
+## Steps
+1. [x] Release prep: version v1.0.0, README rewritten in the sibling's style, Steam description refreshed to today's features,
+       screenshots copied into the repo + chosen, cover/thumbnail from the real GUI, workshop XML paths fixed, package.ps1 green. Commit + push.
+2. [ ] GitHub release v1.0.0 with the dist zip.
+3. [ ] Steam: create the item (Private) with description, then extra screenshots via Chrome, then Public; README/WorkshopUpdate get the item id. Commit + push.
+4. [ ] Board: TASKS_DONE entry, TASKS_TODO SHIPPING NEXT cleared / release noted.
+
+## Log
+- Step 1 done 2026-10-10 (commits b3785f3, e3bdb14, 4de24d8, 49f94b8, pushed). Nothing published.
+  Screenshots: of the 13 F12 shots, 5 (20:52-20:54) are battle scenes of another mod -> not used; 20:59:12 (Horses
+  open) is a subset of 20:58:32 -> not used. 7 kept, cropped to the window alone (box 660,74,2778,1366 of 3440x1440:
+  the message log showed a Windows user path + ImmersiveAI's key warning, and other mods' widgets sat around it),
+  2118x1292, 249-282 KB each, in gallery order: Screenshots\01_suggestion_food, 02_suggestion_troops_horses,
+  03_instructions_general_money, 04_instructions_goals_food, 05_instructions_prices_pack_animals,
+  06_instructions_mounts, 07_instructions_prisoners_loot_tavern (.jpg). Rebuild: python tools\make_screenshots.py.
+  Images: python tools\make_thumbnail.py (headless Edge renders tools\preview_thumbnail.html + new tools\cover.html
+  with shot 01 as art) -> Screenshots\preview_thumbnail.jpg (1024x1024, 154 KB; checked full size + 256 px: title and
+  tagline read, the table reads as "a ledger") and Screenshots\cover.jpg (1600x900, 184 KB, README). render-preview.ps1
+  and the CSS stand-in ledger removed. Title "Smart Steward", tagline "Your steward, finally doing the steward's job.",
+  strip food - horses - troops - prisoners - loot.
+  README = short page like the sibling's (cover, authorship line, features, install GitHub latest / STEAM_WORKSHOP_URL
+  placeholder, 2 shots, Unlicense, "read my top pinned", <details> -> docs\TECHNICAL.md = old build/docs/translations
+  text). STEAM-DESCRIPTION.bbcode refreshed (authorship line, goals, quests, castles = donations only, sibling's
+  thank-you wording, ends with the GitHub Releases download line): 7,118 UTF-8 bytes. MCM optional, no required items.
+  Version v1.0.0 in module\SubModule.xml (ModInfo has no version; tests green inside package.ps1).
+  Workshop: WorkshopCreate/Update.xml paths -> C:\Users\Asus ROG\Documents\GitHub\smart_steward; Create Image =
+  Screenshots\preview_thumbnail.jpg, Visibility Private; new tools\make_workshop_update.py (sibling's; checks bytes,
+  refuses until WorkshopUpdate's ItemId FILL_IN_AFTER_CREATE is numeric; tested with a dummy id: parses, <Tasks> first,
+  description 7,117 bytes); WORKSHOP-UPLOAD.md = create Private -> description via the script -> gallery 01..07 by
+  hand -> Public last.
+  package.ps1 green (build, tests, soft-deps, check-gui, allowlist) -> dist\SmartSteward (5 files) +
+  dist\SmartSteward_v1.0.0.zip = 262,493 bytes. Game was not running.
+  For step 2: gh release create v1.0.0 with dist\SmartSteward_v1.0.0.zip (no tag exists yet). For step 3: uploader from
+  a scratch folder (WORKSHOP-UPLOAD.md steps 5-8), then ItemId into WorkshopUpdate.xml + STEAM_WORKSHOP_URL in README;
+  gallery images via Chrome on the item page (01..07 in order). TASKS_TODO SHIPPING NEXT untouched (step 4).
