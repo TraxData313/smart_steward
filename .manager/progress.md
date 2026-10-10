@@ -19,7 +19,7 @@ Facts found by the manager:
 1. [x] Release prep: version v1.0.0, README rewritten in the sibling's style, Steam description refreshed to today's features,
        screenshots copied into the repo + chosen, cover/thumbnail from the real GUI, workshop XML paths fixed, package.ps1 green. Commit + push.
 2. [x] GitHub release v1.0.0 with the dist zip.
-3. [ ] Steam: create the item (Private) with description, then extra screenshots via Chrome, then Public; README/WorkshopUpdate get the item id. Commit + push.
+3. [x] Steam: create the item (Private) with description, then extra screenshots via Chrome, then Public; README/WorkshopUpdate get the item id. Commit + push.
 4. [ ] Board: TASKS_DONE entry, TASKS_TODO SHIPPING NEXT cleared / release noted.
 
 ## Log
@@ -75,3 +75,14 @@ Facts found by the manager:
   WORKSHOP-UPLOAD already point at cover.jpg / preview_thumbnail.jpg). dist zip checked current (v1.0.0, no src/module change
   since its build at 49f94b8). GitHub release https://github.com/TraxData313/smart_steward/releases/tag/v1.0.0 - tag v1.0.0
   on 877f7a9, title "Smart Steward v1.0.0", Latest, asset SmartSteward_v1.0.0.zip = 262,493 bytes. Nothing on Steam yet.
+- Step 3 done 2026-10-10 (commit c2ab80e + this log). Workshop item 3817263044, PUBLIC:
+  https://steamcommunity.com/sharedfiles/filedetails/?id=3817263044 . D: drive is gone - the game now lives in
+  C:\Program Files (x86)\Steam\steamapps\common (Version.xml v1.4.8); WORKSHOP-UPLOAD.md's uploader path updated
+  (Directory.Build.props + CLAUDE.md still say D:, the git-ignored .user override has C:). Uploader from scratchpad upload dir:
+  WorkshopCreate.xml -> "Item created. Item ID is 3817263044" + "Uploading done!" (790,472 B, exit-82 crash as usual);
+  id into WorkshopUpdate.xml, README STEAM_WORKSHOP_URL -> the item link, pushed. make_workshop_update.py --notes
+  "v1.0.0 - first release." --visibility Private -> "Uploading done!" (full bbcode description), then the same with
+  --visibility Public -> "Uploading done!". Web API GetPublishedFileDetails: result 1, visibility 0 (public), title
+  Smart Steward, file_size 790,472, app 261550, tags Utility/UI/Native/Singleplayer/v1.4.8, description = the bbcode,
+  not banned. No agreement prompt. OPEN: gallery 01..07 NOT added - Claude in Chrome was not connected (no browsers);
+  needs Toni by hand or a later Chrome session (item page > Owner Controls > Add/edit images & videos). No required items.
