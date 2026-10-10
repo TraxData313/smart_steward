@@ -220,7 +220,7 @@ NOTICED (things spotted during a step, left for later):
 - [x] Step 9 (left on purpose): surplus riding horses are kept while an upgrade horse is on offer, even when the floors will not let the steward buy it — "never sell and buy mounts in one visit" taken strictly → step 17: the rule is gone (the riding surplus is sold against the war horses the plan buys)
 - [x] Step 10: README — translations welcome: copy module/ModuleData/Languages/std_SmartSteward.xml into Languages\XX (how-to in the file's header) — README + Steam page
 - [ ] Release day (after step 11): tools\WORKSHOP-UPLOAD.md — bump v1.0.0, package.ps1, create Private, paste the page, flip Public
-- [ ] Step 10: the Workshop preview is a drawn stand-in of the window — after the playtest put a real shot in tools\preview_thumbnail.html, re-render (tools\render-preview.ps1)
+- [x] Step 10: the Workshop preview is a drawn stand-in of the window → release prep: real F12 shots, tools\make_thumbnail.py
 - [ ] Step 10: the release ships no PDBs (like TrainingBattles) — with them a player's log would carry line numbers (~100 KB); Anton's call
 - [ ] TrainingBattles' package.ps1 zips with Compress-Archive → backslash entry names (seen in TrainingBattles_v1.4.0.zip); ours writes '/' — port it there
 - [ ] Step 12: a stuck Left Alt (after Alt+Tab) blocks entering towns in vanilla too — tell the player in game ("tap Left Alt")? now log-only (InputWatch); Anton's call

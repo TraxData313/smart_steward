@@ -245,7 +245,10 @@ tools/package.ps1             (step 10) the release gate + layout: clean build (
 tools/WORKSHOP-UPLOAD.md      (step 10) release day + the update loop + the uploader's quirks; WorkshopCreate.xml (once,
                               Private) / WorkshopUpdate.xml (item id filled after the create); nothing uploads by itself
 tools/STEAM-DESCRIPTION.bbcode  the Workshop page (Steam BBCode, cap 8000 UTF-8 bytes - measure after edits)
-tools/preview_thumbnail.html  the Workshop preview; tools/render-preview.ps1 → Screenshots/preview_thumbnail.jpg (< 1 MB)
+tools/make_screenshots.py     (release) Toni's F12 shots → Screenshots/01..07_*.jpg, cropped to the window (gallery order)
+tools/make_thumbnail.py       (release) preview_thumbnail.html + cover.html (art = Screenshots/01) → Screenshots/
+                              preview_thumbnail.jpg (Workshop preview, 1024², < 1 MB) + cover.jpg (README)
+tools/make_workshop_update.py (release) a one-off update task: WorkshopUpdate.xml + the bbcode, --notes, --visibility
 tools/render-mockup.ps1       (step 19) docs/mockups/suggestion_v2.html → its two PNGs (the everyday view + everything open)
 docs/                         DESIGN.md, RESEARCH.md, PLAYTEST.md (Anton's checklists per step); feedback/ (playtest notes
                               verbatim + screenshots); mockups/ (step 19: the round-4 Suggestion tab as one spreadsheet —

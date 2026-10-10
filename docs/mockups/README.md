@@ -56,7 +56,7 @@ the list below in one reply — "all fine", or the numbers you want changed.
 | `suggestion_v2_folded.png` | Food, Recruits, Your troops and Prisoners' details folded; Horses and Other open. 1640 × 1020. |
 | `suggestion_v2_expanded.png` | Everything open; a red dashed line marks where the real window's table ends (it scrolls from there). |
 
-Re-render both PNGs (headless Edge, as `render-preview.ps1`): `powershell -ExecutionPolicy Bypass -File tools\render-mockup.ps1`.
+Re-render both PNGs (headless Edge, as `make_thumbnail.py`): `powershell -ExecutionPolicy Bypass -File tools\render-mockup.ps1`.
 
 ## The deal drawn (Lycaron, from the round-4 screenshot; the rest invented to fit)
 

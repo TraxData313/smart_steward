@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+  The README cover (1600 x 900): the real Party Steward window on top (Screenshots\01_suggestion_food.jpg, cropped by
+  the script from the title down to the Horses line), then the title block in the thumbnail's style - gold frame,
+  Palatino small caps, one tagline. Rendered by:  python tools\make_thumbnail.py  (writes Screenshots\cover.jpg)
+  ART_IMG is replaced by the script with the cropped panel's file URI.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; overflow: hidden; background: #0d0a07; }
+  .canvas {
+    position: relative; width: 1600px; height: 900px; background: #0d0a07;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  }
+  .art {
+    position: absolute; left: 32px; top: 32px; width: 1536px; height: 648px; border-radius: 16px 16px 0 0;
+    background: url('ART_IMG') center top / 1536px 648px no-repeat;
+    filter: brightness(1.1) contrast(1.05);
+  }
+  .shade {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 120% 100% at 50% 30%, rgba(0,0,0,0) 55%, rgba(13,10,7,0.5) 88%, rgba(13,10,7,0.8) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, rgba(13,10,7,0.85) 72%, rgba(13,10,7,1) 78%);
+  }
+  .frame {
+    position: absolute; inset: 20px;
+    border: 3px solid rgba(214, 178, 94, 0.85); border-radius: 26px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 60px rgba(0,0,0,0.35);
+  }
+  .titleblock { position: absolute; left: 0; right: 0; bottom: 52px; text-align: center; }
+  h1 {
+    color: #e8c874; font-size: 96px; font-weight: 600; letter-spacing: 5px; font-variant: small-caps; line-height: 1;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.95), 0 0 45px rgba(232, 200, 116, 0.28);
+  }
+  .tagline { margin-top: 12px; color: #f0e4c8; font-size: 38px; font-style: italic; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
+  .tagline .dot { color: #d6b25e; font-style: normal; padding: 0 14px; }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="art"></div>
+    <div class="shade"></div>
+    <div class="frame"></div>
+    <div class="titleblock">
+      <h1>Smart Steward</h1>
+      <div class="tagline">Your steward, finally doing the steward's job.</div>
+    </div>
+  </div>
+</body>
+</html>

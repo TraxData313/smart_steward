@@ -2,7 +2,7 @@
 #   suggestion_v2_folded.png   - the everyday view at the window's real size (1580 x 960 + the dimmed edge)
 #   suggestion_v2_expanded.png - every section and group open, the table unrolled (the page measures its own height)
 # Usage: powershell -ExecutionPolicy Bypass -File tools\render-mockup.ps1
-# Same approach as render-preview.ps1: headless Edge (or Chrome) with its own profile folder, so an open browser is never touched.
+# Same approach as make_thumbnail.py: headless Edge (or Chrome) with its own profile folder, so an open browser is never touched.
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $dir = Join-Path $repoRoot "docs\mockups"
