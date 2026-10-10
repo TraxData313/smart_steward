@@ -90,5 +90,8 @@ Facts found by the manager:
 
 ## Phase 2 (Toni 2026-10-10, after release): gallery added by Toni on Steam by hand.
 5. [x] README: remake / rearrange closer to ..\better-skirmisher-separation's README style. Commit + push.
-6. [ ] Toni's GitHub profile README (TraxData313/TraxData313): add Smart Steward in the style of its existing entries. Commit + push.
+6. [x] Toni's GitHub profile README (TraxData313/TraxData313): add Smart Steward in the style of its existing entries. Commit + push.
 - Step 5 done (manager, by hand): README in the sibling's order - cover, made-by, one prose paragraph (automation first), bold Settings line, Install, licence, thank-you; screenshots 01-03 moved into a <details>.
+- Step 6 done 2026-10-10: profile README (TraxData313/TraxData313, commit a9b775e, pushed) - Smart Steward as a third row of
+  the Bannerlord mods table, same cell shape as the others (Workshop-linked preview_thumbnail.jpg, repo link, the
+  "Automates your party's logistics..." pitch, <sub>New</sub>); the stale "On the way: Smart Steward" line under the table removed.
