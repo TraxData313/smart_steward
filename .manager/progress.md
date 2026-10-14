@@ -95,3 +95,10 @@ Facts found by the manager:
 - Step 6 done 2026-10-10: profile README (TraxData313/TraxData313, commit a9b775e, pushed) - Smart Steward as a third row of
   the Bannerlord mods table, same cell shape as the others (Workshop-linked preview_thumbnail.jpg, repo link, the
   "Automates your party's logistics..." pitch, <sub>New</sub>); the stale "On the way: Smart Steward" line under the table removed.
+
+## Phase 3 (Toni 2026-10-14): "make sell loot enabled by default and release it like that! This is a MUST! a big deal"
+7. [ ] Loot selling ON by default (DESIGN §7 + registry + settings file + MCM + tests + every player-facing text that says
+       "off until you turn it on"). Existing v1.0.0 installs: their settings.json carries the old default off -> a one-time
+       migration flips it on (unless the file shows the player chose it). Build/test/deploy. Commit + push.
+8. [ ] Release v1.0.1: version bump, package.ps1, GitHub release v1.0.1, Steam update (WorkshopUpdate.xml + change notes,
+       description refreshed), verify via Web API. Board + TASKS_DONE.
