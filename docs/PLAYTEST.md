@@ -9,7 +9,7 @@ the small **Do** buttons of steps 27 and 29 read **Deal** (one line) or **Deal g
 ## Step 6 — the debug door (removed in step 8 — run these checks through the window's Do it)
 
 Deploy with `tools\deploy.ps1` (game closed), enable "Smart Steward (dev)", load a save. For a lively test, turn on
-`SellLoot` in Mod Options (or settings.json) first.
+`SellLoot` in Mod Options (or settings.json) first (on by default since v1.0.1).
 
 1. **Enter a town** with some food, horses, loot and prisoners. The town menu has **Party Steward (debug)** right
    after Trade. Click it.
