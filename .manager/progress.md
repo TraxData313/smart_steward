@@ -100,6 +100,7 @@ Facts found by the manager:
 7. [x] Loot selling ON by default (DESIGN §7 + registry + settings file + MCM + tests + every player-facing text that says
        "off until you turn it on"). Existing v1.0.0 installs: their settings.json carries the old default off -> a one-time
        migration flips it on (unless the file shows the player chose it). Build/test/deploy. Commit + push.
-8. [ ] Release v1.0.1: version bump, package.ps1, GitHub release v1.0.1, Steam update (WorkshopUpdate.xml + change notes,
+8. [x] Release v1.0.1: version bump, package.ps1, GitHub release v1.0.1, Steam update (WorkshopUpdate.xml + change notes,
        description refreshed), verify via Web API. Board + TASKS_DONE.
 - Step 7 done 2026-10-14: SellLoot default true; settings.json gets "SettingsVersion": 2 - a v1.0.0 file (no marker) with "SellLoot": false is flipped on ONCE (logged), the rewrite carries the marker so a later "off" sticks. 911 tests green, McmProbe + check-soft-deps OK; Steam bbcode line now "On by default..." (7,270 B). deploy.ps1 refused: the game was running. Version NOT bumped (step 8).
+- Step 8 done 2026-10-14: v1.0.1 (commit 1f93656) packaged (zip 263,133 B), GitHub release v1.0.1 Latest, Workshop 3817263044 updated ("Uploading done!", change notes + description, still Public; API: result 1, visibility 0, updated 11:27 UTC, 792,007 B). Phase 3 complete. Game was running - dev deploy of step 7 still pending.

@@ -106,8 +106,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
   + popup only once INSIDE (never on the approach / hail-the-guard screens) and only with a donation to make (Anton 2026.10.03)
   - [ ] Deployed at the end of step 34 (the install carries steps 32–34), then playtest — checklist in docs/PLAYTEST.md "Step 34"
 SHIPPING NEXT (done in main, NOT released yet):
-- Loot selling on by default (+ old settings flipped once) — Toni 2026.10.14, a MUST for v1.0.1
-- v1.0.0 released 2026.10.10 — everything landed so far is in it (GitHub release + Workshop item 3817263044, public)
+- v1.0.1 released 2026.10.14 — loot selling on by default (+ old settings flipped once); everything landed so far is in it (GitHub release + Workshop item 3817263044 updated)
 - [x] Workshop gallery: Screenshots 01-07 added by Toni (2026.10.10)
 
 BUGS:

@@ -14,8 +14,9 @@
     </GetItem>
     <UpdateItem>
         <ModuleFolder Value="C:\Users\Asus ROG\Documents\GitHub\smart_steward\dist\SmartSteward"/>
-        <ChangeNotes Value="vX.Y.Z - what changed, in the players' words (the Change Notes tab shows it)." />
+        <ChangeNotes Value="v1.0.1 - Selling loot is now on by default: the steward offers your spare armour, weapons and trade goods (locked items are never sold; nothing sells without your click unless the autonomous steward is on). Had v1.0.0? It is switched on once for you - turn it off in the Instructions tab or MCM if you prefer." />
         <!-- previous release notes, kept for reference (newest first):
+             v1.0.0 - first release.
         -->
         <Tags>
             <Tag Value="Utility" />
