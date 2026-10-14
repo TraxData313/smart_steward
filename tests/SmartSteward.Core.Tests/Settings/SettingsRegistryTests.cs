@@ -184,10 +184,10 @@ public class SettingsRegistryTests
     {
         Assert.Equal("all defaults", SettingsRegistry.DescribeNonDefaults(new StewardSettings()));
 
-        var s = new StewardSettings { FoodDays = 60, SellLoot = true, SellLootOrder = SellLootOrder.MostExpensive };
+        var s = new StewardSettings { FoodDays = 60, SellLoot = false, SellLootOrder = SellLootOrder.MostExpensive };
         s.PriceBook["grain"] = new PriceBookEntry { BuyBase = 9 };
         s.PriceBook["fish"] = new PriceBookEntry(); // empty: not counted
-        Assert.Equal("FoodDays=60, PriceBook: 1 item, SellLoot=true, SellLootOrder=MostExpensive",
+        Assert.Equal("FoodDays=60, PriceBook: 1 item, SellLoot=false, SellLootOrder=MostExpensive",
             SettingsRegistry.DescribeNonDefaults(s));
     }
 

@@ -220,7 +220,9 @@ namespace SmartSteward.Core.Settings
         // (PrisonersExcluded is retired — ransom is all or none: step 12.)
 
         // ── Loot (DESIGN §2.6) ───────────────────────────────────────────────────────────────────
-        public bool SellLoot { get; set; } = false;
+        /// <summary>Sell loot and other goods (the Other section). On by default since v1.0.1 (Anton 2026.10.14: "make sell loot
+        /// enabled by default ... a MUST"); a v1.0.0 file's false is flipped once — <see cref="SettingsFile.FileVersion"/>.</summary>
+        public bool SellLoot { get; set; } = true;
         /// <summary>Weapons, armour, shields, ammo — the four equipment groups.</summary>
         public bool SellLootEquipment { get; set; } = true;
         /// <summary>The Other goods line (round 4): every unlocked trade good that is not food, an animal or equipment, sold in

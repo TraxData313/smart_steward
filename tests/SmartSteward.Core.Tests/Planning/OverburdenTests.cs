@@ -36,6 +36,7 @@ public class OverburdenTests
     {
         var s = new Scenario().Party(104).Loot("rags", LootGroup.Armour, held: 100, sell: 8, weight: 10);
         s.Snap.Carry = new CarryInfo { WeightNow = weightNow, CapacityLandNow = capacity, LandPerMember = 20 };
+        s.Settings.SellLoot = false; // the loot is not for sale unless a test says so
         return s;
     }
 

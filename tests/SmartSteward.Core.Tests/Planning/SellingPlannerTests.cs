@@ -14,9 +14,12 @@ public class LootPlannerTests
     }
 
     [Fact]
-    public void SellLoot_is_opt_in()
+    public void SellLoot_is_on_by_default_and_can_be_turned_off()
     {
+        // On by default since v1.0.1 (Anton 2026.10.14).
+        Assert.True(new StewardSettings().SellLoot);
         var s = new Scenario().Loot("rags", LootGroup.Armour, held: 5, sell: 10);
+        s.Settings.SellLoot = false;
         Assert.Null(s.Plan().Section(PlanSectionKind.Other));
 
         s.Settings.SellLoot = true;

@@ -42,6 +42,13 @@ namespace SmartSteward.Core.Settings
         /// simply no longer has it.</summary>
         public List<string> Retired { get; } = new List<string>();
 
+        /// <summary>The file's layout version (<see cref="SettingsFile.VersionKey"/>): 1 for a file without the marker (v1.0.0).</summary>
+        public int FileVersion { get; internal set; } = SettingsFile.FileVersion;
+
+        /// <summary>One line per value changed ONCE because the file is from an older version (<see cref="SettingsFile.FileVersion"/>)
+        /// — not a problem, no backup; the rewritten file carries the new marker, so it never happens again.</summary>
+        public List<string> Migrated { get; } = new List<string>();
+
         /// <summary>The file said something the settings could not keep — worth a backup before rewriting it.</summary>
         public bool LosesSomething => Unreadable || Problems.Count > 0;
     }
@@ -62,6 +69,23 @@ namespace SmartSteward.Core.Settings
         public const string NewLine = "\r\n";
 
         private const int CommentWidth = 100;
+
+        /// <summary>The file's own marker — the first key, not a setting (not in the registry, MCM or the Instructions tab).
+        /// </summary>
+        public const string VersionKey = "SettingsVersion";
+
+        /// <summary>
+        /// The layout version this code writes. A file without <see cref="VersionKey"/> is version 1 (v1.0.0).
+        /// <para>Version 2 (v1.0.1, Anton 2026.10.14 — "make sell loot enabled by default ... a MUST"): SellLoot's default went
+        /// from off to on. A version-1 file holds the old default's <c>"SellLoot": false</c> whether or not the player chose it,
+        /// so it is flipped to on ONCE; the rewrite carries version 2, so a player who turns it off again keeps it off.</para>
+        /// </summary>
+        public const int FileVersion = 2;
+
+        private static readonly string[] VersionComment =
+        {
+            "The file's version - the steward's own marker, not a setting. Leave it as it is.",
+        };
 
         /// <summary>Keys that were renamed (old → new, old names case-insensitive): a file that still has the old name
         /// keeps its value under the new one, once — the rewrite drops the old name.
@@ -176,6 +200,9 @@ namespace SmartSteward.Core.Settings
             var sb = new StringBuilder();
             foreach (var line in Header) Comment(sb, "", line);
             sb.Append('{').Append(NewLine);
+            foreach (var line in VersionComment) Comment(sb, "  ", line);
+            sb.Append("  ").Append(JsonConvert.ToString(VersionKey)).Append(": ")
+                .Append(FileVersion.ToString(CultureInfo.InvariantCulture)).Append(',').Append(NewLine);
 
             var all = SettingsRegistry.All;
             string? group = null;
@@ -185,7 +212,7 @@ namespace SmartSteward.Core.Settings
                 if (def.Group != group)
                 {
                     group = def.Group;
-                    if (i > 0) sb.Append(NewLine);
+                    sb.Append(NewLine);
                     Comment(sb, "  ", "===== " + SettingsRegistry.GroupLabel(group) + " =====");
                 }
                 sb.Append(NewLine);
@@ -324,8 +351,24 @@ namespace SmartSteward.Core.Settings
             var oldPrisoner = new List<JProperty>();
             var renamed = new List<(JProperty Old, SettingDefinition New)>();
             var converted = new List<(JProperty Old, SettingDefinition New, KeyConversion How)>();
+            result.FileVersion = 1; // no marker: a v1.0.0 file
             foreach (var property in root.Properties())
             {
+                if (string.Equals(property.Name.Trim(), VersionKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (TryWholeNumber(property.Value, out var version) && version >= 1)
+                    {
+                        result.FileVersion = (int)Math.Min(int.MaxValue, version);
+                    }
+                    else
+                    {
+                        // Unreadable marker: the player's values are taken as they are (nothing is flipped).
+                        result.Problems.Add(At(property) + VersionKey + ": expected a whole number, found "
+                            + Describe(property.Value) + " - read as " + FileVersion.ToString(CultureInfo.InvariantCulture));
+                        result.FileVersion = FileVersion;
+                    }
+                    continue;
+                }
                 var def = SettingsRegistry.Find(property.Name);
                 if (def == null)
                 {
@@ -388,6 +431,13 @@ namespace SmartSteward.Core.Settings
             }
             if (oldPrisoner.Count > 0)
                 MigratePrisoners(oldPrisoner, seen, result);
+            // Version 1 → 2: SellLoot's old default (off) is flipped on once (see FileVersion).
+            if (result.FileVersion < 2 && seen.Contains(nameof(StewardSettings.SellLoot)) && !result.Settings.SellLoot)
+            {
+                result.Settings.SellLoot = true;
+                result.Migrated.Add("SellLoot was false (v1.0.0's default) - now true, the new default, once; turn it off "
+                    + "again and it stays off");
+            }
             foreach (var def in SettingsRegistry.All)
                 if (!seen.Contains(def.Key))
                     result.MissingKeys.Add(def.Key);

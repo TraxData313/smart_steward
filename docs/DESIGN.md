@@ -990,7 +990,7 @@ pure Core logic fed a snapshot of the party and the market (§5).
 
 ### 2.6 Loot — sold in groups, cheapest first
 
-- `SellLoot` default **off** (opt-in). When on, the groups allowed by `SellLootEquipment`
+- `SellLoot` default **on** **[2026.10.14 Anton: on by default — "make sell loot enabled by default and release it like that! This is a MUST!"]** (it was off, opt-in, through v1.0.0; a v1.0.0 settings file's `false` is flipped on once — §8). When on, the groups allowed by `SellLootEquipment`
   (weapons, armour, shields, ammo — default on) are proposed for sale, and — **[Anton 2026.09.28, round 4]** — the **Other
   goods** line with `SellLootOtherGoods` (default **on**): every UNLOCKED good that is not food, not an animal and not
   equipment (the game's item type `Goods` with `IsFood` false: wool, salt, pottery, jewelry, iron, wine, oil… — livestock,
@@ -1577,7 +1577,7 @@ troop / hero, the count and the expected unit prices.
 | War mounts | SellWarMountSurplus | true | — | sell above the number to keep, most expensive first |
 | Prisoners | LordPrisonerAction | Keep | Keep / Ransom / Donate | "Captured lords": what the steward does with captured lords in a town — Donate where the game forbids it (or the dungeon is full) keeps them **[Anton 2026.09.28, round 4]** |
 | Prisoners | PrisonerAction | Ransom | Keep / Ransom / Donate | "Other prisoners": every other prisoner — Donate fills the dungeon most valuable first, the rest (or all, where the game forbids it) ransomed; replaces `RansomPrisoners` (true), `RansomHeroPrisoners` (false) and `DonatePrisonersWhenPossible` (false) — an old file's values carry over once, logged **[Anton 2026.09.28, round 4]** |
-| Loot | SellLoot | false | — | sell loot and other goods (the Other section) |
+| Loot | SellLoot | true | — | sell loot and other goods (the Other section) — **2026.10.14 Anton: on by default** (false through v1.0.0) |
 | Loot | SellLootEquipment | true | — | weapons, armour, shields, ammo |
 | Loot | SellLootOtherGoods | true | — | "Sell other goods": the Other goods line — every unlocked trade good that is not food, an animal or equipment, sold in bulk in SellLootOrder (§2.6) **[Anton 2026.09.28, round 4]** |
 | Loot | SellLootMaxItemValue | 0 | 0–1,000,000 | never auto-sell items worth more per unit (0 = no cap) |
@@ -1636,6 +1636,12 @@ float slider and the file agree on the same number). A value outside its range i
     whenever its text differs from what the values would write (new keys appear, fixes land); a file
     that lost something (unreadable, clamped, wrong type, unknown key) is first kept as
     `settings.json.bak`. A file that cannot even be opened (locked) is never written over.
+  - **The file's version** **[2026.10.14 Anton: loot selling on by default — Claude chose the marker]**: the first key,
+    `"SettingsVersion": 2` under its own comment line, is the file's marker — not a setting (not in the registry, MCM or the
+    Instructions tab). A file without it is version 1 (v1.0.0). Version 1 → 2: v1.0.0 wrote `"SellLoot": false` as its
+    default whether the player chose it or not, so a version-1 file's `false` is flipped to `true` ONCE (one log line,
+    "settings file from an older version (1 -> 2)…", no backup); the rewrite carries version 2, so a player who turns it
+    off again keeps it off. A marker that is not a whole number is a problem line and flips nothing.
   - Every change (MCM, later the Instructions and Prices tabs) goes through the service: clamped,
     saved at once (written beside and swapped in), `Changed` raised for the window. MCM's Default preset
     holds the registry defaults. The log gets one line of the non-default values at each campaign start.

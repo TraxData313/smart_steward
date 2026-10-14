@@ -115,8 +115,8 @@ static class Program
 
         // Live reads and writes, as MCM's SettingsPropertyVM does them (Value get / SetValueTypeAction).
         Check((int)P("MountMaxPrice").PropertyReference.Value == 777, "int reads the live value");
-        P("SellLoot").PropertyReference.Value = true;
-        Check(service.Current.SellLoot && storage.Text.Contains("\"SellLoot\": true"), "bool write reaches the service and the file");
+        P("SellLoot").PropertyReference.Value = false;
+        Check(!service.Current.SellLoot && storage.Text.Contains("\"SellLoot\": false"), "bool write reaches the service and the file");
         P("HorseBuyPriceMultiplier").PropertyReference.Value = 1.5f;
         Check(service.Current.HorseBuyPriceMultiplier == 1.5 && (float)P("HorseBuyPriceMultiplier").PropertyReference.Value == 1.5f,
             "float write, read back as float");
@@ -154,10 +154,10 @@ static class Program
         Check((int)values["MountMaxPrice"] == 500, "Default preset: MountMaxPrice 500 (current was 777)");
         Check((int)values["FoodDays"] == 40, "Default preset: FoodDays 40");
         Check(((Dropdown<string>)values["FoodStrategy"]).SelectedIndex == 0, "Default preset: FoodStrategy Balanced");
-        Check((bool)values["SellLoot"] == false, "Default preset: SellLoot off (current was on)");
+        Check((bool)values["SellLoot"] == true, "Default preset: SellLoot on (current was off)");
         foreach (var pair in values)
             P(pair.Key).PropertyReference.Value = pair.Value;
-        Check(service.Current.MountMaxPrice == 500 && service.Current.HorseBuyPriceMultiplier == 1.2 && !service.Current.SellLoot
+        Check(service.Current.MountMaxPrice == 500 && service.Current.HorseBuyPriceMultiplier == 1.2 && service.Current.SellLoot
               && service.Current.PackAnimalsTarget == 10, "applying the Default preset resets the live settings");
         Check(service.Current.FoodStrategy == FoodStrategy.Balanced, "... dropdowns included (" + service.Current.FoodStrategy + ")");
     }

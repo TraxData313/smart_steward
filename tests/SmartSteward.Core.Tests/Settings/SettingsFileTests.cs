@@ -155,7 +155,7 @@ public class SettingsFileTests
     public void The_file_is_plain_JSON_with_comments_for_any_reader()
     {
         var json = JObject.Parse(Defaults); // Newtonsoft's own default reader, as a player's tool might use
-        Assert.Equal(SettingsRegistry.All.Select(d => d.Key), json.Properties().Select(p => p.Name));
+        Assert.Equal(new[] { SettingsFile.VersionKey }.Concat(SettingsRegistry.All.Select(d => d.Key)), json.Properties().Select(p => p.Name));
     }
 
     [Fact]

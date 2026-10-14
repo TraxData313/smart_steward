@@ -168,11 +168,11 @@ public class SettingsServiceTests
     {
         _service.Load();
         var before = _service.Current;
-        _storage.EditOutside(SettingsFile.Generate(new StewardSettings { SellLoot = true }));
+        _storage.EditOutside(SettingsFile.Generate(new StewardSettings { SellLoot = false }));
 
         Assert.True(_service.ReloadIfChanged());
 
-        Assert.True(_service.Current.SellLoot);
+        Assert.False(_service.Current.SellLoot);
         Assert.NotSame(before, _service.Current); // readers always go through Current
         Assert.Equal(1, _changes);
         Assert.False(_service.ReloadIfChanged());
@@ -222,14 +222,14 @@ public class SettingsServiceTests
     {
         _service.Load();
 
-        Assert.True(_service.Set(Def("SellLoot"), true));
+        Assert.True(_service.Set(Def("SellLoot"), false));
         Assert.True(_service.Set(Def("MountMaxPrice"), 650));
         Assert.True(_service.Set(Def("HorseBuyPriceMultiplier"), 1.5f)); // MCM hands over floats
         Assert.True(_service.Set(Def("FoodStrategy"), 1));
         Assert.True(_service.Set(Def("SellLootOrder"), "mostexpensive"));
 
         var s = _service.Current;
-        Assert.True(s.SellLoot);
+        Assert.False(s.SellLoot);
         Assert.Equal(650, s.MountMaxPrice);
         Assert.Equal(1.5, s.HorseBuyPriceMultiplier);
         Assert.Equal(FoodStrategy.Cheapest, s.FoodStrategy);
