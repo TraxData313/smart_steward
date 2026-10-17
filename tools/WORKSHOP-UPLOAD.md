@@ -35,7 +35,7 @@ Item: **3817263044** — https://steamcommunity.com/sharedfiles/filedetails/?id=
    in the working directory), Steam open:
    ```powershell
    cd $env:TEMP
-   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Asus ROG\Documents\GitHub\smart_steward\tools\WorkshopCreate.xml"
+   & "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.SteamWorkshop.exe" "C:\Users\Asus ROG\Documents\BannerlordMods\smart_steward\tools\WorkshopCreate.xml"
    ```
    Success = **"Item created. Item ID is …"** + **"Uploading done!"** in the output (the exit code lies —
    see the quirks). Put the id into `tools\WorkshopUpdate.xml` (`FILL_IN_AFTER_CREATE`) and the "Item:" line above.

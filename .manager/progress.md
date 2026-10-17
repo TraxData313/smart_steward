@@ -40,7 +40,7 @@ Facts found by the manager:
   text). STEAM-DESCRIPTION.bbcode refreshed (authorship line, goals, quests, castles = donations only, sibling's
   thank-you wording, ends with the GitHub Releases download line): 7,118 UTF-8 bytes. MCM optional, no required items.
   Version v1.0.0 in module\SubModule.xml (ModInfo has no version; tests green inside package.ps1).
-  Workshop: WorkshopCreate/Update.xml paths -> C:\Users\Asus ROG\Documents\GitHub\smart_steward; Create Image =
+  Workshop: WorkshopCreate/Update.xml paths -> C:\Users\Asus ROG\Documents\BannerlordMods\smart_steward; Create Image =
   Screenshots\preview_thumbnail.jpg, Visibility Private; new tools\make_workshop_update.py (sibling's; checks bytes,
   refuses until WorkshopUpdate's ItemId FILL_IN_AFTER_CREATE is numeric; tested with a dummy id: parses, <Tasks> first,
   description 7,117 bytes); WORKSHOP-UPLOAD.md = create Private -> description via the script -> gallery 01..07 by
