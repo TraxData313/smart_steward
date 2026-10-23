@@ -1,6 +1,6 @@
 # Smart Steward on the Steam Workshop
 
-Release target: **Steam Workshop only** (no Nexus). The upload is Anton's call on release day — nothing in
+Release target: ships on the **Steam Workshop** and **Nexus Mods** (https://www.nexusmods.com/mountandblade2bannerlord/mods/14217; Nexus page text = `tools/NEXUS-DESCRIPTION.bbcode`). The upload is Anton's call on release day — nothing in
 this repo runs it by itself.
 
 The upload path is Bannerlord's **own official uploader** —

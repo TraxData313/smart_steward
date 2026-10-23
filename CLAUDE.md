@@ -14,7 +14,7 @@ village, adjustable row by row, executed with one click.
 The full specification lives in **`docs/DESIGN.md`** — that file is the contract. The original
 idea, in Anton's own words, is `concept.txt` (never edit it; it is the source the design came from).
 
-Release target: **Steam Workshop only** (no Nexus).
+Release target: ships on the **Steam Workshop** (item 3817263044) and **Nexus Mods** (mods/14217, since 2026-10-23, Toni's call) - same zip on both, and on GitHub Releases.
 
 ## Who does what — and how we work
 
@@ -245,6 +245,7 @@ tools/package.ps1             (step 10) the release gate + layout: clean build (
 tools/WORKSHOP-UPLOAD.md      (step 10) release day + the update loop + the uploader's quirks; WorkshopCreate.xml (once,
                               Private) / WorkshopUpdate.xml (item id filled after the create); nothing uploads by itself
 tools/STEAM-DESCRIPTION.bbcode  the Workshop page (Steam BBCode, cap 8000 UTF-8 bytes - measure after edits)
+tools/NEXUS-DESCRIPTION.bbcode  the Nexus Mods page (mods/14217; Nexus BBCode, shorter than the Steam one - keep the two in step)
 tools/make_screenshots.py     (release) Toni's F12 shots → Screenshots/01..07_*.jpg, cropped to the window (gallery order)
 tools/make_thumbnail.py       (release) preview_thumbnail.html + cover.html (art = Screenshots/01) → Screenshots/
                               preview_thumbnail.jpg (Workshop preview, 1024², < 1 MB) + cover.jpg (README)
