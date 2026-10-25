@@ -26,6 +26,8 @@
             <!-- Tab bar (vanilla ClanScreen look: Header.Tab.* brushes, Clan.TabControl.Text) -->
             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Top" MarginTop="62" StackLayout.LayoutMethod="HorizontalLeftToRight">
               <Children>
+                <!-- The previous / next tab key, shown only while a controller is in use -->
+                <InputKeyVisualWidget DataSource="{PreviousTabInputKey}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40" VerticalAlignment="Center" MarginRight="8" KeyID="@KeyID" IsVisible="@IsVisible" />
                 <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="280" SuggestedHeight="56" Brush="Header.Tab.Left" Command.Click="ExecuteSelectSuggestion" IsSelected="@IsSuggestionSelected" UpdateChildrenStates="true">
                   <Children>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" PositionXOffset="10" MarginTop="3" Brush="Clan.TabControl.Text" Brush.FontSize="24" Text="@SuggestionTabText" />
@@ -41,6 +43,7 @@
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" PositionXOffset="-10" MarginTop="3" Brush="Clan.TabControl.Text" Brush.FontSize="24" Text="@InstructionsTabText" />
                   </Children>
                 </ButtonWidget>
+                <InputKeyVisualWidget DataSource="{NextTabInputKey}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40" VerticalAlignment="Center" MarginLeft="8" KeyID="@KeyID" IsVisible="@IsVisible" />
               </Children>
             </ListPanel>
 
@@ -982,10 +985,11 @@
               </Children>
             </Widget>
 
-            <!-- Close (Escape does the same) - "Not now" until round 3 -->
+            <!-- Close (Escape and a controller's B do the same; the key shows only with a controller) - "Not now" until round 3 -->
             <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="52" HorizontalAlignment="Right" VerticalAlignment="Bottom" MarginRight="246" MarginBottom="18" Brush="Popup.Cancel.Button" Command.Click="ExecuteClose" UpdateChildrenStates="true">
               <Children>
                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="@CloseText" />
+                <InputKeyVisualWidget DataSource="{CloseInputKey}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40" HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="8" KeyID="@KeyID" IsVisible="@IsVisible" />
               </Children>
             </ButtonWidget>
 
@@ -995,6 +999,7 @@
                 <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Done.Button" Command.Click="ExecuteDoIt" IsEnabled="@CanDoIt" UpdateChildrenStates="true">
                   <Children>
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="@DoItText" />
+                    <InputKeyVisualWidget DataSource="{DoItInputKey}" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40" HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="8" KeyID="@KeyID" IsVisible="@IsVisible" />
                   </Children>
                 </ButtonWidget>
                 <HintWidget DataSource="{DoItHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" IsDisabled="true" />

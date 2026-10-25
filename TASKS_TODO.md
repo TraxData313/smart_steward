@@ -108,6 +108,7 @@ PLAN (the build, one step at a time — the first unchecked line is the current 
 SHIPPING NEXT (done in main, NOT released yet):
 - v1.0.1 released 2026.10.14 — loot selling on by default (+ old settings flipped once); everything landed so far is in it (GitHub release + Workshop item 3817263044 updated)
 - [x] Workshop gallery: Screenshots 01-07 added by Toni (2026.10.10)
+- Controller: B closes, X = Deal all, LB / RB (Q / E) switch tabs; button icons show beside them with a gamepad (2026.10.25)
 
 BUGS:
 - [x] (R3) Wanderer's Encyclopedia page shows ??? until the tavern district is visited

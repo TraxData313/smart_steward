@@ -7,7 +7,9 @@ using SmartSteward.Core.Presentation;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade.ViewModelCollection.Input;
 
 namespace SmartSteward.UI
 {
@@ -46,6 +48,13 @@ namespace SmartSteward.UI
             CloseText = UiText.S("ss_ui_close", "Close"); // was "Not now" until round 3 (Anton 2026.09.28)
             DoItText = UiText.S("ss_ui_deal_all", "Deal all"); // step 29: "Do it" -> "Do all"; step 31: "Deal all" beside every line's own Deal
             DoItHint = new HintVM();
+            // The controller's buttons beside Close, Deal all and the tabs - the game's own panel keys (B, X, LB / RB by
+            // default, rebindable), shown only while a gamepad is in use, as vanilla's panels do.
+            var keys = HotKeyManager.GetCategory("GenericPanelGameKeyCategory");
+            CloseInputKey = InputKeyItemVM.CreateFromHotKey(keys.GetHotKey("Exit"), isConsoleOnly: true);
+            DoItInputKey = InputKeyItemVM.CreateFromHotKey(keys.GetHotKey("Confirm"), isConsoleOnly: true);
+            PreviousTabInputKey = InputKeyItemVM.CreateFromHotKey(keys.GetHotKey("SwitchToPreviousTab"), isConsoleOnly: true);
+            NextTabInputKey = InputKeyItemVM.CreateFromHotKey(keys.GetHotKey("SwitchToNextTab"), isConsoleOnly: true);
             Suggestion = new SuggestionTabVM(RefreshDoIt, part => Guard("deal " + part.Id, () => RunPart(part)));
             Suggestion.SetPlan(plan, visit);
             Prices = new PricesTabVM();
@@ -121,6 +130,10 @@ namespace SmartSteward.UI
         public override void OnFinalize()
         {
             base.OnFinalize();
+            CloseInputKey.OnFinalize(); // they listen to the gamepad and keybind events - safe twice
+            DoItInputKey.OnFinalize();
+            PreviousTabInputKey.OnFinalize();
+            NextTabInputKey.OnFinalize();
             if (_subscribed)
             {
                 SettingsHost.Service.Changed -= OnSettingsChanged;
@@ -188,6 +201,22 @@ namespace SmartSteward.UI
         public void ExecuteSelectPrices() => Guard("tab", () => SelectTab(1));
 
         public void ExecuteSelectInstructions() => Guard("tab", () => SelectTab(2));
+
+        /// <summary>The previous / next tab key (Q / E, a controller's LB / RB): one tab over, stopping at either end.</summary>
+        public void ExecuteSwitchTab(int step) => Guard("tab", () =>
+        {
+            int tab = IsPricesSelected ? 1 : IsInstructionsSelected ? 2 : 0;
+            int next = Math.Max(0, Math.Min(2, tab + step));
+            if (next != tab)
+                SelectTab(next);
+        });
+
+        /// <summary>The Confirm key (a controller's X): Deal all, when its button is on show and live.</summary>
+        public void ExecuteDoItHotKey()
+        {
+            if (IsSuggestionSelected && CanDoIt)
+                ExecuteDoIt();
+        }
 
         /// <summary>"Close" and Escape: close, nothing done.</summary>
         public void ExecuteClose() => Guard("close", () =>
@@ -351,6 +380,14 @@ namespace SmartSteward.UI
         [DataSourceProperty] public string DoItText { get; }
 
         [DataSourceProperty] public HintVM DoItHint { get; }
+
+        [DataSourceProperty] public InputKeyItemVM CloseInputKey { get; }
+
+        [DataSourceProperty] public InputKeyItemVM DoItInputKey { get; }
+
+        [DataSourceProperty] public InputKeyItemVM PreviousTabInputKey { get; }
+
+        [DataSourceProperty] public InputKeyItemVM NextTabInputKey { get; }
 
         [DataSourceProperty]
         public string TitleText

@@ -22,7 +22,9 @@ namespace SmartSteward.UI
     ///   a name link can open the Encyclopedia over us; when it closes, we take the focus back.</item>
     /// <item>The game's own hot keys: Shift = <c>FiveStackModifier</c>, Ctrl = <c>EntireStackModifier</c>
     ///   (GenericCampaignPanelsGameKeyCategory, polled every frame like the inventory screen) and Escape =
-    ///   <c>Exit</c> (GenericPanelGameKeyCategory) — all rebindable by the player.</item>
+    ///   <c>Exit</c> (GenericPanelGameKeyCategory) — all rebindable by the player. From the same category: the tab keys
+    ///   <c>SwitchToPreviousTab</c> / <c>SwitchToNextTab</c> (Q / E, LB / RB) and, from a controller only,
+    ///   <c>Confirm</c> (X) = Deal all.</item>
     /// <item>Only sprites of always-loaded categories are used, so no sprite category is loaded or unloaded
     ///   (tools\check-gui.ps1 holds the prefab to that).</item>
     /// </list>
@@ -233,6 +235,21 @@ namespace SmartSteward.UI
                     }
                     Close();
                     return;
+                }
+                // The tab keys and Confirm, never while typing (a Q or an Enter in a Goal box is the box's). Confirm = Deal
+                // all only from a controller: Enter is too easy to hit for a whole deal.
+                if (_vm != null && !_layer.IsFocusedOnInput())
+                {
+                    if (input.IsHotKeyReleased("SwitchToPreviousTab"))
+                        _vm.ExecuteSwitchTab(-1);
+                    else if (input.IsHotKeyReleased("SwitchToNextTab"))
+                        _vm.ExecuteSwitchTab(1);
+                    else if (Input.IsGamepadActive && input.IsHotKeyReleased("Confirm"))
+                    {
+                        _vm.ExecuteDoItHotKey();
+                        if (_layer == null)
+                            return; // the deal closed the window
+                    }
                 }
                 _vm?.Tick();
             }
