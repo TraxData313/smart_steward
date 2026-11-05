@@ -606,6 +606,22 @@ namespace SmartSteward.Core.Presentation
             return animal ? Math.Max(plan.Floors.All, plan.Floors.Animals) : plan.Floors.All;
         }
 
+        /// <summary>
+        /// A horse row whose steward's buys stopped at the purse floor says so in its note, not only in the Result's hover
+        /// (phase 4 step 10, Toni 2026-11-05: Goal 10 / Change 0 with no visible reason): <c>keep 10 · buys stop at 5,000 denari</c>.
+        /// A goal of yours keeps the hover alone.
+        /// </summary>
+        private static string WithFloorNote(string note, PlanRow row, StewardPlan plan, SheetWords words)
+        {
+            if (row.Role == null || row.Section != PlanSectionKind.Mounts)
+                return note;
+            var goal = RowGoal.Of(row);
+            if (goal.Short != GoalShort.PurseFloor || goal.IsYours)
+                return note;
+            string floor = words.BuysStopAt + " " + UiFormat.Money(PurseFloorOf(row, goal, plan)) + " " + words.Denari;
+            return note.Length == 0 ? floor : note + Sep + floor;
+        }
+
         private static void AddRow(List<SheetItem> items, PlanRow row, SuggestionSheet sheet, SheetWords words, Func<string, bool> isFolded)
         {
             var item = RowItem(row, TroopSide.None, false, sheet, words);
@@ -714,7 +730,7 @@ namespace SmartSteward.Core.Presentation
                 Indented = indented,
                 Name = RowName(row, words),
                 IsLink = row.Type == RowType.Tavern || row.Type == RowType.Troop || (row.Type == RowType.Prisoner && row.TroopId != null),
-                Note = Note(row, side, words),
+                Note = WithFloorNote(Note(row, side, words), row, sheet.Plan, words),
                 Market = Market(row, side),
                 Mine = side == TroopSide.Recruit ? Dash : UiFormat.Money(row.Mine),
                 Change = UiFormat.SignedCount(change),

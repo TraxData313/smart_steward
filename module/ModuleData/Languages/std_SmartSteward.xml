@@ -327,6 +327,7 @@
     <string id="ss_ui_sheet_before_herd" text="before the herd slows you" />
     <string id="ss_ui_sheet_best_tier_first" text="[+] takes the best tier first" />
     <string id="ss_ui_sheet_buys_start_at" text="buys start at" />
+    <string id="ss_ui_sheet_buys_stop_at" text="buys stop at" />
     <string id="ss_ui_sheet_cheapest_first" text="cheapest first" />
     <string id="ss_ui_sheet_days" text="days" />
     <string id="ss_ui_sheet_dearest_first" text="dearest first" />

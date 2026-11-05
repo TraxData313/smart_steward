@@ -267,6 +267,15 @@ public class SheetViewTests
     }
 
     [Fact]
+    public void A_pack_row_stopped_by_the_animal_floor_says_so_on_its_row()
+    {
+        // Phase 4 step 10: Goal 10 / Change 0 under MinGoldForHorses showed its reason only on hover.
+        var plan = new Scenario().Party(10).Gold(2_552).Pack("mule", market: 22, buy: 150).Plan();
+        var pack = Open(plan).Section(SheetGroup.Horses)!.Items.Single(i => i.Key == "row:mounts:pack");
+        Assert.Equal("keep 10 · buys stop at 5,000 denari", pack.Note);
+    }
+
+    [Fact]
     public void A_pack_row_whose_buys_wait_says_so_while_its_surplus_sells()
     {
         var s = new Scenario().Party(10).Gold(1_500).Pack("mule", held: 30);

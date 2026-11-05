@@ -61,6 +61,8 @@ namespace SmartSteward.Core.Presentation
         public string StartsAt { get; set; } = "starts at";
         /// <summary>The pack animals row while only its buys wait (Toni 2026-11-05): <c>buys start at 2,000 denari</c>.</summary>
         public string BuysStartAt { get; set; } = "buys start at";
+        /// <summary>A role row whose buys stopped at the animal floor: <c>buys stop at 5,000 denari</c> (step 10, phase 4).</summary>
+        public string BuysStopAt { get; set; } = "buys stop at";
         public string Denari { get; set; } = "denari";
         public string PackAnimalsStart { get; set; } = "pack animal buys start at";
         public string RidingHorsesStart { get; set; } = "riding horses start at";

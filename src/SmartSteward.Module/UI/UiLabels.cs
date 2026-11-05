@@ -42,6 +42,7 @@ namespace SmartSteward.UI
             HorsesToKeep = UiText.S("ss_ui_sheet_horses_to_keep", "horses to keep"),
             StartsAt = UiText.S("ss_ui_sheet_starts_at", "starts at"),
             BuysStartAt = UiText.S("ss_ui_sheet_buys_start_at", "buys start at"),
+            BuysStopAt = UiText.S("ss_ui_sheet_buys_stop_at", "buys stop at"),
             Denari = UiText.S("ss_ui_sheet_denari", "denari"),
             PackAnimalsStart = UiText.S("ss_ui_sheet_pack_start", "pack animal buys start at"),
             RidingHorsesStart = UiText.S("ss_ui_sheet_riding_start", "riding horses start at"),
