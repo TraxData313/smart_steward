@@ -111,7 +111,7 @@ Screenshot (Car Banseth): Pack animals row Market 22, Goal 10, Mine 0, Change 0,
 Land 480 -> 443 of 450 capacity, left 7. So: goal 10, market has 22, he has 0, yet nothing is bought. ("selling" = the
 town selling them to him.)
 9. [x] Diagnose (CORRECTED by Toni: the bug is the steward NOT SELLING his own surplus pack animals, seen in a previous save; this screenshot has 0 and does not show it. Also explain the buy-0 here): root cause + failing test.
-10. [ ] Fix + tests green + deploy to Modules\SmartSteward.Dev (not if game running). Commit + push.
+10. [x] Fix + tests green + deploy to Modules\SmartSteward.Dev (not if game running). Commit + push.
 - Step 9 done 2026-11-05 (diagnosis, no prod change). Likeliest cause: PackAnimalsMinDenari (default 2,000) gates the
   WHOLE PackAnimals job on gold-before-deal (PackAnimalPlanner.cs:123 JobActive, PlanContext.cs:167) -> below 2,000 no buy
   AND no sell, surplus kept. That is DESIGN.md:1295 §3 (Anton 2026.09.28 round 4) - intended but wrong for selling.
@@ -122,3 +122,13 @@ town selling them to him.)
   (A_poor_purse_still_sells_the_pack_animal_surplus fails: 1,500 denari, 30 mules -> 0, want -20; 3 Diag_* pass).
   Fix proposal (needs Toni, changes DESIGN §3): min-denari gate blocks buying only; surplus always sells (pack animals,
   maybe food/mounts too). Plus: show the 5,000-floor reason in the row, not only on hover.
+- Toni 2026-11-05 answer: "lower the thr more to sell them, make it adjustable if you can" -> step 10 = separate SELL threshold
+  for pack animals (new setting, default 0 = always sell surplus), adjustable like PackAnimalsMinDenari (settings.json + MCM +
+  Instructions text); buy keeps its 2,000 gate. Plus show the "5,000 floor" stop reason in the row, not only hover.
+- Step 10 done 2026-11-05: new setting PackAnimalsSellMinDenari (Pack group, "Sell surplus pack animals from (denari)", default 0 =
+  always; settings.json + MCM + Instructions, old files load with the default) gates the surplus sale; PackAnimalsMinDenari
+  (2,000, now "Buy pack animals from") gates buying only. Other sell-blockers unchanged; lame pack animals still wait with the buys.
+  Row notes: "keep 10 · buys start at 2,000 denari" (only buys wait) and "keep 10 · buys stop at 5,000 denari" (animal floor).
+  DESIGN §3/§7 updated. 924 tests green, check-soft-deps + check-gui + McmProbe OK (McmProbe needs
+  -p:HarmonyBinFolder=<Modules\Bannerlord.Harmony\bin\Win64_Shipping_Client>; the .user path is stale). Deployed to
+  SmartSteward.Dev. Commits 5fdd2ec (sell threshold), 6089abe (row reason). Not released, version not bumped.
