@@ -1292,7 +1292,7 @@ RESEARCH §29. Core `Snapshot\QuestNeed`, `Planning\QuestKeep`; Module `Adapter\
    helping them"]** (Core `Planning\JobThresholds`): a job ACTS only when the purse at planning — before this visit's deal —
    is at least its threshold: `FoodMinDenari` **2,000**, `PackAnimalsMinDenari` **2,000**, `MountsMinDenari` **5,000**
    (riding horses; the noble horses sold and the lame riding horses replaced go with them), `WarHorsesMinDenari` **20,000**,
-   **`NobleHorsesMinDenari` 20,000 — only while noble horses are kept (step 28, §2.4)** (0 = always). Below it the steward's own side of the job does NOTHING — no buy, no sell (a surplus is kept too); lame
+   **`NobleHorsesMinDenari` 20,000 — only while noble horses are kept (step 28, §2.4)** (0 = always). Below it the steward's own side of the job does NOTHING — no buy, no sell (a surplus is kept too) — **except the pack animals' surplus [Toni 2026-11-05, phase 4 step 10: "lower the threshold more to sell them, make it adjustable"]: their SELL side has its own threshold `PackAnimalsSellMinDenari` (default **0** = always), so `PackAnimalsMinDenari` gates only the buying; a poor purse still sells the surplus (every other sell-blocker stays: min sell price, market gold, Sell unticked, quests, locks; the lame pack animals still wait with the buys). While only the buys wait the row says `buys start at 2,000 denari` (`PlanRow.BuysStartAtDenari`) and the overview `pack animal buys start at 2,000 denari`; the row is hands-off (`-*`) only while both sides wait**; lame
    horses of a waiting job stay counted in their role row. The rows stay in the table at 0 (`PlanRow.StartsAtDenari`), so
    the player can still buy or sell by hand; the plan's facts list the waiting jobs (`PlanFacts.Waiting`) and the section's
    overview says `starts at 20,000 denari`. **How they relate to the floors [decided: Claude, 2026.09.28 — step 20]**: the
@@ -1556,10 +1556,11 @@ troop / hero, the count and the expected unit prices.
 | Prices | AutoFillWarMountPrices | false | — | … for war horses (off: trader's cheat sheet); noble horses always show their sell average (sell only, step 17) |
 | Prices | PriceBook | {} | bases 0–1,000,000 | per item id: buy tick, buy base, sell tick, sell base (LATER: hold-up-to for Others) — only the player's changes (file + Prices tab, not MCM) |
 | Pack | PackAnimalsEnabled | true | — | manage pack animals |
-| Pack | PackAnimalsMinDenari | 2000 | 0–1,000,000 | "Manage pack animals from (denari)": the purse before the deal pack animals need (§3) **[Anton 2026.09.28, round 4]** |
+| Pack | PackAnimalsMinDenari | 2000 | 0–1,000,000 | "Buy pack animals from (denari)": the purse before the deal pack animals need (§3) **[Anton 2026.09.28, round 4]** — since Toni 2026-11-05 the BUYING only; the surplus sells by `PackAnimalsSellMinDenari` |
 | Pack | PackAnimalsTarget | 10 | 0–500 | pack animals to keep |
 | Pack | PackAnimalMaxPrice | 300 | 0–100,000 | role cap: never pay more per pack animal (0 = none; NOT scaled by the multiplier) |
 | Pack | SellPackAnimalSurplus | true | — | sell above target, most expensive first |
+| Pack | PackAnimalsSellMinDenari | 0 | 0–1,000,000 | "Sell surplus pack animals from (denari)": the purse before the deal the steward needs to SELL a pack animal surplus (§3; 0 = always) **[Toni 2026-11-05, phase 4 step 10: sell gated separately from the buy]** |
 | Mounts | MountsEnabled | true | — | manage riding mounts for footmen |
 | Mounts | MountsMinDenari | 5000 | 0–1,000,000 | "Manage riding horses from (denari)": the purse before the deal riding horses need — noble horses sold and lame riding horses replaced only then too (§3) **[Anton 2026.09.28, round 4]** |
 | Mounts | MountsPer100Footmen | 110 | 0–300 | horses kept per 100 footmen — the war horses kept count among them, riding horses fill the rest **[Anton 2026.09.28, step 17]** |
@@ -1620,7 +1621,7 @@ float slider and the file agree on the same number). A value outside its range i
   - Core: `SettingsRegistry` (the §7 keys in table order — 47 since step 17: 46 scalars + the price book; 51 since step 20's
     four activation thresholds, the food multipliers, the prisoner actions and SellLootOtherGoods (53: 52 scalars + the price
     book; 57 since step 22's "Goals you set by hand": 55 scalars + the price book + the goals; 58 with step 26's
-    QuestGoalsEnabled; 60 since step 28's NobleHorsesToKeep + NobleHorsesMinDenari); the
+    QuestGoalsEnabled; 60 since step 28's NobleHorsesToKeep + NobleHorsesMinDenari; 61 with phase 4's PackAnimalsSellMinDenari); the
     prisoner list is gone since step 12, the four upgrade-horse keys since step 17), `SettingsFile` (text in, text out),
     `SettingsService` (the live values). Module: `SettingsHost`
     (the one service over the disk) and `McmBridge`.

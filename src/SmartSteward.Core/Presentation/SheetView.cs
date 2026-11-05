@@ -584,7 +584,7 @@ namespace SmartSteward.Core.Presentation
                 case GoalShort.PurseFloor:
                     return words.ShortPurseFloor + " " + UiFormat.Money(PurseFloorOf(row, goal, plan)) + " " + words.Denari;
                 case GoalShort.Threshold:
-                    return words.ShortThreshold + " " + UiFormat.Money(row.StartsAtDenari ?? 0) + " " + words.Denari;
+                    return words.ShortThreshold + " " + UiFormat.Money(row.StartsAtDenari ?? row.BuysStartAtDenari ?? 0) + " " + words.Denari;
                 case GoalShort.NoneEligible: return words.ShortNoneEligible;
                 case GoalShort.NothingToSell: return words.ShortNothingToSell;
                 case GoalShort.SurplusKept: return words.ShortSurplusKept;
@@ -901,6 +901,8 @@ namespace SmartSteward.Core.Presentation
 
             if (row.StartsAtDenari != null)
                 Add(words.StartsAt + " " + UiFormat.Money(row.StartsAtDenari.Value) + " " + words.Denari);
+            if (row.BuysStartAtDenari != null) // Toni 2026-11-05: the surplus sells, only the buys wait
+                Add(words.BuysStartAt + " " + UiFormat.Money(row.BuysStartAtDenari.Value) + " " + words.Denari);
             return string.Join(Sep, parts);
         }
 

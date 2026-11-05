@@ -75,7 +75,8 @@ namespace SmartSteward.Core.Planning
                 SellLane = sellLane,
                 HandBuyLaneOverride = handBuy,
                 HandSellLaneOverride = handSell,
-                StartsAtDenari = ctx.StartsAt(ManagedJob.PackAnimals),
+                StartsAtDenari = StartsAt(ctx),
+                BuysStartAtDenari = BuysStartAt(ctx),
                 StewardGoal = Target,
                 Quest = ctx.Quests.ForStacks(_held),
             };
@@ -86,6 +87,23 @@ namespace SmartSteward.Core.Planning
         }
 
         public const string RowId = ManualGoals.Pack;
+
+        /// <summary>The steward's sell side acts: its own threshold met (PackAnimalsSellMinDenari, Toni 2026-11-05) and selling
+        /// the surplus switched on.</summary>
+        private static bool SellActs(PlanContext ctx) => ctx.PackSellActive && ctx.Settings.SellPackAnimalSurplus;
+
+        /// <summary>The whole row waits (hands-off, <c>-*</c>) only while neither side acts: the purse the first of them needs.</summary>
+        private static int? StartsAt(PlanContext ctx)
+        {
+            if (ctx.JobActive(ManagedJob.PackAnimals) || SellActs(ctx))
+                return null;
+            int buy = JobThresholds.Of(ManagedJob.PackAnimals, ctx.Settings);
+            return ctx.Settings.SellPackAnimalSurplus ? Math.Min(buy, JobThresholds.PackSellOf(ctx.Settings)) : buy;
+        }
+
+        /// <summary>Only the buys wait (the surplus still sells): the purse they need.</summary>
+        private static int? BuysStartAt(PlanContext ctx) =>
+            !ctx.JobActive(ManagedJob.PackAnimals) && SellActs(ctx) ? JobThresholds.Of(ManagedJob.PackAnimals, ctx.Settings) : (int?)null;
 
         /// <summary>The player's own quantity — a goal of yours (round 5: goal − Mine) — walked first, never re-planned.</summary>
         private readonly int? _pinned;
@@ -120,7 +138,9 @@ namespace SmartSteward.Core.Planning
         /// <summary>Surplus above the target, the most expensive first, while the market can pay.</summary>
         public void PlanSells()
         {
-            if (Row == null || _sell == null || _pinned != null || !_ctx.JobActive(ManagedJob.PackAnimals))
+            // Toni 2026-11-05: the sell side has its own threshold (PackAnimalsSellMinDenari, default 0) - a poor purse still
+            // sells the surplus; PackAnimalsMinDenari gates the buying only.
+            if (Row == null || _sell == null || _pinned != null || !_ctx.PackSellActive)
                 return;
             int surplus = Counted - Target;
             if (surplus > 0 && !_ctx.Settings.SellPackAnimalSurplus)
@@ -137,10 +157,16 @@ namespace SmartSteward.Core.Planning
         /// <summary>Up to the target, the cheapest eligible first, never below the animal floor.</summary>
         public void PlanBuys()
         {
-            if (Row == null || _buy == null || _pinned != null || !_ctx.JobActive(ManagedJob.PackAnimals))
+            if (Row == null || _buy == null || _pinned != null)
                 return;
             var walk = _ctx.Walk;
             int wanted = Target - Counted;
+            if (!_ctx.JobActive(ManagedJob.PackAnimals))
+            {
+                if (wanted > 0 && Row.BuysStartAtDenari != null)
+                    Row.GoalShort = GoalShort.Threshold; // the surplus side acts, the buys wait for their purse
+                return;
+            }
             int bought = PlanWalk.WalkLane(walk, _buy, wanted, () => _ctx.AnimalBuyCeiling(walk));
             _heldCount += bought;
             if (bought < wanted)

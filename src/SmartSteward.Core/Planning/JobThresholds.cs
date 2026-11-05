@@ -60,8 +60,21 @@ namespace SmartSteward.Core.Planning
             }
         }
 
-        /// <summary>Does the job act with <paramref name="purseBeforeDeal"/> denari?</summary>
+        /// <summary>Does the job act with <paramref name="purseBeforeDeal"/> denari? For <see cref="ManagedJob.PackAnimals"/> this
+        /// is the BUY side only (Toni 2026-11-05) - the surplus sells by <see cref="PackSellActive"/>.</summary>
         public static bool IsActive(ManagedJob job, StewardSettings settings, int purseBeforeDeal) =>
             purseBeforeDeal >= Of(job, settings);
+
+        /// <summary>The purse the steward needs before the deal to SELL a pack animal surplus (0 = always) - separate from the
+        /// buy threshold since Toni 2026-11-05 ("lower the threshold more to sell them, make it adjustable").</summary>
+        public static int PackSellOf(StewardSettings settings)
+        {
+            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            return Math.Max(0, settings.PackAnimalsSellMinDenari);
+        }
+
+        /// <summary>Does the pack animals' sell side act with <paramref name="purseBeforeDeal"/> denari?</summary>
+        public static bool PackSellActive(StewardSettings settings, int purseBeforeDeal) =>
+            purseBeforeDeal >= PackSellOf(settings);
     }
 }

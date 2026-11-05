@@ -1,5 +1,6 @@
 using SmartSteward.Core.Planning;
 using SmartSteward.Core.Settings;
+using SmartSteward.Core.Snapshot;
 
 namespace SmartSteward.Core.Tests.Planning;
 
@@ -20,6 +21,7 @@ public class JobThresholdTests
         s.Settings.PackAnimalsMinDenari = d.PackAnimalsMinDenari;
         s.Settings.MountsMinDenari = d.MountsMinDenari;
         s.Settings.WarHorsesMinDenari = d.WarHorsesMinDenari;
+        s.Settings.PackAnimalsSellMinDenari = d.PackAnimalsSellMinDenari;
         s.Settings.WarMountsToKeep = d.WarMountsToKeep;
         return s;
     }
@@ -30,6 +32,7 @@ public class JobThresholdTests
         var d = new StewardSettings();
         Assert.Equal(2_000, d.FoodMinDenari);
         Assert.Equal(2_000, d.PackAnimalsMinDenari);
+        Assert.Equal(0, d.PackAnimalsSellMinDenari);
         Assert.Equal(5_000, d.MountsMinDenari);
         Assert.Equal(20_000, d.WarHorsesMinDenari);
         Assert.Equal(10, d.WarMountsToKeep);
@@ -50,6 +53,7 @@ public class JobThresholdTests
     public void A_waiting_job_does_not_sell_its_surplus_either()
     {
         var s = Real().Party(10).Gold(1_000).Food("fish", held: 100, market: 5).Pack("mule", held: 13, market: 2);
+        s.Settings.PackAnimalsSellMinDenari = 2_000; // the pack animals' sell side waits too (by default it never does)
         var waiting = s.Plan();
         Assert.Equal(0, waiting.Row("food:fish").Change);
         Assert.Equal(0, waiting.Row("mounts:pack").Change);
@@ -186,5 +190,89 @@ public class JobThresholdTests
         s.Gold(1_000);
         s.Settings.FoodEnabled = false;
         Assert.DoesNotContain(s.Plan().Facts.Waiting, p => p.Key == ManagedJob.Food);
+    }
+
+    // ── Phase 4 step 10 (Toni 2026-11-05: "smart steward stopped selling my pack animals" - "lower the threshold more to sell
+    // them, make it adjustable"): PackAnimalsMinDenari gates the buying only; the surplus sells by PackAnimalsSellMinDenari.
+
+    [Fact]
+    public void A_rich_purse_sells_the_pack_animal_surplus()
+    {
+        var plan = Real().Gold(10_000).Pack("mule", held: 30).Plan();
+        Assert.Equal(-20, plan.Row("mounts:pack").Change);
+    }
+
+    [Fact]
+    public void A_poor_purse_still_sells_the_pack_animal_surplus()
+    {
+        var plan = Real().Gold(1_500).Pack("mule", held: 30).Plan(); // below the 2,000 buy threshold
+        var pack = plan.Row("mounts:pack");
+        Assert.Equal(-20, pack.Change);
+        Assert.Null(pack.StartsAtDenari); // the row acts: not hands-off
+        Assert.Equal(2_000, pack.BuysStartAtDenari);
+        Assert.Equal(10, RowGoal.Of(pack).Value);
+    }
+
+    [Theory]
+    [InlineData(2_999, 0)]
+    [InlineData(3_000, -20)]
+    public void The_sell_threshold_is_adjustable(int gold, int change)
+    {
+        var s = Real().Gold(gold).Pack("mule", held: 30);
+        s.Settings.PackAnimalsSellMinDenari = 3_000;
+        Assert.Equal(change, s.Plan().Row("mounts:pack").Change);
+    }
+
+    [Fact]
+    public void Below_both_thresholds_the_pack_row_is_hands_off_at_the_first_of_them()
+    {
+        var s = Real().Gold(1_000).Pack("mule", held: 30);
+        s.Settings.PackAnimalsSellMinDenari = 1_500;
+        var pack = s.Plan().Row("mounts:pack");
+        Assert.Equal(0, pack.Change);
+        Assert.Equal(1_500, pack.StartsAtDenari);
+        Assert.Null(pack.BuysStartAtDenari);
+        Assert.True(RowGoal.Of(pack).HandsOff);
+    }
+
+    [Theory]
+    [InlineData(1_999, 0)]
+    [InlineData(2_000, 5)]
+    public void Pack_animals_are_still_bought_only_from_2000(int gold, int bought)
+    {
+        var s = Real().Gold(gold).Pack("mule", held: 5, market: 20, buy: 100);
+        s.Settings.MinGoldForHorses = 0; // the animal floor alone would stop these buys
+        s.Settings.MinGoldAfterDeal = 0;
+        var pack = s.Plan().Row("mounts:pack");
+        Assert.Equal(bought, pack.Change);
+        Assert.Equal(gold < 2_000 ? GoalShort.Threshold : GoalShort.None, RowGoal.Of(pack).Short);
+    }
+
+    [Fact]
+    public void A_cheap_town_below_the_min_sell_still_keeps_the_surplus()
+    {
+        var s = Real().Gold(1_500).Pack("mule", held: 30, sell: 70);
+        s.Snap.AveragePrices["mule"] = new AveragePrices(150, 100); // min sell = 0.8 x 100 = 80 > 70 paid here
+        Assert.Equal(0, s.Plan().Row("mounts:pack").Change);
+    }
+
+    [Fact]
+    public void Sell_surplus_off_still_keeps_them()
+    {
+        var s = Real().Gold(1_500).Pack("mule", held: 30);
+        s.Settings.SellPackAnimalSurplus = false;
+        var pack = s.Plan().Row("mounts:pack");
+        Assert.Equal(0, pack.Change);
+        Assert.Equal(2_000, pack.StartsAtDenari); // nothing acts below the buy threshold: hands-off
+    }
+
+    [Fact]
+    public void Under_the_animal_floor_nothing_is_bought_by_design()
+    {
+        // The phase-4 screenshot: 2,552 denari is under MinGoldForHorses (5,000) - goal 10, no buy.
+        var pack = Real().Gold(2_552).Pack("mule", market: 22, buy: 150).Plan().Row("mounts:pack");
+        Assert.Equal(10, pack.Target);
+        Assert.Equal(0, pack.Change);
+        Assert.Equal(GoalShort.PurseFloor, RowGoal.Of(pack).Short);
     }
 }

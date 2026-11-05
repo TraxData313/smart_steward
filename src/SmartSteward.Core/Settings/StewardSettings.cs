@@ -156,12 +156,16 @@ namespace SmartSteward.Core.Settings
 
         // ── Pack animals (DESIGN §2.2) ───────────────────────────────────────────────────────────
         public bool PackAnimalsEnabled { get; set; } = true;
-        /// <summary>The purse (before the deal) pack animals need to be managed at all (round 4).</summary>
+        /// <summary>The purse (before the deal) the steward needs to BUY pack animals (round 4; since 2026-11-05 buying only -
+        /// selling has <see cref="PackAnimalsSellMinDenari"/>).</summary>
         public int PackAnimalsMinDenari { get; set; } = 2000;
         public int PackAnimalsTarget { get; set; } = 10;
         /// <summary>Role cap per pack animal (0 = none; NOT scaled by the multiplier).</summary>
         public int PackAnimalMaxPrice { get; set; } = 300;
         public bool SellPackAnimalSurplus { get; set; } = true;
+        /// <summary>The purse (before the deal) the steward needs to SELL a pack animal surplus (Toni 2026-11-05: "lower the
+        /// threshold more to sell them, make it adjustable"). 0 = always, the default.</summary>
+        public int PackAnimalsSellMinDenari { get; set; } = 0;
 
         // ── Mounts (DESIGN §2.3) ─────────────────────────────────────────────────────────────────
         public bool MountsEnabled { get; set; } = true;

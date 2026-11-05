@@ -166,6 +166,10 @@ namespace SmartSteward.Core.Planning
         /// (<see cref="JobThresholds"/>, round 4)? The player's own rows walk either way.</summary>
         public bool JobActive(ManagedJob job) => JobThresholds.IsActive(job, Settings, Snapshot.PlayerGold);
 
+        /// <summary>Does the steward sell a pack animal surplus - its own threshold, PackAnimalsSellMinDenari (Toni 2026-11-05)?
+        /// <see cref="JobActive"/> of <see cref="ManagedJob.PackAnimals"/> gates the buying only.</summary>
+        public bool PackSellActive => JobThresholds.PackSellActive(Settings, Snapshot.PlayerGold);
+
         /// <summary>The threshold a waiting job needs (for <see cref="PlanRow.StartsAtDenari"/>); null when it acts.</summary>
         public int? StartsAt(ManagedJob job) => JobActive(job) ? (int?)null : JobThresholds.Of(job, Settings);
 

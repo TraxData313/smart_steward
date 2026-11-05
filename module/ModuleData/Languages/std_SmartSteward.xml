@@ -75,7 +75,8 @@
     <string id="ss_hint_NobleHorsesToKeep" text="How many noble horses the party keeps, like the war horses - bought up to it at their prices in the Prices tab (and at most the max price per noble horse), the rest sold (Sell noble horses). Some mods upgrade troops with noble horses; vanilla never does. They count among the horses per 100 footmen. 0 = none kept: every noble horse you did not lock is sold. Default: 0. Range: 0 to 500." />
     <string id="ss_hint_PackAnimalMaxPrice" text="Never pay more than this for one pack animal, whatever the price book says. 0 = no cap. Not scaled by the buy multiplier. Default: 300. Range: 0 to 100,000." />
     <string id="ss_hint_PackAnimalsEnabled" text="Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight. Default: on." />
-    <string id="ss_hint_PackAnimalsMinDenari" text="The steward starts managing pack animals once your purse holds at least this many denari when you arrive - below it it neither buys nor sells them. 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_PackAnimalsMinDenari" text="The steward starts buying pack animals once your purse holds at least this many denari when you arrive - below it it buys none. Selling a surplus has its own threshold (Sell surplus pack animals from). 0 = always. Default: 2,000. Range: 0 to 1,000,000." />
+    <string id="ss_hint_PackAnimalsSellMinDenari" text="The steward sells pack animals above the target once your purse holds at least this many denari when you arrive - below it it keeps them. 0 = always: a surplus is sold however poor you are. Default: 0. Range: 0 to 1,000,000." />
     <string id="ss_hint_PackAnimalsTarget" text="How many pack animals the party keeps. Default: 10. Range: 0 to 500." />
     <string id="ss_hint_PopupOnlyWithChanges" text="Open the window by itself only when the steward has something to suggest. Default: on." />
     <string id="ss_hint_PrisonerAction" text="What the steward does with every other prisoner in a town: keep them, ransom them for denari, or donate them to the dungeon of a town of your kingdom that is not your clan's, for influence - the most valuable first; those that do not fit, or all of them where the game does not allow it, are ransomed. Default: Ransom for denari." />
@@ -173,7 +174,8 @@
     <string id="ss_set_NobleHorsesToKeep" text="Noble horses to keep" />
     <string id="ss_set_PackAnimalMaxPrice" text="Max price per pack animal" />
     <string id="ss_set_PackAnimalsEnabled" text="Manage pack animals" />
-    <string id="ss_set_PackAnimalsMinDenari" text="Manage pack animals from (denari)" />
+    <string id="ss_set_PackAnimalsMinDenari" text="Buy pack animals from (denari)" />
+    <string id="ss_set_PackAnimalsSellMinDenari" text="Sell surplus pack animals from (denari)" />
     <string id="ss_set_PackAnimalsTarget" text="Pack animals to keep" />
     <string id="ss_set_PopupOnlyWithChanges" text="Only open with suggestions" />
     <string id="ss_set_PrisonerAction" text="Other prisoners" />
@@ -324,6 +326,7 @@
     <string id="ss_ui_sheet_avg" text="avg" />
     <string id="ss_ui_sheet_before_herd" text="before the herd slows you" />
     <string id="ss_ui_sheet_best_tier_first" text="[+] takes the best tier first" />
+    <string id="ss_ui_sheet_buys_start_at" text="buys start at" />
     <string id="ss_ui_sheet_cheapest_first" text="cheapest first" />
     <string id="ss_ui_sheet_days" text="days" />
     <string id="ss_ui_sheet_dearest_first" text="dearest first" />
@@ -360,7 +363,7 @@
     <string id="ss_ui_sheet_on_offer" text="on offer" />
     <string id="ss_ui_sheet_other_goods_note" text="every unlocked good that is not food, animal or gear" />
     <string id="ss_ui_sheet_others_line" text="Others" />
-    <string id="ss_ui_sheet_pack_start" text="pack animals start at" />
+    <string id="ss_ui_sheet_pack_start" text="pack animal buys start at" />
     <string id="ss_ui_sheet_party" text="party" />
     <string id="ss_ui_sheet_per_kind" text="per kind" />
     <string id="ss_ui_sheet_pieces" text="pieces" />

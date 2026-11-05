@@ -370,6 +370,11 @@ namespace SmartSteward.Core.Planning
         /// before the deal; null when the job acts (or the row belongs to no such job). The row stays editable by hand.</summary>
         public int? StartsAtDenari { get; internal set; }
 
+        /// <summary>The pack animals row while only its BUYING waits for the purse (Toni 2026-11-05: the surplus sells by its own
+        /// threshold): the denari the buys need before the deal; null when the steward buys (or the whole row waits -
+        /// <see cref="StartsAtDenari"/>).</summary>
+        public int? BuysStartAtDenari { get; internal set; }
+
         /// <summary>Food rows: the item's resolved price book row.</summary>
         public PriceBookPrices? PriceBook { get; internal set; }
 
@@ -488,6 +493,7 @@ namespace SmartSteward.Core.Planning
             InfluenceDelta = planned.InfluenceDelta;
             Target = planned.Target;
             StartsAtDenari = planned.StartsAtDenari;
+            BuysStartAtDenari = planned.BuysStartAtDenari;
             PriceBook = planned.PriceBook;
             ManualGoal = planned.ManualGoal;
             StewardGoal = planned.StewardGoal;

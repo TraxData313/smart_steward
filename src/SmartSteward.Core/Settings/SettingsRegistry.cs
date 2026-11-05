@@ -245,9 +245,9 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.PackAnimalsEnabled), Pack, "Manage pack animals",
                 "Keep a set number of pack animals (sumpter horses, mules, pack camels). Each one carries about 100 more weight.",
                 s => s.PackAnimalsEnabled, (s, v) => s.PackAnimalsEnabled = v),
-            new IntSetting(nameof(StewardSettings.PackAnimalsMinDenari), Pack, "Manage pack animals from (denari)",
-                "The steward starts managing pack animals once your purse holds at least this many denari when you arrive - "
-                + "below it it neither buys nor sells them. 0 = always.",
+            new IntSetting(nameof(StewardSettings.PackAnimalsMinDenari), Pack, "Buy pack animals from (denari)",
+                "The steward starts buying pack animals once your purse holds at least this many denari when you arrive - "
+                + "below it it buys none. Selling a surplus has its own threshold (Sell surplus pack animals from). 0 = always.",
                 0, MaxGold, s => s.PackAnimalsMinDenari, (s, v) => s.PackAnimalsMinDenari = v),
             new IntSetting(nameof(StewardSettings.PackAnimalsTarget), Pack, "Pack animals to keep",
                 "How many pack animals the party keeps.",
@@ -259,6 +259,10 @@ namespace SmartSteward.Core.Settings
             new BoolSetting(nameof(StewardSettings.SellPackAnimalSurplus), Pack, "Sell surplus pack animals",
                 "Sell pack animals above the target, the dearest first.",
                 s => s.SellPackAnimalSurplus, (s, v) => s.SellPackAnimalSurplus = v),
+            new IntSetting(nameof(StewardSettings.PackAnimalsSellMinDenari), Pack, "Sell surplus pack animals from (denari)",
+                "The steward sells pack animals above the target once your purse holds at least this many denari when you "
+                + "arrive - below it it keeps them. 0 = always: a surplus is sold however poor you are.",
+                0, MaxGold, s => s.PackAnimalsSellMinDenari, (s, v) => s.PackAnimalsSellMinDenari = v),
 
             // ── Mounts ───────────────────────────────────────────────────────────────────────────
             new BoolSetting(nameof(StewardSettings.MountsEnabled), Mounts, "Manage riding horses",

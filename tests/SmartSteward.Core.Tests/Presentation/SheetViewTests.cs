@@ -265,4 +265,14 @@ public class SheetViewTests
         var grain = Open(s.Plan()).Section(SheetGroup.Food)!.Items.Single();
         Assert.Equal("starts at 2,000 denari", grain.Note);
     }
+
+    [Fact]
+    public void A_pack_row_whose_buys_wait_says_so_while_its_surplus_sells()
+    {
+        var s = new Scenario().Party(10).Gold(1_500).Pack("mule", held: 30);
+        s.Settings.PackAnimalsMinDenari = 2_000;
+        var pack = Open(s.Plan()).Section(SheetGroup.Horses)!.Items.Single(i => i.Key == "row:mounts:pack");
+        Assert.EndsWith("buys start at 2,000 denari", pack.Note);
+        Assert.Equal(UiFormat.SignedCount(-20), pack.Change);
+    }
 }

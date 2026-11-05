@@ -59,8 +59,10 @@ namespace SmartSteward.Core.Presentation
         public string OnFoot { get; set; } = "on foot";
         public string HorsesToKeep { get; set; } = "horses to keep";
         public string StartsAt { get; set; } = "starts at";
+        /// <summary>The pack animals row while only its buys wait (Toni 2026-11-05): <c>buys start at 2,000 denari</c>.</summary>
+        public string BuysStartAt { get; set; } = "buys start at";
         public string Denari { get; set; } = "denari";
-        public string PackAnimalsStart { get; set; } = "pack animals start at";
+        public string PackAnimalsStart { get; set; } = "pack animal buys start at";
         public string RidingHorsesStart { get; set; } = "riding horses start at";
         public string WarHorsesStart { get; set; } = "war horses start at";
         public string NobleHorsesStart { get; set; } = "noble horses start at";
