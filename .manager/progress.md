@@ -104,3 +104,11 @@ Facts found by the manager:
        description refreshed), verify via Web API. Board + TASKS_DONE.
 - Step 7 done 2026-10-14: SellLoot default true; settings.json gets "SettingsVersion": 2 - a v1.0.0 file (no marker) with "SellLoot": false is flipped on ONCE (logged), the rewrite carries the marker so a later "off" sticks. 911 tests green, McmProbe + check-soft-deps OK; Steam bbcode line now "On by default..." (7,270 B). deploy.ps1 refused: the game was running. Version NOT bumped (step 8).
 - Step 8 done 2026-10-14: v1.0.1 (commit 1f93656) packaged (zip 263,133 B), GitHub release v1.0.1 Latest, Workshop 3817263044 updated ("Uploading done!", change notes + description, still Public; API: result 1, visibility 0, updated 11:27 UTC, 792,007 B). Phase 3 complete. Game was running - dev deploy of step 7 still pending.
+
+## Phase 4 (Toni 2026-11-05): "smart steward stopped selling my pack animals"
+Screenshot (Car Banseth): Pack animals row Market 22, Goal 10, Mine 0, Change 0, Result 0. Horses group line
+"1 / 22 before the herd slows you · 20 on foot, 22 horses to keep". Riding/War goal "-*". Denari 2,552 (+2,225 from loot).
+Land 480 -> 443 of 450 capacity, left 7. So: goal 10, market has 22, he has 0, yet nothing is bought. ("selling" = the
+town selling them to him.)
+9. [ ] Diagnose: find why the pack-animal buy is 0 (money, land/weight cap, price cap, herd-slowdown, recent commits). Root cause + failing test.
+10. [ ] Fix + tests green + deploy to Modules\SmartSteward.Dev (not if game running). Commit + push.
