@@ -110,5 +110,15 @@ Screenshot (Car Banseth): Pack animals row Market 22, Goal 10, Mine 0, Change 0,
 "1 / 22 before the herd slows you · 20 on foot, 22 horses to keep". Riding/War goal "-*". Denari 2,552 (+2,225 from loot).
 Land 480 -> 443 of 450 capacity, left 7. So: goal 10, market has 22, he has 0, yet nothing is bought. ("selling" = the
 town selling them to him.)
-9. [ ] Diagnose: find why the pack-animal buy is 0 (money, land/weight cap, price cap, herd-slowdown, recent commits). Root cause + failing test.
+9. [x] Diagnose (CORRECTED by Toni: the bug is the steward NOT SELLING his own surplus pack animals, seen in a previous save; this screenshot has 0 and does not show it. Also explain the buy-0 here): root cause + failing test.
 10. [ ] Fix + tests green + deploy to Modules\SmartSteward.Dev (not if game running). Commit + push.
+- Step 9 done 2026-11-05 (diagnosis, no prod change). Likeliest cause: PackAnimalsMinDenari (default 2,000) gates the
+  WHOLE PackAnimals job on gold-before-deal (PackAnimalPlanner.cs:123 JobActive, PlanContext.cs:167) -> below 2,000 no buy
+  AND no sell, surplus kept. That is DESIGN.md:1295 §3 (Anton 2026.09.28 round 4) - intended but wrong for selling.
+  Not a regression. Other intended sell-blockers: town price < 0.8x avg (HorseSellPriceMultiplier), market out of gold,
+  Sell unticked, quest keeps, locks, lame. Screenshot's buy 0 = intended: buys never drop gold below MinGoldForHorses
+  5,000 (PlanContext.cs:137/176; 4,777 < 5,000); reason only in hover (PackAnimalPlanner.cs:147).
+  Uncommitted failing test: tests\SmartSteward.Core.Tests\Planning\PackSurplusDiagnosisTests.cs
+  (A_poor_purse_still_sells_the_pack_animal_surplus fails: 1,500 denari, 30 mules -> 0, want -20; 3 Diag_* pass).
+  Fix proposal (needs Toni, changes DESIGN §3): min-denari gate blocks buying only; surplus always sells (pack animals,
+  maybe food/mounts too). Plus: show the 5,000-floor reason in the row, not only on hover.
